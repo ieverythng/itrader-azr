@@ -1,35 +1,32 @@
-# itrader/environment.yml
-name: itrader          # <-- conda env name
+name: itrader
 channels:
   - conda-forge
-  - pytorch            # for official CUDA builds
+  - pytorch     # still fine – has CUDA wheels for Windows
 dependencies:
-  # --- core Python ---
+  # ------- core -------
   - python =3.11
-  - pip                # conda-managed pip
-
-  # --- RL / env helpers ---
-  - ray =2.9           # includes RLlib
-  - pettingzoo         # multi-agent API we wrap
-  - gymnasium          # Gym v0.27 successor
-  - pytorch =2.2.*     # cuda 12 build (pinned)
-  - torchvision
-  - torchaudio
-
-  # --- Data / TA ---
+  - pip
   - numpy
   - pandas
-  - duckdb
-  - pyarrow            # Arrow + Parquet
-  - ta-lib             # technical indicators C-lib ❶
+  - pyarrow
+  - pytorch =2.2
+  - torchvision
+  - torchaudio         # CUDA runtime; comment out if CPU-only
+  # tech-analysis C lib (conda-forge has a Win build)
+  - ta-lib
+
+  # ------- install the rest via pip -------
   - pip:
-      # pandas-ta is pip-only
-      - pandas-ta==0.3.14b
-      # vectorbt (optional back-tester)
+      # RL & envs
+      - "ray[default,rllib]==2.9.0"
+      - pettingzoo==1.24.1
+      - gymnasium==0.29.1
+      # Data / back-test
+      - duckdb==0.10.2
       - vectorbt==0.25.6
-      # backtrader alternative
-      - backtrader`
-      # LLM tooling
+      - pandas-ta==0.3.14b
+      - backtrader
+      # LLM stack
       - transformers==4.41.2
       - accelerate==0.30.1
       - peft==0.10.0
@@ -37,8 +34,7 @@ dependencies:
       - sentencepiece
       - einops
       - huggingface-hub
-      # experiment tracking
+      # utils
       - wandb==0.17.1
-      # cli / utils
       - tqdm
       - typer[all]
