@@ -7,7 +7,7 @@ dependencies:
   # ── core ────────────────────────────────────────────────
   - python=3.11               # 64-bit
   - numpy=1.26.*              # last pure-NumPy release
-  - pyarrow=6.0.1             # satisfies ray 2.9 / 2.20
+  - pyarrow=13.0.0           # satisfies ray 2.9 / 2.20
   - pandas=2.2.*
   - duckdb=0.10.2
   - pytorch=2.3.*=cpu         # swap to cuda build later if you like
