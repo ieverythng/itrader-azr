@@ -6,7 +6,7 @@ dependencies:
   # Array stack pinned
   - python=3.11
   - numpy=1.26.4
-  - pyarrow=6.1.0
+  - pyarrow==13.0.0 
   - pandas=2.2.*
   - duckdb=0.10.2
   - ta-lib
@@ -14,7 +14,7 @@ dependencies:
   - torchvision
   - pip
   - pip:
-      - "ray[rllib]==2.9.0"
+      - "ray[rllib]==2.21.0 "
       - pettingzoo==1.24.1
       - vectorbt==0.25.6
       - transformers==4.41.1
