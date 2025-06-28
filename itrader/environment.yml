@@ -1,25 +1,28 @@
+# itrader/environment.yml
 name: itrader
 channels:
   - conda-forge
   - pytorch
 dependencies:
-  # Array stack pinned
-  - python=3.11
-  - numpy=1.26.4
-  - pyarrow==13.0.0 
+  # ── core ────────────────────────────────────────────────
+  - python=3.11               # 64-bit
+  - numpy=1.26.*              # last pure-NumPy release
+  - pyarrow=6.0.1             # satisfies ray 2.9 / 2.20
   - pandas=2.2.*
   - duckdb=0.10.2
-  - ta-lib
-  - pytorch=2.3.*
-  - torchvision
+  - pytorch=2.3.*=cpu         # swap to cuda build later if you like
+  - torchvision=0.18.*=cpu
+  - ta-lib                     # conda build on cf
   - pip
+  # ── pip section ─────────────────────────────────────────
   - pip:
-      - "ray[rllib]==2.21.0 "
+      - "ray[rllib]==2.20.0"     # matches your screen-shot
       - pettingzoo==1.24.1
-      - vectorbt==0.25.6
+      - vectorbtpro==0.25.6
       - transformers==4.41.1
       - accelerate==0.27.2
-      - llama-cpp-python==0.2.71         # cp311 win wheel
+      - llama-cpp-python==0.2.71  --prefer-binary   # <- keep CPU wheel
+      - fire
       - black
       - isort
       - pytest
