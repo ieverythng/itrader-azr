@@ -6,7 +6,7 @@ dependencies:
   # Array stack pinned
   - python=3.11
   - numpy=1.26.4
-  - pyarrow=16.1.0
+  - pyarrow=6.1.0
   - pandas=2.2.*
   - duckdb=0.10.2
   - ta-lib
