@@ -10,15 +10,15 @@ dependencies:
   - pyarrow=13.0.0           # satisfies ray 2.9 / 2.20
   - pandas=2.2.*
   - duckdb=0.10.2
-  - pytorch=2.3.*=cpu         # swap to cuda build later if you like
-  - torchvision=0.18.*=cpu
+  - pytorch=2.3.    # swap to cuda build later if you like
+  - torchvision=0.18.
   - ta-lib                     # conda build on cf
   - pip
   # ── pip section ─────────────────────────────────────────
   - pip:
       - "ray[rllib]==2.20.0"     # matches your screen-shot
       - pettingzoo==1.24.1
-      - vectorbtpro==0.25.6
+      - vectorbtpro==0.26.0
       - transformers==4.41.1
       - accelerate==0.27.2
       - llama-cpp-python==0.2.71  --prefer-binary   # <- keep CPU wheel
