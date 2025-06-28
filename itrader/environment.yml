@@ -1,39 +1,39 @@
+# itrader/environment.yml  (v0.4 – "just-works" edition)
 name: itrader
 channels:
   - conda-forge
   - pytorch
 dependencies:
-  # ---------- Core ----------
+  # ---------- interpreter ----------
   - python=3.11
-  - pip
+  - pip                       # use the latest pip wheel
 
-  # ---------- Numeric / data ----------
-  - numpy>=1.26
-  - pandas>=2.2
+  # ---------- BLAS / array stack ----------
+  - numpy=1.26.*              # modern, has wheels
+  - pyarrow=16.1.*            # WIN cp311 wheel exists
+  - pandas=2.2.*
+
+  # ---------- ML / DL ----------
+  - pytorch=2.3.*
+  - torchvision
+
+  # ---------- misc libs ----------
   - scipy
-  - pyarrow=16.1
-  - ta-lib
-  - duckdb=0.10.2          # parquet / SQL
+  - ta-lib                     # comes from conda-forge
+  - duckdb=0.10.2
 
-  # ---------- Deep learning ----------
-  - pytorch=2.3.*          # CPU build; add CUDA later with pip wheel
-  - torchvision            # pulls the matching build
-
-  # ---------- RL / multi-agent ----------
+  # ---------- use pip for the rest ----------
   - pip:
-      # Ray & RLlib
       - "ray[default,rllib]==2.9.0"
-      - "pettingzoo==1.24.1"
-
-      # Back-testing
+      - pettingzoo==1.24.1
       - vectorbt==0.26.0
 
-      # LLM / inference
+      # LLM pieces
       - transformers==4.41.1
-      - accelerate==0.27.2        # 0.28 wheels missing for Win+py311
-      - llama-cpp-python==0.2.71  # first CP311 win_amd64 wheel
+      - accelerate==0.27.2
+      - llama-cpp-python==0.2.71          # cp311 win wheel
 
-      # Dev / tooling
+      # dev / test
       - black
       - isort
       - pytest
