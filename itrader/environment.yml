@@ -6,9 +6,9 @@ dependencies:
   # ------- core -------
   - python =3.11
   - pip
-  - numpy
+  - numpy >=1.26
   - pandas
-  - pyarrow
+  - pyarrow =16.1.0  
   - pytorch =2.2
   - torchvision
   - torchaudio         # CUDA runtime; comment out if CPU-only
@@ -23,7 +23,7 @@ dependencies:
       - gymnasium==0.29.1
       # Data / back-test
       - duckdb==0.10.2
-      - vectorbt==0.25.6
+      - vectorbt==0.26.0
       - pandas-ta==0.3.14b
       - backtrader
       # LLM stack
