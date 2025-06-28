@@ -1,39 +1,25 @@
-# itrader/environment.yml  (v0.4 – "just-works" edition)
 name: itrader
 channels:
   - conda-forge
   - pytorch
 dependencies:
-  # ---------- interpreter ----------
+  # Array stack pinned
   - python=3.11
-  - pip                       # use the latest pip wheel
-
-  # ---------- BLAS / array stack ----------
-  - numpy=1.26.*              # modern, has wheels
-  - pyarrow=16.1.*            # WIN cp311 wheel exists
+  - numpy=1.26.4
+  - pyarrow=16.1.0
   - pandas=2.2.*
-
-  # ---------- ML / DL ----------
+  - duckdb=0.10.2
+  - ta-lib
   - pytorch=2.3.*
   - torchvision
-
-  # ---------- misc libs ----------
-  - scipy
-  - ta-lib                     # comes from conda-forge
-  - duckdb=0.10.2
-
-  # ---------- use pip for the rest ----------
+  - pip
   - pip:
-      - "ray[default,rllib]==2.9.0"
+      - "ray[rllib]==2.9.0"
       - pettingzoo==1.24.1
-      - vectorbt==0.26.0
-
-      # LLM pieces
+      - vectorbt==0.25.6
       - transformers==4.41.1
       - accelerate==0.27.2
-      - llama-cpp-python==0.2.71          # cp311 win wheel
-
-      # dev / test
+      - llama-cpp-python==0.2.71         # cp311 win wheel
       - black
       - isort
       - pytest
