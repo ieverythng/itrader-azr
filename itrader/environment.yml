@@ -3,37 +3,34 @@ channels:
   - conda-forge
   - pytorch
 dependencies:
-  # ---------- Core Python ----------
+  # ---------- Python ----------
   - python=3.11
-  - pip                        # so pip is available inside env
+  - pip
 
-  # ---------- Core numeric stack ----------
+  # ---------- Numerical stack ----------
   - numpy>=1.26
   - pandas>=2.2
   - scipy
-  - pyarrow=16.1               # wheels for py311
-
-  # ---------- Finance helpers ----------
-  - ta-lib                      # conda-forge has pre-built wheel
-  # - pandas-ta                 # optional; pure-python, can be pip-installed
+  - pyarrow=16.1          # parquet IO
+  - ta-lib
 
   # ---------- RL / multi-agent ----------
   - pip:
+      # Ray & RLlib (2.9.0 is last Win-wheel right now)
       - "ray[default,rllib]==2.9.0"
       - "pettingzoo==1.24.1"
+
+      # Data / back-testing
       - duckdb==0.10.2
-      - vectorbt==0.25.6        # CPU-only back-testing lib
-      - bitsandbytes-windows    # tiny Q4 LoRA linear layers (optional)
+      - vectorbt==0.26.0        # pure-python build OK
 
-      # LLM backend (quantised 6-B model via GGUF)
-      - "transformers==4.41.1"
-      - "accelerate>=0.28"
-      - "optimum==1.21.1"
-      - "auto-gptq==0.7.2"
-      - "einops"
+      # LLM bits (NO auto-gptq yet)
+      - transformers==4.41.1
+      - accelerate==0.28.0
+      # You can do GGUF quant inference with llama-cpp-python
+      - llama-cpp-python==0.2.70.post2
 
-      # ---------- Dev / tooling ----------
+      # Dev / tooling
       - black
       - isort
       - pytest
-      # - jupyterlab            # uncomment if you want notebooks inside env
