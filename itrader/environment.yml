@@ -3,32 +3,35 @@ channels:
   - conda-forge
   - pytorch
 dependencies:
-  # ---------- Python ----------
+  # ---------- Core ----------
   - python=3.11
   - pip
 
-  # ---------- Numerical stack ----------
+  # ---------- Numeric / data ----------
   - numpy>=1.26
   - pandas>=2.2
   - scipy
-  - pyarrow=16.1          # parquet IO
+  - pyarrow=16.1
   - ta-lib
+  - duckdb=0.10.2          # parquet / SQL
+
+  # ---------- Deep learning ----------
+  - pytorch=2.3.*          # CPU build; add CUDA later with pip wheel
+  - torchvision            # pulls the matching build
 
   # ---------- RL / multi-agent ----------
   - pip:
-      # Ray & RLlib (2.9.0 is last Win-wheel right now)
+      # Ray & RLlib
       - "ray[default,rllib]==2.9.0"
       - "pettingzoo==1.24.1"
 
-      # Data / back-testing
-      - duckdb==0.10.2
-      - vectorbt==0.26.0        # pure-python build OK
+      # Back-testing
+      - vectorbt==0.26.0
 
-      # LLM bits (NO auto-gptq yet)
+      # LLM / inference
       - transformers==4.41.1
-      - accelerate==0.28.0
-      # You can do GGUF quant inference with llama-cpp-python
-      - llama-cpp-python==0.2.70.post2
+      - accelerate==0.27.2        # 0.28 wheels missing for Win+py311
+      - llama-cpp-python==0.2.71  # first CP311 win_amd64 wheel
 
       # Dev / tooling
       - black
