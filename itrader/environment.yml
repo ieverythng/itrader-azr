@@ -18,10 +18,10 @@ dependencies:
   - pip:
       - "ray[rllib]==2.20.0"     # matches your screen-shot
       - pettingzoo==1.24.1
-      - vectorbtpro==0.26.0
+      - vectorbt==0.26.0
       - transformers==4.41.1
       - accelerate==0.27.2
-      - llama-cpp-python==0.2.71  --prefer-binary   # <- keep CPU wheel
+      - llama-cpp-python==0.2.83  --prefer-binary   # - keep CPU wheel
       - fire
       - black
       - isort
