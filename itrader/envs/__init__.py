@@ -1,14 +1,13 @@
 import gymnasium as gym
 from .itrader_env import ITraderEnv
+import pandas as pd
 
-def _itrader_env_creator(**kwargs):
-    import pandas as pd
-    df = pd.read_parquet(kwargs["df_path"])
-    return ITraderEnv(df=df, fee=kwargs.get("fee", 0.001))
+def _creator(df_path: str, fee: float = 0.001, **_):
+    df = pd.read_parquet(df_path)
+    return ITraderEnv(df=df, fee=fee)
 
 gym.register(
-    id="iTraderEnv-v0",          # ← string other code will use
-    entry_point=_itrader_env_creator,
-    max_episode_steps=390,       # one US equity trading day (6.5 h * 60 min)
-    )
-    
+    id="iTraderEnv-v0",
+    entry_point=_creator,
+    max_episode_steps=390,          # 1 NYSE trading day (6.5h * 60)
+)
