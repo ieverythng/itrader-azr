@@ -3,7 +3,7 @@ from functools import lru_cache
 from llama_cpp import Llama
 import pathlib
 
-MODEL_FILE = pathlib.Path("models/deepseek-llm-6b-q4_k_m.gguf").resolve()
+MODEL_FILE = pathlib.Path("itrader/models/deepseek-llm-6b-q4_k_m/deepseek-coder-6.7b-instruct.Q4_K_M.gguf").resolve()
 
 @lru_cache
 def get_llm():

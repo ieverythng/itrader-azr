@@ -1,23 +1,43 @@
 import gymnasium as gym
 import numpy as np
 import pandas as pd
+from gymnasium import Env
+from pathlib import Path
 
 class ITraderEnv(gym.Env):
     """
-    Minimal single-asset trading env.
-    Action: 0 short, 1 flat, 2 long
-    Observation: vector of engineered features per bar
+    RL environment for trading.
+    Expects `env_config` keys:
+        df_path : path to parquet/csv   OR
+        df      : already-loaded DataFrame
+        fee     : commission in %
     """
-    metadata = {"render_modes": ["human"]}
+    def __init__(self, env_config: dict | None = None):
+        env_config = env_config or {}
 
-    def __init__(self, df: pd.DataFrame, fee: float = 0.001):
-        self.df = df.reset_index(drop=True)
+        # 1. explicit absolute path wins
+        df_path = env_config.get("df_path")
 
-        # -------- feature set --------
-        raw_cols = ["open", "high", "low", "close", "volume"]
-        tech_cols = ["rsi14", "sma20"]              # produced by etl_job.py
-        self.feature_cols = raw_cols + tech_cols
-        self.fee = fee
+        # 2. if caller gave a relative path, resolve it against *this* file
+        if df_path and not Path(df_path).is_absolute():
+            df_path = Path(__file__).resolve().parents[2] / df_path   # repo/ + data/...
+
+        # 3. fallback to package-bundled file
+        if df_path is None:
+            df_path = Path(__file__).resolve().parents[1] / "data" / "ohlcv.parquet"
+
+        df_path = Path(df_path).expanduser().resolve(strict=True)     # ← raises if missing
+        self.df = pd.read_parquet(df_path).reset_index(drop=True)
+
+        default_feats = [c for c in self.df.columns
+                         if c.upper() in ("OPEN", "HIGH", "LOW", "CLOSE", "VOLUME")]
+        self.feature_cols = env_config.get("feature_cols", default_feats)
+
+        missing = [c for c in self.feature_cols if c not in self.df.columns]
+        if missing:
+            raise ValueError(f"Feature columns not in dataframe: {missing}")
+
+        self.fee = env_config.get("fee", 0.001)
 
         # -------- spaces -------------
         self.action_space = gym.spaces.Discrete(3)          # short / flat / long

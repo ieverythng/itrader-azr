@@ -14,7 +14,7 @@ con.execute("""CREATE TABLE IF NOT EXISTS ticks(
                  ts TIMESTAMP, symbol VARCHAR,
                  price DOUBLE, size BIGINT)""")
 
-SYMBOLS = ["MSFT", "AMZN"]           # add/remove here
+SYMBOLS = ["AAPL","MSFT", "AMZN"]           # add/remove here
 
 async def stream():
     async with websockets.connect(URL) as ws:
