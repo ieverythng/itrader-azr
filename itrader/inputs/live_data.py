@@ -14,12 +14,14 @@ con.execute("""CREATE TABLE IF NOT EXISTS ticks(
                  ts TIMESTAMP, symbol VARCHAR,
                  price DOUBLE, size BIGINT)""")
 
+SYMBOLS = ["MSFT", "AMZN"]           # add/remove here
+
 async def stream():
     async with websockets.connect(URL) as ws:
         await ws.send(json.dumps({"action": "auth",
                                   "params": API_KEY}))
         await ws.send(json.dumps({"action": "subscribe",
-                                  "params": "T.AAPL"}))
+                                  "params": ",".join(f"T.{s}" for s in SYMBOLS)}))
         while True:
             for msg in json.loads(await ws.recv()):
                 if msg["ev"] == "T":            # ‘Trade’ event
