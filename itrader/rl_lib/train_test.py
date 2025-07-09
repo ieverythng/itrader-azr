@@ -34,6 +34,7 @@ def main()-> None:
         .environment("iTraderEnv", env_config={"df_path": str(DF)})
         .framework("torch")  # or "tf" – whatever you use
         .env_runners(num_env_runners=3)
+        .resources(num_gpus=1)
     )
 
     config.logger_config = {
