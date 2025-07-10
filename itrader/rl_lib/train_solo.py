@@ -1,77 +1,84 @@
-# -----------------------------------------------------------
-#  Phase-A training script – solver-only PPO
-# -----------------------------------------------------------
-import argparse, pathlib, numpy as np, torch
-from ray import air, tune
+import argparse, random, numpy as np, torch
 from ray.rllib.algorithms.ppo import PPOConfig
-from ray.rllib.models import ModelCatalog
+from ray.rllib.core.rl_module.rl_module import RLModuleSpec
+import gymnasium as gym
+from pathlib import Path
 
-# --- local imports
-from itrader.envs.itrader_env import ITraderEnv           # your custom Gymnasium env
+# Phase-A helpers  (path now pinned to PA_helpers)
+from itrader.envs.itrader_env import ITraderEnv
+from itrader.inputs.PA_helpers import load_market_data, compute_valid_indices
 from itrader.models.solver_lstm import SolverLSTM
-from itrader.models.solver_ray import SolverRay
 
-# ----------------------------------------------------------- #
-def build_config(model_name: str, window_size: int = 32):
+
+# ----------------------------------------------------------------------
+def build_config(window:int, parquet:str)->PPOConfig:
     """
-    Return an RLlib PPOConfig pre-populated for Phase A
+    Pure-new-stack PPOConfig that runs ITraderEnv and uses SolverLSTM.
     """
-    cfg = (
+    dummy_env = ITraderEnv                 # hand class to RLlib
+
+    env_cfg = {
+        "df_path"    : parquet,
+        "window_size": window,
+        # (anything else ITraderEnv.__init__ expects)
+    }
+
+    # Get spaces once so we can feed them into RLModuleSpec
+    tmp_env      = dummy_env(env_cfg)
+    obs_space    = tmp_env.observation_space
+    act_space    = tmp_env.action_space
+    tmp_env.close()
+
+    return (
         PPOConfig()
-        .environment(
-            env=ITraderEnv,
-            env_config={
-                # << path to your parquet >> 
-                "df_path": str(pathlib.Path(__file__).parent.parent / "data" / "ohlcv.parquet"),
-                "window_size": window_size,
-            },
-        )
-        .framework("torch")
-        .resources(num_gpus=int(torch.cuda.is_available()))
-        .rollouts(num_rollout_workers=0)                     # local sampling
+        .api_stack(enable_rl_module_and_learner=True,
+                   enable_env_runner_and_connector_v2=True)   # 100 % new API
+        .environment(env=dummy_env, env_config=env_cfg)                       
+        .framework("torch", eager_tracing=True)
+        .env_runners(num_env_runners=0)
+        .debugging(log_level="WARN")
+        .resources(num_gpus=1)
+        .rl_module(
+            rl_module_spec=RLModuleSpec(
+                module_class      = SolverLSTM,
+                observation_space = obs_space,
+                action_space      = act_space,
+                model_config = {"window_size": window},
+            )
+        )                 # local sampling
         .training(
-            gamma=0.99,
-            lr=5e-4,
             train_batch_size=4000,
-            sgd_minibatch_size=128,
-            model={
-                "custom_model": model_name,
-                "window_size": window_size,                 # passed into model_config
-            },
+            minibatch_size=128,        # <-- replaces sgd_minibatch_size 
+            num_epochs=30,             # replaces num_sgd_iter
+            gamma=0.99,
+            vf_clip_param=10.0,
+            lr=5e-5,
         )
     )
-    return cfg
 
 
-# ----------------------------------------------------------- #
+# ----------------------------------------------------------------------
 def main(args):
-    # --- register models once per process
-    ModelCatalog.register_custom_model("solver_lstm", SolverLSTM)
-    ModelCatalog.register_custom_model("solver_ray",  SolverRay)
+    parquet = Path(args.data_path).as_posix()
+    if not Path(parquet).is_file():
+        raise FileNotFoundError(f"Parquet not found ➜ {parquet}")
 
-    # --- choose model
-    model_name = "solver_lstm" if args.lstm else "solver_ray"
-    config     = build_config(model_name, window_size=args.window)
+    cfg  = build_config(args.window, parquet)
+    algo = cfg.build_algo()
 
-    algo = config.build()
-
-    for i in range(args.iters):
-        result = algo.train()
-        if i % args.log == 0:
-            print(
-                f"[{i:04d}]  "
-                f"reward_mean={result['episode_reward_mean']:.3f}  "
-                f"policy_loss={result['learner_results']['default_policy']['policy_loss']:.4f}"
-            )
+    for it in range(args.iters):
+        result = algo.train()                # standard PPO step
+        if it % 10 == 0:
+            r = result["episode_reward_mean"]
+            print(f"[{it:04d}] mean episode reward = {r:.3f}")
 
     algo.stop()
 
-
-# ----------------------------------------------------------- #
+# -------------------------------------------------------------------
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--iters", type=int, default=100, help="train iterations")
-    parser.add_argument("--window", type=int, default=32, help="price window size")
-    parser.add_argument("--log", type=int, default=10, help="stdout frequency")
-    parser.add_argument("--lstm", action="store_true", help="use LSTM (else MLP)")
-    main(parser.parse_args())
+    p = argparse.ArgumentParser()
+    p.add_argument("--iters",      type=int, default=200)
+    p.add_argument("--window",     type=int, default=30)
+    p.add_argument("--data_path",  default="itrader/data/ohlcv.parquet")
+    args = p.parse_args()
+    main(args)

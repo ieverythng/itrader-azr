@@ -1,63 +1,61 @@
-# -----------------------------------------------------------
-#  SolverLSTM – recurrent policy/value head for Phase-A PPO
-# -----------------------------------------------------------
+"""
+Minimal Solver-only LSTM (new RLModule API)
+───────────────────────────────────────────
+fc-128 ➜ LSTM-64 ➜ π / V heads
+"""
+
+from __future__ import annotations
 import numpy as np
 import torch
 import torch.nn as nn
 
-from ray.rllib.models.torch.torch_modelv2 import TorchModelV2
+from ray.rllib.core.rl_module.torch import TorchRLModule          # new stack ✔
+from ray.rllib.core.rl_module.rl_module import RLModuleConfig
 from ray.rllib.utils.annotations import override
 
 
-class SolverLSTM(TorchModelV2, nn.Module):
-    """
-    obs  : flattened window  → FC → LSTM
-    heads: policy logits & state-value
-    """
+class SolverLSTM(TorchRLModule, nn.Module):
+    """Tiny actor-critic that works with RLlib’s Learner API."""
 
-    def __init__(self, obs_space, action_space, num_outputs, model_config, name):
-        TorchModelV2.__init__(self, obs_space, action_space, num_outputs, model_config, name)
+    def __init__(self, config: RLModuleConfig):
         nn.Module.__init__(self)
+        TorchRLModule.__init__(self, config)
 
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        obs_space, action_space = config.observation_space, config.action_space
+        self._T = config.model_config_dict.get("window_size", 30)
 
-        # -- hyper-params coming from the trainer config
-        self.window_size = int(model_config.get("window_size", 32))
+        in_dim = int(np.prod(obs_space.shape))          # flattened window
+        self.fc   = nn.Linear(in_dim, 128)
+        self.lstm = nn.LSTM(128, 64, batch_first=True)
 
-        # -- shared feature extractor
-        flat_obs = int(np.prod(obs_space.shape))          # e.g. window_size * feat_dim
-        self.fc1   = nn.Linear(flat_obs, 128)
-        self.lstm  = nn.LSTM(input_size=128, hidden_size=64, batch_first=True)
+        self.pi_head = nn.Linear(64, action_space.n)   # logits
+        self.v_head  = nn.Linear(64, 1)                # value
 
-        # -- policy & critic heads
-        self.policy_head = nn.Linear(64, action_space.n)
-        self.value_head  = nn.Linear(64, 1)
+    # ── internal helper ─────────────────────────────────────────────── #
+    def _extract_feat(self, obs: torch.Tensor) -> torch.Tensor:
+        # obs shape: [B, in_dim]
+        x   = torch.relu(self.fc(obs))
+        x   = x.view(-1, self._T, 128)          # [B, T, 128]
+        seq, _ = self.lstm(x)
+        return seq[:, -1, :]                    # last timestep
+    
+    # ───────────────── public API (3 modes) ────────────── #
+    def _forward_all(self, batch):
+        feat = self._extract_feat(batch["obs"])
+        return {
+            "logits": self.pi_head(feat),
+            "value":  self.v_head(feat).squeeze(-1),
+        }, []                                   # no RNN state
 
-        self.to(self.device)
-        self._value_out = None
+    # ── public API (three modes share the same logic) ──────────────── #
+    @override(TorchRLModule)
+    def forward_exploration(self, batch, state=None, seq_lens=None):
+        return self._forward_all(batch)
 
-    # ------------------------------------------------------------------ #
-    @override(TorchModelV2)
-    def forward(self, input_dict, state, seq_lens):
-        """
-        input_dict["obs"]: (B, flat_obs)  where flat_obs = window_size * feat_dim
-        We reshape to (B, T=window_size, 128) before feeding LSTM.
-        """
-        x = input_dict["obs"].float().to(self.device)          # (B, flat_obs)
-        x = torch.relu(self.fc1(x))                            # (B, 128)
-        B = x.shape[0]
-        x = x.view(B, self.window_size, 128)                   # (B, T, 128)
+    @override(TorchRLModule)
+    def forward_inference(self, batch, state=None, seq_lens=None):
+        return self._forward_all(batch)
 
-        lstm_out, _ = self.lstm(x)                             # (B, T, 64)
-        features = lstm_out[:, -1, :]                          # last step (B, 64)
-
-        logits        = self.policy_head(features)             # (B, n_actions)
-        self._value_out = self.value_head(features).squeeze(1) # (B,)
-
-        return logits, state
-
-    # ------------------------------------------------------------------ #
-    @override(TorchModelV2)
-    def value_function(self):
-        assert self._value_out is not None, "Must call forward() first"
-        return self._value_out
+    @override(TorchRLModule)
+    def forward_train(self, batch, state=None, seq_lens=None):
+        return self._forward_all(batch)
