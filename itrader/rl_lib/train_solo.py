@@ -6,7 +6,6 @@ from pathlib import Path
 
 # Phase-A helpers  (path now pinned to PA_helpers)
 from itrader.envs.itrader_env import ITraderEnv
-from itrader.inputs.PA_helpers import load_market_data, compute_valid_indices
 from itrader.models.solver_lstm import SolverLSTM
 
 
@@ -29,11 +28,12 @@ def build_config(window:int, parquet:str)->PPOConfig:
     act_space    = tmp_env.action_space
     tmp_env.close()
 
-    return (
+    cfg = (
         PPOConfig()
         .api_stack(enable_rl_module_and_learner=True,
                    enable_env_runner_and_connector_v2=True)   # 100 % new API
-        .environment(env=dummy_env, env_config=env_cfg)                       
+        .environment(env=dummy_env, env_config=env_cfg) 
+                              
         .framework("torch", eager_tracing=True)
         .env_runners(num_env_runners=0)
         .debugging(log_level="WARN")
@@ -53,8 +53,14 @@ def build_config(window:int, parquet:str)->PPOConfig:
             gamma=0.99,
             vf_clip_param=10.0,
             lr=5e-5,
-        )
+        )  
+        
+        
     )
+
+    cfg.postprocess_inputs = True
+
+    return cfg
 
 
 # ----------------------------------------------------------------------

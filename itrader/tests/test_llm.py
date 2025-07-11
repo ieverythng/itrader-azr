@@ -3,4 +3,6 @@
 # def test_llm_runs():
 #     assert "trading" in ask("Say one word connected to trading:").lower()
 
-import torch, ray, os; ray.init(num_gpus=1); print(torch.cuda.is_available(), ray.available_resources())
+from ray.rllib.algorithms.ppo import PPOConfig
+cfg = PPOConfig()
+print("Has postprocess_inputs:", hasattr(cfg, "postprocess_inputs"))
