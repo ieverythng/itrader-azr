@@ -74,10 +74,16 @@ def main(args):
 
     for it in range(args.iters):
         result = algo.train()                # standard PPO step
-        if it % 10 == 0:
-            r = result["episode_reward_mean"]
-            print(f"[{it:04d}] mean episode reward = {r:.3f}")
+        r = result.get("episode_return_mean", None)
 
+        if it % 10 == 0:
+            if r is not None:
+                print(f"[{it:04d}] mean episode return = {r:.3f}")
+            else:
+                # Fallback: show whatever keys the dict has so we keep an eye
+                # on training even if Ray changes names again.
+                print(f"[{it:04d}] keys →", list(result.keys()))
+                
     algo.stop()
 
 # -------------------------------------------------------------------
