@@ -1,0 +1,10 @@
+cluster_name: itrader-local         # Ray dashboard will show this
+head_resources: {"CPU": 4, "GPU": 1}  # Reserve GPU for learner
+min_workers: 0                      # Local dev = head-only
+max_workers: 0
+docker:
+  image: pytorch/pytorch:2.3.0-cuda12.2-cudnn8-runtime
+file_mounts:
+  /workspace/iTrader: .             # sync repo into container
+setup_commands:
+  - pip install ray[air]==2.47 gymnasium pandas duckdb ta

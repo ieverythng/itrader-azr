@@ -1,2 +1,9 @@
-numpy==1.26.4
 pyarrow==13.0.0
+ray[default]==2.47.1     # core CLI, Jobs API, dashboard
+ray[rllib]==2.47.1       # RLlib & Tune extras
+gymnasium>=0.29
+ta>=0.11.0               # technical-analysis indicators
+websockets>=12.0
+duckdb>=0.10
+great_expectations>=0.19 # data-quality checks
+pandas
