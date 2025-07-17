@@ -7,6 +7,7 @@ from pathlib import Path
 # Phase-A helpers  (path now pinned to PA_helpers)
 from itrader.envs.itrader_env import ITraderEnv
 from itrader.models.solver_lstm import SolverLSTM
+# from itrader.rl_lib.callbacks import StatsCallback
 
 
 # ----------------------------------------------------------------------
@@ -28,14 +29,25 @@ def build_config(window:int, parquet:str)->PPOConfig:
     act_space    = tmp_env.action_space
     tmp_env.close()
 
+     # --- simple custom callback to surface throughput -----------------
+    from ray.rllib.algorithms.callbacks import DefaultCallbacks
+    class StatsCallback(DefaultCallbacks):
+        def on_learn_on_batch_end(self, *, results, **__):
+            # learner time is ms for the last minibatch
+            lt_ms = results["learner"]["learner_stats"]["learner_time_ms"]
+            results["custom_metrics"]["samples_per_sec"] = 1000.0 / lt_ms
+
     cfg = (
         PPOConfig()
         .api_stack(enable_rl_module_and_learner=True,
-                   enable_env_runner_and_connector_v2=True)   # 100 % new API
-        .environment(env=dummy_env, env_config=env_cfg) 
-                              
+            enable_env_runner_and_connector_v2=True)   # 100 % new API
+        .environment(env=dummy_env, env_config=env_cfg)
+        .callbacks(StatsCallback)                       
         .framework("torch", eager_tracing=True)
-        .env_runners(num_env_runners=0)
+        .env_runners(num_env_runners=6,   # Ryzen-5500 = 6 cores
+            num_cpus_per_env_runner=1,
+            num_gpus_per_env_runner=0,
+        )
         .debugging(log_level="WARN")
         .resources(num_gpus=1)
         .rl_module(
@@ -53,7 +65,9 @@ def build_config(window:int, parquet:str)->PPOConfig:
             gamma=0.99,
             vf_clip_param=10.0,
             lr=5e-5,
-        )  
+        )
+        
+         
         
         
     )
@@ -78,7 +92,8 @@ def main(args):
 
         if it % 10 == 0:
             if r is not None:
-                print(f"[{it:04d}] mean episode return = {r:.3f}")
+                ips = result["custom_metrics"].get("iters_per_sec", 0.0)
+                print(f"[{it:04d}] return={r:+7.3f}   iters/s={ips:5.2f}")
             else:
                 # Fallback: show whatever keys the dict has so we keep an eye
                 # on training even if Ray changes names again.

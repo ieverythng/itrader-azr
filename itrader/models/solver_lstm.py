@@ -65,7 +65,7 @@ class SolverLSTM(TorchRLModule, nn.Module):
             Columns.VALUE_TARGETS: torch.zeros_like(value),
         }
 
-    # same logic for all three forward modes
+    # same logic for all three forward modes#
     @override(TorchRLModule)
     def forward_exploration(self, batch, **kw):
         return self._forward(batch)
