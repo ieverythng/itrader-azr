@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from ray.rllib.core.rl_module.torch import TorchRLModule
-from ray.rllib.core.columns import Columns 
+from ray.rllib.policy.sample_batch import SampleBatch as Columns 
 from ray.rllib.utils.annotations import override
 
 
@@ -61,8 +61,6 @@ class SolverLSTM(TorchRLModule, nn.Module):
             Columns.ACTIONS           : actions,
             Columns.ACTION_LOGP       : logp,
             Columns.VF_PREDS          : value,
-            Columns.ADVANTAGES  : torch.zeros_like(value),
-            Columns.VALUE_TARGETS: torch.zeros_like(value),
         }
 
     # same logic for all three forward modes#
@@ -74,9 +72,4 @@ class SolverLSTM(TorchRLModule, nn.Module):
     forward_train     = forward_exploration
 
     def compute_values(self, batch, **kw):
-        obs = batch[Columns.OBS]
-        B   = obs.size(0)
-        x   = obs.view(B, self.win, self.n_feat)
-        x   = F.relu(self.fc(x))
-        seq, _ = self.lstm(x)
-        return self.vf(seq[:, -1]).squeeze(-1)
+        return self._forward(batch)[Columns.VF_PREDS]

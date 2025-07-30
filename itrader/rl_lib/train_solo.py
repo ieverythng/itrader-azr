@@ -1,6 +1,6 @@
 import argparse, random, numpy as np, torch
 from ray.rllib.algorithms.ppo import PPOConfig
-from ray.rllib.core.rl_module.rl_module import RLModuleSpec
+from ray.rllib.core.rl_module.rl_module import SingleAgentRLModuleSpec
 import gymnasium as gym
 from pathlib import Path
 
@@ -33,29 +33,28 @@ def build_config(window:int, parquet:str)->PPOConfig:
     from ray.rllib.algorithms.callbacks import DefaultCallbacks
     class StatsCallback(DefaultCallbacks):
         def on_learn_on_batch_end(self, *, results, **__):
-            # learner time is ms for the last minibatch
-            lt_ms = results["learner"]["learner_stats"]["learner_time_ms"]
-            results["custom_metrics"]["samples_per_sec"] = 1000.0 / lt_ms
+            # Ray 2.9 stores learner stats under results["learners"]["default_policy"]
+            learner_stats = results["learners"]["default_policy"]["learner_stats"]
+            lt_ms = learner_stats["learner_time_ms"]
+            results["custom_metrics"]["iters_per_sec"] = 1000.0 / lt_ms
 
     cfg = (
         PPOConfig()
-        .api_stack(enable_rl_module_and_learner=True,
-            enable_env_runner_and_connector_v2=True)   # 100 % new API
         .environment(env=dummy_env, env_config=env_cfg)
         .callbacks(StatsCallback)                       
         .framework("torch", eager_tracing=True)
-        .env_runners(num_env_runners=6,   # Ryzen-5500 = 6 cores
-            num_cpus_per_env_runner=1,
-            num_gpus_per_env_runner=0,
-        )
+        .rollouts(num_rollout_workers=6)   # Ryzen-5500 = 6 cores
         .debugging(log_level="WARN")
-        .resources(num_gpus=1)
+        .resources(num_gpus=1,
+                   num_cpus_per_worker=1,
+                   num_gpus_per_worker=0,
+                   )
         .rl_module(
-            rl_module_spec=RLModuleSpec(
+            rl_module_spec=SingleAgentRLModuleSpec(
                 module_class      = SolverLSTM,
                 observation_space = obs_space,
                 action_space      = act_space,
-                model_config = {"window_size": window},
+                model_config_dict = {"window_size": window},
             )
         )                 # local sampling
         .training(
@@ -65,14 +64,9 @@ def build_config(window:int, parquet:str)->PPOConfig:
             gamma=0.99,
             vf_clip_param=10.0,
             lr=5e-5,
-        )
-        
-         
-        
-        
+            postprocess_inputs=True
+        )       
     )
-
-    cfg.postprocess_inputs = True
 
     return cfg
 
