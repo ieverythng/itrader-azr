@@ -59,7 +59,7 @@ def build_config(window:int, parquet:str)->PPOConfig:
             )
         )                 # local sampling
         .training(
-            train_batch_size=4000,
+            train_batch_size=10000,
             minibatch_size=128,        # <-- replaces sgd_minibatch_size 
             num_epochs=30,             # replaces num_sgd_iter
             gamma=0.99,
