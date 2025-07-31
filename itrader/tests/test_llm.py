@@ -3,6 +3,7 @@
 # def test_llm_runs():
 #     assert "trading" in ask("Say one word connected to trading:").lower()
 
-from ray.rllib.algorithms.ppo import PPOConfig
-cfg = PPOConfig()
-print("Has postprocess_inputs:", hasattr(cfg, "postprocess_inputs"))
+import torch
+print(torch.version.cuda)               # e.g. “12.1”
+print(torch.cuda.get_arch_list())       # should include “12.0”
+print(torch.cuda.get_device_name(0))
