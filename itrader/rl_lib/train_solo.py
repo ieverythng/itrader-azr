@@ -1,105 +1,83 @@
-import argparse, random, numpy as np, torch
-from ray.rllib.algorithms.ppo import PPOConfig
-from ray.rllib.core.rl_module.rl_module import SingleAgentRLModuleSpec
-from gymnasium.wrappers import TimeLimit
+# itrader/rl_lib/train_solo.py
+
+import argparse
 from pathlib import Path
+
+import numpy as np
 from ray import tune
-from ray.rllib.algorithms.callbacks import DefaultCallbacks
+from ray.rllib.algorithms.ppo import PPO
+from ray.rllib.models import ModelCatalog
 
-# Phase-A helpers  (path now pinned to PA_helpers)
+# your env & model imports
 from itrader.envs.itrader_env import ITraderEnv
-from itrader.models.solver_lstm import SolverLSTM
+from itrader.models.solver_lstm import SolverLSTMModel
 
-# ----------------------------------------------------------------------
-tune.register_env(
-    "ITraderEnv",
-    lambda cfg: TimeLimit(ITraderEnv(cfg), max_episode_steps=200),
-)
+# TimeLimit wrapper
+from gymnasium.wrappers import TimeLimit
+from gymnasium.envs.registration import EnvSpec
 
-# ----------------------------------------------------------------------
+def make_env(cfg):
+    e = ITraderEnv(cfg)
+    e.spec = EnvSpec("ITraderEnv", max_episode_steps=200)
+    return TimeLimit(e, max_episode_steps=200)
 
+tune.register_env("ITraderEnv", make_env)
+
+# throughput callback
+from ray.rllib.algorithms.callbacks import DefaultCallbacks
 class StatsCallback(DefaultCallbacks):
     def on_learn_on_batch_end(self, *, results, **__):
-        # Ray 2.9 stores learner stats under results["learners"]["default_policy"]
-        ls = results["learners"]["default_policy"]["learner_stats"]
-        results["custom_metrics"]["iters_per_sec"] = 1000.0 / ls["learner_time_ms"]
+        ls = results["learner"]["learner_stats"]
+        results["custom_metrics"]["samples_per_sec"] = 1000.0 / ls["learner_time_ms"]
 
+def main(args):
+    data_path = Path(args.data_path)
+    if not data_path.is_file():
+        raise FileNotFoundError(f"Parquet not found ➜ {data_path}")
 
-# ----------------------------------------------------------------------
-def build_config(window:int, parquet:str)->PPOConfig:
-    """
-    Pure-new-stack PPOConfig that runs ITraderEnv and uses SolverLSTM.
-    """
-    env_cfg = {
-        "df_path"    : parquet,
-        "window_size": window,
-        # (anything else ITraderEnv.__init__ expects)
+    # register the v2 model
+    ModelCatalog.register_custom_model("solver_lstm_v2", SolverLSTMModel)
+
+    config = {
+        "env": "ITraderEnv",
+        "env_config": {
+            "df_path": data_path.as_posix(),
+            "window_size": args.window,
+        },
+        "model": {
+            "custom_model": "solver_lstm_v2",
+            "custom_model_config": {"window_size": args.window},
+        },
+        "num_workers": 6,
+        "framework": "torch",
+        "callbacks": StatsCallback,
+        "train_batch_size": 10000,
+        "sgd_minibatch_size": 128,
+        "num_sgd_iter": 30,
+        "gamma": 0.99,
+        "vf_clip_param": 10.0,
+        "lr": 5e-5,
     }
 
-    # Get spaces once so we can feed them into RLModuleSpec
-    tmp_env      = TimeLimit(ITraderEnv(env_cfg), max_episode_steps=200)
-    obs_space    = tmp_env.observation_space
-    act_space    = tmp_env.action_space
-    tmp_env.close()
-
-     # --- simple custom callback to surface throughput -----------------
-
-    cfg = (
-        PPOConfig()
-        .experimental(_enable_new_api_stack=True)
-        .environment(env="ITraderEnv", env_config=env_cfg)
-        .callbacks(StatsCallback)                       
-        .framework("torch", eager_tracing=True)
-        .rollouts(num_rollout_workers=6)   # Ryzen-5500 = 6 cores
-        .debugging(log_level="WARN")
-        .resources(num_gpus=1, num_cpus_per_worker=1)
-        .rl_module(
-            rl_module_spec=SingleAgentRLModuleSpec(
-                module_class      = SolverLSTM,
-                observation_space = obs_space,
-                action_space      = act_space,
-                model_config_dict = {"window_size": window},
-            )
-        )                 # local sampling
-        .training(
-            train_batch_size=10000,
-            sgd_minibatch_size=128,        # <-- replaces sgd_minibatch_size 
-            num_sgd_iter=30,             # replaces num_sgd_iter
-            gamma=0.99,
-            vf_clip_param=10.0,
-            lr=5e-5,
-        )       
-    )
-    cfg.postprocess_inputs = True
-
-    return cfg
-
-
-# ----------------------------------------------------------------------
-def main(args):
-    parquet = Path(args.data_path).as_posix()
-    if not Path(parquet).is_file():
-        raise FileNotFoundError(f"Parquet not found ➜ {parquet}")
-
-    cfg  = build_config(args.window, parquet)
-    algo = cfg.build()
-
+    algo = PPO(config=config)
     for it in range(args.iters):
         res = algo.train()
         if it % 10 == 0:
-            r   = res.get("episode_return_mean", None)
+            # grab metrics
+            ret = res.get("episode_return_mean", None)
             ips = res["custom_metrics"].get("iters_per_sec", 0.0)
-            if r is not None:
-                print(f"[{it:04d}] return={r:+7.3f} | iters/s={ips:5.2f}")
+
+            if ret is not None:
+                # safe to format as float
+                print(f"[{it:04d}] return={ret:+7.3f}  samples/sec={ips:5.2f}")
             else:
-                print(f"[{it:04d}] keys →", list(res.keys()))
+                # skip the float formatting for `ret`
+                print(f"[{it:04d}] return=None  samples/sec={ips:5.2f}")
     algo.stop()
 
-# -------------------------------------------------------------------
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument("--iters",      type=int, default=200)
-    p.add_argument("--window",     type=int, default=30)
-    p.add_argument("--data_path",  default="itrader/data/ohlcv.parquet")
-    args = p.parse_args()
-    main(args)
+    p.add_argument("--iters",     type=int, default=200)
+    p.add_argument("--window",    type=int, default=30)
+    p.add_argument("--data_path", default="itrader/data/ohlcv.parquet")
+    main(p.parse_args())
