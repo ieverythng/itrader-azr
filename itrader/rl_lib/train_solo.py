@@ -3,7 +3,8 @@
 import argparse
 from pathlib import Path
 
-import numpy as np
+import torch
+import ray
 from ray import tune
 from ray.rllib.algorithms.ppo import PPO
 from ray.rllib.models import ModelCatalog
@@ -19,7 +20,7 @@ from gymnasium.envs.registration import EnvSpec
 def make_env(cfg):
     e = ITraderEnv(cfg)
     e.spec = EnvSpec("ITraderEnv", max_episode_steps=200)
-    return TimeLimit(e, max_episode_steps=200)
+    return TimeLimit(e, max_episode_steps=200)  
 
 tune.register_env("ITraderEnv", make_env)
 
@@ -31,6 +32,15 @@ class StatsCallback(DefaultCallbacks):
         results["custom_metrics"]["samples_per_sec"] = 1000.0 / ls["learner_time_ms"]
 
 def main(args):
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"==> Training on device: {device}")
+
+    ray.init(
+      _metrics_export_port=8888,
+      include_dashboard=True,
+      dashboard_host="0.0.0.0"
+    )
+
     data_path = Path(args.data_path)
     if not data_path.is_file():
         raise FileNotFoundError(f"Parquet not found ➜ {data_path}")
@@ -48,9 +58,13 @@ def main(args):
             "custom_model": "solver_lstm_v2",
             "custom_model_config": {"window_size": args.window},
         },
+        "num_gpus": 1,
+        "num_gpus_per_worker": 0,         
         "num_workers": 6,
         "framework": "torch",
         "callbacks": StatsCallback,
+        "metrics_sinks": ["prometheus"],
+        "prometheus_export_port": 8888,
         "train_batch_size": 10000,
         "sgd_minibatch_size": 128,
         "num_sgd_iter": 30,
@@ -74,6 +88,7 @@ def main(args):
                 # skip the float formatting for `ret`
                 print(f"[{it:04d}] return=None  samples/sec={ips:5.2f}")
     algo.stop()
+    ray.shutdown()
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
