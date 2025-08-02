@@ -17,6 +17,13 @@ from itrader.models.solver_lstm import SolverLSTMModel
 from gymnasium.wrappers import TimeLimit
 from gymnasium.envs.registration import EnvSpec
 
+ray.init(
+    address=None,
+    _metrics_export_port=8888,
+    include_dashboard=True,
+    dashboard_host="0.0.0.0",
+)
+
 def make_env(cfg):
     e = ITraderEnv(cfg)
     e.spec = EnvSpec("ITraderEnv", max_episode_steps=200)
@@ -29,17 +36,11 @@ from ray.rllib.algorithms.callbacks import DefaultCallbacks
 class StatsCallback(DefaultCallbacks):
     def on_learn_on_batch_end(self, *, results, **__):
         ls = results["learner"]["learner_stats"]
-        results["custom_metrics"]["samples_per_sec"] = 1000.0 / ls["learner_time_ms"]
+        results["custom_metrics"]["iters_per_sec"] = 1000.0 / ls["learner_time_ms"]
 
 def main(args):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"==> Training on device: {device}")
-
-    ray.init(
-      _metrics_export_port=8888,
-      include_dashboard=True,
-      dashboard_host="0.0.0.0"
-    )
 
     data_path = Path(args.data_path)
     if not data_path.is_file():
