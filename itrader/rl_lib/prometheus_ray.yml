@@ -1,22 +1,16 @@
 global:
-  scrape_interval: 5s          # how often Prometheus polls
-
 scrape_configs:
   - job_name: ray
+    metrics_path: /metrics
     static_configs:
-      - targets:
-          - localhost:8888   # Ray’s metrics exporter
-    # <-— File-based service-discovery (NOT http_sd).  Ray rewrites the file
-    file_sd_configs:
-    - files:
-        - 'C:/Users/Admin/AppData/Local/Temp/ray/prom_metrics_service_discovery.json'
-    metrics_path: /metrics      # each Ray target exposes metrics here
-    http_sd_configs:
-      - url: 'http://127.0.0.1:8265/metrics/sd'   # Ray dashboard writes this
-    # Optional relabel so every target is redirected from ":PORT"→":8080"
-    # (Ray’s metrics port).  Works even when workers bind :8081, :8099…
-    # relabel_configs:
-    #   # replace address → dashboard:8265
-    #   - source_labels: [__meta_filepath]   # any dummy label
-    #     target_label: __address__
-    #     replacement: '127.0.0.1:8265'
+      # 1) The driver itself
+      - targets: ["127.0.0.1:8888"]
+
+      # # 2) Your 6 rollout workers
+      # - targets:
+      #     - "127.0.0.1:14400"
+      #     - "127.0.0.1:14401"
+      #     - "127.0.0.1:14402"
+      #     - "127.0.0.1:14403"
+      #     - "127.0.0.1:14404"
+      #     - "127.0.0.1:14405"
