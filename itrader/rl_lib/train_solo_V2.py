@@ -23,7 +23,6 @@ from gymnasium.envs.registration import EnvSpec
 # 1) Ray init: dashboard + Prometheus
 # ────────────────────────────────────────────────────────────────────────────────
 ray.init(
-    address=None,
     _metrics_export_port=(8888),
     include_dashboard=True,
     dashboard_host="0.0.0.0",
@@ -62,27 +61,27 @@ def training_fn(config):
 
     algo = PPO(config=config)
     print("Learner on:", next(algo.workers.local_worker().policy_map["default_policy"].model.parameters()).device)
-    for it in range(args.iters):
-        result = algo.train()
+    for it in range(config["stop_iters"]):
+        res = algo.train()
 
-        # report all the scalars we care about into Tune’s metrics store:
+        # push scalars into Tune’s result store
+        ls   = res["info"]["learner"]["default_policy"]["learner_stats"]
+        cm   = res.get("custom_metrics", {})
         train.report({
-            "episode_return_mean": result["custom_metrics"].get("episode_return", 0.0),
-            "iters_per_sec": result
-                .get("custom_metrics", {})
-                .get("iters_per_sec", float("nan")),
-            "policy_loss": result["info"]
-                ["learner"]["default_policy"]["learner_stats"]["policy_loss"],
-            "value_loss": result["info"]
-                ["learner"]["default_policy"]["learner_stats"]["vf_loss"],
-            "entropy": result["info"]
-                ["learner"]["default_policy"]["learner_stats"]["entropy"],
-            "timesteps_total": result["timesteps_total"],
+            "episode_return_mean": cm.get("episode_return_mean", float("nan")),
+            "policy_loss":        ls["policy_loss"],
+            "value_loss":         ls["vf_loss"],
+            "entropy":            ls["entropy"],
         })
+
         if it % 10 == 0:
-            ret = result.get("episode_return_mean")
-            ips = result.get("custom_metrics", {}).get("iters_per_sec", float("nan"))
-            print(f"[{it:04d}] return={ret if ret is not None else 'None':>7}  iters/s={ips:5.2f}")  
+            r   = cm.get("episode_return", None)
+            ips = cm.get("iters_per_sec",  float("nan"))
+            print(f"[{it:04d}] return={r if r is not None else 'None':>7}"
+                  f"  π_loss={ls['policy_loss']:+8.4f}"
+                  f"  V_loss={ls['vf_loss']:+8.4f}"
+                  f"  ent={ls['entropy']:.3f}"
+                  f"  it/s={ips:5.2f}")
     algo.stop()
 # ────────────────────────────────────────────────────────────────────────────────
 # 5) Entrypoint: assemble Tune config & kick off the experiment
@@ -94,6 +93,9 @@ def main(args):
 
     # register the v2 model
     ModelCatalog.register_custom_model("solver_lstm_v2", SolverLSTMModel)
+
+    num_workers  = args.workers
+    worker_ports = list(range(14400, 14400 + num_workers))   # deterministic
 
     # shared RLlib config
     base_config = {
@@ -109,7 +111,7 @@ def main(args):
         # resources
         "num_gpus": 1,
         "num_gpus_per_worker": 0,
-        "num_workers": 6,
+        "num_workers": num_workers,
         # core RL settings
         "framework": "torch",
         "callbacks": ReturnLoggingCallback,
@@ -123,10 +125,6 @@ def main(args):
         # hook up Prometheus
         "metrics_sinks": ["prometheus"],
         "prometheus_export_port": 8888,
-        # *** NEW: worker‐side
-        "worker_metrics_sinks": ["prometheus"],
-        # optionally pin a port-range for workers, e.g. 14400–14499:
-        "prometheus_worker_export_ports": list(range(14400, 14406)),
         # pass the stop criterion to training_fn
         "stop_iters": args.iters,
     }
@@ -142,24 +140,28 @@ def main(args):
 # ────────────────────────────────────────────────────────────────────────────────
 # 5.1) Kick-off training algo
 # ────────────────────────────────────────────────────────────────────────────────    
-    tune.run(
-        training_fn,
+  
+    analysis = tune.run(
+        training_fn,                        # <--- use the class directly
         name="Phase_A",
-        config=base_config,
         stop={"training_iteration": args.iters},
-        metric="episode_return_mean",
+        metric="episode_return_mean",    # tune on our custom metric
         mode="max",
+        config=base_config,
         local_dir=str(Path.home() / "ray_results"),
-        progress_reporter=tune.CLIReporter(metric_columns=["episode_return_mean","iters_per_sec"]),
-        callbacks=[],               # (you could add TBXLoggerCallback here)
-        reuse_actors=False,         # each trial builds fresh actors
+        progress_reporter=tune.CLIReporter(
+        metric_columns=["episode_return_mean", "policy_loss","value_loss", "iters_per_sec"],
+        ),
+        reuse_actors=False,
         resources_per_trial= PlacementGroupFactory(
             # 1 slot for the main driver (will need 1 GPU + 1 CPU)
             [{ "GPU": 1, "CPU": 1}] +
             # N rollout workers, each with 1 CPU, 0 GPUs
             [{"CPU": 1}] * base_config["num_workers"]
         )
+        
     )
+    print("Best hyperparams found:", analysis.best_config)
 
     ray.shutdown()
 
@@ -167,6 +169,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--iters",     type=int, default=200)
     parser.add_argument("--window",    type=int, default=30)
+    parser.add_argument("--workers", type=int, default=6)
     parser.add_argument(
         "--data_path",
         default="itrader/data/ohlcv.parquet",

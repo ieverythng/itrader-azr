@@ -4,13 +4,15 @@ scrape_configs:
     metrics_path: /metrics
     static_configs:
       # 1) The driver itself
-      - targets: ["127.0.0.1:8888"]
+      - targets:
+          - "127.0.0.1:8888"
 
-      # # 2) Your 6 rollout workers
-      # - targets:
-      #     - "127.0.0.1:14400"
-      #     - "127.0.0.1:14401"
-      #     - "127.0.0.1:14402"
-      #     - "127.0.0.1:14403"
-      #     - "127.0.0.1:14404"
-      #     - "127.0.0.1:14405"
+
+  # - job_name: ray_workers
+  #   metrics_path: /metrics
+  #   static_configs:
+  #     - targets:
+  #         # must match the ports you configured above:
+
+
+
