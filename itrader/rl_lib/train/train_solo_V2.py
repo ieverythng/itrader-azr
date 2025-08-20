@@ -15,6 +15,7 @@ from ray.tune import PlacementGroupFactory
 # your env & model imports
 from itrader.envs.itrader_env import ITraderEnv
 from itrader.models.solver_lstm import SolverLSTMModel
+from itrader.models.solver_MLP import SolverMLPModel
 
 # TimeLimit wrapper
 from gymnasium.wrappers import TimeLimit
@@ -93,9 +94,9 @@ def main(args):
 
     # register the v2 model
     ModelCatalog.register_custom_model("solver_lstm_v2", SolverLSTMModel)
+    ModelCatalog.register_custom_model("solver_mlp_v1", SolverMLPModel)
 
     num_workers  = args.workers
-    worker_ports = list(range(14400, 14400 + num_workers))   # deterministic
 
     # shared RLlib config
     base_config = {
@@ -105,7 +106,7 @@ def main(args):
             "window_size": args.window,
         },
         "model": {
-            "custom_model": "solver_lstm_v2",
+            "custom_model": "solver_mlp_v1",
             "custom_model_config": {"window_size": args.window},
         },
         # resources

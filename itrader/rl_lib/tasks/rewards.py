@@ -47,11 +47,18 @@ def reward_composed_linear(params: Dict[str, Any], ctx: Dict[str, Any]):
     # Weighted sum over provided components (extensible without env changes)
     total = 0.0
     comps = {}
+    alias = {
+        "dd": "dd_t1",
+        "turnover": "turnover_t",
+        "pnl_delta": "pnl_delta",   # already friendly
+        "ret": "ret",               # optional if you add it
+    }
     for k, w in params.items():
         if not k.endswith("_w"):
             continue
         base = k[:-2]  # strip _w
-        v = float(ctx.get(base, 0.0))
+        key  = alias.get(base, base)
+        v    = float(ctx.get(key, 0.0))
         total += float(w) * v
         comps[base] = v
     return total, comps

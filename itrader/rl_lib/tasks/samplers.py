@@ -26,7 +26,7 @@ class TaskSampler00:
         horizon_choices = self.cfg.get("horizon", [128])
         horizon = int(self.rng.choice(horizon_choices))
         reward_id = self.rng.choice(self.cfg.get("reward_ids", ["pnl_sharpe"]))
-        reward_params = dict(self.cfg.get("reward_params", {"pnl_w": 1.0, "dd_w": 0.1, "turnover_w": 0.0}))
+        reward_params = dict(self.cfg.get("reward_params", {"pnl_w": 1.0, "dd_w": 0.1, "turnover_w": 0.01}))
         obs_dim = int(self.cfg.get("obs_dim", 32))
         action_dim = int(self.cfg.get("action_dim", 3))
         seed = int(self.rng.integers(0, 1_000_000))
