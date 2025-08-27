@@ -38,4 +38,4 @@ class SolverMLPModel(TorchModelV2, nn.Module):
         return self._value_out
 
 # Register
-ModelCatalog.register_custom_model("solver_mlp_v1", SolverMLPModel)
+ModelCatalog.register_custom_model("solver_mlp", SolverMLPModel)

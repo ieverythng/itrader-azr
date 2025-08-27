@@ -8,6 +8,10 @@ from itrader.rl_lib.tasks.samplers import TaskSampler00
 from itrader.rl_lib.tasks.encoder import TaskEncoder, DEFAULT_T_EMBED_DIM
 from itrader.rl_lib.tasks.rewards import RewardEngine
 
+def _sanitize(x: np.ndarray) -> np.ndarray:
+    """Hard guard against NaN/Inf to keep PPO stable."""
+    return np.nan_to_num(x, nan=0.0, posinf=1e6, neginf=-1e6)
+
 # ────────────────────────────────────────────────────────────────────────────
 class ITraderEnv(gym.Env):
     """
@@ -50,6 +54,8 @@ class ITraderEnv(gym.Env):
         self.t_embed_dim  = int(env_config.get("t_embed_dim", DEFAULT_T_EMBED_DIM))
         self.reward_engine = RewardEngine
         self.current_task = None
+        self.t_embed_mode = env_config.get("t_embed_mode", "concat")  # off|scale|concat
+        self.t_scale = float(env_config.get("t_scale", 1.0))
         
         feat_dim = len(self.cols)
         self.price_obs_dim = self.T * feat_dim
@@ -65,13 +71,17 @@ class ITraderEnv(gym.Env):
     # internal helpers
     # --------------------------------------------------------------------- #
     def _row(self, i: int) -> np.ndarray:
-        return self.df.loc[i, self.cols].to_numpy(np.float32)
+        row = self.df.loc[i, self.cols].to_numpy(np.float32)
+        return _sanitize(row)
 
     def _get_obs(self) -> np.ndarray:
         """Return flattened window; pad (repeat first row) until buffer fills."""
         while len(self._buf) < self.T:
             self._buf.appendleft(self._buf[0])
         return np.concatenate(list(self._buf), axis=0)
+    
+    # def _sanitize(x):
+    #     return np.nan_to_num(x, nan=0.0, posinf=1e6, neginf=-1e6)
 
     def _reset_state(self):
         self.pos  = 0          # -1 short | 0 flat | 1 long
@@ -92,9 +102,15 @@ class ITraderEnv(gym.Env):
         # sample task for the episode, create deterministic embedding
         self.current_task = self.task_sampler.sample()
         self._t_embed = TaskEncoder.embed(self.current_task, dim=self.t_embed_dim)
+        if self.t_embed_mode == "off":
+            t = np.zeros_like(self._t_embed)
+        elif self.t_embed_mode == "scale":
+            t = self._t_embed * self.t_scale
+        else:
+            t = self._t_embed
         # build first obs
-        price_obs = self._get_obs()
-        obs = np.concatenate([price_obs, self._t_embed]).astype(np.float32)
+        price_obs = _sanitize(self._get_obs())
+        obs = _sanitize(np.concatenate([price_obs, t]).astype(np.float32))
         info = {"task": self.current_task.to_dict()}
         return obs, info
 
@@ -151,8 +167,14 @@ class ITraderEnv(gym.Env):
         # baseline success flag for TRR++/curriculum stats (Phase-A)
         success = bool(pnl_t1 > 0.0) if done else False
 
-        price_obs_next = self._get_obs()
-        obs_next = np.concatenate([price_obs_next, self._t_embed]).astype(np.float32)
+        price_obs_next = _sanitize(self._get_obs())
+        if self.t_embed_mode == "off":
+            t = np.zeros_like(self._t_embed)
+        elif self.t_embed_mode == "scale":
+            t = self._t_embed * self.t_scale
+        else:
+            t = self._t_embed
+        obs_next = _sanitize(np.concatenate([price_obs_next, t]).astype(np.float32))
         info = {"position": self.pos, "reward_comps": comps, "success": success,
                 "task": self.current_task.to_dict()}
         return obs_next, float(r), done, trunc, info

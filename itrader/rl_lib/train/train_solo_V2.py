@@ -16,6 +16,8 @@ from ray.tune import PlacementGroupFactory
 from itrader.envs.itrader_env import ITraderEnv
 from itrader.models.solver_lstm import SolverLSTMModel
 from itrader.models.solver_MLP import SolverMLPModel
+from itrader.models.solver_mlp_film import SolverMLPFiLM
+from itrader.rl_lib.callbacks.ps_metrics import PSMetrics
 
 # TimeLimit wrapper
 from gymnasium.wrappers import TimeLimit
@@ -42,11 +44,11 @@ tune.register_env("ITraderEnv", make_env)
 # ────────────────────────────────────────────────────────────────────────────────
 from ray.rllib.algorithms.callbacks import DefaultCallbacks
 
-class ReturnLoggingCallback(DefaultCallbacks):
-    def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
-        # This fires whenever an episode actually terminates.
-        total_reward = episode.total_reward
-        episode.custom_metrics["episode_return"] = total_reward
+# class ReturnLoggingCallback(DefaultCallbacks):
+#     def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
+#         # This fires whenever an episode actually terminates.
+#         total_reward = episode.total_reward
+#         episode.custom_metrics["episode_return"] = total_reward
 
 # class StatsCallback(DefaultCallbacks):
 #     def on_learn_on_batch_end(self, *, results, **__):
@@ -94,7 +96,8 @@ def main(args):
 
     # register the v2 model
     ModelCatalog.register_custom_model("solver_lstm_v2", SolverLSTMModel)
-    ModelCatalog.register_custom_model("solver_mlp_v1", SolverMLPModel)
+    ModelCatalog.register_custom_model("solver_mlp", SolverMLPModel)
+    ModelCatalog.register_custom_model("solver_mlp_film", SolverMLPFiLM)
 
     num_workers  = args.workers
 
@@ -104,10 +107,19 @@ def main(args):
         "env_config": {
             "df_path": data_path.as_posix(),
             "window_size": args.window,
+            "t_embed_mode": "concat",   # off|scale|concat
+            "t_scale": 1.0,
         },
         "model": {
-            "custom_model": "solver_mlp_v1",
-            "custom_model_config": {"window_size": args.window},
+            "custom_model": "solver_mlp_film",
+            "custom_model_config": {
+                "window_size": args.window,
+                "t_embed_dim": 32,
+                "fcnet_hiddens": [256, 256],
+                "conditioning": "film",
+                "t_keep_p": 0.9,
+                "t_proj": 64,
+            },
         },
         # resources
         "num_gpus": 1,
@@ -115,7 +127,15 @@ def main(args):
         "num_workers": num_workers,
         # core RL settings
         "framework": "torch",
-        "callbacks": ReturnLoggingCallback,
+        "callbacks": PSMetrics,
+        "observation_filter": "MeanStdFilter",
+        "grad_clip": 10.0,
+        # Stabilise exploration → exploitation
+        "entropy_coeff_schedule": [
+            [0,       0.03],
+            [500_000, 0.01],
+            [1_500_000, 0.003],
+        ],
         "train_batch_size": 4800,
         "batch_mode": "complete_episodes",
         "sgd_minibatch_size": 128,
