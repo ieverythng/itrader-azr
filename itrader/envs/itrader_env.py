@@ -4,9 +4,9 @@ import pandas as pd
 from pathlib import Path
 from collections import deque
 
-from itrader.rl_lib.tasks.samplers import TaskSampler00
-from itrader.rl_lib.tasks.encoder import TaskEncoder, DEFAULT_T_EMBED_DIM
-from itrader.rl_lib.tasks.rewards import RewardEngine
+from rl_lib.tasks.samplers import TaskSampler00
+from rl_lib.tasks.encoder import TaskEncoder, DEFAULT_T_EMBED_DIM
+from rl_lib.tasks.rewards import RewardEngine
 
 def _sanitize(x: np.ndarray) -> np.ndarray:
     """Hard guard against NaN/Inf to keep PPO stable."""

@@ -4,6 +4,7 @@ import argparse
 from pathlib import Path
 
 import torch
+import numpy as np
 import ray
 from ray import train, tune
 from ray.rllib.algorithms.ppo import PPO
@@ -35,8 +36,8 @@ ray.init(
 # ────────────────────────────────────────────────────────────────────────────────
 def make_env(cfg):
     e = ITraderEnv(cfg)
-    e.spec = EnvSpec("ITraderEnv", max_episode_steps=200)
-    return TimeLimit(e, max_episode_steps=200)  
+    e.spec = EnvSpec("ITraderEnv")
+    return e  
 
 tune.register_env("ITraderEnv", make_env)
 # ────────────────────────────────────────────────────────────────────────────────
@@ -70,11 +71,24 @@ def training_fn(config):
         # push scalars into Tune’s result store
         ls   = res["info"]["learner"]["default_policy"]["learner_stats"]
         cm   = res.get("custom_metrics", {})
+
+        # robust metric extraction
+        policy_loss = float(ls.get("policy_loss", 0.0))
+        vf_loss = float(ls.get("vf_loss", ls.get("value_loss", 0.0)))
+        entropy = float(ls.get("entropy", res.get("info", {}).get("learner", {}).get("default_policy", {}).get("entropy", 0.0)))
+
+        # prefer our custom aggregated mean; fallback to RLlib default keys
+        erm = cm.get("episode_return_mean", None)
+        if erm is None or not np.isfinite(erm):
+            erm = res.get("episode_reward_mean", None)
+        if erm is None:
+            erm = res.get("sampler_results", {}).get("episode_reward_mean", float("nan"))
+
         train.report({
             "episode_return_mean": cm.get("episode_return_mean", float("nan")),
-            "policy_loss":        ls["policy_loss"],
-            "value_loss":         ls["vf_loss"],
-            "entropy":            ls["entropy"],
+            "policy_loss":        policy_loss,
+            "value_loss":         vf_loss,
+            "entropy":            entropy,
         })
 
         if it % 10 == 0:
@@ -150,14 +164,28 @@ def main(args):
         "stop_iters": args.iters,
     }
 
-    
-    # optional: PBT scheduler placeholder
     # pbt = PopulationBasedTraining(
     #     time_attr="training_iteration",
     #     metric="episode_return_mean", mode="max",
-    #     perturbation_interval=5,
-    #     hyperparam_mutations={"lr": [1e-4, 5e-5, 1e-5]},
+    #     perturbation_interval=10, # iters between exploit/explore
+    #     resample_probability=0.25,
+    #     hyperparam_mutations={
+    #         # PPO core
+    #         "lr": [5e-6, 1e-5, 2e-5, 5e-5, 1e-4],
+    #         "clip_param": [0.1, 0.2, 0.3, 0.4],
+    #         "lambda": [0.90, 0.95, 0.97, 1.0],
+    #         "gamma": [0.95, 0.99],
+    #         "sgd_minibatch_size": [128, 256, 512],
+    #         "num_sgd_iter": [10, 20, 30],
+    #         "vf_clip_param": [5.0, 10.0],
+    #         "vf_loss_coeff": [0.25, 0.5, 1.0],
+    #         # Throughput/credit assignment (optional)
+    #         "train_batch_size": [2400, 4800, 9600],
+    #         # If you remove entropy schedule, uncomment next line:
+    #         # "entropy_coeff": [0.005, 0.01, 0.02, 0.03],
+    #     },
     # )
+
 # ────────────────────────────────────────────────────────────────────────────────
 # 5.1) Kick-off training algo
 # ────────────────────────────────────────────────────────────────────────────────    
@@ -165,6 +193,7 @@ def main(args):
     analysis = tune.run(
         training_fn,                        # <--- use the class directly
         name="Phase_A",
+        # scheduler=pbt,
         stop={"training_iteration": args.iters},
         metric="episode_return_mean",    # tune on our custom metric
         mode="max",

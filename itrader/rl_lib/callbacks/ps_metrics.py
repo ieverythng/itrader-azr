@@ -84,6 +84,12 @@ class PSMetrics(DefaultCallbacks):
 
         # Success flag
         episode.custom_metrics["success"] = float(episode.user_data.get("success_flag", 0.0))
+        
+        # === NEW: surface per-episode return so Ray will compute *_mean ===    
+        try:
+            episode.custom_metrics["episode_return"] = float(episode.total_reward)
+        except Exception:
+            pass
 
         # Task metadata (numeric only so TB filters won’t break)
         task = episode.user_data.get("task", {})
