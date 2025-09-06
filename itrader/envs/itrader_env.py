@@ -4,9 +4,9 @@ import pandas as pd
 from pathlib import Path
 from collections import deque
 
-from rl_lib.tasks.samplers import TaskSampler00
-from rl_lib.tasks.encoder import TaskEncoder, DEFAULT_T_EMBED_DIM
-from rl_lib.tasks.rewards import RewardEngine
+from itrader.rl_lib.tasks.samplers import TaskSampler00
+from itrader.rl_lib.tasks.encoder import TaskEncoder, DEFAULT_T_EMBED_DIM
+from itrader.rl_lib.tasks.rewards import RewardEngine
 
 def _sanitize(x: np.ndarray) -> np.ndarray:
     """Hard guard against NaN/Inf to keep PPO stable."""
@@ -22,14 +22,12 @@ class ITraderEnv(gym.Env):
     df_path      : str | Path   – parquet file to load (default: repo/data/…)
     window_size  : int          – timesteps per observation      (default 30)
     feature_cols : list[str]    – override default OHLCV columns
-    fee          : float        – commission (%)                (default 0.001)
     """
 
     # --------------------------------------------------------------------- #
     def __init__(self, env_config: dict | None = None):
         env_config   = env_config or {}
         self.T       = int(env_config.get("window_size", 30))
-        self.fee     = float(env_config.get("fee", 0.001))
 
         # ── load dataframe ------------------------------------------------
         df_path = env_config.get("df_path")
@@ -93,6 +91,7 @@ class ITraderEnv(gym.Env):
         self._t = 0
         self._episode_pnl = 0.0
         self._max_equity  = 0.0
+        self._max_dd = 0.0     # maximum drawdown tracking
     # ===================================================================== #
     # gymnasium.Env interface
     # --------------------------------------------------------------------- #
@@ -139,22 +138,34 @@ class ITraderEnv(gym.Env):
         pnl_t  = self._episode_pnl
         mtm    = float(self.pos) * ret
         pnl_t1 = pnl_t + mtm
+
+        # drawdown (level and delta) BEFORE updating max_equity
+        dd_t = max(0.0, self._max_equity - pnl_t)
+
         self._episode_pnl = pnl_t1
         self._max_equity  = max(self._max_equity, pnl_t1)
+
         dd_t1  = max(0.0, self._max_equity - pnl_t1)
+        self._max_dd = max(self._max_dd, dd_t1)
+
+        dd_inc = max(0.0, dd_t1 - dd_t)
+
+        ctx = {
+        "pnl_t": pnl_t, "pnl_t1": pnl_t1,
+        "pnl_delta": pnl_t1 - pnl_t,
+        "dd_t": dd_t, "dd_t1": dd_t1, "dd_inc": dd_inc,
+        "max_dd": self._max_dd,
+        "turnover_t": turnover_t,
+        "price_t": price_t, "price_t1": price_next,
+        "position_t": float(self.pos), "action_t": action,
+        "ret": ret,
+        }
 
         # compute reward via registry
         r, comps = self.reward_engine.compute(
             self.current_task.reward_id,
             self.current_task.reward_params,
-            {
-                "pnl_t": pnl_t, "pnl_t1": pnl_t1,
-                "pnl_delta": pnl_t1 - pnl_t,
-                "dd_t1": dd_t1, "turnover_t": turnover_t,
-                "price_t": price_t, "price_t1": price_next,
-                "position_t": float(self.pos), "action_t": action,
-                "ret": ret,  # optional if you compose on raw returns
-            }
+            ctx,
         )
 
         self._t += 1
@@ -166,6 +177,7 @@ class ITraderEnv(gym.Env):
 
         # baseline success flag for TRR++/curriculum stats (Phase-A)
         success = bool(pnl_t1 > 0.0) if done else False
+        comps["success"] = float(success)  # for TRR++/curriculum stats
 
         price_obs_next = _sanitize(self._get_obs())
         if self.t_embed_mode == "off":

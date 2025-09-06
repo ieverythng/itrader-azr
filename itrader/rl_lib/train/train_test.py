@@ -7,6 +7,7 @@ from ray.tune.logger import (
     JsonLoggerCallback, CSVLoggerCallback, TBXLoggerCallback)
 
 from itrader.envs.itrader_env import ITraderEnv
+from itrader.rl_lib.callbacks.auto_plotter import AutoPlotterCallback
 
 ROOT = Path(__file__).resolve().parents[1]          # …/itrader-azr
 DF   = ROOT / "data" / "ohlcv.parquet"              # absolute path
@@ -35,6 +36,7 @@ def main()-> None:
         .framework("torch")  # or "tf" – whatever you use
         .env_runners(num_env_runners=3)
         .resources(num_gpus=1)
+        .callbacks(AutoPlotterCallback)
     )
 
     config.logger_config = {
@@ -45,6 +47,9 @@ def main()-> None:
         ]
     }
 
+    print("🚀 Starting training with automatic plotting...")
+    print(f"📊 Plots will be generated every 50 iterations")
+    
     algo = config.build()          # new API – avoids the deprecation warning
     
     for _ in range(100):

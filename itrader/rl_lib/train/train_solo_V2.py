@@ -19,6 +19,7 @@ from itrader.models.solver_lstm import SolverLSTMModel
 from itrader.models.solver_MLP import SolverMLPModel
 from itrader.models.solver_mlp_film import SolverMLPFiLM
 from itrader.rl_lib.callbacks.ps_metrics import PSMetrics
+from itrader.rl_lib.callbacks.auto_plotter import AutoPlotterCallback
 
 # TimeLimit wrapper
 from gymnasium.wrappers import TimeLimit
@@ -44,6 +45,26 @@ tune.register_env("ITraderEnv", make_env)
 # 3) Custom callback to expose samples/sec
 # ────────────────────────────────────────────────────────────────────────────────
 from ray.rllib.algorithms.callbacks import DefaultCallbacks
+
+class CombinedCallback(DefaultCallbacks):
+    """Combines PSMetrics and AutoPlotterCallback functionality."""
+    
+    def __init__(self, plot_interval: int = 50):
+        super().__init__()
+        self.ps_metrics = PSMetrics()
+        # Use the new interface - plot at end of every training loop by default
+        self.auto_plotter = AutoPlotterCallback(plot_at_end_of_loop=True)
+    
+    def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
+        """Delegate to PSMetrics."""
+        return self.ps_metrics.on_episode_end(
+            worker=worker, base_env=base_env, policies=policies, episode=episode, **kwargs
+        )
+    
+    def on_train_result(self, *, algorithm, result, **kwargs):
+        """Delegate to both callbacks."""
+        # PSMetrics doesn't have on_train_result, so just call auto_plotter
+        return self.auto_plotter.on_train_result(algorithm=algorithm, result=result, **kwargs)
 
 # class ReturnLoggingCallback(DefaultCallbacks):
 #     def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
@@ -123,6 +144,12 @@ def main(args):
             "window_size": args.window,
             "t_embed_mode": "concat",   # off|scale|concat
             "t_scale": 1.0,
+            "task_sampler": {
+                "window_size": args.window,
+                "n_features": 5,  # OHLCV features
+                "t_embed_dim": 32,
+                "action_dim": 3,
+            },
         },
         "model": {
             "custom_model": "solver_mlp_film",
@@ -141,7 +168,7 @@ def main(args):
         "num_workers": num_workers,
         # core RL settings
         "framework": "torch",
-        "callbacks": PSMetrics,
+        "callbacks": CombinedCallback,
         "observation_filter": "MeanStdFilter",
         "grad_clip": 10.0,
         # Stabilise exploration → exploitation
@@ -190,6 +217,9 @@ def main(args):
 # 5.1) Kick-off training algo
 # ────────────────────────────────────────────────────────────────────────────────    
   
+    print("🚀 Starting training with automatic plotting...")
+    print(f"📊 Plots will be generated every 50 iterations")
+    
     analysis = tune.run(
         training_fn,                        # <--- use the class directly
         name="Phase_A",

@@ -15,7 +15,7 @@ class TaskSpec:
     - reward_params: param dict passed to the reward function
     - t_embed: optional precomputed task embedding (list[float]). If None, encoder will derive one.
     - seed: RNG seed for reproducibility
-    - obs_dim: price observation vector length (without t_embed)
+    - obs_dim: total observation space dimension (price + t_embed)
     - action_dim: action space dimension (policy output size)
     """
     family_id: str

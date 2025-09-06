@@ -12,6 +12,7 @@ from ray.rllib.models import ModelCatalog
 # your env & model imports
 from itrader.envs.itrader_env import ITraderEnv
 from itrader.models.solver_lstm import SolverLSTMModel
+from itrader.rl_lib.callbacks.auto_plotter import AutoPlotterCallback
 
 # TimeLimit wrapper
 from gymnasium.wrappers import TimeLimit
@@ -38,6 +39,23 @@ class StatsCallback(DefaultCallbacks):
         ls = results["learner"]["learner_stats"]
         results["custom_metrics"]["iters_per_sec"] = 1000.0 / ls["learner_time_ms"]
 
+class CombinedCallback(DefaultCallbacks):
+    """Combines StatsCallback and AutoPlotterCallback functionality."""
+    
+    def __init__(self, plot_interval: int = 50):
+        super().__init__()
+        self.stats_callback = StatsCallback()
+        # Use the new interface - plot at end of every training loop by default
+        self.auto_plotter = AutoPlotterCallback(plot_at_end_of_loop=True)
+    
+    def on_learn_on_batch_end(self, *, results, **kwargs):
+        """Delegate to StatsCallback."""
+        return self.stats_callback.on_learn_on_batch_end(results=results, **kwargs)
+    
+    def on_train_result(self, *, algorithm, result, **kwargs):
+        """Delegate to auto_plotter."""
+        return self.auto_plotter.on_train_result(algorithm=algorithm, result=result, **kwargs)
+
 def main(args):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"==> Training on device: {device}")
@@ -63,7 +81,7 @@ def main(args):
         "num_gpus_per_worker": 0,         
         "num_workers": 6,
         "framework": "torch",
-        "callbacks": StatsCallback,
+        "callbacks": CombinedCallback,
         "metrics_sinks": ["prometheus"],
         "prometheus_export_port": 8888,
         "train_batch_size": 10000,
@@ -74,6 +92,9 @@ def main(args):
         "lr": 5e-5,
     }
 
+    print("🚀 Starting training with automatic plotting...")
+    print(f"📊 Plots will be generated every 50 iterations")
+    
     algo = PPO(config=config)
     for it in range(args.iters):
         res = algo.train()
