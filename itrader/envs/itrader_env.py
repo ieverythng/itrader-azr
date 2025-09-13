@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from collections import deque
+from typing import Dict, Any
 
 from itrader.rl_lib.tasks.samplers import TaskSampler00
 from itrader.rl_lib.tasks.encoder import TaskEncoder, DEFAULT_T_EMBED_DIM
@@ -27,7 +28,13 @@ class ITraderEnv(gym.Env):
     # --------------------------------------------------------------------- #
     def __init__(self, env_config: dict | None = None):
         env_config   = env_config or {}
+        cfg = dict(env_config) if not isinstance(env_config, dict) else env_config
         self.T       = int(env_config.get("window_size", 30))
+
+        # Worker-aware offsets for task sampler (safe defaults if not present)
+        self.worker_index = int(getattr(env_config, "worker_index", env_config.get("worker_index", 0)))
+        self.vector_index = int(getattr(env_config, "vector_index", env_config.get("vector_index", 0)))
+
 
         # ── load dataframe ------------------------------------------------
         df_path = env_config.get("df_path")
@@ -46,9 +53,14 @@ class ITraderEnv(gym.Env):
         missing = [c for c in self.cols if c not in self.df.columns]
         if missing:
             raise ValueError(f"Feature columns not in dataframe: {missing}")
+        
+        # --- Task sampling / embedding -------------------------------------
+        ts_cfg = dict(cfg.get("task_sampler", {}))
+        base_seed = int(ts_cfg.get("seed", 1234))
+        ts_cfg["seed"] = int(base_seed + 1_000_003 * self.worker_index + 97 * self.vector_index)
+        self.task_sampler = TaskSampler00(ts_cfg)
 
         # ── Task sampling / embedding --------------------------------------------------------
-        self.task_sampler = TaskSampler00(env_config.get("task_sampler", {}))
         self.t_embed_dim  = int(env_config.get("t_embed_dim", DEFAULT_T_EMBED_DIM))
         self.reward_engine = RewardEngine
         self.current_task = None
@@ -63,6 +75,14 @@ class ITraderEnv(gym.Env):
 
         # rolling buffer holding last T rows
         self._buf: deque[np.ndarray] = deque(maxlen=self.T)
+
+        # --- episode-level accumulators (used by callbacks) ----------------
+        # MUST exist before the first _reset_state() call.
+        self._act_counts = np.zeros(3, dtype=np.int64)
+        self._rc_sums: Dict[str, float] = {"pnl_delta": 0.0, "dd": 0.0, "turnover": 0.0}
+        self._last_info: Dict[str, Any] = {}
+
+        # initialize state
         self._reset_state()
 
     # ===================================================================== #
@@ -92,6 +112,20 @@ class ITraderEnv(gym.Env):
         self._episode_pnl = 0.0
         self._max_equity  = 0.0
         self._max_dd = 0.0     # maximum drawdown tracking
+
+        # episode aggregates (for plotting via callback)
+        # Defensive: ensure fields exist even if __init__ order changes.
+        if not hasattr(self, "_act_counts"):
+            self._act_counts = np.zeros(3, dtype=np.int64)
+        else:
+            self._act_counts[:] = 0
+        if not hasattr(self, "_rc_sums"):
+            self._rc_sums = {"pnl_delta": 0.0, "dd": 0.0, "turnover": 0.0}
+        else:
+            for k in self._rc_sums:
+                self._rc_sums[k] = 0.0
+        if not hasattr(self, "_last_info"):
+            self._last_info = {}
     # ===================================================================== #
     # gymnasium.Env interface
     # --------------------------------------------------------------------- #
@@ -111,6 +145,7 @@ class ITraderEnv(gym.Env):
         price_obs = _sanitize(self._get_obs())
         obs = _sanitize(np.concatenate([price_obs, t]).astype(np.float32))
         info = {"task": self.current_task.to_dict()}
+        self._last_info = info
         return obs, info
 
     def step(self, action: int):
@@ -168,6 +203,12 @@ class ITraderEnv(gym.Env):
             ctx,
         )
 
+        # accumulate episode aggregates
+        self._act_counts[action] += 1
+        self._rc_sums["pnl_delta"] += float(comps.get("pnl_delta", 0.0))
+        self._rc_sums["dd"] += float(comps.get("dd", 0.0))
+        self._rc_sums["turnover"] += float(comps.get("turnover", 0.0))
+
         self._t += 1
         ep_horizon = int(self.current_task.horizon)
         done_by_horizon = (self._t >= ep_horizon)
@@ -187,8 +228,23 @@ class ITraderEnv(gym.Env):
         else:
             t = self._t_embed
         obs_next = _sanitize(np.concatenate([price_obs_next, t]).astype(np.float32))
-        info = {"position": self.pos, "reward_comps": comps, "success": success,
-                "task": self.current_task.to_dict()}
+
+        info = {
+            "position": self.pos,
+            "reward_comps": comps,
+            "success": success,
+            "task": self.current_task.to_dict(),
+        }
+
+        if done:
+            steps = max(1, int(self._t))
+            info["ep_sums"] = {
+                "steps": steps,
+                "horizon": ep_horizon,
+                "act_counts": self._act_counts.copy(),
+                "rc_sums": dict(self._rc_sums),
+            }
+
+        self._last_info = info
         return obs_next, float(r), done, trunc, info
-    
     

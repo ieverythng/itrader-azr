@@ -47,23 +47,15 @@ tune.register_env("ITraderEnv", make_env)
 from ray.rllib.algorithms.callbacks import DefaultCallbacks
 
 class CombinedCallback(DefaultCallbacks):
-    """Combines PSMetrics and AutoPlotterCallback functionality."""
-    
     def __init__(self, plot_interval: int = 50):
         super().__init__()
         self.ps_metrics = PSMetrics()
-        # Use the new interface - plot at end of every training loop by default
         self.auto_plotter = AutoPlotterCallback(plot_at_end_of_loop=True)
     
     def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
-        """Delegate to PSMetrics."""
-        return self.ps_metrics.on_episode_end(
-            worker=worker, base_env=base_env, policies=policies, episode=episode, **kwargs
-        )
+        return self.ps_metrics.on_episode_end(worker=worker, base_env=base_env, policies=policies, episode=episode, **kwargs)
     
     def on_train_result(self, *, algorithm, result, **kwargs):
-        """Delegate to both callbacks."""
-        # PSMetrics doesn't have on_train_result, so just call auto_plotter
         return self.auto_plotter.on_train_result(algorithm=algorithm, result=result, **kwargs)
 
 # class ReturnLoggingCallback(DefaultCallbacks):
@@ -149,6 +141,13 @@ def main(args):
                 "n_features": 5,  # OHLCV features
                 "t_embed_dim": 32,
                 "action_dim": 3,
+                # benign defaults; sampler gets per-worker seed automatically
+                "horizons": [96, 128, 160, 200],
+                "turnover_w_choices": [0.0, 0.0025, 0.005],
+                "dd_modes": ["delta"],
+                "dd_w_range": (0.0, 0.04),
+                "turnover_cap": 0.02,
+                "dd_cap": 0.05,
             },
         },
         "model": {

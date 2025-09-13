@@ -54,6 +54,9 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
     dd_w = float(params.get("dd_w", 0.0))
     dd_T_weight = float(params.get("dd_T_weight", 0.0))
 
+    to_cap = float(params.get("turnover_cap", float("inf")))
+    dd_cap = float(params.get("dd_cap", float("inf")))
+
     pnl_delta = float(ctx.get("pnl_delta", 0.0))
     turnover_t = float(ctx.get("turnover_t", 0.0))
 
@@ -65,19 +68,24 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
     comps["pnl_delta"] = pnl_w * pnl_delta
 
     # trading cost: choose either concrete fee or abstract turnover weight (both allowed but keep small)
-    trade_cost = to_w * turnover_t
+    # turnover penalty (capped)
+    trade_cost_raw = to_w * turnover_t
+    trade_cost = min(abs(trade_cost_raw), to_cap) * (1.0 if trade_cost_raw >= 0 else -1.0)
     r -= trade_cost
     comps["turnover"] = -trade_cost
 
     # drawdown contribution
+    # drawdown
     if dd_mode == "delta":
         dd_inc = float(ctx.get("dd_inc", 0.0))
-        dd_term = dd_w * dd_inc
+        dd_term_raw = dd_w * dd_inc
+        dd_term = min(abs(dd_term_raw), dd_cap) * (1.0 if dd_term_raw >= 0 else -1.0)
         r -= dd_term
         comps["dd"] = -dd_term
     elif dd_mode == "terminal" and bool(ctx.get("terminal", False)):
         max_dd = float(ctx.get("max_dd", 0.0))
-        dd_term = dd_T_weight * max_dd
+        dd_term_raw = dd_T_weight * max_dd
+        dd_term = min(abs(dd_term_raw), dd_cap) * (1.0 if dd_term_raw >= 0 else -1.0)
         r -= dd_term
         comps["dd"] = -dd_term
     else:
