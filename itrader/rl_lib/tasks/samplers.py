@@ -28,7 +28,7 @@ class TaskSampler00:
         horizon = int(self.rng.choice(self.cfg.get("horizons", [96, 128, 160, 200])))
 
         # Small penalties to avoid drowning signal; later widened by PBT
-        turnover_w = float(self.rng.choice(self.cfg.get("turnover_w_choices", [0.0, 0.0025, 0.005])))
+        turnover_w = float(self.rng.choice(self.cfg.get("turnover_w_choices", [0.0, 0.0005, 0.001, 0.002])))
         # dd_mode    = str(self.rng.choice(self.cfg.get("dd_modes", ["none", "delta"])))
         dd_w       = float(self.rng.uniform(*self.cfg.get("dd_w_range", (0.0, 0.04))))
         dd_T_weight = float(self.cfg.get("dd_T_weight", 0.0))
@@ -42,6 +42,8 @@ class TaskSampler00:
             "dd_T_weight": dd_T_weight,
             "turnover_cap": float(self.cfg.get("turnover_cap", 0.02)),
             "dd_cap": float(self.cfg.get("dd_cap", 0.05)),
+            "reward_scale": 1.0,
+            "normalize": True,
         }
 
         window_size = int(self.cfg.get("window_size", 30))

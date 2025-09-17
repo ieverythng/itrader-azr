@@ -1,75 +1,88 @@
 from __future__ import annotations
-from collections import Counter
-from typing import Any, Dict
-import numpy as np
+from typing import Any, Dict, Optional
 from ray.rllib.algorithms.callbacks import DefaultCallbacks
 
 class PSMetrics(DefaultCallbacks):
-    """Logs episode diagnostics without relying on EpisodeV2.last_* helpers.
-
-    Works with single‑agent discrete(3) envs.
-    Aggregates from postprocessed trajectory batches:
-      - actions → per‑episode action fractions
-      - infos.reward_comps.{pnl_delta,dd,turnover} → means
-      - infos.success (terminal) → success flag
-      - infos.task → task metadata (e.g., horizon)
+    """
+    Logs:
+      - episode_return_mean (our primary)
+      - action fractions per episode: act_short/flat/long_frac
+      - reward components per step avg: rc_pnl_delta_mean, rc_dd_mean, rc_turnover_mean
+      - success flag mean
+      - task horizon mean
+    Compatible with EnvRunnerV2 / EpisodeV2.
     """
 
-    def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
-        info = None
-        # Try to get last info directly (works on many RLlib builds)
-        try:
-            info = episode.last_info_for()
-        except Exception:
-            info = None
-
-        # Fallback: read the env's cached last info (single-agent)
-        if info is None:
+    @staticmethod
+    def _extract_env(base_env) -> Optional[Any]:
+        """Best-effort to get the first underlying env instance."""
+        # Vector env (common in RLlib)
+        if hasattr(base_env, "get_sub_environments"):
             try:
-                env = base_env.get_unwrapped()[0]
-                info = getattr(env, "_last_info", None)
+                envs = base_env.get_sub_environments()
+                if envs:
+                    return envs[0]
             except Exception:
-                info = None
+                pass
+        # Older access paths
+        if hasattr(base_env, "vector_env") and hasattr(base_env.vector_env, "envs"):
+            envs = base_env.vector_env.envs
+            if envs:
+                return envs[0]
+        if hasattr(base_env, "envs"):
+            envs = base_env.envs
+            if envs:
+                return envs[0]
+        return None
 
-        if not info:
-            return
+    def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
+        # Always set a default to avoid UnboundLocalError
+        env = self._extract_env(base_env)
 
-        # Defaults
-        act0 = act1 = act2 = 0.0
-        rc_pnl = rc_dd = rc_to = 0.0
-        success = 0.0
-        horizon = None
+        # 1) Primary scalar: episode total reward (RLlib computes this)
+        try:
+            total_r = float(episode.total_reward)
+        except Exception:
+            total_r = 0.0
+        episode.custom_metrics["episode_return_mean"] = total_r
 
-        if env is not None and isinstance(getattr(env, "_last_info", None), dict):
-            info: Dict[str, Any] = env._last_info
-            success = float(bool(info.get("success", False)))
-            horizon = int(info.get("task", {}).get("horizon", 0))
+        # 2) Pull last info dict if available
+        info: Dict[str, Any] = {}
+        try:
+            # EpisodeV2: last_info_for(policy_id=None) is removed; use our env stash.
+            if env is not None and isinstance(getattr(env, "_last_info", None), dict):
+                info = env._last_info  # set by env.step()
+        except Exception:
+            info = {}
 
-            ep = info.get("ep_sums", {})
-            steps = max(1, int(ep.get("steps", 1)))
+        # 3) Action fractions + reward components (from env.ep_sums)
+        if isinstance(info.get("ep_sums"), dict):
+            sums = info["ep_sums"]
+            steps = max(1, int(sums.get("steps", 1)))
 
-            # Action fractions
-            counts = ep.get("act_counts", [0, 0, 0])
-            if isinstance(counts, (list, tuple)) and len(counts) >= 3:
-                act0 = float(counts[0]) / steps
-                act1 = float(counts[1]) / steps
-                act2 = float(counts[2]) / steps
+            # action fractions
+            act_counts = sums.get("act_counts", [0, 0, 0])
+            if isinstance(act_counts, dict):  # if someone stored dict indices
+                act_counts = [act_counts.get(i, 0) for i in range(3)]
+            act_short, act_flat, act_long = (float(act_counts[0]), float(act_counts[1]), float(act_counts[2]))
+            episode.custom_metrics["act_short_frac"] = act_short / steps
+            episode.custom_metrics["act_flat_frac"]  = act_flat  / steps
+            episode.custom_metrics["act_long_frac"]  = act_long  / steps
 
-            # Reward component means
-            rc = ep.get("rc_sums", {})
-            rc_pnl = float(rc.get("pnl_delta", 0.0)) / steps
-            rc_dd = float(rc.get("dd", 0.0)) / steps
-            rc_to = float(rc.get("turnover", 0.0)) / steps
+            # reward components (per-step average)
+            rc_sums = sums.get("rc_sums", {})
+            episode.custom_metrics["rc_pnl_delta"] = float(rc_sums.get("pnl_delta", 0.0)) / steps
+            episode.custom_metrics["rc_dd"]        = float(rc_sums.get("dd", 0.0))        / steps
+            episode.custom_metrics["rc_turnover"]  = float(rc_sums.get("turnover", 0.0))  / steps
 
-        # Write metrics
-        episode.custom_metrics["success"] = success
-        if horizon is not None:
-            episode.custom_metrics["task_horizon"] = float(horizon)
+            # horizon for task-level plots
+            episode.custom_metrics["task_horizon_mean"] = float(sums.get("horizon", 0.0))
 
-        episode.custom_metrics["act_0_frac"] = act0
-        episode.custom_metrics["act_1_frac"] = act1
-        episode.custom_metrics["act_2_frac"] = act2
-
-        episode.custom_metrics["rc_pnl_delta_mean"] = rc_pnl
-        episode.custom_metrics["rc_dd_mean"] = rc_dd
-        episode.custom_metrics["rc_turnover_mean"] = rc_to
+            # 4) Success flag (also present in info)
+            # success flag if carried in info
+            succ = float(info.get("reward_comps", {}).get("success", 0.0))
+            episode.custom_metrics["success_mean"] = succ
+ 
+             # a custom "episode_return" based on raw pnl (scale-invariant)
+            episode.custom_metrics["episode_return"] = rc_sums.get("pnl_delta", 0.0)
+        

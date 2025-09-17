@@ -88,17 +88,18 @@ def training_fn(config):
         # robust metric extraction
         policy_loss = float(ls.get("policy_loss", 0.0))
         vf_loss = float(ls.get("vf_loss", ls.get("value_loss", 0.0)))
-        entropy = float(ls.get("entropy", res.get("info", {}).get("learner", {}).get("default_policy", {}).get("entropy", 0.0)))
+        entropy = float(ls.get("entropy", 0.0))
 
         # prefer our custom aggregated mean; fallback to RLlib default keys
-        erm = cm.get("episode_return_mean", None)
-        if erm is None or not np.isfinite(erm):
-            erm = res.get("episode_reward_mean", None)
+        erm = res.get("custom_metrics/episode_return_mean_mean", None)
         if erm is None:
-            erm = res.get("sampler_results", {}).get("episode_reward_mean", float("nan"))
+            erm = res.get("sampler_results", {}).get("custom_metrics/episode_return_mean_mean", None)
+        if erm is None:
+            erm = res.get("episode_reward_mean", float("nan"))
+
 
         train.report({
-            "episode_return_mean": cm.get("episode_return_mean", float("nan")),
+            "custom_metrics/episode_return_mean": float(erm) if erm is not None else float("nan"),
             "policy_loss":        policy_loss,
             "value_loss":         vf_loss,
             "entropy":            entropy,
@@ -143,7 +144,7 @@ def main(args):
                 "action_dim": 3,
                 # benign defaults; sampler gets per-worker seed automatically
                 "horizons": [96, 128, 160, 200],
-                "turnover_w_choices": [0.0, 0.0025, 0.005],
+                "turnover_w_choices": [0.0, 0.0005, 0.001, 0.002],
                 "dd_modes": ["delta"],
                 "dd_w_range": (0.0, 0.04),
                 "turnover_cap": 0.02,
@@ -224,12 +225,12 @@ def main(args):
         name="Phase_A",
         # scheduler=pbt,
         stop={"training_iteration": args.iters},
-        metric="episode_return_mean",    # tune on our custom metric
+        metric="custom_metrics/episode_return_mean",    # tune on our custom metric
         mode="max",
         config=base_config,
         local_dir=str(Path.home() / "ray_results"),
         progress_reporter=tune.CLIReporter(
-        metric_columns=["episode_return_mean", "policy_loss","value_loss", "iters_per_sec"],
+        metric_columns=["custom_metrics/episode_return_mean", "policy_loss","value_loss", "iters_per_sec"],
         ),
         reuse_actors=False,
         resources_per_trial= PlacementGroupFactory(

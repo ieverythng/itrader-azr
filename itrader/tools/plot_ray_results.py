@@ -1,49 +1,67 @@
 from __future__ import annotations
+
 import argparse
 from pathlib import Path
-import pandas as pd
-import matplotlib.pyplot as plt
 from datetime import datetime
+
+# headless / non-interactive backend
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+
+import pandas as pd
 
 
 def pick_x_axis(df: pd.DataFrame) -> str | None:
+    """
+    Pick a robust x-axis column. Falls back to index when none are present.
+    """
     for c in ("training_iteration", "iteration", "iterations_since_restore", "time_total_s"):
         if c in df.columns:
             return c
-    return None  # will fallback to index
+    return None
+
+
+def _plot_series(df: pd.DataFrame, ax, y_cols, xcol: str | None, title: str):
+    if not y_cols:
+        return
+    if isinstance(y_cols, str):
+        y_cols = [y_cols]
+    y_cols = [c for c in y_cols if c in df.columns]
+    if not y_cols:
+        return
+    if xcol:
+        df.plot(x=xcol, y=y_cols, ax=ax)
+    else:
+        df[y_cols].plot(ax=ax)
+    ax.set_title(title)
 
 
 def plot_original_metrics(df: pd.DataFrame, out: Path, xcol: str | None):
     fig, axes = plt.subplots(4, 1, figsize=(10, 12))
 
-    # Episode Return Mean
-    y = "custom_metrics/episode_return_mean" if "custom_metrics/episode_return_mean" in df.columns else \
-        ("episode_reward_mean" if "episode_reward_mean" in df.columns else None)
-    if y:
-        df.plot(x=xcol, y=y, ax=axes[0]) if xcol else df[y].plot(ax=axes[0])
-        axes[0].set_title("Episode Return Mean" if "custom_metrics" in y else "Episode Reward Mean")
+    # Episode return (custom) or built-in reward
+    y = "custom_metrics/episode_return_mean" if "custom_metrics/episode_return_mean" in df.columns else None
+    if not y:
+        y = "custom_metrics/episode_return_mean_mean" if "custom_metrics/episode_return_mean_mean" in df.columns else None
+    if not y:
+        y = "episode_reward_mean" if "episode_reward_mean" in df.columns else None
+    _plot_series(df, axes[0], y, xcol, "Episode Return / Reward")
 
     # Entropy (or episode length)
-    ent_cols = [c for c in df.columns if "entropy" in c.lower()]
+    ent_cols = [c for c in df.columns if c.lower().endswith("entropy")]
     if ent_cols:
-        df.plot(x=xcol, y=ent_cols[0], ax=axes[1]) if xcol else df[ent_cols[0]].plot(ax=axes[1])
-        axes[1].set_title("Policy Entropy")
-    elif "episode_len_mean" in df.columns:
-        df.plot(x=xcol, y="episode_len_mean", ax=axes[1]) if xcol else df["episode_len_mean"].plot(ax=axes[1])
-        axes[1].set_title("Episode Length Mean")
+        _plot_series(df, axes[1], ent_cols[0], xcol, "Policy Entropy")
+    else:
+        _plot_series(df, axes[1], "episode_len_mean", xcol, "Episode Length Mean")
 
     # Losses
     loss_cols = [c for c in df.columns if any(t in c.lower() for t in ["policy_loss", "vf_loss", "total_loss", "loss"])]
-    if loss_cols:
-        cols = loss_cols[:2] if len(loss_cols) >= 2 else loss_cols
-        df.plot(x=xcol, y=cols, ax=axes[2]) if xcol else df[cols].plot(ax=axes[2])
-        axes[2].set_title("Losses")
+    _plot_series(df, axes[2], loss_cols[:2] or loss_cols, xcol, "Losses")
 
     # Action fractions
     act_cols = [c for c in df.columns if c.startswith("custom_metrics/act_") and c.endswith("_mean")]
-    if act_cols:
-        df.plot(x=xcol, y=act_cols, ax=axes[3]) if xcol else df[act_cols].plot(ax=axes[3])
-        axes[3].set_title("Action Fractions")
+    _plot_series(df, axes[3], act_cols, xcol, "Action Fractions")
 
     plt.tight_layout()
     out.mkdir(parents=True, exist_ok=True)
@@ -56,31 +74,23 @@ def plot_original_metrics(df: pd.DataFrame, out: Path, xcol: str | None):
 def plot_enhanced_metrics(df: pd.DataFrame, out: Path, xcol: str | None):
     fig, axes = plt.subplots(5, 1, figsize=(12, 15))
 
-    # Episode Return & Reward
-    if "custom_metrics/episode_return_mean" in df.columns:
-        df.plot(x=xcol, y="custom_metrics/episode_return_mean", ax=axes[0]) if xcol else \
-            df["custom_metrics/episode_return_mean"].plot(ax=axes[0])
-        axes[0].set_title("Episode Return Mean")
-    if "episode_reward_mean" in df.columns:
-        df.plot(x=xcol, y="episode_reward_mean", ax=axes[1]) if xcol else df["episode_reward_mean"].plot(ax=axes[1])
-        axes[1].set_title("Episode Reward Mean")
+    _plot_series(df, axes[0], [
+        "custom_metrics/episode_return_mean",
+        "custom_metrics/episode_return_mean_mean",
+        "episode_reward_mean",
+    ], xcol, "Episode Return / Reward")
 
-    # Episode length
-    if "episode_len_mean" in df.columns:
-        df.plot(x=xcol, y="episode_len_mean", ax=axes[2]) if xcol else df["episode_len_mean"].plot(ax=axes[2])
-        axes[2].set_title("Episode Length Mean")
+    _plot_series(df, axes[1], "episode_len_mean", xcol, "Episode Length Mean")
 
-    # Action frac
     act_cols = [c for c in df.columns if c.startswith("custom_metrics/act_") and c.endswith("_mean")]
-    if act_cols:
-        df.plot(x=xcol, y=act_cols, ax=axes[3]) if xcol else df[act_cols].plot(ax=axes[3])
-        axes[3].set_title("Action Fractions")
+    _plot_series(df, axes[3], act_cols, xcol, "Action Fractions")
 
-    # Reward components
     rc_cols = [c for c in df.columns if c.startswith("custom_metrics/rc_") and c.endswith("_mean")]
-    if rc_cols:
-        df.plot(x=xcol, y=rc_cols, ax=axes[4]) if xcol else df[rc_cols].plot(ax=axes[4])
-        axes[4].set_title("Reward Components (PnL, Drawdown, Turnover)")
+    _plot_series(df, axes[4], rc_cols, xcol, "Reward Components (PnL, Drawdown, Turnover)")
+
+    # Entropy moved to a dedicated pane for readability
+    ent_cols = [c for c in df.columns if c.lower().endswith("entropy")]
+    _plot_series(df, axes[2], ent_cols[:1], xcol, "Policy Entropy")
 
     plt.tight_layout()
     out.mkdir(parents=True, exist_ok=True)
@@ -93,25 +103,13 @@ def plot_enhanced_metrics(df: pd.DataFrame, out: Path, xcol: str | None):
 def plot_task_sampler_metrics(df: pd.DataFrame, out: Path, xcol: str | None):
     fig, axes = plt.subplots(4, 1, figsize=(12, 12))
 
-    if "custom_metrics/success_mean" in df.columns:
-        df.plot(x=xcol, y="custom_metrics/success_mean", ax=axes[0]) if xcol else \
-            df["custom_metrics/success_mean"].plot(ax=axes[0])
-        axes[0].set_title("Success Rate")
-
-    if "custom_metrics/task_horizon_mean" in df.columns:
-        df.plot(x=xcol, y="custom_metrics/task_horizon_mean", ax=axes[1]) if xcol else \
-            df["custom_metrics/task_horizon_mean"].plot(ax=axes[1])
-        axes[1].set_title("Task Horizon Mean")
+    _plot_series(df, axes[0], "custom_metrics/success_mean", xcol, "Success Rate")
+    _plot_series(df, axes[1], "custom_metrics/task_horizon_mean", xcol, "Task Horizon Mean")
 
     rc_cols = [c for c in df.columns if c.startswith("custom_metrics/rc_") and c.endswith("_mean")]
-    if rc_cols:
-        df.plot(x=xcol, y=rc_cols, ax=axes[2]) if xcol else df[rc_cols].plot(ax=axes[2])
-        axes[2].set_title("Reward Components (PnL, Drawdown, Turnover)")
+    _plot_series(df, axes[2], rc_cols, xcol, "Reward Components (PnL, Drawdown, Turnover)")
 
-    if "num_env_steps_trained_throughput_per_sec" in df.columns:
-        df.plot(x=xcol, y="num_env_steps_trained_throughput_per_sec", ax=axes[3]) if xcol else \
-            df["num_env_steps_trained_throughput_per_sec"].plot(ax=axes[3])
-        axes[3].set_title("Training Throughput (steps/sec)")
+    _plot_series(df, axes[3], "num_env_steps_trained_throughput_per_sec", xcol, "Training Throughput (steps/sec)")
 
     plt.tight_layout()
     out.mkdir(parents=True, exist_ok=True)
@@ -132,10 +130,11 @@ def main():
     if not csv_path.exists():
         raise SystemExit(f"progress.csv not found at: {csv_path}")
 
-    df = pd.read_csv(csv_path)
+    # Be tolerant of partially-written CSVs; Pandas will handle.
+    df = pd.read_csv(csv_path, encoding="utf-8")
     xcol = pick_x_axis(df)
 
-    out = Path(args.out) if args.out else (Path("plots") / trial_dir.name)
+    out = Path(args.out) if args.out else (trial_dir / "plots")
     out.mkdir(parents=True, exist_ok=True)
 
     print(f"Creating plots in: {out}")
@@ -148,7 +147,9 @@ def main():
         f.write("Plot Generation Summary\n")
         f.write(f"Generated: {datetime.now():%Y-%m-%d %H:%M:%S}\n")
         f.write(f"Source Trial: {trial_dir}\n")
-        f.write(f"Total Iterations: {df.get('training_iteration', pd.Series([len(df)])).iloc[-1]}\n")
+        # Use row count as a fallback when there's no training_iteration column
+        total_iters = df["training_iteration"].iloc[-1] if "training_iteration" in df.columns else len(df)
+        f.write(f"Total Iterations: {total_iters}\n")
         f.write(f"Columns ({len(df.columns)}):\n")
         for col in df.columns:
             f.write(f"  - {col}\n")

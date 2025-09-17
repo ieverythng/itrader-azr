@@ -1,15 +1,19 @@
 from __future__ import annotations
+
 import sys
+import subprocess
 from pathlib import Path
 from typing import Dict, Any, Optional
-import subprocess
+
 from ray.rllib.algorithms.callbacks import DefaultCallbacks
 
 
 class AutoPlotterCallback(DefaultCallbacks):
     """
-    Generates plots during training by calling tools/plot_ray_results.py
-    after each training iteration (or at a configured interval).
+    Safe, headless auto-plotter that never interrupts training.
+    - Detects the trial dir from `result["logdir"]` or Algorithm.logdir.
+    - Calls tools/plot_ray_results.py inside the trial dir.
+    - Swallows all exceptions (prints warnings instead).
     """
 
     def __init__(
@@ -18,79 +22,92 @@ class AutoPlotterCallback(DefaultCallbacks):
         plot_script_path: Optional[str] = None,
         auto_plot: bool = True,
         plot_at_end_of_loop: bool = True,
-        plots_dir: Optional[str] = None,
     ):
         super().__init__()
         self.plot_interval = plot_interval
         self.auto_plot = auto_plot
         self.plot_at_end_of_loop = plot_at_end_of_loop
         self.last_plot_iter = 0
-        self.plots_dir = Path(plots_dir) if plots_dir else None
 
+        # Locate plotting script (…/tools/plot_ray_results.py)
         if plot_script_path is None:
-            plot_script_path = Path(__file__).parents[2] / "tools" / "plot_ray_results.py"
+            plot_script_path = Path(__file__).parent.parents[1] / "tools" / "plot_ray_results.py"
         self.plot_script_path = Path(plot_script_path)
 
         if not self.plot_script_path.exists():
             print(f"[AutoPlotter] Warning: plot script not found at {self.plot_script_path}")
             self.auto_plot = False
 
+    # ------------------------------------------------------------------ #
     def on_train_result(self, *, algorithm, result: Dict[str, Any], **kwargs):
         if not self.auto_plot:
             return
-        current_iter = int(result.get("training_iteration", 0))
+        try:
+            current_iter = int(result.get("training_iteration", 0))
+            do_plot = self.plot_at_end_of_loop or (
+                self.plot_interval is not None and current_iter - self.last_plot_iter >= self.plot_interval
+            )
+            if do_plot:
+                self._generate_plots(algorithm, result)
+                self.last_plot_iter = current_iter
+        except Exception as e:
+            print(f"[AutoPlotter] Suppressed plotting error in on_train_result: {e}")
 
-        doit = self.plot_at_end_of_loop or (
-            self.plot_interval is not None and current_iter - self.last_plot_iter >= self.plot_interval
-        )
-        if not doit:
-            return
-
-        trial_dir = self._find_trial_directory(algorithm, result)
-        if trial_dir is None:
-            print("[AutoPlotter] Warning: could not locate trial directory (progress.csv).")
-            return
-
-        cmd = [sys.executable, str(self.plot_script_path), str(trial_dir)]
-        if self.plots_dir:
-            cmd += ["--out", str(self.plots_dir)]
-
-        print(f"\n🎨 Generating plots for iteration {current_iter}")
-        print(f"📁 Trial directory: {trial_dir}")
-
-        proc = subprocess.run(cmd, capture_output=True, text=True)
-        if proc.returncode == 0:
-            print("✅ Plots generated.")
-            if proc.stdout:
-                print(proc.stdout.strip())
-        else:
-            print(f"❌ Plot generation failed ({proc.returncode})")
-            if proc.stderr:
-                print(proc.stderr.strip())
-
-        self.last_plot_iter = current_iter
-
-    def _find_trial_directory(self, algorithm, result: Dict[str, Any]) -> Optional[Path]:
-        # 1) direct from result (Ray AIR)
-        for k in ("log_dir", "logdir", "trial_logdir"):
-            if k in result:
-                p = Path(result[k])
+    # ------------------------------------------------------------------ #
+    def _trial_dir(self, algorithm, result: Dict[str, Any]) -> Optional[Path]:
+        """Resolve the Ray Tune trial directory robustly."""
+        # 1) result has logdir (preferred)
+        try:
+            if "logdir" in result and result["logdir"]:
+                p = Path(result["logdir"])
                 if (p / "progress.csv").exists():
                     return p
+        except Exception:
+            pass
 
-        # 2) algorithm.logdir (RLlib)
-        p = Path(getattr(algorithm, "logdir", ""))
-        if p and (p / "progress.csv").exists():
-            return p
+        # 2) Algorithm.logdir
+        try:
+            if hasattr(algorithm, "logdir") and algorithm.logdir:
+                p = Path(algorithm.logdir)
+                if (p / "progress.csv").exists():
+                    return p
+        except Exception:
+            pass
 
-        # 3) search recent Phase_A in ray_results
-        root = Path.home() / "ray_results"
-        if root.exists():
-            cands = sorted(root.rglob("progress.csv"), key=lambda pp: pp.stat().st_mtime, reverse=True)
-            for cand in cands:
-                # prefer our Phase_A/PPO run if present
-                if "Phase_A" in str(cand) or "PPO_ITraderEnv" in str(cand):
-                    return cand.parent
-            if cands:
-                return cands[0].parent
+        # 3) Fallback to most recent progress.csv under ~/ray_results
+        try:
+            base = Path.home() / "ray_results"
+            if base.exists():
+                candidates = [d for d in base.rglob("*") if (d.is_dir() and (d / "progress.csv").exists())]
+                if candidates:
+                    return max(candidates, key=lambda d: (d / "progress.csv").stat().st_mtime)
+        except Exception:
+            pass
+
         return None
+
+    # ------------------------------------------------------------------ #
+    def _generate_plots(self, algorithm, result: Dict[str, Any]):
+        try:
+            trial_dir = self._trial_dir(algorithm, result)
+            if not trial_dir:
+                print("[AutoPlotter] Warning: could not resolve trial directory; skipping plots.")
+                return
+
+            cmd = [sys.executable, str(self.plot_script_path), str(trial_dir)]
+            print(f"\n🎨 Generating plots @ iter {result.get('training_iteration', 0)}")
+            print(f"📁 Trial directory: {trial_dir}")
+
+            # Run inside the trial dir so relative output is stable.
+            proc = subprocess.run(cmd, capture_output=True, text=True, cwd=trial_dir)
+
+            if proc.returncode == 0:
+                print("✅ Plots generated.")
+                if proc.stdout:
+                    print(proc.stdout)
+            else:
+                print(f"❌ Plot generation failed (code={proc.returncode})")
+                if proc.stderr:
+                    print(proc.stderr)
+        except Exception as e:
+            print(f"[AutoPlotter] Suppressed plotting error: {e}")

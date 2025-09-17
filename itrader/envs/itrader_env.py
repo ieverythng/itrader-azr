@@ -35,6 +35,9 @@ class ITraderEnv(gym.Env):
         self.worker_index = int(getattr(env_config, "worker_index", env_config.get("worker_index", 0)))
         self.vector_index = int(getattr(env_config, "vector_index", env_config.get("vector_index", 0)))
 
+        # If you want per-task control, you can move alpha into TaskSpec later.
+        self.ret_norm_alpha = float(env_config.get("ret_norm_alpha", 0.01))
+        self._ret_ema = 1e-3  # typical per-step abs return; reset each episode
 
         # ── load dataframe ------------------------------------------------
         df_path = env_config.get("df_path")
@@ -114,6 +117,7 @@ class ITraderEnv(gym.Env):
         self._max_dd = 0.0     # maximum drawdown tracking
 
         # episode aggregates (for plotting via callback)
+
         # Defensive: ensure fields exist even if __init__ order changes.
         if not hasattr(self, "_act_counts"):
             self._act_counts = np.zeros(3, dtype=np.int64)
@@ -126,6 +130,9 @@ class ITraderEnv(gym.Env):
                 self._rc_sums[k] = 0.0
         if not hasattr(self, "_last_info"):
             self._last_info = {}
+
+        # reset EMA for this episode
+        self._ret_ema = 1e-3
     # ===================================================================== #
     # gymnasium.Env interface
     # --------------------------------------------------------------------- #
@@ -169,6 +176,11 @@ class ITraderEnv(gym.Env):
         ret = (price_next - price_t) / max(price_t, 1e-8)
         turnover_t = abs(float(self.pos) - prev_pos)  # 0, 1 or 2
 
+        # update EMA(|ret|) and derive a unit scale so "typical" return ≈ 1.0
+        a = self.ret_norm_alpha
+        self._ret_ema = (1.0 - a) * self._ret_ema + a * abs(ret)
+        ret_unit = 1.0 / max(self._ret_ema, 1e-8)  # multiply reward terms by this
+
         # mark-to-market PnL (in return space)
         pnl_t  = self._episode_pnl
         mtm    = float(self.pos) * ret
@@ -194,6 +206,7 @@ class ITraderEnv(gym.Env):
         "price_t": price_t, "price_t1": price_next,
         "position_t": float(self.pos), "action_t": action,
         "ret": ret,
+        "ret_unit": ret_unit,   # <- dynamic normalization factor for rewards
         }
 
         # compute reward via registry

@@ -56,20 +56,29 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
 
     to_cap = float(params.get("turnover_cap", float("inf")))
     dd_cap = float(params.get("dd_cap", float("inf")))
+    r_scale = float(params.get("reward_scale", 1.0))
+    normalize = bool(params.get("normalize", True))
+    norm_clip = float(params.get("norm_clip", 5.0))
 
     pnl_delta = float(ctx.get("pnl_delta", 0.0))
     turnover_t = float(ctx.get("turnover_t", 0.0))
+    unit = float(ctx.get("ret_unit", 1.0)) if normalize else 1.0
 
     r = 0.0
     comps = {}
 
     # pnl contribution
-    r += pnl_w * pnl_delta
-    comps["pnl_delta"] = pnl_w * pnl_delta
+    pnl_comp = pnl_w * pnl_delta
+    if normalize:
+        pnl_comp *= unit      # = pnl_delta / EMA(|ret|)
+        if np.isfinite(norm_clip):
+            pnl_comp = float(np.clip(pnl_comp, -norm_clip, +norm_clip))
+    r += pnl_comp
+    comps["pnl_delta"] = pnl_comp
 
     # trading cost: choose either concrete fee or abstract turnover weight (both allowed but keep small)
     # turnover penalty (capped)
-    trade_cost_raw = to_w * turnover_t
+    trade_cost_raw = (to_w * turnover_t)
     trade_cost = min(abs(trade_cost_raw), to_cap) * (1.0 if trade_cost_raw >= 0 else -1.0)
     r -= trade_cost
     comps["turnover"] = -trade_cost
@@ -78,19 +87,24 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
     # drawdown
     if dd_mode == "delta":
         dd_inc = float(ctx.get("dd_inc", 0.0))
-        dd_term_raw = dd_w * dd_inc
+        dd_term_raw = (dd_w * dd_inc) * unit
         dd_term = min(abs(dd_term_raw), dd_cap) * (1.0 if dd_term_raw >= 0 else -1.0)
         r -= dd_term
         comps["dd"] = -dd_term
     elif dd_mode == "terminal" and bool(ctx.get("terminal", False)):
         max_dd = float(ctx.get("max_dd", 0.0))
-        dd_term_raw = dd_T_weight * max_dd
+        dd_term_raw = (dd_T_weight * max_dd) * unit
         dd_term = min(abs(dd_term_raw), dd_cap) * (1.0 if dd_term_raw >= 0 else -1.0)
         r -= dd_term
         comps["dd"] = -dd_term
     else:
         comps["dd"] = 0.0
 
+    # uniform post-scale if you ever need to “turn the volume knob”
+    if r_scale != 1.0:
+        r *= r_scale
+        for k in ("pnl_delta", "turnover", "dd"):
+            comps[k] = comps.get(k, 0.0) * r_scale
     return r, comps
 
 @register("pnl_sharpe")
