@@ -173,9 +173,9 @@ def main(args):
         "grad_clip": 10.0,
         # Stabilise exploration → exploitation
         "entropy_coeff_schedule": [
-            [0,       0.03],
-            [500_000, 0.01],
-            [1_500_000, 0.003],
+            [0,        0.02],
+            [200_000,  0.01],
+            [800_000,  0.003],
         ],
         "train_batch_size": 4800,
         "batch_mode": "complete_episodes",
