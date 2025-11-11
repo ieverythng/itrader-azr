@@ -19,6 +19,7 @@ from itrader.models.solver_lstm import SolverLSTMModel
 from itrader.models.solver_MLP import SolverMLPModel
 from itrader.models.solver_mlp_film import SolverMLPFiLM
 from itrader.rl_lib.callbacks.ps_metrics import PSMetrics
+from itrader.rl_lib.callbacks.auto_plotter import AutoPlotterCallback
 
 # TimeLimit wrapper
 from gymnasium.wrappers import TimeLimit
@@ -44,6 +45,18 @@ tune.register_env("ITraderEnv", make_env)
 # 3) Custom callback to expose samples/sec
 # ────────────────────────────────────────────────────────────────────────────────
 from ray.rllib.algorithms.callbacks import DefaultCallbacks
+
+class CombinedCallback(DefaultCallbacks):
+    def __init__(self, plot_interval: int = 50):
+        super().__init__()
+        self.ps_metrics = PSMetrics()
+        self.auto_plotter = AutoPlotterCallback(plot_at_end_of_loop=True)
+    
+    def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
+        return self.ps_metrics.on_episode_end(worker=worker, base_env=base_env, policies=policies, episode=episode, **kwargs)
+    
+    def on_train_result(self, *, algorithm, result, **kwargs):
+        return self.auto_plotter.on_train_result(algorithm=algorithm, result=result, **kwargs)
 
 # class ReturnLoggingCallback(DefaultCallbacks):
 #     def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
@@ -75,17 +88,18 @@ def training_fn(config):
         # robust metric extraction
         policy_loss = float(ls.get("policy_loss", 0.0))
         vf_loss = float(ls.get("vf_loss", ls.get("value_loss", 0.0)))
-        entropy = float(ls.get("entropy", res.get("info", {}).get("learner", {}).get("default_policy", {}).get("entropy", 0.0)))
+        entropy = float(ls.get("entropy", 0.0))
 
         # prefer our custom aggregated mean; fallback to RLlib default keys
-        erm = cm.get("episode_return_mean", None)
-        if erm is None or not np.isfinite(erm):
-            erm = res.get("episode_reward_mean", None)
+        erm = res.get("custom_metrics/episode_return_mean_mean", None)
         if erm is None:
-            erm = res.get("sampler_results", {}).get("episode_reward_mean", float("nan"))
+            erm = res.get("sampler_results", {}).get("custom_metrics/episode_return_mean_mean", None)
+        if erm is None:
+            erm = res.get("episode_reward_mean", float("nan"))
+
 
         train.report({
-            "episode_return_mean": cm.get("episode_return_mean", float("nan")),
+            "custom_metrics/episode_return_mean": float(erm) if erm is not None else float("nan"),
             "policy_loss":        policy_loss,
             "value_loss":         vf_loss,
             "entropy":            entropy,
@@ -123,6 +137,19 @@ def main(args):
             "window_size": args.window,
             "t_embed_mode": "concat",   # off|scale|concat
             "t_scale": 1.0,
+            "task_sampler": {
+                "window_size": args.window,
+                "n_features": 5,  # OHLCV features
+                "t_embed_dim": 32,
+                "action_dim": 3,
+                # benign defaults; sampler gets per-worker seed automatically
+                "horizons": [96, 128, 160, 200],
+                "turnover_w_choices": [0.0, 0.0005, 0.001, 0.002],
+                "dd_modes": ["delta"],
+                "dd_w_range": (0.0, 0.04),
+                "turnover_cap": 0.02,
+                "dd_cap": 0.05,
+            },
         },
         "model": {
             "custom_model": "solver_mlp_film",
@@ -141,14 +168,14 @@ def main(args):
         "num_workers": num_workers,
         # core RL settings
         "framework": "torch",
-        "callbacks": PSMetrics,
+        "callbacks": CombinedCallback,
         "observation_filter": "MeanStdFilter",
         "grad_clip": 10.0,
         # Stabilise exploration → exploitation
         "entropy_coeff_schedule": [
-            [0,       0.03],
-            [500_000, 0.01],
-            [1_500_000, 0.003],
+            [0,        0.02],
+            [200_000,  0.01],
+            [800_000,  0.003],
         ],
         "train_batch_size": 4800,
         "batch_mode": "complete_episodes",
@@ -190,17 +217,20 @@ def main(args):
 # 5.1) Kick-off training algo
 # ────────────────────────────────────────────────────────────────────────────────    
   
+    print("🚀 Starting training with automatic plotting...")
+    print(f"📊 Plots will be generated every 50 iterations")
+    
     analysis = tune.run(
         training_fn,                        # <--- use the class directly
         name="Phase_A",
         # scheduler=pbt,
         stop={"training_iteration": args.iters},
-        metric="episode_return_mean",    # tune on our custom metric
+        metric="custom_metrics/episode_return_mean",    # tune on our custom metric
         mode="max",
         config=base_config,
         local_dir=str(Path.home() / "ray_results"),
         progress_reporter=tune.CLIReporter(
-        metric_columns=["episode_return_mean", "policy_loss","value_loss", "iters_per_sec"],
+        metric_columns=["custom_metrics/episode_return_mean", "policy_loss","value_loss", "iters_per_sec"],
         ),
         reuse_actors=False,
         resources_per_trial= PlacementGroupFactory(
