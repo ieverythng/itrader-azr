@@ -28,7 +28,8 @@ class ITraderEnv(gym.Env):
     # --------------------------------------------------------------------- #
     def __init__(self, env_config: dict | None = None):
         env_config   = env_config or {}
-        cfg = dict(env_config) if not isinstance(env_config, dict) else env_config
+        self.cfg = dict(env_config) if not isinstance(env_config, dict) else env_config
+        cfg = self.cfg  # Keep local variable for backward compatibility
         self.T       = int(env_config.get("window_size", 30))
 
         # Worker-aware offsets for task sampler (safe defaults if not present)
@@ -153,6 +154,9 @@ class ITraderEnv(gym.Env):
         obs = _sanitize(np.concatenate([price_obs, t]).astype(np.float32))
         info = {"task": self.current_task.to_dict()}
         self._last_info = info
+        over = self.cfg.get("task_sampler_overrides", {})
+        if over:
+            self.current_task.reward_params.update(over)
         return obs, info
 
     def step(self, action: int):
@@ -164,7 +168,7 @@ class ITraderEnv(gym.Env):
         price_t  = float(self.df.loc[self.idx - 1, "close"])
         prev_pos = float(self.pos)
 
-        # apply action -> new position (instant fill in this toy env)
+        # apply action -> new position 
         self.pos = target_pos
 
         # advance one step
@@ -206,7 +210,9 @@ class ITraderEnv(gym.Env):
         "price_t": price_t, "price_t1": price_next,
         "position_t": float(self.pos), "action_t": action,
         "ret": ret,
-        "ret_unit": ret_unit,   # <- dynamic normalization factor for rewards
+        "ret_unit": ret_unit,      # multiply terms by this if normalize=True
+        "ret_ema": self._ret_ema,  # realized_vol for inactivity gating
+        "terminal": False,         # updated below if done
         }
 
         # compute reward via registry
@@ -229,7 +235,7 @@ class ITraderEnv(gym.Env):
         done = bool(done_by_horizon or done_by_data)
         trunc = False
 
-        # baseline success flag for TRR++/curriculum stats (Phase-A)
+        # baseline success flag for TRR++/curriculum stats (Phase-B)
         success = bool(pnl_t1 > 0.0) if done else False
         comps["success"] = float(success)  # for TRR++/curriculum stats
 
@@ -241,6 +247,10 @@ class ITraderEnv(gym.Env):
         else:
             t = self._t_embed
         obs_next = _sanitize(np.concatenate([price_obs_next, t]).astype(np.float32))
+
+        if done:
+            ctx["terminal"] = True
+            # Recompute reward with terminal flag? Not needed—our reward_fn handles terminal within same call.
 
         info = {
             "position": self.pos,

@@ -42,10 +42,14 @@ class TaskEncoder:
             float(spec.seed % 997),  # bounded seed feature
         ], dtype=np.float32)
         cat_vec = sum((TaskEncoder._hash_to_vec(c, dim) for c in cats)) / len(cats)
-        num_vec = (num - num.mean()) / (num.std() + 1e-8)
+        # Fixed scaling: normalize numeric features to reasonable ranges instead of per-array stats
+        # This prevents numeric features from dominating due to meaningless normalization
+        scales = np.array([1000.0, 5000.0, 10.0, 997.0], dtype=np.float32)
+        num_vec = (num / scales)  # scale to [0, ~1] range
+        num_vec = (num_vec - 0.5) * 2.0  # center and scale to [-1, 1]
         # mix
         mix = cat_vec.copy()
         mix[: min(len(num_vec), dim)] += num_vec[: min(len(num_vec), dim)]
-        # final norm
+        # final norm (keep for stability)
         mix = (mix - mix.mean()) / (mix.std() + 1e-8)
         return mix.astype(np.float32)

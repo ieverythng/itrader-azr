@@ -83,6 +83,43 @@ class PSMetrics(DefaultCallbacks):
             succ = float(info.get("reward_comps", {}).get("success", 0.0))
             episode.custom_metrics["success_mean"] = succ
  
-             # a custom "episode_return" based on raw pnl (scale-invariant)
+            # a custom "episode_return" based on raw pnl (scale-invariant)
             episode.custom_metrics["episode_return"] = rc_sums.get("pnl_delta", 0.0)
+        
+        # 5) TaskPool stats update (if task pool is available)
+        task_dict = info.get("task")
+        if task_dict and env is not None:
+            try:
+                # Try to access task_pool via task_sampler
+                if hasattr(env, "task_sampler") and hasattr(env.task_sampler, "task_pool") and env.task_sampler.task_pool is not None:
+                    from itrader.rl_lib.tasks.task_pool import task_uid
+                    task_uid_val = task_uid(task_dict)
+                    success = bool(info.get("success", False))
+                    episode_return = float(total_r)
+                    env.task_sampler.task_pool.update_stats(task_uid_val, episode_return, success)
+            except Exception as e:
+                # Silently fail if task pool update fails (don't break training)
+                pass
+        
+        # 6) Task pool custom metrics (aggregate stats if available)
+        if env is not None:
+            try:
+                if hasattr(env, "task_sampler") and hasattr(env.task_sampler, "task_pool") and env.task_sampler.task_pool is not None:
+                    pool = env.task_sampler.task_pool
+                    if pool.size() > 0:
+                        # Compute aggregate stats from pool
+                        all_returns = []
+                        all_successes = []
+                        for uid in pool._stats.keys():
+                            stats = pool._stats[uid]
+                            if stats["count"] > 0:
+                                all_returns.append(stats["mean_return"])
+                                all_successes.append(stats["mean_success"])
+                        
+                        if all_returns:
+                            episode.custom_metrics["task_pool_return_mean"] = float(sum(all_returns) / len(all_returns))
+                            episode.custom_metrics["task_pool_success_rate_mean"] = float(sum(all_successes) / len(all_successes))
+            except Exception:
+                # Silently fail
+                pass
         

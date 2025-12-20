@@ -11,6 +11,9 @@ from ray.rllib.algorithms.ppo import PPO
 from ray.rllib.models import ModelCatalog
 from ray.tune.logger import TBXLoggerCallback
 from ray.tune.schedulers import PopulationBasedTraining
+from ray.tune.schedulers import PopulationBasedTraining
+from ray.tune.stopper import TimeoutStopper
+from ray.tune import CLIReporter
 from ray.tune import PlacementGroupFactory
 
 # your env & model imports
@@ -150,6 +153,16 @@ def main(args):
                 "turnover_cap": 0.02,
                 "dd_cap": 0.05,
             },
+        # ← NEW: allows Tune/PBT to tweak tiny reward weights *without* editing the sampler.
+            # Your env.reset() should merge this dict into current_task.reward_params (you already added this).
+            "task_sampler_overrides": {
+                "turnover_w": 0.001,
+                "dd_w": 0.04,
+                "dd_T_weight": 0.0,
+                "inact_w": 0.0,
+                "vol_floor_mult": 1.0,
+                "clip_abs": 0.0,
+            },
         },
         "model": {
             "custom_model": "solver_mlp_film",
@@ -191,27 +204,35 @@ def main(args):
         "stop_iters": args.iters,
     }
 
-    # pbt = PopulationBasedTraining(
-    #     time_attr="training_iteration",
-    #     metric="episode_return_mean", mode="max",
-    #     perturbation_interval=10, # iters between exploit/explore
-    #     resample_probability=0.25,
-    #     hyperparam_mutations={
-    #         # PPO core
-    #         "lr": [5e-6, 1e-5, 2e-5, 5e-5, 1e-4],
-    #         "clip_param": [0.1, 0.2, 0.3, 0.4],
-    #         "lambda": [0.90, 0.95, 0.97, 1.0],
-    #         "gamma": [0.95, 0.99],
-    #         "sgd_minibatch_size": [128, 256, 512],
-    #         "num_sgd_iter": [10, 20, 30],
-    #         "vf_clip_param": [5.0, 10.0],
-    #         "vf_loss_coeff": [0.25, 0.5, 1.0],
-    #         # Throughput/credit assignment (optional)
-    #         "train_batch_size": [2400, 4800, 9600],
-    #         # If you remove entropy schedule, uncomment next line:
-    #         # "entropy_coeff": [0.005, 0.01, 0.02, 0.03],
-    #     },
-    # )
+    pbt = PopulationBasedTraining(
+        time_attr="training_iteration",
+        # metric="custom_metrics/episode_return_mean",
+        # mode="max",
+        perturbation_interval=3,           # exploit/explore every 3 iters
+        quantile_fraction=0.25,            # bottom 25% replaced by top 25%
+        resample_probability=0.25,
+        hyperparam_mutations={
+            # PPO core knobs
+            "lr": tune.loguniform(3e-4, 1e-3),
+            "clip_param": tune.choice([0.1, 0.2]),
+            "lambda": tune.choice([0.90, 0.95, 0.97]),
+            "gamma": tune.choice([0.98, 0.99]),
+            "sgd_minibatch_size": tune.choice([128, 256, 512]),
+            "num_sgd_iter": tune.choice([10, 20, 30]),
+            "vf_clip_param": tune.choice([5.0, 10.0]),
+            # If you drop entropy schedule, you can mutate entropy_coeff instead.
+            # "entropy_coeff": tune.uniform(0.005, 0.02),
+            # Small shaping weights via env passthrough
+            "env_config/task_sampler_overrides": {
+                "turnover_w": tune.loguniform(2e-3, 2e-2),
+                "dd_w": tune.loguniform(1e-2, 1e-1),
+                "dd_T_weight": tune.loguniform(1e-2, 2e-1),
+                "inact_w": tune.loguniform(1e-4, 2e-3),
+                "vol_floor_mult": tune.uniform(0.8, 1.2),
+                "clip_abs": tune.choice([0.0, 0.03, 0.05]),
+            },
+        },
+    )  
 
 # ────────────────────────────────────────────────────────────────────────────────
 # 5.1) Kick-off training algo
@@ -219,12 +240,38 @@ def main(args):
   
     print("🚀 Starting training with automatic plotting...")
     print(f"📊 Plots will be generated every 50 iterations")
+
+    # CPU-PBT mode: run many trials in parallel on CPU, then retrain the best on GPU.
+    if args.cpu_pbt:
+        base_config.update({
+            "num_gpus": 0,
+            "num_workers": max(2, min(args.workers, 4)),   # keep workers modest per trial
+        })
+        resources = PlacementGroupFactory(
+            # driver
+            [{"CPU": 1}] +
+            # rollout workers per trial
+            [{"CPU": 1}] * base_config["num_workers"]
+        )
+    else:
+        # single GPU mode (default): one trial uses your GPU
+        base_config.update({
+            "num_gpus": 1,
+            "num_workers": args.workers,
+        })
+        resources = PlacementGroupFactory(
+            [{ "GPU": 1, "CPU": 1}] + [{"CPU": 1}] * base_config["num_workers"]
+        )
     
+    metric_columns=["custom_metrics/episode_return_mean", "policy_loss","value_loss", "iters_per_sec"]
     analysis = tune.run(
         training_fn,                        # <--- use the class directly
         name="Phase_A",
-        # scheduler=pbt,
-        stop={"training_iteration": args.iters},
+        scheduler=(pbt if args.pbt else None),
+        num_samples=(args.pop if args.pbt else 1),
+        resources_per_trial=resources,
+        stop=TimeoutStopper(args.timeout_hours * 3600),
+        # stop={"training_iteration": args.iters},
         metric="custom_metrics/episode_return_mean",    # tune on our custom metric
         mode="max",
         config=base_config,
@@ -233,15 +280,9 @@ def main(args):
         metric_columns=["custom_metrics/episode_return_mean", "policy_loss","value_loss", "iters_per_sec"],
         ),
         reuse_actors=False,
-        resources_per_trial= PlacementGroupFactory(
-            # 1 slot for the main driver (will need 1 GPU + 1 CPU)
-            [{ "GPU": 1, "CPU": 1}] +
-            # N rollout workers, each with 1 CPU, 0 GPUs
-            [{"CPU": 1}] * base_config["num_workers"]
         )
         
-    )
-    print("Best hyperparams found:", analysis.best_config)
+    
 
     ray.shutdown()
 
@@ -250,6 +291,10 @@ if __name__ == "__main__":
     parser.add_argument("--iters",     type=int, default=200)
     parser.add_argument("--window",    type=int, default=30)
     parser.add_argument("--workers", type=int, default=6)
+    parser.add_argument("--pbt", action="store_true", help="Enable Population-Based Training")
+    parser.add_argument("--cpu_pbt", action="store_true", help="Run PBT on CPU (many trials), then retrain best on GPU")
+    parser.add_argument("--pop", type=int, default=10, help="Population size if --pbt")
+    parser.add_argument("--timeout_hours", type=int, default=5, help="Global timeout for the whole run")
     parser.add_argument(
         "--data_path",
         default="itrader/data/ohlcv.parquet",

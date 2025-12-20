@@ -64,8 +64,17 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
     normalize_dd = bool(params.get("normalize_dd", False))
     norm_clip = float(params.get("norm_clip", 5.0))
 
+    # NEW: volatility-gated inactivity (default off)
+    inact_w = float(params.get("inact_w", 0.0))              # strength
+    vol_floor_mult = float(params.get("vol_floor_mult", 1.0))# × ret_ema
+    clip_abs = float(params.get("clip_abs", 0.0))            # soft clip |r|, 0=off
+
     pnl_delta = float(ctx.get("pnl_delta", 0.0))
     turnover_t = float(ctx.get("turnover_t", 0.0))
+    realized_vol = float(ctx.get("ret_ema", 0.0))            # EMA(|ret|) from env
+    is_flat = bool(abs(ctx.get("position_t", 0.0)) < 1e-9)
+    is_terminal = bool(ctx.get("terminal", False))
+
     # dynamic scale so a "typical" return ~ 1.0
     raw_unit = float(ctx.get("ret_unit", 1.0)) if normalize else 1.0
     unit     = min(raw_unit, unit_clip)  # guard against spikes
@@ -92,7 +101,7 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
         dd_term = min(abs(dd_term_raw), dd_cap) * (1.0 if dd_term_raw >= 0 else -1.0)
         r -= dd_term
         comps["dd"] = -dd_term
-    elif dd_mode == "terminal" and bool(ctx.get("terminal", False)):
+    elif dd_mode == "terminal" and is_terminal:
         max_dd = float(ctx.get("max_dd", 0.0))
         dd_term_raw = (dd_T_weight * max_dd)*(unit if norm_mode in ("all", "penalties") else 1.0)
         dd_term = min(abs(dd_term_raw), dd_cap) * (1.0 if dd_term_raw >= 0 else -1.0)
@@ -101,19 +110,24 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
     else:
         comps["dd"] = 0.0
 
-        # light “carry/holding” friction to avoid perma-positioning
-    # if hold_w > 0.0:
-    #     hold_term = hold_w * abs(float(ctx.get("position_t", 0.0))) * (unit if norm_mode in ("all", "penalties") else 1.0)
-    #     r -= hold_term
-    #     comps["hold"] = -hold_term
-    # else:
-    #     comps["hold"] = 0.0
-
-    # uniform post-scale if you ever need to “turn the volume knob”
+     # NEW: volatility-gated inactivity (only hurts when there "was something to do")
+    if inact_w > 0.0 and is_flat:
+        # floor is a multiple of realized_vol (= EMA|ret|); if vol is above floor and you stayed flat → pay a tiny tax
+        vol_floor = vol_floor_mult * realized_vol
+        inact_raw = max(0.0, realized_vol - vol_floor) * inact_w
+        inact_term = inact_raw * (unit if norm_mode in ("all", "penalties") else 1.0)
+        r -= inact_term
+        comps["inact"] = -inact_term
+    else:
+        comps["inact"] = 0.0
     if r_scale != 1.0:
         r *= r_scale
-        for k in ("pnl_delta", "turnover", "dd"):
+        for k in ("pnl_delta", "turnover", "dd", "inact"):
             comps[k] = comps.get(k, 0.0) * r_scale
+    
+    # NEW: soft clip total reward to stabilize updates on spikes (0 disables)
+    if clip_abs > 0.0:
+        r = max(-clip_abs, min(clip_abs, r))
     return r, comps
 
 @register("pnl_sharpe")
