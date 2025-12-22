@@ -107,15 +107,6 @@ def training_fn(config):
             "value_loss":         vf_loss,
             "entropy":            entropy,
         })
-
-        if it % 10 == 0:
-            r   = cm.get("episode_return", None)
-            ips = cm.get("iters_per_sec",  float("nan"))
-            print(f"[{it:04d}] return={r if r is not None else 'None':>7}"
-                  f"  π_loss={ls['policy_loss']:+8.4f}"
-                  f"  V_loss={ls['vf_loss']:+8.4f}"
-                  f"  ent={ls['entropy']:.3f}"
-                  f"  it/s={ips:5.2f}")
     algo.stop()
 # ────────────────────────────────────────────────────────────────────────────────
 # 5) Entrypoint: assemble Tune config & kick off the experiment
@@ -129,8 +120,6 @@ def main(args):
     ModelCatalog.register_custom_model("solver_lstm_v2", SolverLSTMModel)
     ModelCatalog.register_custom_model("solver_mlp", SolverMLPModel)
     ModelCatalog.register_custom_model("solver_mlp_film", SolverMLPFiLM)
-
-    num_workers  = args.workers
 
     # shared RLlib config
     base_config = {
@@ -171,14 +160,14 @@ def main(args):
                 "t_embed_dim": 32,
                 "fcnet_hiddens": [256, 256],
                 "conditioning": "film",
-                "t_keep_p": 0.9,
+                "t_keep_p": 0.7,
                 "t_proj": 64,
             },
         },
         # resources
         "num_gpus": 1,
         "num_gpus_per_worker": 0,
-        "num_workers": num_workers,
+        "num_workers": args.workers,
         # core RL settings
         "framework": "torch",
         "callbacks": CombinedCallback,
@@ -279,7 +268,7 @@ def main(args):
         progress_reporter=tune.CLIReporter(
         metric_columns=["custom_metrics/episode_return_mean", "policy_loss","value_loss", "iters_per_sec"],
         ),
-        reuse_actors=False,
+        reuse_actors=True, # REMEMBER TO CHANGE THIS TO FALSE WHEN DEBUGGING
         )
         
     

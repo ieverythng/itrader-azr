@@ -105,9 +105,26 @@ class ITraderEnv(gym.Env):
     # def _sanitize(x):
     #     return np.nan_to_num(x, nan=0.0, posinf=1e6, neginf=-1e6)
 
-    def _reset_state(self):
+    def _reset_state(self, start_idx: int | None = None):
+        """
+        Reset episode state. If start_idx is None, uses default (self.T).
+        
+        Args:
+            start_idx: Starting index in dataframe. If None, defaults to self.T (after first window).
+        """
         self.pos  = 0          # -1 short | 0 flat | 1 long
-        self.idx  = self.T     # start after first complete window
+        
+        if start_idx is None:
+            # Default: start after first complete window (backward compatibility)
+            self.idx = self.T
+        else:
+            # Use provided start_idx, clamped to valid range
+            # Must be >= T (to fill buffer) and < len(df) - 1 (to have next price)
+            min_idx = self.T
+            max_idx = max(min_idx, len(self.df) - 2)
+            self.idx = max(min_idx, min(start_idx, max_idx))
+        
+        # Fill buffer with rows [idx - T, ..., idx - 1]
         self._buf = deque(
             (self._row(i) for i in range(self.idx - self.T, self.idx)),
             maxlen=self.T
@@ -139,9 +156,30 @@ class ITraderEnv(gym.Env):
     # --------------------------------------------------------------------- #
     def reset(self, *, seed=None, options=None):
         super().reset(seed=seed)
-        self._reset_state()
-        # sample task for the episode, create deterministic embedding
+        # sample task for the episode first
         self.current_task = self.task_sampler.sample()
+        
+        # Determine start_idx: use task.start_idx if present, otherwise sample uniformly
+        start_idx = self.current_task.start_idx
+        if start_idx is None:
+            # Sample uniformly from valid range [T, len(df) - horizon - 2]
+            # We need at least T rows before start_idx to fill buffer
+            # And need at least horizon + 1 rows after to complete episode
+            horizon = int(self.current_task.horizon)
+            min_idx = self.T
+            max_idx = max(min_idx, len(self.df) - horizon - 2)
+            if max_idx > min_idx:
+                # Use task.seed for reproducible sampling
+                rng = np.random.default_rng(self.current_task.seed)
+                start_idx = int(rng.integers(min_idx, max_idx + 1))
+            else:
+                # Fallback if dataframe too short
+                start_idx = min_idx
+        
+        # Reset state with determined start_idx
+        self._reset_state(start_idx=start_idx)
+        
+        # Create deterministic embedding
         self._t_embed = TaskEncoder.embed(self.current_task, dim=self.t_embed_dim)
         if self.t_embed_mode == "off":
             t = np.zeros_like(self._t_embed)
@@ -157,6 +195,15 @@ class ITraderEnv(gym.Env):
         over = self.cfg.get("task_sampler_overrides", {})
         if over:
             self.current_task.reward_params.update(over)
+        
+        # Debug: log start_idx occasionally (every ~100 episodes)
+        if hasattr(self, "_reset_count"):
+            self._reset_count += 1
+        else:
+            self._reset_count = 0
+        if self._reset_count % 100 == 0:
+            print(f"[Worker {self.worker_index}] Reset #{self._reset_count}: start_idx={start_idx}, horizon={self.current_task.horizon}, df_len={len(self.df)}")
+        
         return obs, info
 
     def step(self, action: int):
