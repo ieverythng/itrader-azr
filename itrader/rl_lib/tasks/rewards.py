@@ -59,20 +59,10 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
     r_scale    = float(params.get("reward_scale", 1.0))
     normalize  = bool(params.get("normalize", True))
     norm_mode  = str(params.get("norm_mode", "all"))   # "all" | "penalties" | "off"
-    # hold_w     = float(params.get("hold_cost_w", 0.0)) # per-step |position|
     unit_clip  = float(params.get("unit_clip", float("inf")))
-    normalize_dd = bool(params.get("normalize_dd", False))
-    norm_clip = float(params.get("norm_clip", 5.0))
-
-    # NEW: volatility-gated inactivity (default off)
-    inact_w = float(params.get("inact_w", 0.0))              # strength
-    vol_floor_mult = float(params.get("vol_floor_mult", 1.0))# × ret_ema
-    clip_abs = float(params.get("clip_abs", 0.0))            # soft clip |r|, 0=off
-
+    
     pnl_delta = float(ctx.get("pnl_delta", 0.0))
     turnover_t = float(ctx.get("turnover_t", 0.0))
-    realized_vol = float(ctx.get("ret_ema", 0.0))            # EMA(|ret|) from env
-    is_flat = bool(abs(ctx.get("position_t", 0.0)) < 1e-9)
     is_terminal = bool(ctx.get("terminal", False))
 
     # dynamic scale so a "typical" return ~ 1.0
@@ -89,7 +79,7 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
 
     # trading cost: choose either concrete fee or abstract turnover weight (both allowed but keep small)
     # turnover penalty (capped)
-    trade_cost_raw = (to_w * turnover_t)*(unit if norm_mode in ("all", "penalties") else 1.0)
+    trade_cost_raw = (to_w * turnover_t)
     trade_cost = min(abs(trade_cost_raw), to_cap) * (1.0 if trade_cost_raw >= 0 else -1.0)
     r -= trade_cost
     comps["turnover"] = -trade_cost
@@ -110,24 +100,11 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
     else:
         comps["dd"] = 0.0
 
-     # NEW: volatility-gated inactivity (only hurts when there "was something to do")
-    if inact_w > 0.0 and is_flat:
-        # floor is a multiple of realized_vol (= EMA|ret|); if vol is above floor and you stayed flat → pay a tiny tax
-        vol_floor = vol_floor_mult * realized_vol
-        inact_raw = max(0.0, realized_vol - vol_floor) * inact_w
-        inact_term = inact_raw * (unit if norm_mode in ("all", "penalties") else 1.0)
-        r -= inact_term
-        comps["inact"] = -inact_term
-    else:
-        comps["inact"] = 0.0
     if r_scale != 1.0:
         r *= r_scale
-        for k in ("pnl_delta", "turnover", "dd", "inact"):
+        for k in ("pnl_delta", "turnover", "dd"):
             comps[k] = comps.get(k, 0.0) * r_scale
     
-    # NEW: soft clip total reward to stabilize updates on spikes (0 disables)
-    if clip_abs > 0.0:
-        r = max(-clip_abs, min(clip_abs, r))
     return r, comps
 
 @register("pnl_sharpe")
