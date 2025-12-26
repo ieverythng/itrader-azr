@@ -90,12 +90,7 @@ class TaskSampler00:
             "reward_scale": 1.0,
             "normalize": True,
             "norm_mode": "all",
-            # "hold_cost_w": hold_cost_w,
-            "normalize_dd": True,     # also normalize dd_inc (keeps penalties consistent)
-            "norm_clip": 5.0,
-            "inact_w": float(self.cfg.get("inact_w", 0.0)),
-            "vol_floor_mult": float(self.cfg.get("vol_floor_mult", 1.0)),
-            "clip_abs": float(self.cfg.get("clip_abs", 0.0)),  
+            "unit_clip": 100000000, 
         }
 
         window_size = int(self.cfg.get("window_size", 30))

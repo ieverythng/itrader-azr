@@ -7,14 +7,14 @@ import torch
 import numpy as np
 import ray
 from ray import train, tune
+from ray.air import session
 from ray.rllib.algorithms.ppo import PPO
 from ray.rllib.models import ModelCatalog
-from ray.tune.logger import TBXLoggerCallback
-from ray.tune.schedulers import PopulationBasedTraining
 from ray.tune.schedulers import PopulationBasedTraining
 from ray.tune.stopper import TimeoutStopper
-from ray.tune import CLIReporter
 from ray.tune import PlacementGroupFactory
+from ray.train import Checkpoint
+from ray.tune.logger import UnifiedLogger
 
 # your env & model imports
 from itrader.envs.itrader_env import ITraderEnv
@@ -61,32 +61,43 @@ class CombinedCallback(DefaultCallbacks):
     def on_train_result(self, *, algorithm, result, **kwargs):
         return self.auto_plotter.on_train_result(algorithm=algorithm, result=result, **kwargs)
 
-# class ReturnLoggingCallback(DefaultCallbacks):
-#     def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
-#         # This fires whenever an episode actually terminates.
-#         total_reward = episode.total_reward
-#         episode.custom_metrics["episode_return"] = total_reward
+class MetricsOnlyCallback(DefaultCallbacks):
+    """Use for PBT to avoid plot/file collisions across many trials."""
+    def __init__(self):
+        super().__init__()
+        self.ps_metrics = PSMetrics()
+    
+    def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
+        return self.ps_metrics.on_episode_end(worker=worker, base_env=base_env, policies=policies, episode=episode, **kwargs)
 
-# class StatsCallback(DefaultCallbacks):
-#     def on_learn_on_batch_end(self, *, results, **__):
-#         ms = results["learner"]["learner_stats"].get("learner_time_ms", 0.0)
-#         results["custom_metrics"]["iters_per_sec"] = (1000.0 / ms) if ms > 0 else 0.0
 #  ────────────────────────────────────────────────────────────────────────────────
 # 4) The “training function” for Tune
 #    This builds the PPOAlgo, loops train(), and reports key scalars
 # ────────────────────────────────────────────────────────────────────────────────
 def training_fn(config):
-    # device = "cuda" if torch.cuda.is_available() else "cpu"
-    # train.report(device=device)
+    # Always use Tune trial dir as the single source of truth for ALL outputs.
+    trial_dir = Path(session.get_trial_dir())
 
-    algo = PPO(config=config)
-    print("Learner on:", next(algo.workers.local_worker().policy_map["default_policy"].model.parameters()).device)
+    # Force RLlib's UnifiedLogger to write into the Tune trial dir (prevents PPO_ITraderEnv_* dirs).
+    def logger_creator(cfg):
+        return UnifiedLogger(cfg, str(trial_dir), loggers=None)
+    algo = PPO(config=config, logger_creator=logger_creator)
+    
+    # --- Restore for PBT exploit/explore (weight inheritance) ---------------
+    ckpt = train.get_checkpoint()
+    if ckpt is not None:
+        restore_dir = ckpt.to_directory()
+        algo.restore(restore_dir)
+        print(f"✅ Restored checkpoint from: {restore_dir}")
+
+    
+    checkpoint_interval = int(config.get("checkpoint_interval", 3))
+    
     for it in range(config["stop_iters"]):
         res = algo.train()
 
         # push scalars into Tune’s result store
         ls   = res["info"]["learner"]["default_policy"]["learner_stats"]
-        cm   = res.get("custom_metrics", {})
 
         # robust metric extraction
         policy_loss = float(ls.get("policy_loss", 0.0))
@@ -100,13 +111,50 @@ def training_fn(config):
         if erm is None:
             erm = res.get("episode_reward_mean", float("nan"))
 
-
-        train.report({
+        metrics = {
             "custom_metrics/episode_return_mean": float(erm) if erm is not None else float("nan"),
             "policy_loss":        policy_loss,
             "value_loss":         vf_loss,
             "entropy":            entropy,
-        })
+        }
+
+        # --- Checkpointing for PBT (so exploit can copy weights) ------------
+        should_checkpoint = checkpoint_interval > 0 and (it + 1) % checkpoint_interval == 0
+        if should_checkpoint:
+            try:
+                ckpt_root = trial_dir / "rllib_checkpoints"
+                ckpt_root.mkdir(parents=True, exist_ok=True)
+
+                saved = algo.save(str(ckpt_root))
+                # RLlib/Ray versions differ: save() may return str path, Checkpoint, or a Result-like wrapper.
+                if isinstance(saved, str):
+                    checkpoint = Checkpoint.from_directory(saved)
+                    ckpt_label = saved
+                elif isinstance(saved, Checkpoint):
+                    checkpoint = saved
+                    ckpt_label = getattr(saved, "path", "Checkpoint")
+                elif hasattr(saved, "checkpoint") and isinstance(saved.checkpoint, Checkpoint):
+                    checkpoint = saved.checkpoint
+                    ckpt_label = getattr(checkpoint, "path", "Checkpoint")
+                else:
+                    # Last-resort: stringify and avoid crashing training; still report metrics.
+                    checkpoint = None
+                    ckpt_label = str(saved)
+
+                if checkpoint is not None:
+                    session.report(metrics, checkpoint=checkpoint)
+                    print(f"💾 Checkpoint saved @ iter {it+1}: {ckpt_label}")
+                else:
+                    session.report(metrics)
+                    print(f"⚠️  Checkpoint produced unexpected type; reported metrics only. save()={ckpt_label}")
+
+            except Exception as e:
+                # If checkpointing fails, still report metrics
+                session.report(metrics)
+                print(f"⚠️  Checkpoint save failed @ iter {it+1}: {e}")
+        else:
+            session.report(metrics)
+    
     algo.stop()
 # ────────────────────────────────────────────────────────────────────────────────
 # 5) Entrypoint: assemble Tune config & kick off the experiment
@@ -140,18 +188,15 @@ def main(args):
                 "dd_modes": ["delta"],
                 "dd_w_range": (0.0, 0.04),
                 "turnover_cap": 0.02,
-                "dd_cap": 0.05,
+                "dd_cap": 0.10,
             },
         # ← NEW: allows Tune/PBT to tweak tiny reward weights *without* editing the sampler.
             # Your env.reset() should merge this dict into current_task.reward_params (you already added this).
-            "task_sampler_overrides": {
-                "turnover_w": 0.001,
-                "dd_w": 0.04,
-                "dd_T_weight": 0.0,
-                "inact_w": 0.0,
-                "vol_floor_mult": 1.0,
-                "clip_abs": 0.0,
-            },
+            # "task_sampler_overrides": {
+            #     "turnover_w": 0.001,
+            #     "dd_w": 0.04,
+            #     "dd_T_weight": 0.0,
+            # },
         },
         "model": {
             "custom_model": "solver_mlp_film",
@@ -170,7 +215,8 @@ def main(args):
         "num_workers": args.workers,
         # core RL settings
         "framework": "torch",
-        "callbacks": CombinedCallback,
+        # swap callbacks for PBT to reduce collisions/overhead
+        "callbacks": (MetricsOnlyCallback if args.pbt else CombinedCallback),
         "observation_filter": "MeanStdFilter",
         "grad_clip": 10.0,
         # Stabilise exploration → exploitation
@@ -186,11 +232,12 @@ def main(args):
         "gamma": 0.99,
         "vf_clip_param": 10.0,
         "lr": 5e-5,
-        # hook up Prometheus
-        "metrics_sinks": ["prometheus"],
-        "prometheus_export_port": 8888,
+        # PBT runs multiple trials -> shared port conflicts. Enable only for single-trial runs.
+        "metrics_sinks": ([] if args.pbt else ["prometheus"]),
+        "prometheus_export_port": (None if args.pbt else 8888),
         # pass the stop criterion to training_fn
         "stop_iters": args.iters,
+        "checkpoint_interval": 3,  # Save checkpoint every N iterations for PBT
     }
 
     pbt = PopulationBasedTraining(
@@ -202,7 +249,7 @@ def main(args):
         resample_probability=0.25,
         hyperparam_mutations={
             # PPO core knobs
-            "lr": tune.loguniform(3e-4, 1e-3),
+            "lr": tune.loguniform(1e-5, 3e-4),  # Wider range including lower LR for stability
             "clip_param": tune.choice([0.1, 0.2]),
             "lambda": tune.choice([0.90, 0.95, 0.97]),
             "gamma": tune.choice([0.98, 0.99]),
@@ -213,12 +260,9 @@ def main(args):
             # "entropy_coeff": tune.uniform(0.005, 0.02),
             # Small shaping weights via env passthrough
             "env_config/task_sampler_overrides": {
-                "turnover_w": tune.loguniform(2e-3, 2e-2),
-                "dd_w": tune.loguniform(1e-2, 1e-1),
-                "dd_T_weight": tune.loguniform(1e-2, 2e-1),
-                "inact_w": tune.loguniform(1e-4, 2e-3),
-                "vol_floor_mult": tune.uniform(0.8, 1.2),
-                "clip_abs": tune.choice([0.0, 0.03, 0.05]),
+                "turnover_w": tune.loguniform(5e-4, 2e-2),  # Lower minimum for fine-tuning
+                "dd_w": tune.loguniform(5e-3, 1e-1),  # Lower minimum, same max
+                "dd_T_weight": tune.loguniform(1e-3, 2e-1),
             },
         },
     )  
@@ -268,7 +312,8 @@ def main(args):
         progress_reporter=tune.CLIReporter(
         metric_columns=["custom_metrics/episode_return_mean", "policy_loss","value_loss", "iters_per_sec"],
         ),
-        reuse_actors=True, # REMEMBER TO CHANGE THIS TO FALSE WHEN DEBUGGING
+        reuse_actors=False,  # safer for PBT/long runs; flip True only if you're 100% stable
+        max_failures=3,  # Allow up to 3 failures before giving up on a trial
         )
         
     
@@ -284,6 +329,8 @@ if __name__ == "__main__":
     parser.add_argument("--cpu_pbt", action="store_true", help="Run PBT on CPU (many trials), then retrain best on GPU")
     parser.add_argument("--pop", type=int, default=10, help="Population size if --pbt")
     parser.add_argument("--timeout_hours", type=int, default=5, help="Global timeout for the whole run")
+    parser.add_argument("--restore_ckpt", type=str, default="", help="Path to an RLlib checkpoint_XXXXXX dir to restore from")
+    parser.add_argument("--best_params_json", type=str, default="", help="Path to params.json from best PBT trial (optional)")
     parser.add_argument(
         "--data_path",
         default="itrader/data/ohlcv.parquet",

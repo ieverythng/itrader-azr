@@ -55,7 +55,18 @@ class AutoPlotterCallback(DefaultCallbacks):
 
     # ------------------------------------------------------------------ #
     def _trial_dir(self, algorithm, result: Dict[str, Any]) -> Optional[Path]:
-        """Resolve the Ray Tune trial directory robustly."""
+        """Resolve the Ray Tune trial directory robustly. Prioritizes Phase_A paths."""
+        # 0) Prefer Ray AIR session trial dir (most reliable when using session.report)
+        try:
+            from ray.air import session
+            td = session.get_trial_dir()
+            if td:
+                p = Path(td)
+                if (p / "progress.csv").exists():
+                    return p
+        except Exception:
+            pass
+
         # 1) result has logdir (preferred)
         try:
             if "logdir" in result and result["logdir"]:
@@ -74,13 +85,27 @@ class AutoPlotterCallback(DefaultCallbacks):
         except Exception:
             pass
 
-        # 3) Fallback to most recent progress.csv under ~/ray_results
+        # 3) Fallback: Prioritize Phase_A paths, then most recent
         try:
             base = Path.home() / "ray_results"
             if base.exists():
-                candidates = [d for d in base.rglob("*") if (d.is_dir() and (d / "progress.csv").exists())]
-                if candidates:
-                    return max(candidates, key=lambda d: (d / "progress.csv").stat().st_mtime)
+                # First try Phase_A/* directories
+                phase_a_base = base / "Phase_A"
+                if phase_a_base.exists():
+                    candidates = [d for d in phase_a_base.iterdir() if (d.is_dir() and (d / "progress.csv").exists())]
+                    if candidates:
+                        # Return most recent Phase_A trial
+                        return max(candidates, key=lambda d: (d / "progress.csv").stat().st_mtime)
+                
+                # Fallback: search all directories (but prefer Phase_A structure)
+                all_candidates = [d for d in base.rglob("*") if (d.is_dir() and (d / "progress.csv").exists())]
+                if all_candidates:
+                    # Prefer directories under Phase_A
+                    phase_a_candidates = [d for d in all_candidates if "Phase_A" in str(d)]
+                    if phase_a_candidates:
+                        return max(phase_a_candidates, key=lambda d: (d / "progress.csv").stat().st_mtime)
+                    # Otherwise most recent overall
+                    return max(all_candidates, key=lambda d: (d / "progress.csv").stat().st_mtime)
         except Exception:
             pass
 

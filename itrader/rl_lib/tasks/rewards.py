@@ -53,7 +53,6 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
     dd_mode = str(params.get("dd_mode", "none"))
     dd_w = float(params.get("dd_w", 0.0))
     dd_T_weight = float(params.get("dd_T_weight", 0.0))
-
     to_cap = float(params.get("turnover_cap", float("inf")))
     dd_cap = float(params.get("dd_cap", float("inf")))
     r_scale    = float(params.get("reward_scale", 1.0))
