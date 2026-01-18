@@ -101,9 +101,6 @@ class ITraderEnv(gym.Env):
         while len(self._buf) < self.T:
             self._buf.appendleft(self._buf[0])
         return np.concatenate(list(self._buf), axis=0)
-    
-    # def _sanitize(x):
-    #     return np.nan_to_num(x, nan=0.0, posinf=1e6, neginf=-1e6)
 
     def _reset_state(self, start_idx: int | None = None):
         """
