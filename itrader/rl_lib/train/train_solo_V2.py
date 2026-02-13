@@ -1,6 +1,7 @@
 # itrader/rl_lib/train_solo.py
 
 import argparse
+import json
 from pathlib import Path
 
 import torch
@@ -80,18 +81,27 @@ def training_fn(config):
 
     # Force RLlib's UnifiedLogger to write into the Tune trial dir (prevents PPO_ITraderEnv_* dirs).
     def logger_creator(cfg):
-        return UnifiedLogger(cfg, str(trial_dir), loggers=None)
+        # Keep RLlib logs separate to avoid clobbering Tune's progress.csv/result.json.
+        rllib_dir = trial_dir / "rllib"
+        rllib_dir.mkdir(parents=True, exist_ok=True)
+        return UnifiedLogger(cfg, str(rllib_dir), loggers=None)
     algo = PPO(config=config, logger_creator=logger_creator)
     
     # --- Restore for PBT exploit/explore (weight inheritance) ---------------
     ckpt = train.get_checkpoint()
-    if ckpt is not None:
-        restore_dir = ckpt.to_directory()
+    # Check if user requested a specific checkpoint restore
+    if args.restore_ckpt:
+        restore_dir = str(config.get("restore_ckpt", "") or "") 
+        algo.restore(restore_dir)
+        print(f"✅ Restored checkpoint from: {restore_dir}")
+    elif ckpt is not None:
+        restore_dir = ckpt.to_directory() 
         algo.restore(restore_dir)
         print(f"✅ Restored checkpoint from: {restore_dir}")
 
     
     checkpoint_interval = int(config.get("checkpoint_interval", 3))
+    full_metrics_path = trial_dir / "metrics_full.jsonl"
     
     for it in range(config["stop_iters"]):
         res = algo.train()
@@ -104,20 +114,44 @@ def training_fn(config):
         vf_loss = float(ls.get("vf_loss", ls.get("value_loss", 0.0)))
         entropy = float(ls.get("entropy", 0.0))
 
-        # prefer our custom aggregated mean; fallback to RLlib default keys
-        erm = res.get("custom_metrics/episode_return_mean_mean", None)
-        if erm is None:
-            erm = res.get("sampler_results", {}).get("custom_metrics/episode_return_mean_mean", None)
-        if erm is None:
-            erm = res.get("episode_reward_mean", float("nan"))
-
-        metrics = {
-            "custom_metrics/episode_return_mean": float(erm) if erm is not None else float("nan"),
-            "policy_loss":        policy_loss,
-            "value_loss":         vf_loss,
-            "entropy":            entropy,
+        # Minimal payload for console + CSV (avoid dumping all min/max).
+        report = {
+            "training_iteration": int(res.get("training_iteration", it + 1)),
+            "time_this_iter_s": res.get("time_this_iter_s"),
+            "time_total_s": res.get("time_total_s"),
+            "timesteps_total": res.get("timesteps_total"),
+            "policy_loss": policy_loss,
+            "value_loss": vf_loss,
+            "entropy": entropy,
         }
+        if res.get("time_this_iter_s"):
+            report["iters_per_sec"] = 1.0 / float(res["time_this_iter_s"])
 
+        # Custom metrics (means only for console)
+        cm = res.get("custom_metrics") or res.get("sampler_results", {}).get("custom_metrics")
+        if isinstance(cm, dict):
+            for k in ("act_long_frac_mean", "act_short_frac_mean", "act_flat_frac_mean"):
+                if k in cm and isinstance(cm[k], (int, float, np.floating, np.integer)):
+                    report[f"custom_metrics/{k}"] = float(cm[k])
+
+        # Full metrics dump for plotting (scalar-only, JSONL).
+        full = {}
+        stack = [("", res)]
+        while stack:
+            prefix, obj = stack.pop()
+            if not isinstance(obj, dict):
+                continue
+            for k, v in obj.items():
+                key = f"{prefix}/{k}" if prefix else str(k)
+                if isinstance(v, dict):
+                    stack.append((key, v))
+                elif isinstance(v, (int, float, bool, str, np.floating, np.integer)):
+                    full[key] = float(v) if isinstance(v, (np.floating, np.integer)) else v
+        full["training_iteration"] = report["training_iteration"]
+        full["custom_metrics/episode_return_mean"] = report["custom_metrics/episode_return_mean"]
+        with full_metrics_path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(full) + "\n")
+        
         # --- Checkpointing for PBT (so exploit can copy weights) ------------
         should_checkpoint = checkpoint_interval > 0 and (it + 1) % checkpoint_interval == 0
         if should_checkpoint:
@@ -142,18 +176,18 @@ def training_fn(config):
                     ckpt_label = str(saved)
 
                 if checkpoint is not None:
-                    session.report(metrics, checkpoint=checkpoint)
+                    session.report(report, checkpoint=checkpoint)
                     print(f"💾 Checkpoint saved @ iter {it+1}: {ckpt_label}")
                 else:
-                    session.report(metrics)
+                    session.report(report)
                     print(f"⚠️  Checkpoint produced unexpected type; reported metrics only. save()={ckpt_label}")
 
             except Exception as e:
                 # If checkpointing fails, still report metrics
-                session.report(metrics)
+                session.report(report)
                 print(f"⚠️  Checkpoint save failed @ iter {it+1}: {e}")
         else:
-            session.report(metrics)
+            session.report(report)
     
     algo.stop()
 # ────────────────────────────────────────────────────────────────────────────────
@@ -165,8 +199,6 @@ def main(args):
         raise FileNotFoundError(f"Parquet not found ➜ {data_path}")
 
     # register the v2 model
-    ModelCatalog.register_custom_model("solver_lstm_v2", SolverLSTMModel)
-    ModelCatalog.register_custom_model("solver_mlp", SolverMLPModel)
     ModelCatalog.register_custom_model("solver_mlp_film", SolverMLPFiLM)
 
     # shared RLlib config
@@ -237,7 +269,7 @@ def main(args):
         "prometheus_export_port": (None if args.pbt else 8888),
         # pass the stop criterion to training_fn
         "stop_iters": args.iters,
-        "checkpoint_interval": 3,  # Save checkpoint every N iterations for PBT
+        "checkpoint_interval": 10,  # Save checkpoint every N iterations for PBT
     }
 
     pbt = PopulationBasedTraining(
@@ -263,7 +295,11 @@ def main(args):
                 "turnover_w": tune.loguniform(5e-4, 2e-2),  # Lower minimum for fine-tuning
                 "dd_w": tune.loguniform(5e-3, 1e-1),  # Lower minimum, same max
                 "dd_T_weight": tune.loguniform(1e-3, 2e-1),
+                "norm_mode": tune.choice(["all", "penalties"])
             },
+            "model/custom_model_config/fcnet_hiddens": tune.choice([
+                [256, 256], [512, 256], [256, 256, 128]  # Test capacity
+            ]),
         },
     )  
 
@@ -296,7 +332,46 @@ def main(args):
             [{ "GPU": 1, "CPU": 1}] + [{"CPU": 1}] * base_config["num_workers"]
         )
     
-    metric_columns=["custom_metrics/episode_return_mean", "policy_loss","value_loss", "iters_per_sec"]
+    # This avoids breaking callbacks/env wiring by blindly replacing the whole config.
+    if args.best_params_json:
+        import json
+        p = Path(args.best_params_json).expanduser()
+        print(f"🔁 Loading best_params_json: {p}")
+        best = json.loads(p.read_text(encoding="utf-8"))
+
+        # Top-level PPO knobs
+        for k in ["lr", "clip_param", "lambda", "gamma",
+                  "sgd_minibatch_size", "num_sgd_iter",
+                  "vf_clip_param", "vf_loss_coeff", "train_batch_size"]:
+            if k in best:
+                base_config[k] = best[k]
+
+        # Model custom config (FiLM)
+        try:
+            if "model" in best and "custom_model_config" in best["model"]:
+                base_config["model"]["custom_model_config"].update(best["model"]["custom_model_config"])
+        except Exception:
+            pass
+
+        # Env overrides (reward knobs)
+        try:
+            if "env_config" in best and "task_sampler_overrides" in best["env_config"]:
+                base_config["env_config"]["task_sampler_overrides"] = best["env_config"]["task_sampler_overrides"]
+        except Exception:
+            pass
+
+    if args.restore_ckpt:
+        base_config["restore_ckpt"] = args.restore_ckpt
+    
+    metric_columns=[
+        "episode_return_mean",
+        "policy_loss",
+        "value_loss",
+        "entropy",
+        "custom_metrics/act_short_frac_mean",
+        "custom_metrics/act_flat_frac_mean",
+        "custom_metrics/act_long_frac_mean",
+    ]
     analysis = tune.run(
         training_fn,                        # <--- use the class directly
         name="Phase_A",
@@ -310,7 +385,7 @@ def main(args):
         config=base_config,
         local_dir=str(Path.home() / "ray_results"),
         progress_reporter=tune.CLIReporter(
-        metric_columns=["custom_metrics/episode_return_mean", "policy_loss","value_loss", "iters_per_sec"],
+            metric_columns=metric_columns,
         ),
         reuse_actors=False,  # safer for PBT/long runs; flip True only if you're 100% stable
         max_failures=3,  # Allow up to 3 failures before giving up on a trial

@@ -39,6 +39,18 @@ class ITraderEnv(gym.Env):
         # If you want per-task control, you can move alpha into TaskSpec later.
         self.ret_norm_alpha = float(env_config.get("ret_norm_alpha", 0.01))
         self._ret_ema = 1e-3  # typical per-step abs return; reset each episode
+        self.start_idx_mode = str(env_config.get("start_idx_mode", "stream_worker")).lower()
+        if self.start_idx_mode not in ("random_episode", "stream_worker", "task_spec"):
+            self.start_idx_mode = "stream_worker"
+        self.stream_jump_every_episodes = int(env_config.get("stream_jump_every_episodes", 0))
+        self.stream_jump_on_wrap = bool(env_config.get("stream_jump_on_wrap", True))
+        self.stream_stride_cfg = int(env_config.get("stream_stride", 0))
+        self.ret_norm_reset_mode = str(env_config.get("ret_norm_reset", "episode")).lower()
+        if self.ret_norm_reset_mode not in ("episode", "stream"):
+            self.ret_norm_reset_mode = "episode"
+        self._stream_pos = None
+        self._stream_horizon = None
+        self._stream_episode_count = 0
 
         # ── load dataframe ------------------------------------------------
         df_path = env_config.get("df_path")
@@ -63,6 +75,8 @@ class ITraderEnv(gym.Env):
         base_seed = int(ts_cfg.get("seed", 1234))
         ts_cfg["seed"] = int(base_seed + 1_000_003 * self.worker_index + 97 * self.vector_index)
         self.task_sampler = TaskSampler00(ts_cfg)
+        stream_seed = int(base_seed + 7 * self.worker_index + 13 * self.vector_index + 99)
+        self._stream_rng = np.random.default_rng(stream_seed)
 
         # ── Task sampling / embedding --------------------------------------------------------
         self.t_embed_dim  = int(env_config.get("t_embed_dim", DEFAULT_T_EMBED_DIM))
@@ -102,12 +116,13 @@ class ITraderEnv(gym.Env):
             self._buf.appendleft(self._buf[0])
         return np.concatenate(list(self._buf), axis=0)
 
-    def _reset_state(self, start_idx: int | None = None):
+    def _reset_state(self, start_idx: int | None = None, reset_ret_norm: bool = True):
         """
         Reset episode state. If start_idx is None, uses default (self.T).
         
         Args:
             start_idx: Starting index in dataframe. If None, defaults to self.T (after first window).
+            reset_ret_norm: Whether to reset return normalization state.
         """
         self.pos  = 0          # -1 short | 0 flat | 1 long
         
@@ -147,7 +162,79 @@ class ITraderEnv(gym.Env):
             self._last_info = {}
 
         # reset EMA for this episode
-        self._ret_ema = 1e-3
+        if reset_ret_norm:
+            self._ret_ema = 1e-3
+
+    def _start_idx_bounds(self, horizon: int) -> tuple[int, int]:
+        """Return inclusive min/max valid start indices for given horizon."""
+        horizon = int(horizon)
+        min_idx = self.T
+        max_idx = max(min_idx, len(self.df) - horizon - 2)
+        return min_idx, max_idx
+
+    def _sample_random_start_idx(self, horizon: int, seed: int) -> int:
+        """Uniform start_idx sampling within valid bounds (episode-level randomness)."""
+        min_idx, max_idx = self._start_idx_bounds(horizon)
+        if max_idx > min_idx:
+            rng = np.random.default_rng(seed)
+            return int(rng.integers(min_idx, max_idx + 1))
+        return min_idx
+
+    def _select_stream_start_idx(self, horizon: int) -> tuple[int, bool]:
+        """
+        Pick start_idx for contiguous stream per worker.
+
+        Returns (start_idx, stream_changed) where stream_changed indicates a jump/reset.
+        """
+        stride = int(self.stream_stride_cfg) if self.stream_stride_cfg != 0 else int(horizon)
+        stride = max(1, stride)
+        min_idx, max_idx = self._start_idx_bounds(horizon)
+        stream_changed = False
+
+        if self._stream_pos is None or self._stream_horizon != int(horizon):
+            if max_idx > min_idx:
+                start = int(self._stream_rng.integers(min_idx, max_idx + 1))
+            else:
+                start = min_idx
+            self._stream_pos = start
+            self._stream_episode_count = 0
+            stream_changed = True
+
+        if self.stream_jump_every_episodes > 0 and self._stream_episode_count >= self.stream_jump_every_episodes:
+            if max_idx > min_idx:
+                self._stream_pos = int(self._stream_rng.integers(min_idx, max_idx + 1))
+            else:
+                self._stream_pos = min_idx
+            self._stream_episode_count = 0
+            stream_changed = True
+
+        if self._stream_pos > max_idx:
+            if self.stream_jump_on_wrap and max_idx > min_idx:
+                self._stream_pos = int(self._stream_rng.integers(min_idx, max_idx + 1))
+            else:
+                self._stream_pos = min_idx
+            self._stream_episode_count = 0
+            stream_changed = True
+
+        start_idx = int(self._stream_pos)
+        self._stream_pos = start_idx + stride
+        self._stream_horizon = int(horizon)
+        self._stream_episode_count += 1
+        return start_idx, stream_changed
+
+    def _choose_start_idx(self, horizon: int) -> tuple[int, bool]:
+        """Route start_idx selection based on configured mode."""
+        if self.start_idx_mode == "stream_worker":
+            return self._select_stream_start_idx(horizon)
+
+        task_start = self.current_task.start_idx if self.start_idx_mode == "task_spec" else None
+        if task_start is None:
+            start_idx = self._sample_random_start_idx(horizon, self.current_task.seed)
+        else:
+            start_idx = task_start
+        min_idx, max_idx = self._start_idx_bounds(horizon)
+        start_idx = max(min_idx, min(int(start_idx), max_idx))
+        return int(start_idx), True
     # ===================================================================== #
     # gymnasium.Env interface
     # --------------------------------------------------------------------- #
@@ -155,26 +242,15 @@ class ITraderEnv(gym.Env):
         super().reset(seed=seed)
         # sample task for the episode first
         self.current_task = self.task_sampler.sample()
-        
-        # Determine start_idx: use task.start_idx if present, otherwise sample uniformly
-        start_idx = self.current_task.start_idx
-        if start_idx is None:
-            # Sample uniformly from valid range [T, len(df) - horizon - 2]
-            # We need at least T rows before start_idx to fill buffer
-            # And need at least horizon + 1 rows after to complete episode
-            horizon = int(self.current_task.horizon)
-            min_idx = self.T
-            max_idx = max(min_idx, len(self.df) - horizon - 2)
-            if max_idx > min_idx:
-                # Use task.seed for reproducible sampling
-                rng = np.random.default_rng(self.current_task.seed)
-                start_idx = int(rng.integers(min_idx, max_idx + 1))
-            else:
-                # Fallback if dataframe too short
-                start_idx = min_idx
-        
+        horizon = int(self.current_task.horizon)
+
+        start_idx, stream_changed = self._choose_start_idx(horizon)
+
         # Reset state with determined start_idx
-        self._reset_state(start_idx=start_idx)
+        reset_ret_norm = True
+        if self.ret_norm_reset_mode == "stream" and self.start_idx_mode == "stream_worker":
+            reset_ret_norm = stream_changed
+        self._reset_state(start_idx=start_idx, reset_ret_norm=reset_ret_norm)
         
         # Create deterministic embedding
         self._t_embed = TaskEncoder.embed(self.current_task, dim=self.t_embed_dim)
@@ -187,7 +263,9 @@ class ITraderEnv(gym.Env):
         # build first obs
         price_obs = _sanitize(self._get_obs())
         obs = _sanitize(np.concatenate([price_obs, t]).astype(np.float32))
-        info = {"task": self.current_task.to_dict()}
+        task_info = self.current_task.to_dict()
+        task_info["start_idx"] = start_idx
+        info = {"task": task_info}
         self._last_info = info
         over = self.cfg.get("task_sampler_overrides", {})
         if over:

@@ -54,6 +54,21 @@ class AutoPlotterCallback(DefaultCallbacks):
             print(f"[AutoPlotter] Suppressed plotting error in on_train_result: {e}")
 
     # ------------------------------------------------------------------ #
+    @staticmethod
+    def _looks_like_trial_dir(p: Path) -> bool:
+        return any(
+            (p / name).exists()
+            for name in ("progress.csv", "result.json", "params.json", "metrics_full.jsonl")
+        )
+
+    @staticmethod
+    def _trial_mtime(p: Path) -> float:
+        for name in ("progress.csv", "result.json", "params.json", "metrics_full.jsonl"):
+            fp = p / name
+            if fp.exists():
+                return fp.stat().st_mtime
+        return p.stat().st_mtime
+
     def _trial_dir(self, algorithm, result: Dict[str, Any]) -> Optional[Path]:
         """Resolve the Ray Tune trial directory robustly. Prioritizes Phase_A paths."""
         # 0) Prefer Ray AIR session trial dir (most reliable when using session.report)
@@ -62,7 +77,7 @@ class AutoPlotterCallback(DefaultCallbacks):
             td = session.get_trial_dir()
             if td:
                 p = Path(td)
-                if (p / "progress.csv").exists():
+                if p.exists() and self._looks_like_trial_dir(p):
                     return p
         except Exception:
             pass
@@ -71,7 +86,7 @@ class AutoPlotterCallback(DefaultCallbacks):
         try:
             if "logdir" in result and result["logdir"]:
                 p = Path(result["logdir"])
-                if (p / "progress.csv").exists():
+                if p.exists() and self._looks_like_trial_dir(p):
                     return p
         except Exception:
             pass
@@ -80,7 +95,7 @@ class AutoPlotterCallback(DefaultCallbacks):
         try:
             if hasattr(algorithm, "logdir") and algorithm.logdir:
                 p = Path(algorithm.logdir)
-                if (p / "progress.csv").exists():
+                if p.exists() and self._looks_like_trial_dir(p):
                     return p
         except Exception:
             pass
@@ -92,20 +107,20 @@ class AutoPlotterCallback(DefaultCallbacks):
                 # First try Phase_A/* directories
                 phase_a_base = base / "Phase_A"
                 if phase_a_base.exists():
-                    candidates = [d for d in phase_a_base.iterdir() if (d.is_dir() and (d / "progress.csv").exists())]
+                    candidates = [d for d in phase_a_base.iterdir() if d.is_dir() and self._looks_like_trial_dir(d)]
                     if candidates:
                         # Return most recent Phase_A trial
-                        return max(candidates, key=lambda d: (d / "progress.csv").stat().st_mtime)
+                        return max(candidates, key=self._trial_mtime)
                 
                 # Fallback: search all directories (but prefer Phase_A structure)
-                all_candidates = [d for d in base.rglob("*") if (d.is_dir() and (d / "progress.csv").exists())]
+                all_candidates = [d for d in base.rglob("*") if d.is_dir() and self._looks_like_trial_dir(d)]
                 if all_candidates:
                     # Prefer directories under Phase_A
                     phase_a_candidates = [d for d in all_candidates if "Phase_A" in str(d)]
                     if phase_a_candidates:
-                        return max(phase_a_candidates, key=lambda d: (d / "progress.csv").stat().st_mtime)
+                        return max(phase_a_candidates, key=self._trial_mtime)
                     # Otherwise most recent overall
-                    return max(all_candidates, key=lambda d: (d / "progress.csv").stat().st_mtime)
+                    return max(all_candidates, key=self._trial_mtime)
         except Exception:
             pass
 

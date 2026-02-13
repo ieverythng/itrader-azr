@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 from datetime import datetime
+from typing import Any, Dict
 
 # headless / non-interactive backend
 import matplotlib
@@ -10,6 +12,98 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 import pandas as pd
+
+
+def _columns_look_numeric(cols) -> bool:
+    if cols is None:
+        return False
+    if hasattr(cols, "empty"):
+        if cols.empty:
+            return False
+    else:
+        if len(cols) == 0:
+            return False
+    for c in cols:
+        try:
+            float(c)
+        except Exception:
+            return False
+    return True
+
+
+def _load_progress_csv(trial_dir: Path) -> pd.DataFrame | None:
+    csv_path = trial_dir / "progress.csv"
+    if not csv_path.exists() or csv_path.stat().st_size == 0:
+        return None
+    df = pd.read_csv(csv_path, encoding="utf-8")
+    if df.empty:
+        return None
+    if _columns_look_numeric(df.columns):
+        return None
+    return df
+
+
+def _flatten_record(d: Dict[str, Any], prefix: str = "") -> Dict[str, Any]:
+    out: Dict[str, Any] = {}
+    for k, v in d.items():
+        key = f"{prefix}{k}" if not prefix else f"{prefix}/{k}"
+        if isinstance(v, dict):
+            out.update(_flatten_record(v, key))
+        elif isinstance(v, (int, float, bool, str)) or v is None:
+            out[key] = v
+    return out
+
+
+def _load_result_json(trial_dir: Path) -> pd.DataFrame | None:
+    f = trial_dir / "result.json"
+    if not f.exists() or f.stat().st_size == 0:
+        return None
+    rows = []
+    with f.open("r", encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rec = json.loads(line)
+            except Exception:
+                continue
+            rows.append(_flatten_record(rec))
+    if not rows:
+        return None
+    return pd.DataFrame(rows)
+
+
+def _load_metrics_jsonl(trial_dir: Path) -> pd.DataFrame | None:
+    f = trial_dir / "metrics_full.jsonl"
+    if not f.exists() or f.stat().st_size == 0:
+        return None
+    rows = []
+    with f.open("r", encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rows.append(json.loads(line))
+            except Exception:
+                continue
+    if not rows:
+        return None
+    return pd.DataFrame(rows)
+
+
+def load_trial_df(trial_dir: Path) -> pd.DataFrame:
+    df = _load_progress_csv(trial_dir)
+    if df is not None:
+        return df
+    df = _load_metrics_jsonl(trial_dir)
+    if df is not None:
+        return df
+    df = _load_result_json(trial_dir)
+    if df is not None:
+        return df
+    raise SystemExit(f"No usable progress.csv/result.json/metrics_full.jsonl in: {trial_dir}")
 
 
 def pick_x_axis(df: pd.DataFrame) -> str | None:
@@ -103,8 +197,20 @@ def plot_enhanced_metrics(df: pd.DataFrame, out: Path, xcol: str | None):
 def plot_task_sampler_metrics(df: pd.DataFrame, out: Path, xcol: str | None):
     fig, axes = plt.subplots(4, 1, figsize=(12, 12))
 
-    _plot_series(df, axes[0], "custom_metrics/success_mean", xcol, "Success Rate")
-    _plot_series(df, axes[1], "custom_metrics/task_horizon_mean", xcol, "Task Horizon Mean")
+    _plot_series(
+        df,
+        axes[0],
+        ["custom_metrics/success_mean", "custom_metrics/success_mean_mean"],
+        xcol,
+        "Success Rate",
+    )
+    _plot_series(
+        df,
+        axes[1],
+        ["custom_metrics/task_horizon_mean", "custom_metrics/task_horizon_mean_mean"],
+        xcol,
+        "Task Horizon Mean",
+    )
 
     rc_cols = [c for c in df.columns if c.startswith("custom_metrics/rc_") and c.endswith("_mean")]
     _plot_series(df, axes[2], rc_cols, xcol, "Reward Components (PnL, Drawdown, Turnover)")
@@ -126,12 +232,7 @@ def main():
     args = ap.parse_args()
 
     trial_dir = Path(args.trial_dir)
-    csv_path = trial_dir / "progress.csv"
-    if not csv_path.exists():
-        raise SystemExit(f"progress.csv not found at: {csv_path}")
-
-    # Be tolerant of partially-written CSVs; Pandas will handle.
-    df = pd.read_csv(csv_path, encoding="utf-8")
+    df = load_trial_df(trial_dir)
     xcol = pick_x_axis(df)
 
     out = Path(args.out) if args.out else (trial_dir / "plots")
