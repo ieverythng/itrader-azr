@@ -21,7 +21,7 @@ class AutoPlotterCallback(DefaultCallbacks):
         plot_interval: Optional[int] = None,
         plot_script_path: Optional[str] = None,
         auto_plot: bool = True,
-        plot_at_end_of_loop: bool = True,
+        plot_at_end_of_loop: bool = False,
     ):
         super().__init__()
         self.plot_interval = plot_interval
@@ -44,14 +44,36 @@ class AutoPlotterCallback(DefaultCallbacks):
             return
         try:
             current_iter = int(result.get("training_iteration", 0))
-            do_plot = self.plot_at_end_of_loop or (
-                self.plot_interval is not None and current_iter - self.last_plot_iter >= self.plot_interval
-            )
+            if self.plot_at_end_of_loop:
+                if self.plot_interval is None:
+                    do_plot = True
+                else:
+                    do_plot = (current_iter - self.last_plot_iter) >= self.plot_interval
+            else:
+                do_plot = (
+                    self.plot_interval is not None and current_iter - self.last_plot_iter >= self.plot_interval
+                )
             if do_plot:
                 self._generate_plots(algorithm, result)
                 self.last_plot_iter = current_iter
-        except Exception as e:
+        except (TypeError, ValueError, OSError, subprocess.SubprocessError) as e:
             print(f"[AutoPlotter] Suppressed plotting error in on_train_result: {e}")
+
+    # ------------------------------------------------------------------ #
+    @staticmethod
+    def _looks_like_trial_dir(p: Path) -> bool:
+        return (
+            any((p / name).exists() for name in ("progress.csv", "result.json", "params.json", "metrics_full.jsonl"))
+            or any((p / "rllib" / name).exists() for name in ("progress.csv", "result.json", "metrics_full.jsonl"))
+        )
+
+    @staticmethod
+    def _trial_mtime(p: Path) -> float:
+        for name in ("progress.csv", "result.json", "params.json", "metrics_full.jsonl"):
+            for fp in (p / name, p / "rllib" / name):
+                if fp.exists():
+                    return fp.stat().st_mtime
+        return p.stat().st_mtime
 
     # ------------------------------------------------------------------ #
     def _trial_dir(self, algorithm, result: Dict[str, Any]) -> Optional[Path]:
@@ -62,7 +84,7 @@ class AutoPlotterCallback(DefaultCallbacks):
             td = session.get_trial_dir()
             if td:
                 p = Path(td)
-                if (p / "progress.csv").exists():
+                if p.exists() and self._looks_like_trial_dir(p):
                     return p
         except Exception:
             pass
@@ -71,7 +93,7 @@ class AutoPlotterCallback(DefaultCallbacks):
         try:
             if "logdir" in result and result["logdir"]:
                 p = Path(result["logdir"])
-                if (p / "progress.csv").exists():
+                if p.exists() and self._looks_like_trial_dir(p):
                     return p
         except Exception:
             pass
@@ -80,33 +102,32 @@ class AutoPlotterCallback(DefaultCallbacks):
         try:
             if hasattr(algorithm, "logdir") and algorithm.logdir:
                 p = Path(algorithm.logdir)
-                if (p / "progress.csv").exists():
+                if p.exists() and self._looks_like_trial_dir(p):
                     return p
         except Exception:
             pass
 
-        # 3) Fallback: Prioritize Phase_A paths, then most recent
+        # 3) Fallback: prioritize Phase_A paths, then most recent top-level trial
         try:
             base = Path.home() / "ray_results"
             if base.exists():
                 # First try Phase_A/* directories
                 phase_a_base = base / "Phase_A"
                 if phase_a_base.exists():
-                    candidates = [d for d in phase_a_base.iterdir() if (d.is_dir() and (d / "progress.csv").exists())]
+                    candidates = [d for d in phase_a_base.iterdir() if d.is_dir() and self._looks_like_trial_dir(d)]
                     if candidates:
                         # Return most recent Phase_A trial
-                        return max(candidates, key=lambda d: (d / "progress.csv").stat().st_mtime)
-                
-                # Fallback: search all directories (but prefer Phase_A structure)
-                all_candidates = [d for d in base.rglob("*") if (d.is_dir() and (d / "progress.csv").exists())]
+                        return max(candidates, key=self._trial_mtime)
+                # Fallback: check only top-level experiment dirs to avoid deep rglob scans.
+                top_level = [d for d in base.iterdir() if d.is_dir()]
+                all_candidates = []
+                for exp_dir in top_level:
+                    for trial_dir in exp_dir.iterdir():
+                        if trial_dir.is_dir() and self._looks_like_trial_dir(trial_dir):
+                            all_candidates.append(trial_dir)
                 if all_candidates:
-                    # Prefer directories under Phase_A
-                    phase_a_candidates = [d for d in all_candidates if "Phase_A" in str(d)]
-                    if phase_a_candidates:
-                        return max(phase_a_candidates, key=lambda d: (d / "progress.csv").stat().st_mtime)
-                    # Otherwise most recent overall
-                    return max(all_candidates, key=lambda d: (d / "progress.csv").stat().st_mtime)
-        except Exception:
+                    return max(all_candidates, key=self._trial_mtime)
+        except OSError:
             pass
 
         return None
@@ -120,19 +141,19 @@ class AutoPlotterCallback(DefaultCallbacks):
                 return
 
             cmd = [sys.executable, str(self.plot_script_path), str(trial_dir)]
-            print(f"\n🎨 Generating plots @ iter {result.get('training_iteration', 0)}")
-            print(f"📁 Trial directory: {trial_dir}")
+            print(f"[AutoPlotter] Generating plots @ iter {result.get('training_iteration', 0)}")
+            print(f"[AutoPlotter] Trial directory: {trial_dir}")
 
             # Run inside the trial dir so relative output is stable.
-            proc = subprocess.run(cmd, capture_output=True, text=True, cwd=trial_dir)
+            proc = subprocess.run(cmd, capture_output=True, text=True, cwd=trial_dir, timeout=120)
 
             if proc.returncode == 0:
-                print("✅ Plots generated.")
+                print("[AutoPlotter] Plots generated.")
                 if proc.stdout:
                     print(proc.stdout)
             else:
-                print(f"❌ Plot generation failed (code={proc.returncode})")
+                print(f"[AutoPlotter] Plot generation failed (code={proc.returncode})")
                 if proc.stderr:
                     print(proc.stderr)
-        except Exception as e:
+        except (OSError, subprocess.SubprocessError, subprocess.TimeoutExpired) as e:
             print(f"[AutoPlotter] Suppressed plotting error: {e}")

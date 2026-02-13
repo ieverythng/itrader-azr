@@ -1,9 +1,9 @@
 # itrader/rl_lib/train_solo.py
 
 import argparse
+import json
 from pathlib import Path
 
-import torch
 import numpy as np
 import ray
 from ray import train, tune
@@ -24,8 +24,6 @@ from itrader.models.solver_mlp_film import SolverMLPFiLM
 from itrader.rl_lib.callbacks.ps_metrics import PSMetrics
 from itrader.rl_lib.callbacks.auto_plotter import AutoPlotterCallback
 
-# TimeLimit wrapper
-from gymnasium.wrappers import TimeLimit
 from gymnasium.envs.registration import EnvSpec
 # ────────────────────────────────────────────────────────────────────────────────
 # 1) Ray init: dashboard + Prometheus
@@ -53,7 +51,10 @@ class CombinedCallback(DefaultCallbacks):
     def __init__(self, plot_interval: int = 50):
         super().__init__()
         self.ps_metrics = PSMetrics()
-        self.auto_plotter = AutoPlotterCallback(plot_at_end_of_loop=True)
+        self.auto_plotter = AutoPlotterCallback(
+            plot_interval=plot_interval,
+            plot_at_end_of_loop=False,
+        )
     
     def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
         return self.ps_metrics.on_episode_end(worker=worker, base_env=base_env, policies=policies, episode=episode, **kwargs)
@@ -80,18 +81,27 @@ def training_fn(config):
 
     # Force RLlib's UnifiedLogger to write into the Tune trial dir (prevents PPO_ITraderEnv_* dirs).
     def logger_creator(cfg):
-        return UnifiedLogger(cfg, str(trial_dir), loggers=None)
+        # Keep RLlib logger artifacts isolated from Tune's own progress files.
+        rllib_dir = trial_dir / "rllib"
+        rllib_dir.mkdir(parents=True, exist_ok=True)
+        return UnifiedLogger(cfg, str(rllib_dir), loggers=None)
     algo = PPO(config=config, logger_creator=logger_creator)
     
     # --- Restore for PBT exploit/explore (weight inheritance) ---------------
     ckpt = train.get_checkpoint()
-    if ckpt is not None:
+    requested_restore = str(config.get("restore_ckpt", "") or "").strip()
+    if requested_restore:
+        algo.restore(requested_restore)
+        print(f"Restored checkpoint from --restore_ckpt: {requested_restore}")
+    elif ckpt is not None:
         restore_dir = ckpt.to_directory()
         algo.restore(restore_dir)
-        print(f"✅ Restored checkpoint from: {restore_dir}")
+        print(f"Restored checkpoint from Tune checkpoint: {restore_dir}")
 
     
     checkpoint_interval = int(config.get("checkpoint_interval", 3))
+    full_metrics_path = trial_dir / "rllib" / "metrics_full.jsonl"
+    full_metrics_path.parent.mkdir(parents=True, exist_ok=True)
     
     for it in range(config["stop_iters"]):
         res = algo.train()
@@ -111,12 +121,42 @@ def training_fn(config):
         if erm is None:
             erm = res.get("episode_reward_mean", float("nan"))
 
-        metrics = {
+        report = {
+            "training_iteration": int(res.get("training_iteration", it + 1)),
+            "time_this_iter_s": res.get("time_this_iter_s"),
+            "time_total_s": res.get("time_total_s"),
+            "timesteps_total": res.get("timesteps_total"),
             "custom_metrics/episode_return_mean": float(erm) if erm is not None else float("nan"),
             "policy_loss":        policy_loss,
             "value_loss":         vf_loss,
             "entropy":            entropy,
         }
+        if report.get("time_this_iter_s"):
+            report["iters_per_sec"] = 1.0 / max(float(report["time_this_iter_s"]), 1e-8)
+
+        cm = res.get("custom_metrics") or res.get("sampler_results", {}).get("custom_metrics")
+        if isinstance(cm, dict):
+            for k in ("act_long_frac_mean", "act_short_frac_mean", "act_flat_frac_mean"):
+                v = cm.get(k)
+                if isinstance(v, (int, float, np.floating, np.integer)):
+                    report[f"custom_metrics/{k}"] = float(v)
+
+        # Persist scalar-only flattened metrics for robust plotting fallback.
+        full = {}
+        stack = [("", res)]
+        while stack:
+            prefix, obj = stack.pop()
+            if not isinstance(obj, dict):
+                continue
+            for k, v in obj.items():
+                key = f"{prefix}/{k}" if prefix else str(k)
+                if isinstance(v, dict):
+                    stack.append((key, v))
+                elif isinstance(v, (int, float, bool, str, np.floating, np.integer)):
+                    full[key] = float(v) if isinstance(v, (np.floating, np.integer)) else v
+        full["training_iteration"] = report["training_iteration"]
+        with full_metrics_path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(full) + "\n")
 
         # --- Checkpointing for PBT (so exploit can copy weights) ------------
         should_checkpoint = checkpoint_interval > 0 and (it + 1) % checkpoint_interval == 0
@@ -142,24 +182,26 @@ def training_fn(config):
                     ckpt_label = str(saved)
 
                 if checkpoint is not None:
-                    session.report(metrics, checkpoint=checkpoint)
-                    print(f"💾 Checkpoint saved @ iter {it+1}: {ckpt_label}")
+                    session.report(report, checkpoint=checkpoint)
+                    print(f"Checkpoint saved @ iter {it+1}: {ckpt_label}")
                 else:
-                    session.report(metrics)
-                    print(f"⚠️  Checkpoint produced unexpected type; reported metrics only. save()={ckpt_label}")
+                    session.report(report)
+                    print(f"Checkpoint produced unexpected type; reported metrics only. save()={ckpt_label}")
 
             except Exception as e:
                 # If checkpointing fails, still report metrics
-                session.report(metrics)
-                print(f"⚠️  Checkpoint save failed @ iter {it+1}: {e}")
+                session.report(report)
+                print(f"Checkpoint save failed @ iter {it+1}: {e}")
         else:
-            session.report(metrics)
+            session.report(report)
     
     algo.stop()
 # ────────────────────────────────────────────────────────────────────────────────
 # 5) Entrypoint: assemble Tune config & kick off the experiment
 # ────────────────────────────────────────────────────────────────────────────────
 def main(args):
+    use_pbt_mode = bool(args.pbt or args.cpu_pbt)
+
     data_path = Path(args.data_path)
     if not data_path.is_file():
         raise FileNotFoundError(f"Parquet not found ➜ {data_path}")
@@ -175,6 +217,11 @@ def main(args):
         "env_config": {
             "df_path": data_path.as_posix(),
             "window_size": args.window,
+            "start_idx_mode": args.start_idx_mode,
+            "stream_jump_every_episodes": args.stream_jump_every_episodes,
+            "stream_jump_on_wrap": args.stream_jump_on_wrap,
+            "stream_stride": args.stream_stride,
+            "ret_norm_reset": args.ret_norm_reset,
             "t_embed_mode": "concat",   # off|scale|concat
             "t_scale": 1.0,
             "task_sampler": {
@@ -216,7 +263,7 @@ def main(args):
         # core RL settings
         "framework": "torch",
         # swap callbacks for PBT to reduce collisions/overhead
-        "callbacks": (MetricsOnlyCallback if args.pbt else CombinedCallback),
+        "callbacks": (MetricsOnlyCallback if use_pbt_mode else CombinedCallback),
         "observation_filter": "MeanStdFilter",
         "grad_clip": 10.0,
         # Stabilise exploration → exploitation
@@ -233,11 +280,11 @@ def main(args):
         "vf_clip_param": 10.0,
         "lr": 5e-5,
         # PBT runs multiple trials -> shared port conflicts. Enable only for single-trial runs.
-        "metrics_sinks": ([] if args.pbt else ["prometheus"]),
-        "prometheus_export_port": (None if args.pbt else 8888),
+        "metrics_sinks": ([] if use_pbt_mode else ["prometheus"]),
+        "prometheus_export_port": (None if use_pbt_mode else 8888),
         # pass the stop criterion to training_fn
         "stop_iters": args.iters,
-        "checkpoint_interval": 3,  # Save checkpoint every N iterations for PBT
+        "checkpoint_interval": 10,  # Save checkpoint every N iterations for PBT
     }
 
     pbt = PopulationBasedTraining(
@@ -263,7 +310,9 @@ def main(args):
                 "turnover_w": tune.loguniform(5e-4, 2e-2),  # Lower minimum for fine-tuning
                 "dd_w": tune.loguniform(5e-3, 1e-1),  # Lower minimum, same max
                 "dd_T_weight": tune.loguniform(1e-3, 2e-1),
+                "norm_mode": tune.choice(["all", "penalties"]),
             },
+            "model/custom_model_config/fcnet_hiddens": tune.choice([[256, 256], [512, 256], [256, 256, 128]]),
         },
     )  
 
@@ -271,8 +320,8 @@ def main(args):
 # 5.1) Kick-off training algo
 # ────────────────────────────────────────────────────────────────────────────────    
   
-    print("🚀 Starting training with automatic plotting...")
-    print(f"📊 Plots will be generated every 50 iterations")
+    print("Starting training with automatic plotting...")
+    print("Plots will be generated every 50 iterations in non-PBT mode.")
 
     # CPU-PBT mode: run many trials in parallel on CPU, then retrain the best on GPU.
     if args.cpu_pbt:
@@ -296,7 +345,41 @@ def main(args):
             [{ "GPU": 1, "CPU": 1}] + [{"CPU": 1}] * base_config["num_workers"]
         )
     
-    metric_columns=["custom_metrics/episode_return_mean", "policy_loss","value_loss", "iters_per_sec"]
+    if args.best_params_json:
+        params_path = Path(args.best_params_json).expanduser()
+        print(f"Loading best params from: {params_path}")
+        best = json.loads(params_path.read_text(encoding="utf-8"))
+        for k in [
+            "lr", "clip_param", "lambda", "gamma",
+            "sgd_minibatch_size", "num_sgd_iter",
+            "vf_clip_param", "vf_loss_coeff", "train_batch_size",
+        ]:
+            if k in best:
+                base_config[k] = best[k]
+        try:
+            if "model" in best and "custom_model_config" in best["model"]:
+                base_config["model"]["custom_model_config"].update(best["model"]["custom_model_config"])
+        except Exception:
+            pass
+        try:
+            if "env_config" in best and "task_sampler_overrides" in best["env_config"]:
+                base_config["env_config"]["task_sampler_overrides"] = best["env_config"]["task_sampler_overrides"]
+        except Exception:
+            pass
+
+    if args.restore_ckpt:
+        base_config["restore_ckpt"] = args.restore_ckpt
+
+    metric_columns = [
+        "custom_metrics/episode_return_mean",
+        "policy_loss",
+        "value_loss",
+        "entropy",
+        "custom_metrics/act_short_frac_mean",
+        "custom_metrics/act_flat_frac_mean",
+        "custom_metrics/act_long_frac_mean",
+    ]
+
     analysis = tune.run(
         training_fn,                        # <--- use the class directly
         name="Phase_A",
@@ -310,7 +393,7 @@ def main(args):
         config=base_config,
         local_dir=str(Path.home() / "ray_results"),
         progress_reporter=tune.CLIReporter(
-        metric_columns=["custom_metrics/episode_return_mean", "policy_loss","value_loss", "iters_per_sec"],
+            metric_columns=metric_columns,
         ),
         reuse_actors=False,  # safer for PBT/long runs; flip True only if you're 100% stable
         max_failures=3,  # Allow up to 3 failures before giving up on a trial
@@ -331,6 +414,11 @@ if __name__ == "__main__":
     parser.add_argument("--timeout_hours", type=int, default=5, help="Global timeout for the whole run")
     parser.add_argument("--restore_ckpt", type=str, default="", help="Path to an RLlib checkpoint_XXXXXX dir to restore from")
     parser.add_argument("--best_params_json", type=str, default="", help="Path to params.json from best PBT trial (optional)")
+    parser.add_argument("--start_idx_mode", type=str, default="random_episode", choices=["random_episode", "stream_worker", "task_spec"], help="Episode start index policy for env resets")
+    parser.add_argument("--stream_jump_every_episodes", type=int, default=0, help="For stream_worker: random jump cadence in episodes (0 disables)")
+    parser.add_argument("--stream_jump_on_wrap", action=argparse.BooleanOptionalAction, default=True, help="For stream_worker: randomize on stream wrap-around")
+    parser.add_argument("--stream_stride", type=int, default=0, help="For stream_worker: stride in rows between consecutive episodes (0 uses horizon)")
+    parser.add_argument("--ret_norm_reset", type=str, default="episode", choices=["episode", "stream"], help="Reset reward normalization every episode or only when stream changes")
     parser.add_argument(
         "--data_path",
         default="itrader/data/ohlcv.parquet",

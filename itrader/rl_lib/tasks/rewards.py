@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Dict, Any, Tuple
+import math
 import numpy as np
 
 # Registry of reward callables
@@ -26,7 +27,6 @@ class RewardEngine:
         # Ensure finite floats
         def _f(x):
             try:
-                import math
                 return 0.0 if (x is None or not math.isfinite(float(x))) else float(x)
             except Exception:
                 return 0.0
@@ -48,6 +48,15 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
     - pnl_delta, turnover_t, dd_inc, max_dd
     - terminal: optional bool (env may add into comps or call compute again on terminal)
     """
+    def _clamp_signed(v: float, cap: float) -> float:
+        v = float(v)
+        if not math.isfinite(v):
+            return 0.0
+        cap = float(cap)
+        if not math.isfinite(cap):
+            return v
+        return min(abs(v), cap) * (1.0 if v >= 0.0 else -1.0)
+
     pnl_w = float(params.get("pnl_w", 1.0))
     to_w = float(params.get("turnover_w", 0.0))
     dd_mode = str(params.get("dd_mode", "none"))
@@ -66,7 +75,9 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
 
     # dynamic scale so a "typical" return ~ 1.0
     raw_unit = float(ctx.get("ret_unit", 1.0)) if normalize else 1.0
-    unit     = min(raw_unit, unit_clip)  # guard against spikes
+    unit = _clamp_signed(raw_unit, unit_clip)  # guard against spikes
+    if unit < 0.0:
+        unit = 0.0
 
     r = 0.0
     comps = {}
@@ -79,7 +90,7 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
     # trading cost: choose either concrete fee or abstract turnover weight (both allowed but keep small)
     # turnover penalty (capped)
     trade_cost_raw = (to_w * turnover_t)
-    trade_cost = min(abs(trade_cost_raw), to_cap) * (1.0 if trade_cost_raw >= 0 else -1.0)
+    trade_cost = _clamp_signed(trade_cost_raw, to_cap)
     r -= trade_cost
     comps["turnover"] = -trade_cost
 
@@ -87,13 +98,13 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
     if dd_mode == "delta":
         dd_inc = float(ctx.get("dd_inc", 0.0))
         dd_term_raw = (dd_w * dd_inc) * (unit if norm_mode in ("all", "penalties") else 1.0)
-        dd_term = min(abs(dd_term_raw), dd_cap) * (1.0 if dd_term_raw >= 0 else -1.0)
+        dd_term = _clamp_signed(dd_term_raw, dd_cap)
         r -= dd_term
         comps["dd"] = -dd_term
     elif dd_mode == "terminal" and is_terminal:
         max_dd = float(ctx.get("max_dd", 0.0))
         dd_term_raw = (dd_T_weight * max_dd)*(unit if norm_mode in ("all", "penalties") else 1.0)
-        dd_term = min(abs(dd_term_raw), dd_cap) * (1.0 if dd_term_raw >= 0 else -1.0)
+        dd_term = _clamp_signed(dd_term_raw, dd_cap)
         r -= dd_term
         comps["dd"] = -dd_term
     else:

@@ -12,6 +12,16 @@ class PSMetrics(DefaultCallbacks):
       - task horizon mean
     Compatible with EnvRunnerV2 / EpisodeV2.
     """
+    def __init__(self):
+        super().__init__()
+        self._cached_env = None
+        self._warned = set()
+
+    def _warn_once(self, key: str, msg: str):
+        if key in self._warned:
+            return
+        self._warned.add(key)
+        print(f"[PSMetrics] {msg}")
 
     @staticmethod
     def _extract_env(base_env) -> Optional[Any]:
@@ -36,8 +46,13 @@ class PSMetrics(DefaultCallbacks):
         return None
 
     def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
-        # Always set a default to avoid UnboundLocalError
-        env = self._extract_env(base_env)
+        env = self._cached_env
+        if env is None:
+            env = self._extract_env(base_env)
+            self._cached_env = env
+        elif not hasattr(env, "_last_info"):
+            env = self._extract_env(base_env)
+            self._cached_env = env
 
         # 1) Primary scalar: episode total reward (RLlib computes this)
         try:
@@ -64,7 +79,13 @@ class PSMetrics(DefaultCallbacks):
             act_counts = sums.get("act_counts", [0, 0, 0])
             if isinstance(act_counts, dict):  # if someone stored dict indices
                 act_counts = [act_counts.get(i, 0) for i in range(3)]
-            act_short, act_flat, act_long = (float(act_counts[0]), float(act_counts[1]), float(act_counts[2]))
+            if len(act_counts) < 3:
+                act_counts = list(act_counts) + [0] * (3 - len(act_counts))
+            act_short, act_flat, act_long = (
+                float(act_counts[0]),
+                float(act_counts[1]),
+                float(act_counts[2]),
+            )
             episode.custom_metrics["act_short_frac"] = act_short / steps
             episode.custom_metrics["act_flat_frac"]  = act_flat  / steps
             episode.custom_metrics["act_long_frac"]  = act_long  / steps
@@ -98,8 +119,7 @@ class PSMetrics(DefaultCallbacks):
                     episode_return = float(total_r)
                     env.task_sampler.task_pool.update_stats(task_uid_val, episode_return, success)
             except Exception as e:
-                # Silently fail if task pool update fails (don't break training)
-                pass
+                self._warn_once("task_pool_update", f"task pool update failed (continuing): {e}")
         
         # 6) Task pool custom metrics (aggregate stats if available)
         if env is not None:
@@ -119,7 +139,6 @@ class PSMetrics(DefaultCallbacks):
                         if all_returns:
                             episode.custom_metrics["task_pool_return_mean"] = float(sum(all_returns) / len(all_returns))
                             episode.custom_metrics["task_pool_success_rate_mean"] = float(sum(all_successes) / len(all_successes))
-            except Exception:
-                # Silently fail
-                pass
+            except Exception as e:
+                self._warn_once("task_pool_metrics", f"task pool aggregate metrics failed (continuing): {e}")
         
