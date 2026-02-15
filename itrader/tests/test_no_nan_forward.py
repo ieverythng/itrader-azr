@@ -1,11 +1,15 @@
 import numpy as np
 import torch
+import pytest
 from gymnasium.spaces import Box, Discrete
 
-from itrader.models.solver_mlp_film import SolverMLPFiLM
+pytest.importorskip("pydantic")
+pytest.importorskip("ray")
 
 
-def _make_model(obs_dim: int, t_dim: int) -> SolverMLPFiLM:
+def _make_model(obs_dim: int, t_dim: int):
+    from itrader.models.solver_mlp_film import SolverMLPFiLM
+
     obs_space = Box(low=-1e3, high=1e3, shape=(obs_dim + t_dim,), dtype=np.float32)
     model_config = {
         "custom_model_config": {

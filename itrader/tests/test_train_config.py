@@ -1,7 +1,10 @@
 from argparse import Namespace
 from pathlib import Path
 
-from itrader.rl_lib.train.train_solo_V2 import build_base_config
+import pytest
+
+pytest.importorskip("pydantic")
+pytest.importorskip("ray")
 
 
 def _args(seed: int = 1234):
@@ -26,6 +29,8 @@ def _args(seed: int = 1234):
 
 
 def test_build_base_config_sets_seed_in_all_required_places(tmp_path: Path):
+    from itrader.rl_lib.train.train_solo_V2 import build_base_config
+
     args = _args(seed=2026)
     data_path = tmp_path / "fake.parquet"
     data_path.write_bytes(b"dummy")
@@ -36,6 +41,8 @@ def test_build_base_config_sets_seed_in_all_required_places(tmp_path: Path):
 
 
 def test_build_base_config_pbt_disables_prometheus(tmp_path: Path):
+    from itrader.rl_lib.train.train_solo_V2 import build_base_config
+
     args = _args(seed=99)
     data_path = tmp_path / "fake.parquet"
     data_path.write_bytes(b"dummy")

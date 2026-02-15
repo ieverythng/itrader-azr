@@ -2,4 +2,5 @@
 minversion = "7.0"
 testpaths = ["tests"]
 python_files = ["test_*.py", "*_test.py"]
-addopts = "-q"
+addopts = "-ra"
+console_output_style = "progress"

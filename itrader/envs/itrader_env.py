@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 from collections import deque
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from itrader.rl_lib.tasks.samplers import TaskSampler00
 from itrader.rl_lib.tasks.encoder import TaskEncoder, DEFAULT_T_EMBED_DIM
@@ -26,7 +26,7 @@ class ITraderEnv(gym.Env):
     """
 
     # --------------------------------------------------------------------- #
-    def __init__(self, env_config: dict | None = None):
+    def __init__(self, env_config: Optional[dict] = None):
         env_config   = env_config or {}
         self.cfg = dict(env_config) if not isinstance(env_config, dict) else env_config
         cfg = self.cfg  # Keep local variable for backward compatibility
@@ -48,8 +48,8 @@ class ITraderEnv(gym.Env):
         self.ret_norm_reset_mode = str(cfg.get("ret_norm_reset", "episode")).lower()
         if self.ret_norm_reset_mode not in ("episode", "stream"):
             self.ret_norm_reset_mode = "episode"
-        self._stream_pos: int | None = None
-        self._stream_horizon: int | None = None
+        self._stream_pos: Optional[int] = None
+        self._stream_horizon: Optional[int] = None
         self._stream_episode_count = 0
 
         # ── load dataframe ------------------------------------------------
@@ -131,7 +131,7 @@ class ITraderEnv(gym.Env):
             return self._t_embed * self.t_scale
         return self._t_embed
 
-    def _reset_state(self, start_idx: int | None = None, reset_ret_norm: bool = True):
+    def _reset_state(self, start_idx: Optional[int] = None, reset_ret_norm: bool = True):
         """
         Reset episode state. If start_idx is None, uses default (self.T).
         
