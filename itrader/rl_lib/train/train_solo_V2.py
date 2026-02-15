@@ -2,6 +2,9 @@
 
 import argparse
 import json
+import hashlib
+import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 
 import numpy as np
@@ -25,14 +28,154 @@ from itrader.rl_lib.callbacks.ps_metrics import PSMetrics
 from itrader.rl_lib.callbacks.auto_plotter import AutoPlotterCallback
 
 from gymnasium.envs.registration import EnvSpec
+
+EXPERIMENT_NAME = "Phase_A"
+
 # ────────────────────────────────────────────────────────────────────────────────
-# 1) Ray init: dashboard + Prometheus
+# 1) Ray init utilities + run metadata
 # ────────────────────────────────────────────────────────────────────────────────
-ray.init(
-    _metrics_export_port=(8888),
-    include_dashboard=True,
-    dashboard_host="0.0.0.0",
-)
+def init_ray(use_pbt_mode: bool):
+    # PBT can run many trials; avoid a shared Prometheus port collision.
+    if use_pbt_mode:
+        ray.init(include_dashboard=True, dashboard_host="0.0.0.0")
+    else:
+        ray.init(
+            _metrics_export_port=8888,
+            include_dashboard=True,
+            dashboard_host="0.0.0.0",
+        )
+
+
+def _sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as fh:
+        while True:
+            chunk = fh.read(1024 * 1024)
+            if not chunk:
+                break
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _git_commit() -> str:
+    try:
+        out = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+        return out or "unknown"
+    except Exception:
+        return "unknown"
+
+
+def _config_hash(config: dict) -> str:
+    payload = json.dumps(config, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def build_base_config(args, data_path: Path, use_pbt_mode: bool) -> dict:
+    return {
+        "env": "ITraderEnv",
+        "env_config": {
+            "df_path": data_path.as_posix(),
+            "window_size": args.window,
+            "start_idx_mode": args.start_idx_mode,
+            "stream_jump_every_episodes": args.stream_jump_every_episodes,
+            "stream_jump_on_wrap": args.stream_jump_on_wrap,
+            "stream_stride": args.stream_stride,
+            "ret_norm_reset": args.ret_norm_reset,
+            "t_embed_mode": "concat",   # off|scale|concat
+            "t_scale": 1.0,
+            "task_sampler": {
+                "window_size": args.window,
+                "n_features": 5,  # OHLCV features
+                "t_embed_dim": 32,
+                "action_dim": 3,
+                "seed": int(args.seed),
+                # benign defaults; sampler gets per-worker seed automatically
+                "horizons": [96, 128, 160, 200],
+                "turnover_w_choices": [0.0, 0.0005, 0.001, 0.002],
+                "dd_modes": ["delta"],
+                "dd_w_range": (0.0, 0.04),
+                "turnover_cap": 0.02,
+                "dd_cap": 0.10,
+            },
+        # ← NEW: allows Tune/PBT to tweak tiny reward weights *without* editing the sampler.
+            # Your env.reset() should merge this dict into current_task.reward_params (you already added this).
+            # "task_sampler_overrides": {
+            #     "turnover_w": 0.001,
+            #     "dd_w": 0.04,
+            #     "dd_T_weight": 0.0,
+            # },
+        },
+        "model": {
+            "custom_model": "solver_mlp_film",
+            "custom_model_config": {
+                "window_size": args.window,
+                "t_embed_dim": 32,
+                "fcnet_hiddens": [256, 256],
+                "conditioning": "film",
+                "t_keep_p": 0.7,
+                "t_proj": 64,
+            },
+        },
+        # resources
+        "num_gpus": 1,
+        "num_gpus_per_worker": 0,
+        "num_workers": args.workers,
+        # reproducibility
+        "seed": int(args.seed),
+        # core RL settings
+        "framework": "torch",
+        # swap callbacks for PBT to reduce collisions/overhead
+        "callbacks": (MetricsOnlyCallback if use_pbt_mode else CombinedCallback),
+        "observation_filter": "MeanStdFilter",
+        "grad_clip": 10.0,
+        # Stabilise exploration → exploitation
+        "entropy_coeff_schedule": [
+            [0,        0.02],
+            [200_000,  0.01],
+            [800_000,  0.003],
+        ],
+        "train_batch_size": 4800,
+        "batch_mode": "complete_episodes",
+        "sgd_minibatch_size": 128,
+        "num_sgd_iter": 30,
+        "gamma": 0.99,
+        "vf_clip_param": 10.0,
+        "lr": 5e-5,
+        # PBT runs multiple trials -> shared port conflicts. Enable only for single-trial runs.
+        "metrics_sinks": ([] if use_pbt_mode else ["prometheus"]),
+        "prometheus_export_port": (None if use_pbt_mode else 8888),
+        # pass the stop criterion to training_fn
+        "stop_iters": args.iters,
+        "checkpoint_interval": 10,  # Save checkpoint every N iterations for PBT
+    }
+
+
+def write_run_manifest(base_config: dict, args, data_path: Path):
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    manifest = {
+        "run_id": run_id,
+        "created_at_utc": datetime.now(timezone.utc).isoformat(),
+        "experiment_name": EXPERIMENT_NAME,
+        "git_commit": _git_commit(),
+        "seed": int(args.seed),
+        "config_hash": _config_hash(base_config),
+        "dataset_path": str(data_path),
+        "dataset_sha256": _sha256_file(data_path),
+        "start_idx_mode": args.start_idx_mode,
+        "ret_norm_reset": args.ret_norm_reset,
+        "is_pbt": bool(args.pbt),
+        "is_cpu_pbt": bool(args.cpu_pbt),
+    }
+    out_dir = Path.home() / "ray_results" / EXPERIMENT_NAME
+    out_dir.mkdir(parents=True, exist_ok=True)
+    out_path = out_dir / f"run_manifest_{run_id}.json"
+    out_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    print(f"Run manifest written to: {out_path}")
+
 # ────────────────────────────────────────────────────────────────────────────────
 # 2) Environment factory (with proper .spec for TimeLimit)
 # ────────────────────────────────────────────────────────────────────────────────
@@ -201,10 +344,16 @@ def training_fn(config):
 # ────────────────────────────────────────────────────────────────────────────────
 def main(args):
     use_pbt_mode = bool(args.pbt or args.cpu_pbt)
+    init_ray(use_pbt_mode=use_pbt_mode)
 
     data_path = Path(args.data_path)
     if not data_path.is_file():
         raise FileNotFoundError(f"Parquet not found ➜ {data_path}")
+    data_path = data_path.resolve(strict=True)
+    if args.restore_ckpt:
+        ckpt_path = Path(args.restore_ckpt).expanduser()
+        if not ckpt_path.exists():
+            raise FileNotFoundError(f"Restore checkpoint path does not exist ➜ {ckpt_path}")
 
     # register the v2 model
     ModelCatalog.register_custom_model("solver_lstm_v2", SolverLSTMModel)
@@ -212,80 +361,8 @@ def main(args):
     ModelCatalog.register_custom_model("solver_mlp_film", SolverMLPFiLM)
 
     # shared RLlib config
-    base_config = {
-        "env": "ITraderEnv",
-        "env_config": {
-            "df_path": data_path.as_posix(),
-            "window_size": args.window,
-            "start_idx_mode": args.start_idx_mode,
-            "stream_jump_every_episodes": args.stream_jump_every_episodes,
-            "stream_jump_on_wrap": args.stream_jump_on_wrap,
-            "stream_stride": args.stream_stride,
-            "ret_norm_reset": args.ret_norm_reset,
-            "t_embed_mode": "concat",   # off|scale|concat
-            "t_scale": 1.0,
-            "task_sampler": {
-                "window_size": args.window,
-                "n_features": 5,  # OHLCV features
-                "t_embed_dim": 32,
-                "action_dim": 3,
-                # benign defaults; sampler gets per-worker seed automatically
-                "horizons": [96, 128, 160, 200],
-                "turnover_w_choices": [0.0, 0.0005, 0.001, 0.002],
-                "dd_modes": ["delta"],
-                "dd_w_range": (0.0, 0.04),
-                "turnover_cap": 0.02,
-                "dd_cap": 0.10,
-            },
-        # ← NEW: allows Tune/PBT to tweak tiny reward weights *without* editing the sampler.
-            # Your env.reset() should merge this dict into current_task.reward_params (you already added this).
-            # "task_sampler_overrides": {
-            #     "turnover_w": 0.001,
-            #     "dd_w": 0.04,
-            #     "dd_T_weight": 0.0,
-            # },
-        },
-        "model": {
-            "custom_model": "solver_mlp_film",
-            "custom_model_config": {
-                "window_size": args.window,
-                "t_embed_dim": 32,
-                "fcnet_hiddens": [256, 256],
-                "conditioning": "film",
-                "t_keep_p": 0.7,
-                "t_proj": 64,
-            },
-        },
-        # resources
-        "num_gpus": 1,
-        "num_gpus_per_worker": 0,
-        "num_workers": args.workers,
-        # core RL settings
-        "framework": "torch",
-        # swap callbacks for PBT to reduce collisions/overhead
-        "callbacks": (MetricsOnlyCallback if use_pbt_mode else CombinedCallback),
-        "observation_filter": "MeanStdFilter",
-        "grad_clip": 10.0,
-        # Stabilise exploration → exploitation
-        "entropy_coeff_schedule": [
-            [0,        0.02],
-            [200_000,  0.01],
-            [800_000,  0.003],
-        ],
-        "train_batch_size": 4800,
-        "batch_mode": "complete_episodes",
-        "sgd_minibatch_size": 128,
-        "num_sgd_iter": 30,
-        "gamma": 0.99,
-        "vf_clip_param": 10.0,
-        "lr": 5e-5,
-        # PBT runs multiple trials -> shared port conflicts. Enable only for single-trial runs.
-        "metrics_sinks": ([] if use_pbt_mode else ["prometheus"]),
-        "prometheus_export_port": (None if use_pbt_mode else 8888),
-        # pass the stop criterion to training_fn
-        "stop_iters": args.iters,
-        "checkpoint_interval": 10,  # Save checkpoint every N iterations for PBT
-    }
+    base_config = build_base_config(args=args, data_path=data_path, use_pbt_mode=use_pbt_mode)
+    write_run_manifest(base_config=base_config, args=args, data_path=data_path)
 
     pbt = PopulationBasedTraining(
         time_attr="training_iteration",
@@ -382,7 +459,7 @@ def main(args):
 
     analysis = tune.run(
         training_fn,                        # <--- use the class directly
-        name="Phase_A",
+        name=EXPERIMENT_NAME,
         scheduler=(pbt if args.pbt else None),
         num_samples=(args.pop if args.pbt else 1),
         resources_per_trial=resources,
@@ -423,5 +500,6 @@ if __name__ == "__main__":
         "--data_path",
         default="itrader/data/ohlcv.parquet",
     )
+    parser.add_argument("--seed", type=int, default=1234, help="Global run seed for RLlib and task sampler")
     args = parser.parse_args()
     main(args)
