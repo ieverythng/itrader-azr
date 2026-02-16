@@ -64,22 +64,54 @@ Training follows RLVR principles:
 ## How To Run (Reference)
 
 Main training script:
-- `python -m itrader.rl_lib.train.train_solo_V2 --iters 200 --workers 6 --window 30 --seed 1234`
+- `python -m itrader.rl_lib.train.train_solo_V2 --iters 200 --workers 6 --window 30 --seed 1234 --experiment_name Phase_A`
+
+CPU-safe smoke run (no GPU required):
+- `python -m itrader.rl_lib.train.train_solo_V2 --cpu_pbt --iters 3 --workers 2 --window 30 --seed 2026 --experiment_name Phase_A_Smoke --data_path itrader/data/ohlcv.parquet`
+
+Useful start-index/repro flags:
+- `--start_idx_mode` (`random_episode`, `stream_worker`, `task_spec`)
+- `--ret_norm_reset` (`episode`, `stream`)
+- `--stream_jump_every_episodes`, `--stream_stride`, `--stream_jump_on_wrap/--no-stream_jump_on_wrap`
+
+Training outputs (Phase A):
+- Ray trial artifacts: `~/ray_results/<experiment_name>/training_fn_*/`
+- Stable metrics mirror: `~/ray_results/_stable_metrics/<trial_dir_name>/`
+- Stable files:
+  - `metrics_full.jsonl` (flattened scalar metrics for robust plotting)
+  - `report_rows.csv` (session.report rows for quick comparison scripts)
+  - `plots/` (auto-generated plot outputs)
+
+Auto-plotting:
+- End-of-run plotting is enabled by default (`--auto_plot_on_end`).
+- Manual plotting options:
+  - `python itrader/tools/plot_ray_results.py <trial_dir>`
+  - `python itrader/tools/plot_ray_results.py --metrics-jsonl ~/ray_results/_stable_metrics/<trial_dir_name>/metrics_full.jsonl`
+
+Experiment scripts:
+- Start-index ablation runner:
+  - `python -m itrader.scripts.experiments.run_ablation itrader/scripts/experiments/configs/ablation_start_idx.example.json`
+- Script outputs:
+  - `itrader/scripts/experiments/configs/outputs/<run_tag>/summary.json`
+  - `ablation_compare.csv`, `ablation_compare.png`, `ablation_compare_diagnostics.png`
 
 PBT workflow:
-- see `PBT_SETUP_GUIDE.md` (CPU exploration -> best-checkpoint extraction -> GPU retraining).
+- See `PBT_SETUP_GUIDE.md` (CPU exploration -> best-checkpoint extraction -> GPU retraining).
 
 Quality checks (CPU-safe):
 - `python -m pytest -q itrader/tests`
 - `python itrader/tools/healthcheck.py`
-- optional pre-commit: `pre-commit install && pre-commit run --all-files`
+- Optional pre-commit:
+  - `pre-commit install`
+  - `pre-commit run --all-files`
 
 Run metadata:
-- each run now writes a manifest under `~/ray_results/Phase_A/` with git commit, config hash, dataset fingerprint, and seed.
+- Each run writes `run_manifest_*.json` under `~/ray_results/<experiment_name>/`.
+- Manifest includes git commit, config hash, dataset fingerprint, seed, and runtime mode.
 
 Daily session logging:
-- use `docs/daily_logs/` for ongoing engineering logs.
-- prompts and workflow are documented in `docs/daily_logs/COMMANDS.md`.
+- Use `docs/daily_logs/` for ongoing engineering logs.
+- Prompts and workflow are documented in `docs/daily_logs/COMMANDS.md`.
 
 ## Engineering Gaps To Close For Scale
 

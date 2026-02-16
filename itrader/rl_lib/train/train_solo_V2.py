@@ -72,7 +72,7 @@ def _git_commit() -> str:
 
 
 def _config_hash(config: dict) -> str:
-    payload = json.dumps(config, sort_keys=True, separators=(",", ":"))
+    payload = json.dumps(config, sort_keys=True, separators=(",", ":"), default=str)
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
 
 

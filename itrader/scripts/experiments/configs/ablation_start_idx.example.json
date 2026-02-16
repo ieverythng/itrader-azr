@@ -1,5 +1,5 @@
 {
-  "name": "Phase_A_Stream_Jump_Ablation",
+  "name": "lr_ablation_stream",
   "python_exe": "python",
   "train_module": "itrader.rl_lib.train.train_solo_V2",
   "common_args": {
@@ -9,7 +9,6 @@
     "window": 60,
     "gamma": 0.99,
     "lambda": 0.95,
-    "lr": 0.00005,
     "train_batch_size": 4800,
     "sgd_minibatch_size": 128,
     "num_sgd_iter": 30,
@@ -21,21 +20,23 @@
   },
   "variants": [
     {
-      "id": "stream_ret_norm_reset_episode",
+      "id": "lr_0.005",
       "args": {
         "start_idx_mode": "stream_worker",
         "ret_norm_reset": "episode",
         "stream_stride": 0,
-        "stream_jump_every_episodes": 0
+        "stream_jump_every_episodes": 0,
+        "lr": 0.005
       }
     },
     {
-      "id": "stream_ret_norm_reset_stream_jump_every_episodes_5",
+      "id": "lr_0.0005",
       "args": {
         "start_idx_mode": "stream_worker",
         "ret_norm_reset": "stream",
         "stream_stride": 0,
-        "stream_jump_every_episodes": 5
+        "stream_jump_every_episodes": 0,
+        "lr": 0.0005
       }
     }
   ]

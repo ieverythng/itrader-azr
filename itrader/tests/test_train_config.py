@@ -50,3 +50,14 @@ def test_build_base_config_pbt_disables_prometheus(tmp_path: Path):
     cfg = build_base_config(args=args, data_path=data_path, use_pbt_mode=True)
     assert cfg["metrics_sinks"] == []
     assert cfg["prometheus_export_port"] is None
+
+
+def test_config_hash_handles_non_json_values():
+    from itrader.rl_lib.train.train_solo_V2 import _config_hash
+
+    class FakeCallback:
+        pass
+
+    digest = _config_hash({"callbacks": FakeCallback, "nested": {"x": 1}})
+    assert isinstance(digest, str)
+    assert len(digest) == 64
