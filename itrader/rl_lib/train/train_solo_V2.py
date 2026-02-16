@@ -2,8 +2,10 @@
 
 import argparse
 import json
+import csv
 import hashlib
 import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -75,6 +77,17 @@ def _config_hash(config: dict) -> str:
 
 
 def build_base_config(args, data_path: Path, use_pbt_mode: bool) -> dict:
+    clip_param = float(getattr(args, "clip_param", 0.2))
+    gae_lambda = float(getattr(args, "gae_lambda", 0.95))
+    vf_loss_coeff = float(getattr(args, "vf_loss_coeff", 1.0))
+    train_batch_size = int(getattr(args, "train_batch_size", 4800))
+    sgd_minibatch_size = int(getattr(args, "sgd_minibatch_size", 128))
+    num_sgd_iter = int(getattr(args, "num_sgd_iter", 30))
+    gamma = float(getattr(args, "gamma", 0.99))
+    vf_clip_param = float(getattr(args, "vf_clip_param", 10.0))
+    lr = float(getattr(args, "lr", 5e-5))
+    auto_plot_on_end = bool(getattr(args, "auto_plot_on_end", True))
+
     return {
         "env": "ITraderEnv",
         "env_config": {
@@ -132,34 +145,40 @@ def build_base_config(args, data_path: Path, use_pbt_mode: bool) -> dict:
         "callbacks": (MetricsOnlyCallback if use_pbt_mode else CombinedCallback),
         "observation_filter": "MeanStdFilter",
         "grad_clip": 10.0,
+        "clip_param": clip_param,
+        "lambda": gae_lambda,
+        "vf_loss_coeff": vf_loss_coeff,
         # Stabilise exploration → exploitation
         "entropy_coeff_schedule": [
             [0,        0.02],
             [200_000,  0.01],
             [800_000,  0.003],
         ],
-        "train_batch_size": 4800,
+        "train_batch_size": train_batch_size,
         "batch_mode": "complete_episodes",
-        "sgd_minibatch_size": 128,
-        "num_sgd_iter": 30,
-        "gamma": 0.99,
-        "vf_clip_param": 10.0,
-        "lr": 5e-5,
+        "sgd_minibatch_size": sgd_minibatch_size,
+        "num_sgd_iter": num_sgd_iter,
+        "gamma": gamma,
+        "vf_clip_param": vf_clip_param,
+        "lr": lr,
         # PBT runs multiple trials -> shared port conflicts. Enable only for single-trial runs.
         "metrics_sinks": ([] if use_pbt_mode else ["prometheus"]),
         "prometheus_export_port": (None if use_pbt_mode else 8888),
         # pass the stop criterion to training_fn
         "stop_iters": args.iters,
         "checkpoint_interval": 10,  # Save checkpoint every N iterations for PBT
+        "stable_metrics_root": str(Path.home() / "ray_results" / "_stable_metrics"),
+        "auto_plot_on_end": auto_plot_on_end,
     }
 
 
 def write_run_manifest(base_config: dict, args, data_path: Path):
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+    experiment_name = str(getattr(args, "experiment_name", EXPERIMENT_NAME))
     manifest = {
         "run_id": run_id,
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
-        "experiment_name": EXPERIMENT_NAME,
+        "experiment_name": experiment_name,
         "git_commit": _git_commit(),
         "seed": int(args.seed),
         "config_hash": _config_hash(base_config),
@@ -170,7 +189,7 @@ def write_run_manifest(base_config: dict, args, data_path: Path):
         "is_pbt": bool(args.pbt),
         "is_cpu_pbt": bool(args.cpu_pbt),
     }
-    out_dir = Path.home() / "ray_results" / EXPERIMENT_NAME
+    out_dir = Path.home() / "ray_results" / experiment_name
     out_dir.mkdir(parents=True, exist_ok=True)
     out_path = out_dir / f"run_manifest_{run_id}.json"
     out_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
@@ -245,6 +264,11 @@ def training_fn(config):
     checkpoint_interval = int(config.get("checkpoint_interval", 3))
     full_metrics_path = trial_dir / "rllib" / "metrics_full.jsonl"
     full_metrics_path.parent.mkdir(parents=True, exist_ok=True)
+    stable_root = Path(str(config.get("stable_metrics_root", Path.home() / "ray_results" / "_stable_metrics")))
+    stable_trial_dir = stable_root / trial_dir.name
+    stable_trial_dir.mkdir(parents=True, exist_ok=True)
+    stable_metrics_path = stable_trial_dir / "metrics_full.jsonl"
+    stable_report_csv = stable_trial_dir / "report_rows.csv"
     
     for it in range(config["stop_iters"]):
         res = algo.train()
@@ -263,6 +287,9 @@ def training_fn(config):
             erm = res.get("sampler_results", {}).get("custom_metrics/episode_return_mean_mean", None)
         if erm is None:
             erm = res.get("episode_reward_mean", float("nan"))
+        episode_len_mean = res.get("episode_len_mean", None)
+        if episode_len_mean is None:
+            episode_len_mean = res.get("sampler_results", {}).get("episode_len_mean", float("nan"))
 
         report = {
             "training_iteration": int(res.get("training_iteration", it + 1)),
@@ -270,6 +297,7 @@ def training_fn(config):
             "time_total_s": res.get("time_total_s"),
             "timesteps_total": res.get("timesteps_total"),
             "custom_metrics/episode_return_mean": float(erm) if erm is not None else float("nan"),
+            "episode_len_mean": float(episode_len_mean) if episode_len_mean is not None else float("nan"),
             "policy_loss":        policy_loss,
             "value_loss":         vf_loss,
             "entropy":            entropy,
@@ -283,6 +311,14 @@ def training_fn(config):
                 v = cm.get(k)
                 if isinstance(v, (int, float, np.floating, np.integer)):
                     report[f"custom_metrics/{k}"] = float(v)
+        for k in (
+            "custom_metrics/act_long_frac_mean",
+            "custom_metrics/act_short_frac_mean",
+            "custom_metrics/act_flat_frac_mean",
+            "episode_len_mean",
+            "iters_per_sec",
+        ):
+            report.setdefault(k, float("nan"))
 
         # Persist scalar-only flattened metrics for robust plotting fallback.
         full = {}
@@ -300,6 +336,19 @@ def training_fn(config):
         full["training_iteration"] = report["training_iteration"]
         with full_metrics_path.open("a", encoding="utf-8") as fh:
             fh.write(json.dumps(full) + "\n")
+        with stable_metrics_path.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(full) + "\n")
+
+        report_row = dict(report)
+        if stable_report_csv.exists():
+            with stable_report_csv.open("a", encoding="utf-8", newline="") as fh:
+                writer = csv.DictWriter(fh, fieldnames=list(report_row.keys()))
+                writer.writerow(report_row)
+        else:
+            with stable_report_csv.open("w", encoding="utf-8", newline="") as fh:
+                writer = csv.DictWriter(fh, fieldnames=list(report_row.keys()))
+                writer.writeheader()
+                writer.writerow(report_row)
 
         # --- Checkpointing for PBT (so exploit can copy weights) ------------
         should_checkpoint = checkpoint_interval > 0 and (it + 1) % checkpoint_interval == 0
@@ -337,7 +386,30 @@ def training_fn(config):
                 print(f"Checkpoint save failed @ iter {it+1}: {e}")
         else:
             session.report(report)
-    
+
+    if bool(config.get("auto_plot_on_end", True)):
+        try:
+            plot_script = Path(__file__).resolve().parents[2] / "tools" / "plot_ray_results.py"
+            metrics_jsonl = stable_trial_dir / "metrics_full.jsonl"
+            out_dir = stable_trial_dir / "plots"
+            cmd = [
+                sys.executable,
+                str(plot_script),
+                "--metrics-jsonl",
+                str(metrics_jsonl),
+                "--out",
+                str(out_dir),
+            ]
+            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+            if proc.returncode == 0:
+                print(f"[FinalPlot] Generated final plots in: {out_dir}")
+            else:
+                print(f"[FinalPlot] Plot generation failed (code={proc.returncode})")
+                if proc.stderr:
+                    print(proc.stderr)
+        except Exception as e:
+            print(f"[FinalPlot] Suppressed final plotting error: {e}")
+
     algo.stop()
 # ────────────────────────────────────────────────────────────────────────────────
 # 5) Entrypoint: assemble Tune config & kick off the experiment
@@ -449,6 +521,7 @@ def main(args):
 
     metric_columns = [
         "custom_metrics/episode_return_mean",
+        "episode_len_mean",
         "policy_loss",
         "value_loss",
         "entropy",
@@ -459,7 +532,7 @@ def main(args):
 
     analysis = tune.run(
         training_fn,                        # <--- use the class directly
-        name=EXPERIMENT_NAME,
+        name=args.experiment_name,
         scheduler=(pbt if args.pbt else None),
         num_samples=(args.pop if args.pbt else 1),
         resources_per_trial=resources,
@@ -485,6 +558,15 @@ if __name__ == "__main__":
     parser.add_argument("--iters",     type=int, default=200)
     parser.add_argument("--window",    type=int, default=30)
     parser.add_argument("--workers", type=int, default=6)
+    parser.add_argument("--gamma", type=float, default=0.99)
+    parser.add_argument("--lambda", dest="gae_lambda", type=float, default=0.95, help="GAE lambda")
+    parser.add_argument("--lr", type=float, default=5e-5)
+    parser.add_argument("--train_batch_size", type=int, default=4800)
+    parser.add_argument("--sgd_minibatch_size", type=int, default=128)
+    parser.add_argument("--num_sgd_iter", type=int, default=30)
+    parser.add_argument("--vf_clip_param", type=float, default=10.0)
+    parser.add_argument("--clip_param", type=float, default=0.2)
+    parser.add_argument("--vf_loss_coeff", type=float, default=1.0)
     parser.add_argument("--pbt", action="store_true", help="Enable Population-Based Training")
     parser.add_argument("--cpu_pbt", action="store_true", help="Run PBT on CPU (many trials), then retrain best on GPU")
     parser.add_argument("--pop", type=int, default=10, help="Population size if --pbt")
@@ -496,6 +578,8 @@ if __name__ == "__main__":
     parser.add_argument("--stream_jump_on_wrap", action=argparse.BooleanOptionalAction, default=True, help="For stream_worker: randomize on stream wrap-around")
     parser.add_argument("--stream_stride", type=int, default=0, help="For stream_worker: stride in rows between consecutive episodes (0 uses horizon)")
     parser.add_argument("--ret_norm_reset", type=str, default="episode", choices=["episode", "stream"], help="Reset reward normalization every episode or only when stream changes")
+    parser.add_argument("--experiment_name", type=str, default="Phase_A", help="Ray Tune experiment folder name under ~/ray_results")
+    parser.add_argument("--auto_plot_on_end", action=argparse.BooleanOptionalAction, default=True, help="Generate plots automatically at trial end")
     parser.add_argument(
         "--data_path",
         default="itrader/data/ohlcv.parquet",

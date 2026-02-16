@@ -132,4 +132,4 @@ Long-term:
 ## Notes
 
 - This environment may not support full GPU training in all development machines; use logic-level checks and surface-level validation locally, then run heavy training on the target GPU workstation.
-- Keep this branch (`feat-refactor-codebase`) focused on maintainability, debuggability, and architecture hardening before scaling experiment volume.
+- Branch (`feat-refactor-codebase`) is focused on maintainability, debuggability, and architecture hardening before scaling experiment volume.

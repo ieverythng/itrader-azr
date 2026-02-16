@@ -1,0 +1,22 @@
+{
+  "run_tag": "Phase_A_Stream_Worker_Ablation_20260213_031848",
+  "config": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\ablation_start_idx.example.json",
+  "results": [
+    {
+      "variant_id": "random_episode",
+      "experiment_name": "Phase_A_Stream_Worker_Ablation_20260213_031848_random_episode",
+      "trial_dir": "C:\\Users\\Admin\\ray_results\\Phase_A_Stream_Worker_Ablation_20260213_031848_random_episode\\training_fn_ITraderEnv_5b3a9_00000_0_2026-02-13_03-18-59",
+      "stable_report_csv": "C:\\Users\\Admin\\ray_results\\_stable_metrics\\training_fn_ITraderEnv_5b3a9_00000_0_2026-02-13_03-18-59\\report_rows.csv",
+      "final_metric": -2.5554915017170305
+    },
+    {
+      "variant_id": "stream_worker",
+      "experiment_name": "Phase_A_Stream_Worker_Ablation_20260213_031848_stream_worker",
+      "trial_dir": "C:\\Users\\Admin\\ray_results\\Phase_A_Stream_Worker_Ablation_20260213_031848_stream_worker\\training_fn_ITraderEnv_43346_00000_0_2026-02-13_03-25-28",
+      "stable_report_csv": "C:\\Users\\Admin\\ray_results\\_stable_metrics\\training_fn_ITraderEnv_43346_00000_0_2026-02-13_03-25-28\\report_rows.csv",
+      "final_metric": -0.8803502665799217
+    }
+  ],
+  "compare_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\Phase_A_Stream_Worker_Ablation_20260213_031848\\ablation_compare.csv",
+  "compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\Phase_A_Stream_Worker_Ablation_20260213_031848\\ablation_compare.png"
+}

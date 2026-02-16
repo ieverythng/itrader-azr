@@ -107,18 +107,11 @@ class AutoPlotterCallback(DefaultCallbacks):
         except Exception:
             pass
 
-        # 3) Fallback: prioritize Phase_A paths, then most recent top-level trial
+        # 3) Fallback: scan top-level experiment dirs and pick the most recent trial.
         try:
             base = Path.home() / "ray_results"
             if base.exists():
-                # First try Phase_A/* directories
-                phase_a_base = base / "Phase_A"
-                if phase_a_base.exists():
-                    candidates = [d for d in phase_a_base.iterdir() if d.is_dir() and self._looks_like_trial_dir(d)]
-                    if candidates:
-                        # Return most recent Phase_A trial
-                        return max(candidates, key=self._trial_mtime)
-                # Fallback: check only top-level experiment dirs to avoid deep rglob scans.
+                # Check only top-level experiment dirs to avoid deep rglob scans.
                 top_level = [d for d in base.iterdir() if d.is_dir()]
                 all_candidates = []
                 for exp_dir in top_level:
@@ -133,6 +126,11 @@ class AutoPlotterCallback(DefaultCallbacks):
         return None
 
     # ------------------------------------------------------------------ #
+    @staticmethod
+    def _stable_trial_dir(trial_dir: Path) -> Path:
+        return Path.home() / "ray_results" / "_stable_metrics" / trial_dir.name
+
+    # ------------------------------------------------------------------ #
     def _generate_plots(self, algorithm, result: Dict[str, Any]):
         try:
             trial_dir = self._trial_dir(algorithm, result)
@@ -140,9 +138,29 @@ class AutoPlotterCallback(DefaultCallbacks):
                 print("[AutoPlotter] Warning: could not resolve trial directory; skipping plots.")
                 return
 
-            cmd = [sys.executable, str(self.plot_script_path), str(trial_dir)]
+            stable_dir = self._stable_trial_dir(trial_dir)
+            stable_metrics = stable_dir / "metrics_full.jsonl"
+            out_dir = stable_dir / "plots"
+            if stable_metrics.exists() and stable_metrics.stat().st_size > 0:
+                cmd = [
+                    sys.executable,
+                    str(self.plot_script_path),
+                    "--metrics-jsonl",
+                    str(stable_metrics),
+                    "--out",
+                    str(out_dir),
+                ]
+            else:
+                cmd = [
+                    sys.executable,
+                    str(self.plot_script_path),
+                    str(trial_dir),
+                    "--out",
+                    str(out_dir),
+                ]
             print(f"[AutoPlotter] Generating plots @ iter {result.get('training_iteration', 0)}")
             print(f"[AutoPlotter] Trial directory: {trial_dir}")
+            print(f"[AutoPlotter] Plot output dir: {out_dir}")
 
             # Run inside the trial dir so relative output is stable.
             proc = subprocess.run(cmd, capture_output=True, text=True, cwd=trial_dir, timeout=120)

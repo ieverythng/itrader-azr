@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 
 import pandas as pd
 
+DEFAULT_STABLE_ROOT = Path.home() / "ray_results" / "_stable_metrics"
+
 
 def _columns_look_numeric(cols) -> bool:
     if cols is None:
@@ -94,6 +96,33 @@ def _load_metrics_jsonl(trial_dir: Path) -> pd.DataFrame | None:
     return None
 
 
+def _load_metrics_jsonl_file(metrics_path: Path) -> pd.DataFrame | None:
+    if not metrics_path.exists() or metrics_path.stat().st_size == 0:
+        return None
+    rows = []
+    with metrics_path.open("r", encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                rows.append(json.loads(line))
+            except Exception:
+                continue
+    if not rows:
+        return None
+    return pd.DataFrame(rows)
+
+
+def _load_stable_metrics_for_trial(trial_dir: Path) -> pd.DataFrame | None:
+    candidate = DEFAULT_STABLE_ROOT / trial_dir.name / "metrics_full.jsonl"
+    return _load_metrics_jsonl_file(candidate)
+
+
+def _stable_trial_dir_for(trial_dir: Path) -> Path:
+    return DEFAULT_STABLE_ROOT / trial_dir.name
+
+
 def load_trial_df(trial_dir: Path) -> pd.DataFrame:
     df = _load_progress_csv(trial_dir)
     if df is not None:
@@ -102,6 +131,9 @@ def load_trial_df(trial_dir: Path) -> pd.DataFrame:
     if df is not None:
         return df
     df = _load_result_json(trial_dir)
+    if df is not None:
+        return df
+    df = _load_stable_metrics_for_trial(trial_dir)
     if df is not None:
         return df
     raise SystemExit(f"No usable progress.csv/result.json/metrics_full.jsonl in: {trial_dir}")
@@ -125,10 +157,32 @@ def _plot_series(df: pd.DataFrame, ax, y_cols, xcol: str | None, title: str):
     y_cols = [c for c in y_cols if c in df.columns]
     if not y_cols:
         return False
-    if xcol:
-        df.plot(x=xcol, y=y_cols, ax=ax)
+    if xcol and xcol in df.columns:
+        x = pd.to_numeric(df[xcol], errors="coerce")
+        if not x.notna().any():
+            x = pd.Series(range(len(df)), index=df.index, dtype=float)
     else:
-        df[y_cols].plot(ax=ax)
+        x = pd.Series(range(len(df)), index=df.index, dtype=float)
+
+    plotted = False
+    for c in y_cols:
+        y = pd.to_numeric(df[c], errors="coerce")
+        if not y.notna().any():
+            continue
+        valid = x.notna() & y.notna()
+        if not valid.any():
+            continue
+        xv = x[valid].to_numpy()
+        yv = y[valid].to_numpy()
+        if len(xv) == 1:
+            ax.plot(xv, yv, marker="o", linestyle="None", label=c)
+        else:
+            ax.plot(xv, yv, marker="o", markersize=3, linewidth=1.5, label=c)
+        plotted = True
+    if not plotted:
+        return False
+    if len(y_cols) > 1:
+        ax.legend(fontsize=8)
     ax.set_title(title)
     return True
 
@@ -248,15 +302,32 @@ def plot_task_sampler_metrics(df: pd.DataFrame, out: Path, xcol: str | None):
 
 def main():
     ap = argparse.ArgumentParser(description="Plot Ray Tune results")
-    ap.add_argument("trial_dir", help="Path to Ray Tune trial directory")
+    ap.add_argument("trial_dir", nargs="?", help="Path to Ray Tune trial directory")
+    ap.add_argument("--metrics-jsonl", help="Direct path to metrics_full.jsonl sidecar")
     ap.add_argument("--out", help="Output directory (optional)")
     args = ap.parse_args()
 
-    trial_dir = Path(args.trial_dir)
-    df = load_trial_df(trial_dir)
+    if args.metrics_jsonl:
+        metrics_path = Path(args.metrics_jsonl)
+        df = _load_metrics_jsonl_file(metrics_path)
+        if df is None:
+            raise SystemExit(f"metrics jsonl missing/empty/unreadable at: {metrics_path}")
+        trial_dir = metrics_path.parent
+    elif args.trial_dir:
+        trial_dir = Path(args.trial_dir)
+        df = load_trial_df(trial_dir)
+    else:
+        raise SystemExit("Provide either trial_dir or --metrics-jsonl")
     xcol = pick_x_axis(df)
 
-    out = Path(args.out) if args.out else (trial_dir / "plots")
+    if args.out:
+        out = Path(args.out)
+    elif args.metrics_jsonl:
+        out = trial_dir / "plots"
+    else:
+        stable_trial_dir = _stable_trial_dir_for(trial_dir)
+        stable_metrics = stable_trial_dir / "metrics_full.jsonl"
+        out = (stable_trial_dir / "plots") if (stable_metrics.exists() and stable_metrics.stat().st_size > 0) else (trial_dir / "plots")
     out.mkdir(parents=True, exist_ok=True)
 
     print(f"Creating plots in: {out}")
