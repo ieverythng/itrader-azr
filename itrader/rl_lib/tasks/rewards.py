@@ -68,7 +68,7 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
     normalize  = bool(params.get("normalize", True))
     norm_mode  = str(params.get("norm_mode", "all"))   # "all" | "penalties" | "off"
     unit_clip  = float(params.get("unit_clip", float("inf")))
-    
+
     pnl_delta = float(ctx.get("pnl_delta", 0.0))
     turnover_t = float(ctx.get("turnover_t", 0.0))
     is_terminal = bool(ctx.get("terminal", False))
@@ -114,7 +114,7 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
         r *= r_scale
         for k in ("pnl_delta", "turnover", "dd"):
             comps[k] = comps.get(k, 0.0) * r_scale
-    
+
     return r, comps
 
 @register("pnl_sharpe")

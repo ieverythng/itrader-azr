@@ -52,6 +52,57 @@ def test_build_base_config_pbt_disables_prometheus(tmp_path: Path):
     assert cfg["prometheus_export_port"] is None
 
 
+def test_build_base_config_defaults_new_ppo_args_when_missing(tmp_path: Path):
+    from itrader.rl_lib.train.train_solo_V2 import build_base_config
+
+    args = _args(seed=123)
+    data_path = tmp_path / "fake.parquet"
+    data_path.write_bytes(b"dummy")
+
+    cfg = build_base_config(args=args, data_path=data_path, use_pbt_mode=False)
+    assert cfg["clip_param"] == 0.2
+    assert cfg["lambda"] == 0.95
+    assert cfg["vf_loss_coeff"] == 1.0
+    assert cfg["train_batch_size"] == 4800
+    assert cfg["sgd_minibatch_size"] == 128
+    assert cfg["num_sgd_iter"] == 30
+    assert cfg["gamma"] == 0.99
+    assert cfg["vf_clip_param"] == 10.0
+    assert cfg["lr"] == 5e-5
+    assert cfg["auto_plot_on_end"] is True
+
+
+def test_build_base_config_respects_explicit_ppo_args(tmp_path: Path):
+    from itrader.rl_lib.train.train_solo_V2 import build_base_config
+
+    args = _args(seed=321)
+    args.clip_param = 0.15
+    args.gae_lambda = 0.9
+    args.vf_loss_coeff = 0.7
+    args.train_batch_size = 8192
+    args.sgd_minibatch_size = 256
+    args.num_sgd_iter = 12
+    args.gamma = 0.985
+    args.vf_clip_param = 12.5
+    args.lr = 3e-4
+    args.auto_plot_on_end = False
+
+    data_path = tmp_path / "fake.parquet"
+    data_path.write_bytes(b"dummy")
+
+    cfg = build_base_config(args=args, data_path=data_path, use_pbt_mode=False)
+    assert cfg["clip_param"] == pytest.approx(0.15)
+    assert cfg["lambda"] == pytest.approx(0.9)
+    assert cfg["vf_loss_coeff"] == pytest.approx(0.7)
+    assert cfg["train_batch_size"] == 8192
+    assert cfg["sgd_minibatch_size"] == 256
+    assert cfg["num_sgd_iter"] == 12
+    assert cfg["gamma"] == pytest.approx(0.985)
+    assert cfg["vf_clip_param"] == pytest.approx(12.5)
+    assert cfg["lr"] == pytest.approx(3e-4)
+    assert cfg["auto_plot_on_end"] is False
+
+
 def test_config_hash_handles_non_json_values():
     from itrader.rl_lib.train.train_solo_V2 import _config_hash
 

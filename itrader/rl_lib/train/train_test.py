@@ -49,9 +49,9 @@ def main()-> None:
 
     print("🚀 Starting training with automatic plotting...")
     print(f"📊 Plots will be generated every 50 iterations")
-    
+
     algo = config.build()          # new API – avoids the deprecation warning
-    
+
     for _ in range(100):
         result = algo.train()
         print(result)               # first training iteration

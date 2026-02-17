@@ -99,7 +99,7 @@ class TaskPool:
     def add(self, task_dict: Dict[str, Any], meta: Optional[Dict[str, Any]] = None) -> str:
         """
         Add task to pool. Returns task UID.
-        
+
         Args:
             task_dict: TaskSpec as dict (from TaskSpec.to_dict())
             meta: Optional metadata (e.g., generation timestamp, source)
@@ -108,14 +108,14 @@ class TaskPool:
         if uid in self._index:
             # Already exists, skip duplicate
             return uid
-        
+
         self._index[uid] = {"task": task_dict, "meta": meta or {}}
-        
+
         if not self.read_only:
             entry = {"task": task_dict, "meta": meta or {}}
             with open(self.jsonl_path, 'a', encoding='utf-8') as f:
                 f.write(json.dumps(entry, separators=(',', ':')) + '\n')
-        
+
         return uid
 
     def sample(self, batch_size: int = 1, strategy: str = "weighted") -> List[Dict[str, Any]]:
@@ -131,11 +131,11 @@ class TaskPool:
         """
         if not self._index:
             return []
-        
+
         uids = list(self._index.keys())
         if len(uids) == 0:
             return []
-        
+
         # For now, simple strategies (can be enhanced later)
         if strategy == "uniform":
             selected_uids = np.random.choice(uids, size=min(batch_size, len(uids)), replace=False).tolist()
@@ -160,7 +160,7 @@ class TaskPool:
             n_elite = int(batch_size * 0.4)
             n_recent = int(batch_size * 0.3)
             n_random = batch_size - n_elite - n_recent
-            
+
             selected_uids = []
             # Elite
             if n_elite > 0 and len(uids) > 0:
@@ -168,27 +168,27 @@ class TaskPool:
                 scored.sort(key=lambda x: x[1], reverse=True)
                 elite_k = min(n_elite, len(uids) // 4)
                 selected_uids.extend([uid for uid, _ in scored[:elite_k]])
-            
+
             # Recent
             if n_recent > 0:
                 recent_pool = [uid for uid in uids if uid not in selected_uids]
                 n_recent_actual = min(n_recent, len(recent_pool))
                 selected_uids.extend(recent_pool[-n_recent_actual:])
-            
+
             # Random
             if n_random > 0:
                 random_pool = [uid for uid in uids if uid not in selected_uids]
                 if random_pool:
                     n_random_actual = min(n_random, len(random_pool))
                     selected_uids.extend(np.random.choice(random_pool, size=n_random_actual, replace=False).tolist())
-            
+
             # Pad if needed
             if len(selected_uids) < batch_size:
                 remaining = [uid for uid in uids if uid not in selected_uids]
                 if remaining:
                     n_extra = batch_size - len(selected_uids)
                     selected_uids.extend(np.random.choice(remaining, size=min(n_extra, len(remaining)), replace=False).tolist())
-        
+
         return [self._index[uid]["task"] for uid in selected_uids]
 
     def update_stats(self, task_uid: str, episode_return: float, success: bool, extra: Optional[Dict[str, Any]] = None):
@@ -209,18 +209,18 @@ class TaskPool:
                 "mean_return": 0.0,
                 "mean_success": 0.0,
             }
-        
+
         stats = self._stats[task_uid]
         stats["returns"].append(float(episode_return))
         stats["successes"].append(1.0 if success else 0.0)
         stats["count"] += 1
-        
+
         # Update running means (keep last 100 for memory efficiency)
         max_history = 100
         if len(stats["returns"]) > max_history:
             stats["returns"] = stats["returns"][-max_history:]
             stats["successes"] = stats["successes"][-max_history:]
-        
+
         stats["mean_return"] = np.mean(stats["returns"])
         stats["mean_success"] = np.mean(stats["successes"])
 
@@ -235,26 +235,26 @@ class TaskPool:
         """
         if self.read_only:
             raise RuntimeError("Cannot prune read-only pool")
-        
+
         if len(self._index) <= max_size:
             return
-        
+
         # Score all tasks
         scored = []
         for uid in self._index.keys():
             score = self._stats[uid]["mean_return"]
             scored.append((uid, score))
-        
+
         # Sort by score
         scored.sort(key=lambda x: x[1], reverse=True)
-        
+
         # Keep top keep_elite_k + random sample of rest to fill max_size
         keep_uids = {uid for uid, _ in scored[:keep_elite_k]}
         remaining = [uid for uid, _ in scored[keep_elite_k:]]
         if remaining and len(keep_uids) < max_size:
             n_extra = max_size - len(keep_uids)
             keep_uids.update(np.random.choice(remaining, size=min(n_extra, len(remaining)), replace=False).tolist())
-        
+
         # Rewrite JSONL
         self.jsonl_path.unlink(missing_ok=True)
         self._index = {uid: self._index[uid] for uid in keep_uids if uid in self._index}
@@ -267,4 +267,3 @@ class TaskPool:
     def size(self) -> int:
         """Return current pool size."""
         return len(self._index)
-

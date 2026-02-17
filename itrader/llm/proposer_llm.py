@@ -24,7 +24,7 @@ class ProposerLLM:
         """
         self.model_id = model_id
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        
+
         # Configure 4-bit quantization (only on CUDA, and only if bitsandbytes available)
         quantization_config = None
         if self.device == "cuda":
@@ -39,7 +39,7 @@ class ProposerLLM:
                 # Fallback to full precision if bitsandbytes not available
                 print("Warning: bitsandbytes not available, loading model in full precision")
                 quantization_config = None
-        
+
         # Load tokenizer and model
         print(f"Loading {model_id} on {self.device}...")
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
@@ -110,7 +110,7 @@ class ProposerLLM:
              - start_idx: int | null (optional, starting index in price dataframe. If null, env samples uniformly)
              Return ONLY valid JSON, no prose.
             """
-        
+
         prompt = f"""You are a trading task generator. Given the market summary, generate {n} different task specifications as a JSON array.
 
 Market Summary: {market_summary}
@@ -121,7 +121,7 @@ Generate {n} tasks as a JSON array of objects. Each object must be a valid TaskS
 
         # Tokenize
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
-        
+
         # Generate
         with torch.no_grad():
             outputs = self.model.generate(
@@ -131,13 +131,13 @@ Generate {n} tasks as a JSON array of objects. Each object must be a valid TaskS
                 do_sample=True,
                 pad_token_id=self.tokenizer.eos_token_id,
             )
-        
+
         # Decode
         generated_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-        
+
         # Extract JSON (remove prompt part)
         json_text = generated_text[len(prompt):].strip()
-        
+
         # Parse JSON with repair
         tasks = self._parse_json_with_repair(json_text, n)
         return tasks
@@ -154,7 +154,7 @@ Generate {n} tasks as a JSON array of objects. Each object must be a valid TaskS
             List of parsed task dicts (may be shorter than expected_n if parsing fails)
         """
         tasks = []
-        
+
         # Try direct parse first
         try:
             parsed = json.loads(text)
@@ -165,14 +165,14 @@ Generate {n} tasks as a JSON array of objects. Each object must be a valid TaskS
             return tasks[:expected_n]
         except json.JSONDecodeError:
             pass
-        
+
         # Try to extract first JSON object/array
         # Look for { ... } or [ ... ] patterns
         patterns = [
             r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}',  # Nested object
             r'\[[^\[\]]*(?:\{[^{}]*\}[^\[\]]*)*\]',  # Array of objects
         ]
-        
+
         for pattern in patterns:
             matches = re.findall(pattern, text, re.DOTALL)
             for match in matches:
@@ -188,6 +188,5 @@ Generate {n} tasks as a JSON array of objects. Each object must be a valid TaskS
                     continue
             if len(tasks) >= expected_n:
                 break
-        
-        return tasks[:expected_n] if tasks else []
 
+        return tasks[:expected_n] if tasks else []

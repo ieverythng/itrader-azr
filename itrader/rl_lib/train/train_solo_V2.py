@@ -201,7 +201,7 @@ def write_run_manifest(base_config: dict, args, data_path: Path):
 def make_env(cfg):
     e = ITraderEnv(cfg)
     e.spec = EnvSpec("ITraderEnv")
-    return e  
+    return e
 
 tune.register_env("ITraderEnv", make_env)
 # ────────────────────────────────────────────────────────────────────────────────
@@ -217,10 +217,10 @@ class CombinedCallback(DefaultCallbacks):
             plot_interval=plot_interval,
             plot_at_end_of_loop=False,
         )
-    
+
     def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
         return self.ps_metrics.on_episode_end(worker=worker, base_env=base_env, policies=policies, episode=episode, **kwargs)
-    
+
     def on_train_result(self, *, algorithm, result, **kwargs):
         return self.auto_plotter.on_train_result(algorithm=algorithm, result=result, **kwargs)
 
@@ -229,7 +229,7 @@ class MetricsOnlyCallback(DefaultCallbacks):
     def __init__(self):
         super().__init__()
         self.ps_metrics = PSMetrics()
-    
+
     def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
         return self.ps_metrics.on_episode_end(worker=worker, base_env=base_env, policies=policies, episode=episode, **kwargs)
 
@@ -248,7 +248,7 @@ def training_fn(config):
         rllib_dir.mkdir(parents=True, exist_ok=True)
         return UnifiedLogger(cfg, str(rllib_dir), loggers=None)
     algo = PPO(config=config, logger_creator=logger_creator)
-    
+
     # --- Restore for PBT exploit/explore (weight inheritance) ---------------
     ckpt = train.get_checkpoint()
     requested_restore = str(config.get("restore_ckpt", "") or "").strip()
@@ -260,7 +260,7 @@ def training_fn(config):
         algo.restore(restore_dir)
         print(f"Restored checkpoint from Tune checkpoint: {restore_dir}")
 
-    
+
     checkpoint_interval = int(config.get("checkpoint_interval", 3))
     full_metrics_path = trial_dir / "rllib" / "metrics_full.jsonl"
     full_metrics_path.parent.mkdir(parents=True, exist_ok=True)
@@ -269,7 +269,7 @@ def training_fn(config):
     stable_trial_dir.mkdir(parents=True, exist_ok=True)
     stable_metrics_path = stable_trial_dir / "metrics_full.jsonl"
     stable_report_csv = stable_trial_dir / "report_rows.csv"
-    
+
     for it in range(config["stop_iters"]):
         res = algo.train()
 
@@ -460,12 +460,12 @@ def main(args):
             # NOTE: Avoid mutating list/dict-valued nested keys here; Ray PBT may
             # attempt arithmetic perturbation and crash on non-scalars.
         },
-    )  
+    )
 
 # ────────────────────────────────────────────────────────────────────────────────
 # 5.1) Kick-off training algo
-# ────────────────────────────────────────────────────────────────────────────────    
-  
+# ────────────────────────────────────────────────────────────────────────────────
+
     print("Starting training with automatic plotting...")
     print("Plots will be generated every 50 iterations in non-PBT mode.")
 
@@ -490,7 +490,7 @@ def main(args):
         resources = PlacementGroupFactory(
             [{ "GPU": 1, "CPU": 1}] + [{"CPU": 1}] * base_config["num_workers"]
         )
-    
+
     if args.best_params_json:
         params_path = Path(args.best_params_json).expanduser()
         print(f"Loading best params from: {params_path}")
@@ -545,8 +545,8 @@ def main(args):
         reuse_actors=False,  # safer for PBT/long runs; flip True only if you're 100% stable
         max_failures=3,  # Allow up to 3 failures before giving up on a trial
         )
-        
-    
+
+
 
     ray.shutdown()
 

@@ -75,7 +75,7 @@ class ITraderEnv(gym.Env):
         self.close_col = close_cols[0]
         self._feature_values = self.df[self.cols].to_numpy(np.float32, copy=True)
         self._close_values = self.df[self.close_col].to_numpy(np.float64, copy=False)
-        
+
         # --- Task sampling / embedding -------------------------------------
         ts_cfg = dict(cfg.get("task_sampler", {}))
         base_seed = int(ts_cfg.get("seed", 1234))
@@ -92,7 +92,7 @@ class ITraderEnv(gym.Env):
         self.t_scale = float(cfg.get("t_scale", 1.0))
         self.debug_resets = bool(cfg.get("debug_resets", False))
         self.debug_reset_every = int(cfg.get("debug_reset_every", 100))
-        
+
         feat_dim = len(self.cols)
         self.price_obs_dim = self.T * feat_dim
         obs_dim = self.price_obs_dim + self.t_embed_dim
@@ -134,13 +134,13 @@ class ITraderEnv(gym.Env):
     def _reset_state(self, start_idx: Optional[int] = None, reset_ret_norm: bool = True):
         """
         Reset episode state. If start_idx is None, uses default (self.T).
-        
+
         Args:
             start_idx: Starting index in dataframe. If None, defaults to self.T (after first window).
             reset_ret_norm: Whether to reset return normalization state.
         """
         self.pos  = 0          # -1 short | 0 flat | 1 long
-        
+
         if start_idx is None:
             # Default: start after first complete window (backward compatibility)
             self.idx = self.T
@@ -151,7 +151,7 @@ class ITraderEnv(gym.Env):
             max_idx = max(min_idx, len(self.df) - 2)
             self.idx = max(min_idx, min(start_idx, max_idx))
         self._episode_start_idx = int(self.idx)
-        
+
         # Fill buffer with rows [idx - T, ..., idx - 1]
         self._buf = deque(
             (self._row(i) for i in range(self.idx - self.T, self.idx)),
@@ -250,7 +250,7 @@ class ITraderEnv(gym.Env):
         if self.ret_norm_reset_mode == "stream" and self.start_idx_mode == "stream_worker":
             reset_ret_norm = stream_changed
         self._reset_state(start_idx=start_idx, reset_ret_norm=reset_ret_norm)
-        
+
         # Create deterministic embedding
         self._t_embed = TaskEncoder.embed(self.current_task, dim=self.t_embed_dim)
         t = self._task_embed_for_obs()
@@ -264,7 +264,7 @@ class ITraderEnv(gym.Env):
         over = self.cfg.get("task_sampler_overrides", {})
         if over:
             self.current_task.reward_params.update(over)
-        
+
         # Debug: log start_idx occasionally (every ~100 episodes)
         if hasattr(self, "_reset_count"):
             self._reset_count += 1
@@ -272,7 +272,7 @@ class ITraderEnv(gym.Env):
             self._reset_count = 0
         if self.debug_resets and self._reset_count % max(1, self.debug_reset_every) == 0:
             print(f"[Worker {self.worker_index}] Reset #{self._reset_count}: start_idx={start_idx}, horizon={self.current_task.horizon}, df_len={len(self.df)}")
-        
+
         return obs, info
 
     def step(self, action: int):
@@ -284,7 +284,7 @@ class ITraderEnv(gym.Env):
         price_t = float(self._close_values[self.idx - 1])
         prev_pos = float(self.pos)
 
-        # apply action -> new position 
+        # apply action -> new position
         self.pos = target_pos
 
         # advance one step
@@ -381,4 +381,3 @@ class ITraderEnv(gym.Env):
 
         self._last_info = info
         return obs_next, float(r), done, trunc, info
-    

@@ -142,7 +142,7 @@ df -h ~/ray_results
 
 #### 5. **Memory Issues with Many Trials**
 - **Symptom**: System becomes slow, OOM errors
-- **Fix**: 
+- **Fix**:
   - Reduce `--pop` size
   - Reduce `--workers` per trial
   - Use `reuse_actors=False` (already set) to avoid memory leaks
@@ -281,4 +281,3 @@ cp -r ~/ray_results/Phase_A/$BEST_TRIAL_ID/rllib_checkpoints/checkpoint_* ./best
 4. **Start Phase B proposer integration** with optimized baseline
 
 Good luck! 🚀
-

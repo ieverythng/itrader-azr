@@ -103,10 +103,10 @@ class PSMetrics(DefaultCallbacks):
             # success flag if carried in info
             succ = float(info.get("reward_comps", {}).get("success", 0.0))
             episode.custom_metrics["success_mean"] = succ
- 
+
             # a custom "episode_return" based on raw pnl (scale-invariant)
             episode.custom_metrics["episode_return"] = rc_sums.get("pnl_delta", 0.0)
-        
+
         # 5) TaskPool stats update (if task pool is available)
         task_dict = info.get("task")
         if task_dict and env is not None:
@@ -120,7 +120,7 @@ class PSMetrics(DefaultCallbacks):
                     env.task_sampler.task_pool.update_stats(task_uid_val, episode_return, success)
             except Exception as e:
                 self._warn_once("task_pool_update", f"task pool update failed (continuing): {e}")
-        
+
         # 6) Task pool custom metrics (aggregate stats if available)
         if env is not None:
             try:
@@ -135,10 +135,9 @@ class PSMetrics(DefaultCallbacks):
                             if stats["count"] > 0:
                                 all_returns.append(stats["mean_return"])
                                 all_successes.append(stats["mean_success"])
-                        
+
                         if all_returns:
                             episode.custom_metrics["task_pool_return_mean"] = float(sum(all_returns) / len(all_returns))
                             episode.custom_metrics["task_pool_success_rate_mean"] = float(sum(all_successes) / len(all_successes))
             except Exception as e:
                 self._warn_once("task_pool_metrics", f"task pool aggregate metrics failed (continuing): {e}")
-        
