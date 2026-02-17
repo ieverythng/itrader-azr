@@ -10630,3 +10630,9 @@ grafana/storybook/VizLegend-VizLegend-story.b39b4f82.iframe.bundle.js
 grafana/storybook/VizTooltip-SeriesTable-story.c3220a19.iframe.bundle.js
 grafana/tools/zoneinfo.zip
 grafana/VERSION
+itrader/models/Qwen2.5-7B-Instruct/model-00001-of-00004.safetensors
+itrader/models/Qwen2.5-7B-Instruct/model-00002-of-00004.safetensors
+itrader/models/Qwen2.5-7B-Instruct/model-00003-of-00004.safetensors
+itrader/models/Qwen2.5-7B-Instruct/model-00004-of-00004.safetensors
+itrader/models/Qwen2.5-7B-Instruct/model.safetensors.index.txt
+/itrader/scripts/experiments/configs/outputs

@@ -9,22 +9,29 @@ class SolverMLPFiLM(TorchModelV2, nn.Module):
 
     Observation layout: [price_window_flat, t_embed].
     """
-    def __init__(self, obs_space, action_space, num_outputs, model_config, name):
+    def __init__(self, obs_space, action_space, num_outputs, model_config, name, **kwargs):
         TorchModelV2.__init__(self, obs_space, action_space, num_outputs, model_config, name)
         nn.Module.__init__(self)
+        cfg = model_config.get("custom_model_config", model_config)
         flat_dim = int(np.prod(obs_space.shape))
-        t_dim = int(model_config.get("t_embed_dim", 32))
-        hidden = int(model_config.get("fcnet_hiddens", [256, 256])[0])
-        self.conditioning = model_config.get("conditioning", "film")  # default to FiLM
-        self.t_keep_p = float(model_config.get("t_keep_p", 0.9))
+        t_dim = int(cfg.get("t_embed_dim", 32))
+        fcnet_hiddens = cfg.get("fcnet_hiddens", [256, 256]) or [256, 256]
+        hidden_sizes = [int(h) for h in fcnet_hiddens]
+        if not hidden_sizes:
+            hidden_sizes = [256, 256]
+        self.conditioning = cfg.get("conditioning", "film")  # default to FiLM
+        self.t_keep_p = float(cfg.get("t_keep_p", 0.9))
         self.price_dim = flat_dim - t_dim
         assert self.price_dim > 0, "obs must be [price, t_embed]"
 
-        self.trunk = nn.Sequential(
-            nn.Linear(self.price_dim, hidden), nn.ReLU(),
-            nn.Linear(hidden, hidden), nn.ReLU(),
-        )
-        proj = int(model_config.get("t_proj", 64))
+        trunk_layers = []
+        in_dim = self.price_dim
+        for h in hidden_sizes:
+            trunk_layers.extend([nn.Linear(in_dim, h), nn.ReLU()])
+            in_dim = h
+        self.trunk = nn.Sequential(*trunk_layers)
+        hidden = hidden_sizes[-1]
+        proj = int(cfg.get("t_proj", 64))
         self.t_mlp = nn.Sequential(
             nn.Linear(t_dim, proj), nn.ReLU(),
             nn.Linear(proj, 2*hidden),  # gamma, beta

@@ -17,6 +17,7 @@ class TaskSpec:
     - seed: RNG seed for reproducibility
     - obs_dim: total observation space dimension (price + t_embed)
     - action_dim: action space dimension (policy output size)
+    - start_idx: optional starting index in dataframe. If None, env samples uniformly.
     """
     family_id: str
     price_id: str
@@ -27,6 +28,7 @@ class TaskSpec:
     obs_dim: int
     action_dim: int
     t_embed: Optional[List[float]] = None
+    start_idx: Optional[int] = None
 
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
@@ -34,4 +36,7 @@ class TaskSpec:
 
     @staticmethod
     def from_dict(cfg: Dict[str, Any]) -> "TaskSpec":
+        # Handle backward compatibility: start_idx may not be present in old task specs
+        if "start_idx" not in cfg:
+            cfg = {**cfg, "start_idx": None}
         return TaskSpec(**cfg)

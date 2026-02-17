@@ -1,0 +1,27 @@
+{
+  "run_tag": "Phase_A_Stream_Jump_Ablation_20260213_040157",
+  "config": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\ablation_start_idx.example.json",
+  "results": [
+    {
+      "variant_id": "stream_ret_norm_reset_episode",
+      "experiment_name": "Phase_A_Stream_Jump_Ablation_20260213_040157_stream_ret_norm_reset_episode",
+      "trial_dir": "C:\\Users\\Admin\\ray_results\\Phase_A_Stream_Jump_Ablation_20260213_040157_stream_ret_norm_reset_episode\\training_fn_ITraderEnv_711f2_00000_0_2026-02-13_04-02-33",
+      "stable_report_csv": "C:\\Users\\Admin\\ray_results\\_stable_metrics\\training_fn_ITraderEnv_711f2_00000_0_2026-02-13_04-02-33\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\ray_results\\_stable_metrics\\training_fn_ITraderEnv_711f2_00000_0_2026-02-13_04-02-33\\plots",
+      "final_metric": -0.1403362003473203
+    },
+    {
+      "variant_id": "stream_ret_norm_reset_stream_jump_every_episodes_5",
+      "experiment_name": "Phase_A_Stream_Jump_Ablation_20260213_040157_stream_ret_norm_reset_stream_jump_every_episodes_5",
+      "trial_dir": "C:\\Users\\Admin\\ray_results\\Phase_A_Stream_Jump_Ablation_20260213_040157_stream_ret_norm_reset_stream_jump_every_episodes_5\\training_fn_ITraderEnv_c11a1_00000_0_2026-02-13_04-40-34",
+      "stable_report_csv": "C:\\Users\\Admin\\ray_results\\_stable_metrics\\training_fn_ITraderEnv_c11a1_00000_0_2026-02-13_04-40-34\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\ray_results\\_stable_metrics\\training_fn_ITraderEnv_c11a1_00000_0_2026-02-13_04-40-34\\plots",
+      "final_metric": -0.7049671866670907
+    }
+  ],
+  "compare_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\Phase_A_Stream_Jump_Ablation_20260213_040157\\ablation_compare.csv",
+  "compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\Phase_A_Stream_Jump_Ablation_20260213_040157\\ablation_compare.png",
+  "entropy_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\Phase_A_Stream_Jump_Ablation_20260213_040157\\ablation_compare_entropy.png",
+  "episode_len_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\Phase_A_Stream_Jump_Ablation_20260213_040157\\ablation_compare_episode_len.png",
+  "diagnostics_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\Phase_A_Stream_Jump_Ablation_20260213_040157\\ablation_compare_diagnostics.png"
+}

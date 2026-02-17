@@ -23,7 +23,7 @@ for iteration in range(num_iterations):
     for _ in range(batch_size):
         s_prop = sample_window()
         # embed with LLM + proposer head
-        task_id, start_idx, start_logp = proposer.sample(s_prop)  
+        task_id, start_idx, start_logp = proposer.sample(s_prop)
         # define the window as a “task”
         window = historical_data[start_idx : start_idx+N]
         # Collect solver performance over K rollouts

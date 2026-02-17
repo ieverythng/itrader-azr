@@ -1,0 +1,22 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-merge-conflict
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: local
+    hooks:
+      - id: itrader-healthcheck
+        name: itrader healthcheck
+        entry: python itrader/tools/healthcheck.py
+        language: system
+        pass_filenames: false
+
+      - id: itrader-tests-core
+        name: itrader core tests
+        entry: python -m pytest -q itrader/tests
+        language: system
+        pass_filenames: false

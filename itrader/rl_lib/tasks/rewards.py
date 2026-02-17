@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Dict, Any, Tuple
+import math
 import numpy as np
 
 # Registry of reward callables
@@ -26,7 +27,6 @@ class RewardEngine:
         # Ensure finite floats
         def _f(x):
             try:
-                import math
                 return 0.0 if (x is None or not math.isfinite(float(x))) else float(x)
             except Exception:
                 return 0.0
@@ -48,36 +48,36 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
     - pnl_delta, turnover_t, dd_inc, max_dd
     - terminal: optional bool (env may add into comps or call compute again on terminal)
     """
+    def _clamp_signed(v: float, cap: float) -> float:
+        v = float(v)
+        if not math.isfinite(v):
+            return 0.0
+        cap = float(cap)
+        if not math.isfinite(cap):
+            return v
+        return min(abs(v), cap) * (1.0 if v >= 0.0 else -1.0)
+
     pnl_w = float(params.get("pnl_w", 1.0))
     to_w = float(params.get("turnover_w", 0.0))
     dd_mode = str(params.get("dd_mode", "none"))
     dd_w = float(params.get("dd_w", 0.0))
     dd_T_weight = float(params.get("dd_T_weight", 0.0))
-
     to_cap = float(params.get("turnover_cap", float("inf")))
     dd_cap = float(params.get("dd_cap", float("inf")))
     r_scale    = float(params.get("reward_scale", 1.0))
     normalize  = bool(params.get("normalize", True))
     norm_mode  = str(params.get("norm_mode", "all"))   # "all" | "penalties" | "off"
-    # hold_w     = float(params.get("hold_cost_w", 0.0)) # per-step |position|
     unit_clip  = float(params.get("unit_clip", float("inf")))
-    normalize_dd = bool(params.get("normalize_dd", False))
-    norm_clip = float(params.get("norm_clip", 5.0))
-
-    # NEW: volatility-gated inactivity (default off)
-    inact_w = float(params.get("inact_w", 0.0))              # strength
-    vol_floor_mult = float(params.get("vol_floor_mult", 1.0))# × ret_ema
-    clip_abs = float(params.get("clip_abs", 0.0))            # soft clip |r|, 0=off
 
     pnl_delta = float(ctx.get("pnl_delta", 0.0))
     turnover_t = float(ctx.get("turnover_t", 0.0))
-    realized_vol = float(ctx.get("ret_ema", 0.0))            # EMA(|ret|) from env
-    is_flat = bool(abs(ctx.get("position_t", 0.0)) < 1e-9)
     is_terminal = bool(ctx.get("terminal", False))
 
     # dynamic scale so a "typical" return ~ 1.0
     raw_unit = float(ctx.get("ret_unit", 1.0)) if normalize else 1.0
-    unit     = min(raw_unit, unit_clip)  # guard against spikes
+    unit = _clamp_signed(raw_unit, unit_clip)  # guard against spikes
+    if unit < 0.0:
+        unit = 0.0
 
     r = 0.0
     comps = {}
@@ -89,8 +89,8 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
 
     # trading cost: choose either concrete fee or abstract turnover weight (both allowed but keep small)
     # turnover penalty (capped)
-    trade_cost_raw = (to_w * turnover_t)*(unit if norm_mode in ("all", "penalties") else 1.0)
-    trade_cost = min(abs(trade_cost_raw), to_cap) * (1.0 if trade_cost_raw >= 0 else -1.0)
+    trade_cost_raw = (to_w * turnover_t)
+    trade_cost = _clamp_signed(trade_cost_raw, to_cap)
     r -= trade_cost
     comps["turnover"] = -trade_cost
 
@@ -98,36 +98,23 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
     if dd_mode == "delta":
         dd_inc = float(ctx.get("dd_inc", 0.0))
         dd_term_raw = (dd_w * dd_inc) * (unit if norm_mode in ("all", "penalties") else 1.0)
-        dd_term = min(abs(dd_term_raw), dd_cap) * (1.0 if dd_term_raw >= 0 else -1.0)
+        dd_term = _clamp_signed(dd_term_raw, dd_cap)
         r -= dd_term
         comps["dd"] = -dd_term
     elif dd_mode == "terminal" and is_terminal:
         max_dd = float(ctx.get("max_dd", 0.0))
         dd_term_raw = (dd_T_weight * max_dd)*(unit if norm_mode in ("all", "penalties") else 1.0)
-        dd_term = min(abs(dd_term_raw), dd_cap) * (1.0 if dd_term_raw >= 0 else -1.0)
+        dd_term = _clamp_signed(dd_term_raw, dd_cap)
         r -= dd_term
         comps["dd"] = -dd_term
     else:
         comps["dd"] = 0.0
 
-     # NEW: volatility-gated inactivity (only hurts when there "was something to do")
-    if inact_w > 0.0 and is_flat:
-        # floor is a multiple of realized_vol (= EMA|ret|); if vol is above floor and you stayed flat → pay a tiny tax
-        vol_floor = vol_floor_mult * realized_vol
-        inact_raw = max(0.0, realized_vol - vol_floor) * inact_w
-        inact_term = inact_raw * (unit if norm_mode in ("all", "penalties") else 1.0)
-        r -= inact_term
-        comps["inact"] = -inact_term
-    else:
-        comps["inact"] = 0.0
     if r_scale != 1.0:
         r *= r_scale
-        for k in ("pnl_delta", "turnover", "dd", "inact"):
+        for k in ("pnl_delta", "turnover", "dd"):
             comps[k] = comps.get(k, 0.0) * r_scale
-    
-    # NEW: soft clip total reward to stabilize updates on spikes (0 disables)
-    if clip_abs > 0.0:
-        r = max(-clip_abs, min(clip_abs, r))
+
     return r, comps
 
 @register("pnl_sharpe")
