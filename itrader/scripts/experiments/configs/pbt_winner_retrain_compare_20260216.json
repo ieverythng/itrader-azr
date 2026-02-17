@@ -1,0 +1,41 @@
+{
+  "name": "pbt_winner_retrain_compare",
+  "python_exe": "python",
+  "train_module": "itrader.rl_lib.train.train_solo_V2",
+  "common_args": {
+    "iters": 40,
+    "workers": 4,
+    "timeout_hours": 2,
+    "window": 60,
+    "start_idx_mode": "stream_worker",
+    "ret_norm_reset": "stream",
+    "stream_jump_every_episodes": 5,
+    "stream_stride": 0,
+    "stream_jump_on_wrap": true,
+    "gamma": 0.99,
+    "lambda": 0.95,
+    "lr": 0.00005,
+    "train_batch_size": 4800,
+    "sgd_minibatch_size": 128,
+    "num_sgd_iter": 30,
+    "vf_clip_param": 10.0,
+    "clip_param": 0.2,
+    "vf_loss_coeff": 1.0,
+    "data_path": "itrader/data/ohlcv.parquet",
+    "auto_plot_on_end": true
+  },
+  "variants": [
+    {
+      "id": "winner_peak_trial_00004_ckpt19",
+      "args": {
+        "restore_ckpt": "C:/Users/Admin/ray_results/Phase_A_PBT_followup_20260216/training_fn_ITraderEnv_83c77_00004_4_2026-02-16_11-30-29/checkpoint_000019"
+      }
+    },
+    {
+      "id": "winner_final_trial_00002_ckpt19",
+      "args": {
+        "restore_ckpt": "C:/Users/Admin/ray_results/Phase_A_PBT_followup_20260216/training_fn_ITraderEnv_83c77_00002_2_2026-02-16_11-30-29/checkpoint_000019"
+      }
+    }
+  ]
+}

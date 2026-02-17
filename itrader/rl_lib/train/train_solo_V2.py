@@ -445,23 +445,20 @@ def main(args):
         resample_probability=0.25,
         hyperparam_mutations={
             # PPO core knobs
-            "lr": tune.loguniform(1e-5, 3e-4),  # Wider range including lower LR for stability
+            # Include aggressive LR regime seen in ablations while keeping conservative floor.
+            "lr": tune.loguniform(1e-5, 5e-3),
             "clip_param": tune.choice([0.1, 0.2]),
             "lambda": tune.choice([0.90, 0.95, 0.97]),
             "gamma": tune.choice([0.98, 0.99]),
             "sgd_minibatch_size": tune.choice([128, 256, 512]),
             "num_sgd_iter": tune.choice([10, 20, 30]),
             "vf_clip_param": tune.choice([5.0, 10.0]),
+            "vf_loss_coeff": tune.choice([0.5, 1.0, 2.0]),
+            "train_batch_size": tune.choice([4096, 4800, 6144]),
             # If you drop entropy schedule, you can mutate entropy_coeff instead.
             # "entropy_coeff": tune.uniform(0.005, 0.02),
-            # Small shaping weights via env passthrough
-            "env_config/task_sampler_overrides": {
-                "turnover_w": tune.loguniform(5e-4, 2e-2),  # Lower minimum for fine-tuning
-                "dd_w": tune.loguniform(5e-3, 1e-1),  # Lower minimum, same max
-                "dd_T_weight": tune.loguniform(1e-3, 2e-1),
-                "norm_mode": tune.choice(["all", "penalties"]),
-            },
-            "model/custom_model_config/fcnet_hiddens": tune.choice([[256, 256], [512, 256], [256, 256, 128]]),
+            # NOTE: Avoid mutating list/dict-valued nested keys here; Ray PBT may
+            # attempt arithmetic perturbation and crash on non-scalars.
         },
     )  
 

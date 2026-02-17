@@ -10635,3 +10635,4 @@ itrader/models/Qwen2.5-7B-Instruct/model-00002-of-00004.safetensors
 itrader/models/Qwen2.5-7B-Instruct/model-00003-of-00004.safetensors
 itrader/models/Qwen2.5-7B-Instruct/model-00004-of-00004.safetensors
 itrader/models/Qwen2.5-7B-Instruct/model.safetensors.index.txt
+/itrader/scripts/experiments/configs/outputs
