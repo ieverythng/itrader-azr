@@ -20,7 +20,7 @@ dependencies:
       - pettingzoo==1.24.1
       - vectorbt==0.26.0
       - transformers==4.41.1
-      - accelerate==0.27.2  
+      - accelerate==0.27.2
       - llama-cpp-python==0.3.9
       - fire
       - black

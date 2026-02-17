@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "iTRADER Ablation Config",
+  "type": "object",
+  "required": ["name", "common_args", "variants"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "python_exe": {
+      "type": "string"
+    },
+    "train_module": {
+      "type": "string",
+      "default": "itrader.rl_lib.train.train_solo_V2"
+    },
+    "common_args": {
+      "$ref": "#/$defs/trainArgs",
+      "description": "CLI args shared across variants (without leading --)."
+    },
+    "variants": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["id", "args"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "args": {
+            "$ref": "#/$defs/trainArgs",
+            "description": "Variant-specific CLI args to override common_args."
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "$defs": {
+    "trainArgs": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "iters": { "type": "integer", "minimum": 1 },
+        "window": { "type": "integer", "minimum": 2 },
+        "workers": { "type": "integer", "minimum": 0 },
+        "timeout_hours": { "type": "number", "minimum": 0 },
+        "data_path": { "type": "string" },
+        "experiment_name": { "type": "string" },
+
+        "pbt": { "type": "boolean" },
+        "cpu_pbt": { "type": "boolean" },
+        "pop": { "type": "integer", "minimum": 1 },
+        "restore_ckpt": { "type": "string" },
+        "best_params_json": { "type": "string" },
+
+        "start_idx_mode": {
+          "type": "string",
+          "enum": ["random_episode", "stream_worker", "task_spec"]
+        },
+        "stream_jump_every_episodes": { "type": "integer", "minimum": 0 },
+        "stream_jump_on_wrap": { "type": "boolean" },
+        "stream_stride": { "type": "integer", "minimum": 0 },
+        "ret_norm_reset": {
+          "type": "string",
+          "enum": ["episode", "stream"]
+        },
+        "auto_plot_on_end": { "type": "boolean" },
+
+        "gamma": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "lambda": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
+        "lr": { "type": "number", "exclusiveMinimum": 0.0 },
+        "train_batch_size": { "type": "integer", "minimum": 1 },
+        "sgd_minibatch_size": { "type": "integer", "minimum": 1 },
+        "num_sgd_iter": { "type": "integer", "minimum": 1 },
+        "vf_clip_param": { "type": "number", "minimum": 0.0 },
+        "clip_param": { "type": "number", "minimum": 0.0 },
+        "vf_loss_coeff": { "type": "number", "minimum": 0.0 }
+      }
+    }
+  }
+}

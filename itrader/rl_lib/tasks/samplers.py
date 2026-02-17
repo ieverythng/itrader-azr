@@ -23,7 +23,7 @@ class TaskSampler00:
         self.cfg = env_config
         self.seed = int(self.cfg.get("seed", 1234))
         self.rng = np.random.default_rng(self.seed)
-        
+
         # Task pool support (optional)
         self.task_pool = None
         self.p_pool = float(self.cfg.get("p_pool", 0.7))  # Probability of sampling from pool
@@ -54,23 +54,23 @@ class TaskSampler00:
                     t_embed_dim = int(self.cfg.get("t_embed_dim", 32))
                     expected_obs_dim = window_size * n_features + t_embed_dim
                     expected_action_dim = int(self.cfg.get("action_dim", 3))
-                    
+
                     # Override obs_dim/action_dim to match config (must be consistent)
                     task_dict["obs_dim"] = expected_obs_dim
                     task_dict["action_dim"] = expected_action_dim
-                    
+
                     # Generate new seed for this episode
                     task_dict["seed"] = int(self.rng.integers(0, 1_000_000))
-                    
+
                     return TaskSpec.from_dict(task_dict)
             except Exception as e:
                 # Fallback to random if pool sampling fails
                 print(f"Warning: TaskPool sampling failed: {e}, falling back to random")
-        
+
         # Fallback to original random sampling logic
         price_id = self.rng.choice(self.cfg.get("price_ids", ["SIM"])).item()
         horizon = int(self.rng.choice(self.cfg.get("horizons", [96, 128, 160, 200])))
-        
+
         # Small penalties to avoid drowning signal; later widened by PBT
         turnover_w = float(self.rng.choice(self.cfg.get("turnover_w_choices", [0.001, 0.002, 0.005, 0.01,])))
         # dd_mode    = str(self.rng.choice(self.cfg.get("dd_modes", ["none", "delta"])))
@@ -90,7 +90,7 @@ class TaskSampler00:
             "reward_scale": 1.0,
             "normalize": True,
             "norm_mode": "all",
-            "unit_clip": 100000000, 
+            "unit_clip": 100000000,
         }
 
         window_size = int(self.cfg.get("window_size", 30))

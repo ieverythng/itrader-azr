@@ -1,22 +1,26 @@
+from itrader.rl_lib.tasks.rewards import RewardEngine
 
-import importlib, pkg_resources, torch, sys
-pkgs = ["llama_cpp_python", "torch", "ray", "duckdb", "gymnasium"]
-for p in pkgs:
-    mod = importlib.import_module(p.split("_python")[0])
-    ver = getattr(mod, "__version__", "?")
-    print(f"{p:<16} {ver}")
-print("CUDA visible? ", torch.cuda.is_available())
 
-model_path = r"C:\Users\Admin\OneDrive - Budapesti Műszaki és Gazdaságtudományi Egyetem\Documents\iTRADER\itrader-azr\itrader\models\Deepseek-6.7B-Q4_K_M\deepseek-coder-6.7b-instruct.Q4_K_M.gguf"
+def test_reward_engine_rejects_unknown_reward():
+    try:
+        RewardEngine.compute("does_not_exist", {}, {})
+    except KeyError:
+        assert True
+        return
+    raise AssertionError("Expected KeyError for unknown reward id")
 
-from llama_cpp import Llama
 
-llm = Llama(
-    model_path,  # adjust if you used a different file name
-    n_gpu_layers=-1,          # off-load all layers to GPU
-    n_ctx=4096,               # enough for trading prompts
-    seed=42,
-)
-
-##Response within -3s -- GOOD
-print(llm("Give me a one-sentence trading tip:", max_tokens=50)["choices"][0]["text"])
+def test_reward_engine_always_returns_finite_values():
+    r, comps = RewardEngine.compute(
+        "pnl_linear",
+        {"pnl_w": 1.0, "turnover_w": 0.001, "dd_mode": "delta", "dd_w": 0.01},
+        {
+            "pnl_delta": float("nan"),
+            "turnover_t": 2.0,
+            "dd_inc": float("inf"),
+            "ret_unit": 1.0,
+            "terminal": False,
+        },
+    )
+    assert isinstance(r, float)
+    assert all(isinstance(v, float) for v in comps.values())

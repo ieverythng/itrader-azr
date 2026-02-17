@@ -1,0 +1,22 @@
+---
+description: Maintain automatic daily engineering logs during sessions
+alwaysApply: true
+---
+
+# Automatic Daily Log Workflow
+
+When collaborating in this repository:
+
+1. Keep a running log at `docs/daily_logs/YYYY-MM-DD.md`.
+2. After each substantial implementation block, append a concise entry with:
+   - What changed
+   - Why it changed
+   - Validation performed
+   - Follow-ups or blockers
+3. If the daily file does not exist, create it from `docs/daily_logs/_TEMPLATE.md`.
+4. At session end, produce an `AUTOMATIC DAILY LOG` section with:
+   - Key outcomes
+   - Files changed
+   - Commands run
+   - Pending tasks for next session
+5. Keep entries factual and short; avoid duplicated prose.
