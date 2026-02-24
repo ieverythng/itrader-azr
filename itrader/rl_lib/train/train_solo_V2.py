@@ -87,6 +87,26 @@ def build_base_config(args, data_path: Path, use_pbt_mode: bool) -> dict:
     vf_clip_param = float(getattr(args, "vf_clip_param", 10.0))
     lr = float(getattr(args, "lr", 5e-5))
     auto_plot_on_end = bool(getattr(args, "auto_plot_on_end", True))
+    task_pool_path = str(getattr(args, "task_pool_path", "") or "").strip()
+    p_pool = float(getattr(args, "p_pool", 0.7))
+
+    task_sampler_cfg = {
+        "window_size": args.window,
+        "n_features": 5,  # OHLCV features
+        "t_embed_dim": 32,
+        "action_dim": 3,
+        "seed": int(args.seed),
+        # benign defaults; sampler gets per-worker seed automatically
+        "horizons": [96, 128, 160, 200],
+        "turnover_w_choices": [0.0, 0.0005, 0.001, 0.002],
+        "dd_modes": ["delta"],
+        "dd_w_range": (0.0, 0.04),
+        "turnover_cap": 0.02,
+        "dd_cap": 0.10,
+    }
+    if task_pool_path:
+        task_sampler_cfg["task_pool_path"] = task_pool_path
+        task_sampler_cfg["p_pool"] = p_pool
 
     return {
         "env": "ITraderEnv",
@@ -100,20 +120,7 @@ def build_base_config(args, data_path: Path, use_pbt_mode: bool) -> dict:
             "ret_norm_reset": args.ret_norm_reset,
             "t_embed_mode": "concat",   # off|scale|concat
             "t_scale": 1.0,
-            "task_sampler": {
-                "window_size": args.window,
-                "n_features": 5,  # OHLCV features
-                "t_embed_dim": 32,
-                "action_dim": 3,
-                "seed": int(args.seed),
-                # benign defaults; sampler gets per-worker seed automatically
-                "horizons": [96, 128, 160, 200],
-                "turnover_w_choices": [0.0, 0.0005, 0.001, 0.002],
-                "dd_modes": ["delta"],
-                "dd_w_range": (0.0, 0.04),
-                "turnover_cap": 0.02,
-                "dd_cap": 0.10,
-            },
+            "task_sampler": task_sampler_cfg,
         # ← NEW: allows Tune/PBT to tweak tiny reward weights *without* editing the sampler.
             # Your env.reset() should merge this dict into current_task.reward_params (you already added this).
             # "task_sampler_overrides": {
@@ -575,6 +582,8 @@ if __name__ == "__main__":
     parser.add_argument("--stream_jump_on_wrap", action=argparse.BooleanOptionalAction, default=True, help="For stream_worker: randomize on stream wrap-around")
     parser.add_argument("--stream_stride", type=int, default=0, help="For stream_worker: stride in rows between consecutive episodes (0 uses horizon)")
     parser.add_argument("--ret_norm_reset", type=str, default="episode", choices=["episode", "stream"], help="Reset reward normalization every episode or only when stream changes")
+    parser.add_argument("--task_pool_path", type=str, default="", help="Optional JSONL task pool path for sampler")
+    parser.add_argument("--p_pool", type=float, default=0.7, help="Probability of sampling from task pool when configured")
     parser.add_argument("--experiment_name", type=str, default="Phase_A", help="Ray Tune experiment folder name under ~/ray_results")
     parser.add_argument("--auto_plot_on_end", action=argparse.BooleanOptionalAction, default=True, help="Generate plots automatically at trial end")
     parser.add_argument(

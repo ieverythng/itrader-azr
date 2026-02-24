@@ -7,6 +7,7 @@ import sys
 
 COMMAND_TO_MODULE = {
     "train": "itrader.rl_lib.train.train_solo_V2",
+    "train-azr": "itrader.rl_lib.train.train_AZR",
     "healthcheck": "itrader.tools.healthcheck",
     "ablation": "itrader.scripts.experiments.run_ablation",
     "gen-task-pool": "itrader.scripts.gen_task_pool",
