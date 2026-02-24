@@ -4,21 +4,25 @@ channels:
   - conda-forge
   - pytorch
 dependencies:
-  # ── core ────────────────────────────────────────────────
-  - python=3.11               # 64-bit
-  - numpy=1.26.*              # last pure-NumPy release
-  - pyarrow=13.0.0           # satisfies ray 2.9 / 2.20
+  # Core runtime (canonical baseline for Phase B prep)
+  - python=3.11
+  - numpy=1.26.*
   - pandas=2.2.*
+  - pyarrow=13.0.0
   - duckdb=0.10.2
-  - pytorch=2.3.    # swap to cuda build later if you like
-  - torchvision=0.18.
-  - ta-lib                     # conda build on cf
+  - pytorch=2.3.*
+  - torchvision=0.18.*
+  - ta-lib
+  - requests>=2.31
+  - websockets>=12.0
   - pip
-  # ── pip section ─────────────────────────────────────────
+  # Pip extras
   - pip:
-      - "ray[rllib]==2.20.0"     # matches your screen-shot
+      - "ray[rllib]==2.47.1"
+      - "gymnasium>=0.29,<1.0"
       - pettingzoo==1.24.1
       - vectorbt==0.26.0
+      - great_expectations>=0.19
       - transformers==4.41.1
       - accelerate==0.27.2
       - llama-cpp-python==0.3.9

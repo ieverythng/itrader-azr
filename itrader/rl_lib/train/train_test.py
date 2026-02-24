@@ -1,62 +1,21 @@
-# itrader/rl_lib/train.py
-from pathlib import Path
-import ray
-from ray import tune
-from ray.rllib.algorithms.ppo import PPOConfig
-from ray.tune.logger import (
-    JsonLoggerCallback, CSVLoggerCallback, TBXLoggerCallback)
+"""
+Deprecated training file kept as a compatibility shim.
 
-from itrader.envs.itrader_env import ITraderEnv
-from itrader.rl_lib.callbacks.auto_plotter import AutoPlotterCallback
+Use the canonical entrypoint instead:
+    python -m itrader.rl_lib.train.train_solo_V2 ...
+"""
 
-ROOT = Path(__file__).resolve().parents[1]          # …/itrader-azr
-DF   = ROOT / "data" / "ohlcv.parquet"              # absolute path
+from __future__ import annotations
 
-# This is all the workers need – no Ray calls here!
-def make_env(cfg=None):
-    cfg = cfg or {}
-    cfg.setdefault("df_path", str(DF))
-    return ITraderEnv(cfg)
-
-tune.register_env("iTraderEnv", make_env)
+import runpy
+import sys
 
 
-def main()-> None:
-    # Start Ray **once**, on the driver only
-    if not ray.is_initialized():          # safe-guard
-        ray.init(                          # or `ray.init(address="auto")` for a cluster
-            log_to_driver=False,
-            ignore_reinit_error=True       # shuts the duplicate-init warning up
-    )
-               #  add ignore_reinit_error=True if you often re-run in the same process
-
-    config = (
-        PPOConfig()
-        .environment("iTraderEnv", env_config={"df_path": str(DF)})
-        .framework("torch")  # or "tf" – whatever you use
-        .env_runners(num_env_runners=3)
-        .resources(num_gpus=1)
-        .callbacks(AutoPlotterCallback)
-    )
-
-    config.logger_config = {
-        "callbacks": [
-            JsonLoggerCallback(),
-            CSVLoggerCallback(),
-            TBXLoggerCallback(),        # tensorboard-x
-        ]
-    }
-
-    print("🚀 Starting training with automatic plotting...")
-    print(f"📊 Plots will be generated every 50 iterations")
-
-    algo = config.build()          # new API – avoids the deprecation warning
-
-    for _ in range(100):
-        result = algo.train()
-        print(result)               # first training iteration
+def main(argv: list[str] | None = None) -> int:
+    sys.argv = ["python -m itrader.rl_lib.train.train_solo_V2", *(argv or [])]
+    runpy.run_module("itrader.rl_lib.train.train_solo_V2", run_name="__main__")
+    return 0
 
 
-#  >>> workers import this file, so we *must* protect the entry point
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main(sys.argv[1:]))
