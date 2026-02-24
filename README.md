@@ -49,6 +49,15 @@ Training follows RLVR principles:
 - `PBT_SETUP_GUIDE.md`
   - Operational guide for long-running PBT sweeps and checkpoint workflows.
 
+## Planning and Operations Docs
+
+- `docs/architecture.md`
+  - Current baseline architecture and Phase B target architecture.
+- `docs/phase_b_plan.md`
+  - Concrete milestone plan, acceptance criteria, and risk controls.
+- `docs/ops_runbook.md`
+  - Main-PC setup, lock workflow, and run/recovery procedures.
+
 ## Current Phase Status
 
 ### Phase A (mostly complete)
@@ -112,6 +121,10 @@ Run metadata:
 Daily session logging:
 - Use `docs/daily_logs/` for ongoing engineering logs.
 - Prompts and workflow are documented in `docs/daily_logs/COMMANDS.md`.
+
+Secrets:
+- Do not commit API keys in source files.
+- Copy `.env.example` and set `POLYGON_API_KEY` in your shell/session before using ingestion scripts.
 
 ## Engineering Gaps To Close For Scale
 

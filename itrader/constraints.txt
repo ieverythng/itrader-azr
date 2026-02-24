@@ -1,9 +1,22 @@
+# Canonical pip constraint baseline for iTrader Phase B preparation.
+# This is not a full transitive lock; generate a concrete lock on target machine
+# after validation (see docs/ops_runbook.md).
+
+ray[rllib]==2.47.1
+gymnasium>=0.29,<1.0
+numpy==1.26.*
+pandas==2.2.*
 pyarrow==13.0.0
-ray[default]==2.47.1     # core CLI, Jobs API, dashboard
-ray[rllib]==2.47.1       # RLlib & Tune extras
-gymnasium>=0.29
-ta>=0.11.0               # technical-analysis indicators
+duckdb==0.10.2
+ta>=0.11.0
 websockets>=12.0
-duckdb>=0.10
-great_expectations>=0.19 # data-quality checks
-pandas
+requests>=2.31
+great_expectations>=0.19
+pettingzoo==1.24.1
+vectorbt==0.26.0
+transformers==4.41.1
+accelerate==0.27.2
+llama-cpp-python==0.3.9
+pytest
+black
+isort
