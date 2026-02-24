@@ -23,6 +23,8 @@ def _args(seed: int = 1234):
         stream_jump_on_wrap=True,
         stream_stride=0,
         ret_norm_reset="episode",
+        task_pool_path="",
+        p_pool=0.7,
         data_path="itrader/data/ohlcv.parquet",
         seed=seed,
     )
@@ -50,6 +52,21 @@ def test_build_base_config_pbt_disables_prometheus(tmp_path: Path):
     cfg = build_base_config(args=args, data_path=data_path, use_pbt_mode=True)
     assert cfg["metrics_sinks"] == []
     assert cfg["prometheus_export_port"] is None
+
+
+def test_build_base_config_wires_task_pool_when_path_is_set(tmp_path: Path):
+    from itrader.rl_lib.train.train_solo_V2 import build_base_config
+
+    args = _args(seed=777)
+    args.task_pool_path = "itrader/data/task_pool_azr.jsonl"
+    args.p_pool = 0.9
+    data_path = tmp_path / "fake.parquet"
+    data_path.write_bytes(b"dummy")
+
+    cfg = build_base_config(args=args, data_path=data_path, use_pbt_mode=False)
+    ts = cfg["env_config"]["task_sampler"]
+    assert ts["task_pool_path"] == "itrader/data/task_pool_azr.jsonl"
+    assert ts["p_pool"] == pytest.approx(0.9)
 
 
 def test_build_base_config_defaults_new_ppo_args_when_missing(tmp_path: Path):

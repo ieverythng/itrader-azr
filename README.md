@@ -41,10 +41,16 @@ Training follows RLVR principles:
   - Current main training entrypoint (Ray RLlib + PPO, optional PBT/CPU-PBT mode, checkpointing, metrics).
 
 - `itrader/rl_lib/train/train_AZR.py`
-  - AZR loop skeleton (conceptual structure, not yet updated to latest architecture/runtime).
+  - AZR bootstrap runner (proposer task-pool generation + solver training handoff).
 
 - `itrader/llm/proposer_llm.py` and `itrader/llm/engine.py`
   - Early LLM proposer integration paths.
+
+- `itrader/proposers/`
+  - Proposer abstraction layer (`BaseProposer`), backend factory, and deterministic rule-based fallback.
+
+- `itrader/rl_lib/tasks/validation.py`
+  - Shared task validation/clamping utility for proposer outputs.
 
 - `PBT_SETUP_GUIDE.md`
   - Operational guide for long-running PBT sweeps and checkpoint workflows.
@@ -68,7 +74,7 @@ Training follows RLVR principles:
 ### Phase B (active)
 - Integrate proposer LLM into the actual training/runtime loop.
 - Validate and benchmark `stream_worker` stepping/reset strategy.
-- Update and operationalize `train_AZR.py` to reflect real proposer-solver interaction.
+- Expand `train_AZR.py` from bootstrap handoff into full proposer-solver co-adaptation loop.
 
 ## How To Run (Reference)
 
@@ -166,7 +172,7 @@ Short-term:
 - Add a small test matrix that can run CPU-only in CI.
 
 Mid-term:
-- Replace `train_AZR.py` skeleton with an executable Phase B loop wired to current env/task/reward stack.
+- Evolve `train_AZR.py` bootstrap into a full executable Phase B loop wired to current env/task/reward stack.
 - Introduce proposer abstraction (`BaseProposer`) with interchangeable backends (rule-based, HF Transformers, llama.cpp).
 - Add experiment manifest generation (JSON) per run for traceability.
 

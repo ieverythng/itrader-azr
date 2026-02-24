@@ -10,8 +10,10 @@ import re
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 import torch
 
+from itrader.proposers.base import BaseProposer
 
-class ProposerLLM:
+
+class ProposerLLM(BaseProposer):
     """
     Wrapper around Transformers model with 4-bit quantization for efficient inference.
     """
@@ -141,6 +143,9 @@ Generate {n} tasks as a JSON array of objects. Each object must be a valid TaskS
         # Parse JSON with repair
         tasks = self._parse_json_with_repair(json_text, n)
         return tasks
+
+    def propose_tasks(self, market_summary: str, n: int, **kwargs: Any) -> List[Dict[str, Any]]:
+        return self.generate_tasks(market_summary=market_summary, n=n, **kwargs)
 
     def _parse_json_with_repair(self, text: str, expected_n: int) -> List[Dict[str, Any]]:
         """
