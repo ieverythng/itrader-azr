@@ -1,4 +1,4 @@
- # PBT Setup Guide for Long-Running Sweeps
+# PBT Setup Guide for Long-Running Sweeps
 
 ## Quick Start Checklist
 
