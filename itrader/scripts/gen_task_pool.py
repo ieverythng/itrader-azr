@@ -22,7 +22,7 @@ def _parse_args() -> argparse.Namespace:
         "--backend",
         type=str,
         default="rule_based",
-        choices=["rule_based", "llm"],
+        choices=["rule_based", "llm", "ollama"],
         help="Proposer backend",
     )
     parser.add_argument(
@@ -30,6 +30,30 @@ def _parse_args() -> argparse.Namespace:
         type=str,
         default="Qwen/Qwen2.5-7B-Instruct",
         help="HuggingFace model identifier (used when --backend llm)",
+    )
+    parser.add_argument(
+        "--ollama_model",
+        type=str,
+        default="qwen2.5:7b-instruct",
+        help="Ollama model name (used when --backend ollama)",
+    )
+    parser.add_argument(
+        "--ollama_base_url",
+        type=str,
+        default="http://localhost:11434",
+        help="Ollama base URL (used when --backend ollama)",
+    )
+    parser.add_argument(
+        "--ollama_timeout_s",
+        type=float,
+        default=60.0,
+        help="Ollama request timeout seconds",
+    )
+    parser.add_argument(
+        "--ollama_temperature",
+        type=float,
+        default=0.2,
+        help="Ollama generation temperature",
     )
     parser.add_argument("--out", type=str, default="task_pool.jsonl", help="Output JSONL file path")
     parser.add_argument("--n_tasks", type=int, default=100, help="Number of tasks to generate")
@@ -50,6 +74,15 @@ def _parse_args() -> argparse.Namespace:
 
 
 def _build_proposer_from_args(args: argparse.Namespace):
+    if args.backend == "ollama":
+        print(f"Initializing Ollama proposer with model: {args.ollama_model} @ {args.ollama_base_url}")
+        return build_proposer(
+            "ollama",
+            model=args.ollama_model,
+            base_url=args.ollama_base_url,
+            timeout_s=args.ollama_timeout_s,
+            temperature=args.ollama_temperature,
+        )
     if args.backend == "llm":
         print(f"Initializing LLM proposer with model: {args.model_id}")
         return build_proposer("llm", model_id=args.model_id)
@@ -72,6 +105,9 @@ def _metadata(args: argparse.Namespace) -> Dict[str, Any]:
     }
     if args.backend == "llm":
         meta["model_id"] = args.model_id
+    elif args.backend == "ollama":
+        meta["model_id"] = args.ollama_model
+        meta["base_url"] = args.ollama_base_url
     return meta
 
 
