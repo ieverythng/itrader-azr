@@ -114,11 +114,21 @@ PBT workflow:
 - See `PBT_SETUP_GUIDE.md` (CPU exploration -> best-checkpoint extraction -> GPU retraining).
 
 Quality checks (CPU-safe):
-- `python -m pytest -q itrader/tests`
-- `python itrader/tools/healthcheck.py`
+- `./itrader/tools/run_repo_python.sh -m pytest -q itrader/tests`
+- `./itrader/tools/run_repo_python.sh itrader/tools/healthcheck.py`
 - Optional pre-commit:
-  - `pre-commit install`
-  - `pre-commit run --all-files`
+  - `./itrader/tools/run_repo_python.sh -m pre_commit install`
+  - `./itrader/tools/run_repo_python.sh -m pre_commit run --all-files`
+  - Hooks also resolve through `./itrader/tools/run_repo_python.sh`, so they do not depend on whichever `python3` is in `PATH`.
+
+Task generation smoke commands (Phase B):
+- Rule-based:
+  - `./itrader/tools/run_repo_python.sh -m itrader.scripts.gen_task_pool --backend rule_based --out /tmp/itrader_task_pool_rule.jsonl --n_tasks 8 --batch_size 4`
+- Ollama:
+  - `./itrader/tools/run_repo_python.sh -m itrader.scripts.gen_task_pool --backend ollama --ollama_model qwen2.5:3b --out /tmp/itrader_task_pool_ollama.jsonl --n_tasks 8 --batch_size 4`
+- vLLM or SGLang (OpenAI-compatible server on `:8000`):
+  - `./itrader/tools/run_repo_python.sh -m itrader.scripts.gen_task_pool --backend vllm --api_base_url http://localhost:8000/v1 --api_model Qwen/Qwen3.5-9B --out /tmp/itrader_task_pool_vllm.jsonl --n_tasks 8 --batch_size 4`
+  - `./itrader/tools/run_repo_python.sh -m itrader.scripts.gen_task_pool --backend sglang --api_base_url http://localhost:8000/v1 --api_model Qwen/Qwen3.5-9B --out /tmp/itrader_task_pool_sglang.jsonl --n_tasks 8 --batch_size 4`
 
 Run metadata:
 - Each run writes `run_manifest_*.json` under `~/ray_results/<experiment_name>/`.

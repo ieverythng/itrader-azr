@@ -7,6 +7,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import os
 import random
 from typing import Dict, Any
 
@@ -22,7 +23,7 @@ def _parse_args() -> argparse.Namespace:
         "--backend",
         type=str,
         default="rule_based",
-        choices=["rule_based", "llm", "ollama"],
+        choices=["rule_based", "llm", "ollama", "vllm", "sglang"],
         help="Proposer backend",
     )
     parser.add_argument(
@@ -55,6 +56,42 @@ def _parse_args() -> argparse.Namespace:
         default=0.2,
         help="Ollama generation temperature",
     )
+    parser.add_argument(
+        "--api_model",
+        type=str,
+        default="Qwen/Qwen3.5-9B",
+        help="Model id for OpenAI-compatible APIs (used when --backend vllm|sglang)",
+    )
+    parser.add_argument(
+        "--api_base_url",
+        type=str,
+        default="http://localhost:8000/v1",
+        help="OpenAI-compatible base URL (used when --backend vllm|sglang)",
+    )
+    parser.add_argument(
+        "--api_key_env",
+        type=str,
+        default="OPENAI_API_KEY",
+        help="Environment variable with bearer token for OpenAI-compatible API",
+    )
+    parser.add_argument(
+        "--api_timeout_s",
+        type=float,
+        default=60.0,
+        help="OpenAI-compatible request timeout seconds",
+    )
+    parser.add_argument(
+        "--api_temperature",
+        type=float,
+        default=0.2,
+        help="OpenAI-compatible generation temperature",
+    )
+    parser.add_argument(
+        "--api_max_tokens",
+        type=int,
+        default=768,
+        help="OpenAI-compatible max_tokens per request",
+    )
     parser.add_argument("--out", type=str, default="task_pool.jsonl", help="Output JSONL file path")
     parser.add_argument("--n_tasks", type=int, default=100, help="Number of tasks to generate")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for reproducibility")
@@ -64,6 +101,12 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--action_dim", type=int, default=3, help="Action space dimension")
     parser.add_argument("--batch_size", type=int, default=5, help="Tasks requested per proposer call")
     parser.add_argument("--max_empty_batches", type=int, default=10, help="Abort after repeated empty proposer outputs")
+    parser.add_argument(
+        "--max_backend_errors",
+        type=int,
+        default=25,
+        help="Abort after repeated backend call failures",
+    )
     parser.add_argument(
         "--market_summary",
         type=str,
@@ -82,6 +125,18 @@ def _build_proposer_from_args(args: argparse.Namespace):
             base_url=args.ollama_base_url,
             timeout_s=args.ollama_timeout_s,
             temperature=args.ollama_temperature,
+        )
+    if args.backend in {"vllm", "sglang"}:
+        print(f"Initializing {args.backend} proposer with model: {args.api_model} @ {args.api_base_url}")
+        token = os.getenv(args.api_key_env, "").strip()
+        return build_proposer(
+            args.backend,
+            model=args.api_model,
+            base_url=args.api_base_url,
+            api_key=token if token else None,
+            timeout_s=args.api_timeout_s,
+            temperature=args.api_temperature,
+            max_tokens=args.api_max_tokens,
         )
     if args.backend == "llm":
         print(f"Initializing LLM proposer with model: {args.model_id}")
@@ -108,6 +163,9 @@ def _metadata(args: argparse.Namespace) -> Dict[str, Any]:
     elif args.backend == "ollama":
         meta["model_id"] = args.ollama_model
         meta["base_url"] = args.ollama_base_url
+    elif args.backend in {"vllm", "sglang"}:
+        meta["model_id"] = args.api_model
+        meta["base_url"] = args.api_base_url
     return meta
 
 
@@ -131,6 +189,7 @@ def main() -> int:
     n_valid = 0
     n_invalid = 0
     empty_batches = 0
+    backend_errors = 0
 
     print(f"Generating {args.n_tasks} tasks...")
     while n_generated < args.n_tasks:
@@ -143,8 +202,13 @@ def main() -> int:
                 n=current_batch,
             )
         except Exception as e:
-            print(f"  Error during proposer call: {e}")
+            backend_errors += 1
+            print(f"  Error during proposer call (#{backend_errors}): {e}")
+            if backend_errors >= max(1, int(args.max_backend_errors)):
+                print("  Error: too many backend failures, aborting.")
+                break
             continue
+        backend_errors = 0
 
         if not raw_tasks:
             empty_batches += 1

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from itrader.proposers.factory import build_proposer
+from itrader.proposers.openai_compat import OpenAICompatProposer
 from itrader.proposers.ollama import OllamaProposer
 from itrader.proposers.rule_based import RuleBasedProposer
 from itrader.rl_lib.tasks.task_pool import TaskPool
@@ -35,6 +36,20 @@ def test_factory_builds_rule_based_proposer():
 def test_factory_builds_ollama_proposer():
     proposer = build_proposer("ollama", model="qwen2.5:7b-instruct")
     assert isinstance(proposer, OllamaProposer)
+
+
+def test_factory_builds_vllm_proposer():
+    proposer = build_proposer("vllm", model="Qwen/Qwen3.5-9B", base_url="http://localhost:8000/v1")
+    assert isinstance(proposer, OpenAICompatProposer)
+
+
+def test_openai_compat_parse_json_with_repair_handles_prefixed_text():
+    p = OpenAICompatProposer(model="dummy", base_url="http://localhost:8000/v1")
+    text = 'agent reply [{"family_id":"00","price_id":"SIM"},{"family_id":"00","price_id":"BTC"}]'
+    out = p._parse_json_with_repair(text, expected_n=2)
+    assert isinstance(out, list)
+    assert len(out) == 2
+    assert out[0]["family_id"] == "00"
 
 
 def test_ollama_parse_json_with_repair_handles_prefixed_text():

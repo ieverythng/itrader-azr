@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import re
 from typing import Any, Dict, List
-from urllib import request
+from urllib import error, request
 
 from .base import BaseProposer
 
@@ -59,8 +59,16 @@ class OllamaProposer(BaseProposer):
             headers={"Content-Type": "application/json"},
             method="POST",
         )
-        with request.urlopen(req, timeout=self.timeout_s) as resp:
-            body = resp.read().decode("utf-8")
+        try:
+            with request.urlopen(req, timeout=self.timeout_s) as resp:
+                body = resp.read().decode("utf-8")
+        except error.HTTPError as exc:
+            details = exc.read().decode("utf-8", errors="replace")
+            raise RuntimeError(
+                f"Ollama HTTP {exc.code} from {self.base_url}/api/generate: {details[:400]}"
+            ) from exc
+        except error.URLError as exc:
+            raise RuntimeError(f"Ollama connection error at {self.base_url}: {exc}") from exc
         parsed = json.loads(body)
         return str(parsed.get("response", "")).strip()
 
