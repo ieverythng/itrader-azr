@@ -219,7 +219,7 @@ def plot_original_metrics(df: pd.DataFrame, out: Path, xcol: str | None):
     _hide_axis_if_empty(_plot_series(df, axes[2], loss_cols[:2] or loss_cols, xcol, "Losses"), axes[2], "Losses")
 
     # Action fractions
-    act_cols = [c for c in col_list if c.startswith("custom_metrics/act_") and c.endswith("_mean")]
+    act_cols = [c for c in col_list if c.startswith("custom_metrics/act_") and "_mean" in c]
     _hide_axis_if_empty(_plot_series(df, axes[3], act_cols, xcol, "Action Fractions"), axes[3], "Action Fractions")
 
     plt.tight_layout()
@@ -242,14 +242,14 @@ def plot_enhanced_metrics(df: pd.DataFrame, out: Path, xcol: str | None):
 
     _hide_axis_if_empty(_plot_series(df, axes[1], "episode_len_mean", xcol, "Episode Length Mean"), axes[1], "Episode Length Mean")
 
-    act_cols = [c for c in col_list if c.startswith("custom_metrics/act_") and c.endswith("_mean")]
+    act_cols = [c for c in col_list if c.startswith("custom_metrics/act_") and "_mean" in c]
     _hide_axis_if_empty(_plot_series(df, axes[3], act_cols, xcol, "Action Fractions"), axes[3], "Action Fractions")
 
-    rc_cols = [c for c in col_list if c.startswith("custom_metrics/rc_") and c.endswith("_mean")]
+    rc_cols = [c for c in col_list if c.startswith("custom_metrics/rc_") and "_mean" in c]
     _hide_axis_if_empty(
-        _plot_series(df, axes[4], rc_cols, xcol, "Reward Components (PnL, Drawdown, Turnover)"),
+        _plot_series(df, axes[4], rc_cols, xcol, "Reward Components"),
         axes[4],
-        "Reward Components (PnL, Drawdown, Turnover)",
+        "Reward Components",
     )
 
     # Entropy moved to a dedicated pane for readability
@@ -279,11 +279,11 @@ def plot_task_sampler_metrics(df: pd.DataFrame, out: Path, xcol: str | None):
         "Task Horizon Mean",
     )
 
-    rc_cols = [c for c in col_list if c.startswith("custom_metrics/rc_") and c.endswith("_mean")]
+    rc_cols = [c for c in col_list if c.startswith("custom_metrics/rc_") and "_mean" in c]
     _hide_axis_if_empty(
-        _plot_series(df, axes[2], rc_cols, xcol, "Reward Components (PnL, Drawdown, Turnover)"),
+        _plot_series(df, axes[2], rc_cols, xcol, "Reward Components"),
         axes[2],
-        "Reward Components (PnL, Drawdown, Turnover)",
+        "Reward Components",
     )
 
     _hide_axis_if_empty(

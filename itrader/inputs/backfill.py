@@ -17,13 +17,14 @@ import datetime as dt
 import os
 import sys
 import time
+from collections.abc import Iterator
 
 import duckdb
 import requests
 
-DB_PATH  = "itrader/data/itrader.duckdb" # keep as-is
-STEP_D   = 5                                           # Polygon free slice
-SLEEP_S  = 13                                          # ≈ 4 calls/min < 5-cap
+DB_PATH = "itrader/data/itrader.duckdb"
+STEP_D = 5
+SLEEP_S = 13
 API_KEY_ENV = "POLYGON_API_KEY"
 
 
@@ -56,6 +57,32 @@ def _ensure_cursor_table(con: duckdb.DuckDBPyConnection) -> None:
         )
 
 
+def _symbols_arg(raw_symbols: str) -> list[str]:
+    return [symbol.strip().upper() for symbol in raw_symbols.split(",") if symbol.strip()]
+
+
+def _resume_date(con: duckdb.DuckDBPyConnection, symbol: str, start_date: dt.date) -> dt.date:
+    row = con.execute("SELECT d FROM _backfill_cursor WHERE symbol = ?", [symbol]).fetchone()
+    last_date = row[0] if row else None
+    return (last_date + dt.timedelta(days=1)) if last_date else start_date
+
+
+def _date_slices(start_date: dt.date, end_date: dt.date) -> Iterator[tuple[dt.date, dt.date]]:
+    current = start_date
+    while current < end_date:
+        slice_end = min(current + dt.timedelta(days=STEP_D), end_date)
+        yield current, slice_end
+        current = slice_end
+
+
+def _insert_bars(con: duckdb.DuckDBPyConnection, symbol: str, bars: list[dict]) -> None:
+    for bar in bars:
+        con.execute(
+            "INSERT INTO ticks VALUES (?,?,?,?)",
+            [dt.datetime.fromtimestamp(bar["t"] / 1000), symbol, bar["c"], bar["v"]],
+        )
+
+
 def grab(sym: str, date_from: dt.date, date_to: dt.date, api_key: str):
     url = (f"https://api.polygon.io/v2/aggs/ticker/{sym}/"
            f"range/1/minute/{date_from}/{date_to}")
@@ -71,7 +98,7 @@ def grab(sym: str, date_from: dt.date, date_to: dt.date, api_key: str):
 
 def main() -> int:
     args = _parse_args()
-    symbols = [s.strip().upper() for s in args.symbols.split(",") if s.strip()]
+    symbols = _symbols_arg(args.symbols)
     end_date = dt.date.today()
     start_date = end_date - dt.timedelta(days=args.days)
     api_key = _resolve_api_key(args.api_key)
@@ -87,25 +114,12 @@ def main() -> int:
     _ensure_cursor_table(con)
 
     for sym in symbols:
-        row = con.execute(
-            "SELECT d FROM _backfill_cursor WHERE symbol = ?", [sym]
-        ).fetchone()
-        last_date = row[0] if row else None
-        current = (last_date + dt.timedelta(days=1)) if last_date else start_date
-
-        while current < end_date:
-            slice_end = min(current + dt.timedelta(days=STEP_D), end_date)
-            bars = grab(sym, current, slice_end, api_key)
-
-            for b in bars:
-                con.execute(
-                    "INSERT INTO ticks VALUES (?,?,?,?)",
-                    [dt.datetime.fromtimestamp(b["t"] / 1000), sym, b["c"], b["v"]],
-                )
-
+        current = _resume_date(con, sym, start_date)
+        for slice_start, slice_end in _date_slices(current, end_date):
+            bars = grab(sym, slice_start, slice_end, api_key)
+            _insert_bars(con, sym, bars)
             con.execute("INSERT OR REPLACE INTO _backfill_cursor VALUES (?, ?)", [sym, slice_end])
-            print(f"{sym}: {current} -> {slice_end} rows:{len(bars)}")
-            current = slice_end
+            print(f"{sym}: {slice_start} -> {slice_end} rows:{len(bars)}")
             time.sleep(SLEEP_S)
 
     print(

@@ -1,9 +1,9 @@
 # itrader/rl_lib/train_solo.py
 
 import argparse
-import json
 import csv
 import hashlib
+import json
 import subprocess
 import sys
 from datetime import datetime, timezone
@@ -26,12 +26,82 @@ from itrader.envs.itrader_env import ITraderEnv
 from itrader.models.solver_lstm import SolverLSTMModel
 from itrader.models.solver_MLP import SolverMLPModel
 from itrader.models.solver_mlp_film import SolverMLPFiLM
-from itrader.rl_lib.callbacks.ps_metrics import PSMetrics
+from itrader.rl_lib.tasks.families import DEFAULT_BAR_RESOLUTION
 from itrader.rl_lib.callbacks.auto_plotter import AutoPlotterCallback
+from itrader.rl_lib.callbacks.ps_metrics import PSMetrics
 
 from gymnasium.envs.registration import EnvSpec
 
 EXPERIMENT_NAME = "Phase_A"
+DEFAULT_T_EMBED_DIM = 32
+DEFAULT_FCNET_HIDDENS = [256, 256]
+DEFAULT_TASK_HORIZONS = [96, 128, 160, 200]
+DEFAULT_TURNOVER_W_CHOICES = [0.0, 0.0005, 0.001, 0.002]
+DEFAULT_DD_W_RANGE = (0.0, 0.04)
+BASE_METRIC_COLUMNS = [
+    "custom_metrics/episode_return_mean",
+    "episode_len_mean",
+    "policy_loss",
+    "value_loss",
+    "entropy",
+]
+
+
+def _cli_metric_columns(action_dim: int) -> list[str]:
+    columns = list(BASE_METRIC_COLUMNS)
+    columns.extend(f"custom_metrics/act_{index}_frac_mean" for index in range(max(0, int(action_dim))))
+    if int(action_dim) >= 3:
+        columns.extend(
+            [
+                "custom_metrics/act_short_frac_mean",
+                "custom_metrics/act_flat_frac_mean",
+                "custom_metrics/act_long_frac_mean",
+            ]
+        )
+    return columns
+
+
+def _task_sampler_config(args) -> dict:
+    task_pool_path = str(getattr(args, "task_pool_path", "") or "").strip()
+    cfg = {
+        "window_size": args.window,
+        "n_features": 5,
+        "t_embed_dim": DEFAULT_T_EMBED_DIM,
+        "action_dim": 3,
+        "seed": int(args.seed),
+        "bar_resolution": DEFAULT_BAR_RESOLUTION,
+        "horizons": DEFAULT_TASK_HORIZONS,
+        "turnover_w_choices": DEFAULT_TURNOVER_W_CHOICES,
+        "dd_modes": ["delta"],
+        "dd_w_range": DEFAULT_DD_W_RANGE,
+        "turnover_cap": 0.02,
+        "dd_cap": 0.10,
+    }
+    if task_pool_path:
+        cfg["task_pool_path"] = task_pool_path
+        cfg["p_pool"] = float(getattr(args, "p_pool", 0.7))
+    return cfg
+
+
+def _model_config(args) -> dict:
+    return {
+        "custom_model": "solver_mlp_film",
+        "custom_model_config": {
+            "window_size": args.window,
+            "t_embed_dim": DEFAULT_T_EMBED_DIM,
+            "fcnet_hiddens": DEFAULT_FCNET_HIDDENS,
+            "conditioning": "film",
+            "t_keep_p": 0.7,
+            "t_proj": 64,
+        },
+    }
+
+
+def _first_non_none(*values):
+    for value in values:
+        if value is not None:
+            return value
+    return None
 
 # ────────────────────────────────────────────────────────────────────────────────
 # 1) Ray init utilities + run metadata
@@ -77,36 +147,8 @@ def _config_hash(config: dict) -> str:
 
 
 def build_base_config(args, data_path: Path, use_pbt_mode: bool) -> dict:
-    clip_param = float(getattr(args, "clip_param", 0.2))
-    gae_lambda = float(getattr(args, "gae_lambda", 0.95))
-    vf_loss_coeff = float(getattr(args, "vf_loss_coeff", 1.0))
-    train_batch_size = int(getattr(args, "train_batch_size", 4800))
-    sgd_minibatch_size = int(getattr(args, "sgd_minibatch_size", 128))
-    num_sgd_iter = int(getattr(args, "num_sgd_iter", 30))
-    gamma = float(getattr(args, "gamma", 0.99))
-    vf_clip_param = float(getattr(args, "vf_clip_param", 10.0))
-    lr = float(getattr(args, "lr", 5e-5))
     auto_plot_on_end = bool(getattr(args, "auto_plot_on_end", True))
-    task_pool_path = str(getattr(args, "task_pool_path", "") or "").strip()
-    p_pool = float(getattr(args, "p_pool", 0.7))
-
-    task_sampler_cfg = {
-        "window_size": args.window,
-        "n_features": 5,  # OHLCV features
-        "t_embed_dim": 32,
-        "action_dim": 3,
-        "seed": int(args.seed),
-        # benign defaults; sampler gets per-worker seed automatically
-        "horizons": [96, 128, 160, 200],
-        "turnover_w_choices": [0.0, 0.0005, 0.001, 0.002],
-        "dd_modes": ["delta"],
-        "dd_w_range": (0.0, 0.04),
-        "turnover_cap": 0.02,
-        "dd_cap": 0.10,
-    }
-    if task_pool_path:
-        task_sampler_cfg["task_pool_path"] = task_pool_path
-        task_sampler_cfg["p_pool"] = p_pool
+    task_sampler_cfg = _task_sampler_config(args)
 
     return {
         "env": "ITraderEnv",
@@ -129,17 +171,7 @@ def build_base_config(args, data_path: Path, use_pbt_mode: bool) -> dict:
             #     "dd_T_weight": 0.0,
             # },
         },
-        "model": {
-            "custom_model": "solver_mlp_film",
-            "custom_model_config": {
-                "window_size": args.window,
-                "t_embed_dim": 32,
-                "fcnet_hiddens": [256, 256],
-                "conditioning": "film",
-                "t_keep_p": 0.7,
-                "t_proj": 64,
-            },
-        },
+        "model": _model_config(args),
         # resources
         "num_gpus": 1,
         "num_gpus_per_worker": 0,
@@ -152,22 +184,22 @@ def build_base_config(args, data_path: Path, use_pbt_mode: bool) -> dict:
         "callbacks": (MetricsOnlyCallback if use_pbt_mode else CombinedCallback),
         "observation_filter": "MeanStdFilter",
         "grad_clip": 10.0,
-        "clip_param": clip_param,
-        "lambda": gae_lambda,
-        "vf_loss_coeff": vf_loss_coeff,
+        "clip_param": float(getattr(args, "clip_param", 0.2)),
+        "lambda": float(getattr(args, "gae_lambda", 0.95)),
+        "vf_loss_coeff": float(getattr(args, "vf_loss_coeff", 1.0)),
         # Stabilise exploration → exploitation
         "entropy_coeff_schedule": [
             [0,        0.02],
             [200_000,  0.01],
             [800_000,  0.003],
         ],
-        "train_batch_size": train_batch_size,
+        "train_batch_size": int(getattr(args, "train_batch_size", 4800)),
         "batch_mode": "complete_episodes",
-        "sgd_minibatch_size": sgd_minibatch_size,
-        "num_sgd_iter": num_sgd_iter,
-        "gamma": gamma,
-        "vf_clip_param": vf_clip_param,
-        "lr": lr,
+        "sgd_minibatch_size": int(getattr(args, "sgd_minibatch_size", 128)),
+        "num_sgd_iter": int(getattr(args, "num_sgd_iter", 30)),
+        "gamma": float(getattr(args, "gamma", 0.99)),
+        "vf_clip_param": float(getattr(args, "vf_clip_param", 10.0)),
+        "lr": float(getattr(args, "lr", 5e-5)),
         # PBT runs multiple trials -> shared port conflicts. Enable only for single-trial runs.
         "metrics_sinks": ([] if use_pbt_mode else ["prometheus"]),
         "prometheus_export_port": (None if use_pbt_mode else 8888),
@@ -216,6 +248,7 @@ tune.register_env("ITraderEnv", make_env)
 # ────────────────────────────────────────────────────────────────────────────────
 from ray.rllib.algorithms.callbacks import DefaultCallbacks
 
+
 class CombinedCallback(DefaultCallbacks):
     def __init__(self, plot_interval: int = 50):
         super().__init__()
@@ -244,6 +277,141 @@ class MetricsOnlyCallback(DefaultCallbacks):
 # 4) The “training function” for Tune
 #    This builds the PPOAlgo, loops train(), and reports key scalars
 # ────────────────────────────────────────────────────────────────────────────────
+def _extract_custom_metrics(result: dict) -> dict:
+    custom_metrics = result.get("custom_metrics")
+    if isinstance(custom_metrics, dict):
+        return custom_metrics
+    sampler_custom_metrics = result.get("sampler_results", {}).get("custom_metrics")
+    return sampler_custom_metrics if isinstance(sampler_custom_metrics, dict) else {}
+
+
+def _numeric_custom_metric_items(custom_metrics: dict) -> list[tuple[str, float]]:
+    items: list[tuple[str, float]] = []
+    for key, value in custom_metrics.items():
+        if not isinstance(value, (int, float, np.floating, np.integer)):
+            continue
+        key_text = str(key)
+        if key_text.startswith(("act_", "rc_")) and key_text.endswith("_mean"):
+            items.append((key_text, float(value)))
+            continue
+        if key_text in {"success_mean", "task_horizon_mean"}:
+            items.append((key_text, float(value)))
+    return sorted(items)
+
+
+def _extract_report(result: dict, default_iteration: int) -> dict:
+    learner_stats = result["info"]["learner"]["default_policy"]["learner_stats"]
+    episode_return_mean = _first_non_none(
+        result.get("custom_metrics/episode_return_mean_mean"),
+        result.get("sampler_results", {}).get("custom_metrics", {}).get("episode_return_mean_mean"),
+        result.get("episode_reward_mean"),
+    )
+    episode_len_mean = _first_non_none(
+        result.get("episode_len_mean"),
+        result.get("sampler_results", {}).get("episode_len_mean"),
+    )
+
+    report = {
+        "training_iteration": int(result.get("training_iteration", default_iteration)),
+        "time_this_iter_s": result.get("time_this_iter_s"),
+        "time_total_s": result.get("time_total_s"),
+        "timesteps_total": result.get("timesteps_total"),
+        "custom_metrics/episode_return_mean": (
+            float(episode_return_mean) if episode_return_mean is not None else float("nan")
+        ),
+        "episode_len_mean": float(episode_len_mean) if episode_len_mean is not None else float("nan"),
+        "policy_loss": float(learner_stats.get("policy_loss", 0.0)),
+        "value_loss": float(learner_stats.get("vf_loss", learner_stats.get("value_loss", 0.0))),
+        "entropy": float(learner_stats.get("entropy", 0.0)),
+    }
+    if report.get("time_this_iter_s"):
+        report["iters_per_sec"] = 1.0 / max(float(report["time_this_iter_s"]), 1e-8)
+
+    custom_metrics = _extract_custom_metrics(result)
+    for key, value in _numeric_custom_metric_items(custom_metrics):
+        report[f"custom_metrics/{key}"] = value
+    for key in ("episode_len_mean", "iters_per_sec"):
+        report.setdefault(key, float("nan"))
+    return report
+
+
+def _flatten_scalar_metrics(result: dict) -> dict:
+    flat_metrics = {}
+    stack = [("", result)]
+    while stack:
+        prefix, obj = stack.pop()
+        if not isinstance(obj, dict):
+            continue
+        for key, value in obj.items():
+            full_key = f"{prefix}/{key}" if prefix else str(key)
+            if isinstance(value, dict):
+                stack.append((full_key, value))
+            elif isinstance(value, (int, float, bool, str, np.floating, np.integer)):
+                flat_metrics[full_key] = (
+                    float(value) if isinstance(value, (np.floating, np.integer)) else value
+                )
+    return flat_metrics
+
+
+def _append_json_line(path: Path, payload: dict) -> None:
+    with path.open("a", encoding="utf-8") as fh:
+        fh.write(json.dumps(payload) + "\n")
+
+
+def _existing_report_fieldnames(path: Path) -> list[str]:
+    if not path.exists():
+        return []
+    with path.open("r", encoding="utf-8", newline="") as fh:
+        reader = csv.reader(fh)
+        try:
+            return next(reader)
+        except StopIteration:
+            return []
+
+
+def _report_fieldnames(existing: list[str], row: dict) -> list[str]:
+    ordered = list(existing)
+    for key in row.keys():
+        if key not in ordered:
+            ordered.append(key)
+    return ordered
+
+
+def _rewrite_report_csv(path: Path, fieldnames: list[str]) -> None:
+    rows: list[dict[str, object]] = []
+    if path.exists():
+        with path.open("r", encoding="utf-8", newline="") as fh:
+            rows = list(csv.DictReader(fh))
+    with path.open("w", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=fieldnames)
+        writer.writeheader()
+        for row in rows:
+            writer.writerow({key: row.get(key, "") for key in fieldnames})
+
+
+def _append_report_row(path: Path, row: dict) -> None:
+    existing = _existing_report_fieldnames(path)
+    fieldnames = _report_fieldnames(existing, row)
+    if path.exists() and existing != fieldnames:
+        _rewrite_report_csv(path, fieldnames)
+    with path.open("a", encoding="utf-8", newline="") as fh:
+        writer = csv.DictWriter(fh, fieldnames=fieldnames)
+        if fh.tell() == 0:
+            writer.writeheader()
+        writer.writerow({key: row.get(key, "") for key in fieldnames})
+
+
+def _checkpoint_from_save_result(saved):
+    if isinstance(saved, str):
+        return Checkpoint.from_directory(saved), saved
+    if isinstance(saved, Checkpoint):
+        return saved, getattr(saved, "path", "Checkpoint")
+    if hasattr(saved, "checkpoint") and isinstance(saved.checkpoint, Checkpoint):
+        checkpoint = saved.checkpoint
+        return checkpoint, getattr(checkpoint, "path", "Checkpoint")
+    return None, str(saved)
+
+
 def training_fn(config):
     # Always use Tune trial dir as the single source of truth for ALL outputs.
     trial_dir = Path(session.get_trial_dir())
@@ -279,83 +447,14 @@ def training_fn(config):
 
     for it in range(config["stop_iters"]):
         res = algo.train()
-
-        # push scalars into Tune’s result store
-        ls   = res["info"]["learner"]["default_policy"]["learner_stats"]
-
-        # robust metric extraction
-        policy_loss = float(ls.get("policy_loss", 0.0))
-        vf_loss = float(ls.get("vf_loss", ls.get("value_loss", 0.0)))
-        entropy = float(ls.get("entropy", 0.0))
-
-        # prefer our custom aggregated mean; fallback to RLlib default keys
-        erm = res.get("custom_metrics/episode_return_mean_mean", None)
-        if erm is None:
-            erm = res.get("sampler_results", {}).get("custom_metrics/episode_return_mean_mean", None)
-        if erm is None:
-            erm = res.get("episode_reward_mean", float("nan"))
-        episode_len_mean = res.get("episode_len_mean", None)
-        if episode_len_mean is None:
-            episode_len_mean = res.get("sampler_results", {}).get("episode_len_mean", float("nan"))
-
-        report = {
-            "training_iteration": int(res.get("training_iteration", it + 1)),
-            "time_this_iter_s": res.get("time_this_iter_s"),
-            "time_total_s": res.get("time_total_s"),
-            "timesteps_total": res.get("timesteps_total"),
-            "custom_metrics/episode_return_mean": float(erm) if erm is not None else float("nan"),
-            "episode_len_mean": float(episode_len_mean) if episode_len_mean is not None else float("nan"),
-            "policy_loss":        policy_loss,
-            "value_loss":         vf_loss,
-            "entropy":            entropy,
-        }
-        if report.get("time_this_iter_s"):
-            report["iters_per_sec"] = 1.0 / max(float(report["time_this_iter_s"]), 1e-8)
-
-        cm = res.get("custom_metrics") or res.get("sampler_results", {}).get("custom_metrics")
-        if isinstance(cm, dict):
-            for k in ("act_long_frac_mean", "act_short_frac_mean", "act_flat_frac_mean"):
-                v = cm.get(k)
-                if isinstance(v, (int, float, np.floating, np.integer)):
-                    report[f"custom_metrics/{k}"] = float(v)
-        for k in (
-            "custom_metrics/act_long_frac_mean",
-            "custom_metrics/act_short_frac_mean",
-            "custom_metrics/act_flat_frac_mean",
-            "episode_len_mean",
-            "iters_per_sec",
-        ):
-            report.setdefault(k, float("nan"))
+        report = _extract_report(res, it + 1)
 
         # Persist scalar-only flattened metrics for robust plotting fallback.
-        full = {}
-        stack = [("", res)]
-        while stack:
-            prefix, obj = stack.pop()
-            if not isinstance(obj, dict):
-                continue
-            for k, v in obj.items():
-                key = f"{prefix}/{k}" if prefix else str(k)
-                if isinstance(v, dict):
-                    stack.append((key, v))
-                elif isinstance(v, (int, float, bool, str, np.floating, np.integer)):
-                    full[key] = float(v) if isinstance(v, (np.floating, np.integer)) else v
+        full = _flatten_scalar_metrics(res)
         full["training_iteration"] = report["training_iteration"]
-        with full_metrics_path.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(full) + "\n")
-        with stable_metrics_path.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(full) + "\n")
-
-        report_row = dict(report)
-        if stable_report_csv.exists():
-            with stable_report_csv.open("a", encoding="utf-8", newline="") as fh:
-                writer = csv.DictWriter(fh, fieldnames=list(report_row.keys()))
-                writer.writerow(report_row)
-        else:
-            with stable_report_csv.open("w", encoding="utf-8", newline="") as fh:
-                writer = csv.DictWriter(fh, fieldnames=list(report_row.keys()))
-                writer.writeheader()
-                writer.writerow(report_row)
+        _append_json_line(full_metrics_path, full)
+        _append_json_line(stable_metrics_path, full)
+        _append_report_row(stable_report_csv, dict(report))
 
         # --- Checkpointing for PBT (so exploit can copy weights) ------------
         should_checkpoint = checkpoint_interval > 0 and (it + 1) % checkpoint_interval == 0
@@ -365,20 +464,7 @@ def training_fn(config):
                 ckpt_root.mkdir(parents=True, exist_ok=True)
 
                 saved = algo.save(str(ckpt_root))
-                # RLlib/Ray versions differ: save() may return str path, Checkpoint, or a Result-like wrapper.
-                if isinstance(saved, str):
-                    checkpoint = Checkpoint.from_directory(saved)
-                    ckpt_label = saved
-                elif isinstance(saved, Checkpoint):
-                    checkpoint = saved
-                    ckpt_label = getattr(saved, "path", "Checkpoint")
-                elif hasattr(saved, "checkpoint") and isinstance(saved.checkpoint, Checkpoint):
-                    checkpoint = saved.checkpoint
-                    ckpt_label = getattr(checkpoint, "path", "Checkpoint")
-                else:
-                    # Last-resort: stringify and avoid crashing training; still report metrics.
-                    checkpoint = None
-                    ckpt_label = str(saved)
+                checkpoint, ckpt_label = _checkpoint_from_save_result(saved)
 
                 if checkpoint is not None:
                     session.report(report, checkpoint=checkpoint)
@@ -421,11 +507,54 @@ def training_fn(config):
 # ────────────────────────────────────────────────────────────────────────────────
 # 5) Entrypoint: assemble Tune config & kick off the experiment
 # ────────────────────────────────────────────────────────────────────────────────
+def _register_models() -> None:
+    ModelCatalog.register_custom_model("solver_lstm_v2", SolverLSTMModel)
+    ModelCatalog.register_custom_model("solver_mlp", SolverMLPModel)
+    ModelCatalog.register_custom_model("solver_mlp_film", SolverMLPFiLM)
+
+
+def _resources_per_trial(args, base_config: dict) -> PlacementGroupFactory:
+    if args.cpu_pbt:
+        base_config.update({
+            "num_gpus": 0,
+            "num_workers": max(2, min(args.workers, 4)),
+        })
+        return PlacementGroupFactory(
+            [{"CPU": 1}] + [{"CPU": 1}] * base_config["num_workers"]
+        )
+
+    base_config.update({
+        "num_gpus": 1,
+        "num_workers": args.workers,
+    })
+    return PlacementGroupFactory(
+        [{"GPU": 1, "CPU": 1}] + [{"CPU": 1}] * base_config["num_workers"]
+    )
+
+
+def _apply_best_params(base_config: dict, best: dict) -> None:
+    for key in [
+        "lr", "clip_param", "lambda", "gamma",
+        "sgd_minibatch_size", "num_sgd_iter",
+        "vf_clip_param", "vf_loss_coeff", "train_batch_size",
+    ]:
+        if key in best:
+            base_config[key] = best[key]
+
+    model_cfg = best.get("model", {}).get("custom_model_config")
+    if isinstance(model_cfg, dict):
+        base_config["model"]["custom_model_config"].update(model_cfg)
+
+    task_sampler_overrides = best.get("env_config", {}).get("task_sampler_overrides")
+    if isinstance(task_sampler_overrides, dict):
+        base_config["env_config"]["task_sampler_overrides"] = task_sampler_overrides
+
+
 def main(args):
     use_pbt_mode = bool(args.pbt or args.cpu_pbt)
     init_ray(use_pbt_mode=use_pbt_mode)
 
-    data_path = Path(args.data_path)
+    data_path = Path(args.data_path).expanduser()
     if not data_path.is_file():
         raise FileNotFoundError(f"Parquet not found ➜ {data_path}")
     data_path = data_path.resolve(strict=True)
@@ -434,10 +563,7 @@ def main(args):
         if not ckpt_path.exists():
             raise FileNotFoundError(f"Restore checkpoint path does not exist ➜ {ckpt_path}")
 
-    # register the v2 model
-    ModelCatalog.register_custom_model("solver_lstm_v2", SolverLSTMModel)
-    ModelCatalog.register_custom_model("solver_mlp", SolverMLPModel)
-    ModelCatalog.register_custom_model("solver_mlp_film", SolverMLPFiLM)
+    _register_models()
 
     # shared RLlib config
     base_config = build_base_config(args=args, data_path=data_path, use_pbt_mode=use_pbt_mode)
@@ -476,65 +602,18 @@ def main(args):
     print("Starting training with automatic plotting...")
     print("Plots will be generated every 50 iterations in non-PBT mode.")
 
-    # CPU-PBT mode: run many trials in parallel on CPU, then retrain the best on GPU.
-    if args.cpu_pbt:
-        base_config.update({
-            "num_gpus": 0,
-            "num_workers": max(2, min(args.workers, 4)),   # keep workers modest per trial
-        })
-        resources = PlacementGroupFactory(
-            # driver
-            [{"CPU": 1}] +
-            # rollout workers per trial
-            [{"CPU": 1}] * base_config["num_workers"]
-        )
-    else:
-        # single GPU mode (default): one trial uses your GPU
-        base_config.update({
-            "num_gpus": 1,
-            "num_workers": args.workers,
-        })
-        resources = PlacementGroupFactory(
-            [{ "GPU": 1, "CPU": 1}] + [{"CPU": 1}] * base_config["num_workers"]
-        )
+    resources = _resources_per_trial(args, base_config)
 
     if args.best_params_json:
         params_path = Path(args.best_params_json).expanduser()
         print(f"Loading best params from: {params_path}")
         best = json.loads(params_path.read_text(encoding="utf-8"))
-        for k in [
-            "lr", "clip_param", "lambda", "gamma",
-            "sgd_minibatch_size", "num_sgd_iter",
-            "vf_clip_param", "vf_loss_coeff", "train_batch_size",
-        ]:
-            if k in best:
-                base_config[k] = best[k]
-        try:
-            if "model" in best and "custom_model_config" in best["model"]:
-                base_config["model"]["custom_model_config"].update(best["model"]["custom_model_config"])
-        except Exception:
-            pass
-        try:
-            if "env_config" in best and "task_sampler_overrides" in best["env_config"]:
-                base_config["env_config"]["task_sampler_overrides"] = best["env_config"]["task_sampler_overrides"]
-        except Exception:
-            pass
+        _apply_best_params(base_config, best)
 
     if args.restore_ckpt:
         base_config["restore_ckpt"] = args.restore_ckpt
 
-    metric_columns = [
-        "custom_metrics/episode_return_mean",
-        "episode_len_mean",
-        "policy_loss",
-        "value_loss",
-        "entropy",
-        "custom_metrics/act_short_frac_mean",
-        "custom_metrics/act_flat_frac_mean",
-        "custom_metrics/act_long_frac_mean",
-    ]
-
-    analysis = tune.run(
+    tune.run(
         training_fn,                        # <--- use the class directly
         name=args.experiment_name,
         scheduler=(pbt if args.pbt else None),
@@ -547,7 +626,7 @@ def main(args):
         config=base_config,
         local_dir=str(Path.home() / "ray_results"),
         progress_reporter=tune.CLIReporter(
-            metric_columns=metric_columns,
+            metric_columns=_cli_metric_columns(base_config["env_config"]["task_sampler"]["action_dim"]),
         ),
         reuse_actors=False,  # safer for PBT/long runs; flip True only if you're 100% stable
         max_failures=3,  # Allow up to 3 failures before giving up on a trial

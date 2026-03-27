@@ -12,6 +12,7 @@ import random
 from typing import Dict, Any
 
 from itrader.proposers import build_proposer
+from itrader.rl_lib.tasks.families import DEFAULT_BAR_RESOLUTION
 from itrader.rl_lib.tasks.task_pool import TaskPool
 from itrader.rl_lib.tasks.spec import TaskSpec
 from itrader.rl_lib.tasks.validation import validate_and_clamp_task
@@ -99,6 +100,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--n_features", type=int, default=5, help="Number of OHLCV features")
     parser.add_argument("--t_embed_dim", type=int, default=32, help="Task embedding dimension")
     parser.add_argument("--action_dim", type=int, default=3, help="Action space dimension")
+    parser.add_argument("--bar_resolution", type=str, default=DEFAULT_BAR_RESOLUTION, help="Bar resolution label recorded on generated tasks")
     parser.add_argument("--batch_size", type=int, default=5, help="Tasks requested per proposer call")
     parser.add_argument("--max_empty_batches", type=int, default=10, help="Abort after repeated empty proposer outputs")
     parser.add_argument(
@@ -149,6 +151,7 @@ def _build_proposer_from_args(args: argparse.Namespace):
         n_features=args.n_features,
         t_embed_dim=args.t_embed_dim,
         action_dim=args.action_dim,
+        bar_resolution=args.bar_resolution,
     )
 
 
@@ -182,6 +185,7 @@ def main() -> int:
         "n_features": args.n_features,
         "t_embed_dim": args.t_embed_dim,
         "action_dim": args.action_dim,
+        "bar_resolution": args.bar_resolution,
     }
     meta = _metadata(args)
 

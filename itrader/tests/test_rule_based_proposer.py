@@ -26,6 +26,23 @@ def test_rule_based_tasks_have_expected_shape_fields():
         assert task["action_dim"] == 3
         assert task["reward_id"] == "pnl_linear"
         assert task["start_idx"] is None
+        assert task["bar_resolution"] == "1m"
+
+
+def test_rule_based_proposer_uses_reward_specific_param_shape():
+    proposer = RuleBasedProposer(
+        seed=7,
+        window_size=30,
+        n_features=5,
+        t_embed_dim=32,
+        action_dim=3,
+        reward_id="pnl_sharpe",
+    )
+    task = proposer.propose_tasks("summary", 1)[0]
+    assert task["reward_id"] == "pnl_sharpe"
+    assert "dd_w" in task["reward_params"]
+    assert "turnover_w" in task["reward_params"]
+    assert "dd_mode" not in task["reward_params"]
 
 
 def test_factory_builds_rule_based_proposer():

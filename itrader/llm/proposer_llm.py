@@ -5,12 +5,11 @@ Generates TaskSpec JSON from market summaries without requiring training loop in
 """
 from __future__ import annotations
 from typing import List, Dict, Any, Optional
-import json
-import re
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 import torch
 
 from itrader.proposers.base import BaseProposer
+from itrader.proposers._shared import parse_json_with_repair, schema_hint as shared_schema_hint
 
 
 class ProposerLLM(BaseProposer):
@@ -83,35 +82,7 @@ class ProposerLLM(BaseProposer):
             List of TaskSpec dicts (may be empty if parsing fails)
         """
         if schema_hint is None:
-            schema_hint = """
-            Generate a JSON object representing a trading task specification.
-            Required fields:
-            - family_id: str (e.g., "00")
-            - price_id: str (e.g., "SIM")
-            - horizon: int (episode length, typically 64-256)
-            - reward_id: str (e.g., "pnl_linear")
-            - reward_params: dict with keys like:
-              * pnl_w: float (typically 1.0)
-              * turnover_w: float (typically 0.0-0.002)
-              * dd_mode: str ("delta" or "none")
-              * dd_w: float (typically 0.0-0.08)
-              * dd_T_weight: float (typically 0.0)
-              * turnover_cap: float (typically 0.02)
-              * dd_cap: float (typically 0.05)
-              * reward_scale: float (typically 1.0)
-              * normalize: bool (typically True)
-              * norm_mode: str (typically "all")
-              * normalize_dd: bool (typically True)
-              * norm_clip: float (typically 5.0)
-              * inact_w: float (typically 0.0)
-              * vol_floor_mult: float (typically 1.0)
-              * clip_abs: float (typically 0.0)
-             - seed: int (random seed, 0-1000000)
-             - obs_dim: int (typically 182 = 30*5 + 32)
-             - action_dim: int (typically 3)
-             - start_idx: int | null (optional, starting index in price dataframe. If null, env samples uniformly)
-             Return ONLY valid JSON, no prose.
-            """
+            schema_hint = shared_schema_hint()
 
         prompt = f"""You are a trading task generator. Given the market summary, generate {n} different task specifications as a JSON array.
 
@@ -148,50 +119,4 @@ Generate {n} tasks as a JSON array of objects. Each object must be a valid TaskS
         return self.generate_tasks(market_summary=market_summary, n=n, **kwargs)
 
     def _parse_json_with_repair(self, text: str, expected_n: int) -> List[Dict[str, Any]]:
-        """
-        Parse JSON from model output with lightweight repair.
-
-        Args:
-            text: Raw model output
-            expected_n: Expected number of tasks
-
-        Returns:
-            List of parsed task dicts (may be shorter than expected_n if parsing fails)
-        """
-        tasks = []
-
-        # Try direct parse first
-        try:
-            parsed = json.loads(text)
-            if isinstance(parsed, list):
-                tasks.extend(parsed)
-            elif isinstance(parsed, dict):
-                tasks.append(parsed)
-            return tasks[:expected_n]
-        except json.JSONDecodeError:
-            pass
-
-        # Try to extract first JSON object/array
-        # Look for { ... } or [ ... ] patterns
-        patterns = [
-            r'\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}',  # Nested object
-            r'\[[^\[\]]*(?:\{[^{}]*\}[^\[\]]*)*\]',  # Array of objects
-        ]
-
-        for pattern in patterns:
-            matches = re.findall(pattern, text, re.DOTALL)
-            for match in matches:
-                try:
-                    parsed = json.loads(match)
-                    if isinstance(parsed, list):
-                        tasks.extend(parsed)
-                    elif isinstance(parsed, dict):
-                        tasks.append(parsed)
-                    if len(tasks) >= expected_n:
-                        break
-                except json.JSONDecodeError:
-                    continue
-            if len(tasks) >= expected_n:
-                break
-
-        return tasks[:expected_n] if tasks else []
+        return parse_json_with_repair(text, expected_n)
