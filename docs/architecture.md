@@ -17,10 +17,12 @@ This path is the effective source of truth for Phase A and experiment operations
 ## Runtime Components
 
 1. Data
+
 - Input parquet: `itrader/data/ohlcv.parquet`
 - Environment loads OHLCV window features and close prices for reward context.
 
-2. Environment
+1. Environment
+
 - `ITraderEnv` emits observation = `flattened_price_window + task_embedding`.
 - Start-index modes:
   - `random_episode`
@@ -28,15 +30,18 @@ This path is the effective source of truth for Phase A and experiment operations
   - `task_spec`
 - Reward computed via registry (`RewardEngine`) using inspectable per-step context.
 
-3. Task Layer
+1. Task Layer
+
 - `TaskSpec` is the contract between sampler/environment/proposer.
 - `TaskSampler00` currently generates task specs stochastically and can optionally sample from a persistent `TaskPool`.
 
-4. Solver
+1. Solver
+
 - PPO (RLlib) with custom FiLM-conditioned model (`SolverMLPFiLM`).
 - Training loop supports PBT, checkpointing, stable metrics mirror, and final plotting.
 
-5. Observability and Experimentation
+1. Observability and Experimentation
+
 - Stable metrics mirror:
   - `~/ray_results/_stable_metrics/<trial>/metrics_full.jsonl`
   - `~/ray_results/_stable_metrics/<trial>/report_rows.csv`
@@ -46,18 +51,23 @@ This path is the effective source of truth for Phase A and experiment operations
 ## Architectural Gaps Blocking Phase B
 
 1. AZR loop executable gap
+
 - `itrader/rl_lib/train/train_AZR.py` is conceptual pseudocode, not runnable integration.
 
-2. Proposer integration gap
+1. Proposer integration gap
+
 - LLM proposer exists (`itrader/llm/proposer_llm.py`) but is not wired into training/runtime loop.
 
-3. Contract and ownership clarity
+1. Contract and ownership clarity
+
 - `TaskSpec` exists but module boundaries for proposer/sampler/solver runtime ownership are not fully explicit.
 
-4. Dependency and environment drift
+1. Dependency and environment drift
+
 - Multiple manifests with divergent version intent make reproducibility and onboarding unstable.
 
-5. Legacy surface area
+1. Legacy surface area
+
 - Legacy/stale entrypoints and cached artifacts increase confusion and accidental usage risk.
 
 ## Target Phase B Architecture
