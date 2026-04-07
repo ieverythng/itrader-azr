@@ -62,26 +62,26 @@ No component should force trade activity when confidence/edge is absent.
 
 ## 2.1 Offline architecture
 
-Historical market windows  
--> Summarizer / feature assembly  
--> CurriculumProposer  
--> Candidate TaskSpecs  
--> Validation / TaskSampler / TaskPool  
--> Solver (shared trunk + family heads)  
--> `r_solve`, metrics, capability updates  
+Historical market windows
+-> Summarizer / feature assembly
+-> CurriculumProposer
+-> Candidate TaskSpecs
+-> Validation / TaskSampler / TaskPool
+-> Solver (shared trunk + family heads)
+-> `r_solve`, metrics, capability updates
 -> `r_prop`, golden task logging, dataset growth
 
 ## 2.2 Online architecture
 
-Live rolling market window  
--> Summarizer / market state encoder  
--> MarketFramer (AdversarialProposer)  
--> CandidateTasks (incl. WAIT / NO_ACTION)  
--> Solver heads evaluate solvability / edge / confidence  
--> DecisionGate  
--> RiskEngine  
--> Executor  
--> Telemetry / memory / CapabilityProfile update  
+Live rolling market window
+-> Summarizer / market state encoder
+-> MarketFramer (AdversarialProposer)
+-> CandidateTasks (incl. WAIT / NO_ACTION)
+-> Solver heads evaluate solvability / edge / confidence
+-> DecisionGate
+-> RiskEngine
+-> Executor
+-> Telemetry / memory / CapabilityProfile update
 -> WatsonOW integration later
 
 ---
@@ -114,7 +114,7 @@ Responsibilities:
 - log grouped candidate outputs for future ranking/GRPO.
 
 ## 3.3 MarketFramer
-Online market-conditioned proposer.  
+Online market-conditioned proposer.
 Alias `AdversarialProposer` may remain as a naming option.
 
 Responsibilities:
@@ -175,14 +175,14 @@ Responsibilities later:
 # 4. CONTRACT MODEL
 
 ## 4.1 Rule
-`TaskSpec` remains the canonical contract for “what problem is posed”.  
-Do not overload it with full broker semantics.  
+`TaskSpec` remains the canonical contract for “what problem is posed”.
+Do not overload it with full broker semantics.
 Introduce additional contracts for online execution and capability tracking.
 
 ## 4.2 New contracts to add
 
 ### A. `TaskSpec`
-Purpose:  
+Purpose:
 Defines the task/problem itself.
 
 Required high-level fields:
@@ -225,7 +225,7 @@ Notes:
 - Difficulty target is declarative only; online gating should not rely on this field alone.
 
 ### B. `ExecutionIntent`
-Purpose:  
+Purpose:
 Defines how a candidate task would be traded if accepted in online mode.
 
 Required fields:
@@ -268,7 +268,7 @@ Illustrative structure:
 ```
 
 ### C. `CandidateTask`
-Purpose:  
+Purpose:
 Online or offline candidate emitted by proposer/framer that combines a task with optional execution framing.
 
 Required fields:
@@ -297,7 +297,7 @@ Illustrative structure:
 ```
 
 ### D. `CapabilityProfile`
-Purpose:  
+Purpose:
 Track what the solver can actually solve under given conditions.
 
 Required fields:
@@ -328,7 +328,7 @@ Illustrative structure:
 ```
 
 ### E. `DecisionRecord`
-Purpose:  
+Purpose:
 Immutable record of one decision cycle.
 
 Fields:
@@ -347,14 +347,14 @@ This is the bridge between offline replay and live auditing.
 # 5. TASK FAMILY STANDARD
 
 ## 5.1 General rule
-Family `00` remains the current proven path.  
-Do not destabilize it.  
+Family `00` remains the current proven path.
+Do not destabilize it.
 Introduce new families progressively, with modular action-space or label-space differences.
 
 ## 5.2 Initial family set
 
 ### Family 00 — Directional predictor
-Current proven family.  
+Current proven family.
 Problem shape:
 - directional or short-horizon predictive task,
 - current default action/reward path.
@@ -439,7 +439,7 @@ MoE is deferred because:
 # 7. REWARD STANDARD
 
 ## 7.1 `r_solve`
-Keep PPO + GAE for solver training.  
+Keep PPO + GAE for solver training.
 Make `r_solve` explicitly decomposed and reportable.
 
 Target conceptual form:
@@ -480,7 +480,7 @@ A task is Goldilocks if it is:
 - positive utility after costs/risk assumptions,
 - within acceptable drawdown / stability profile.
 
-Important:  
+Important:
 Do not define Goldilocks purely as win rate.
 
 #### Solver uplift
@@ -539,7 +539,7 @@ After sufficient logged data exists:
 - support ranking or later GRPO-like optimization.
 
 ## 8.4 Rule for now
-Do NOT apply GRPO to the trading solver path.  
+Do NOT apply GRPO to the trading solver path.
 If explored, GRPO belongs first on the proposer side once grouped candidate evaluation is robust.
 
 ---
@@ -590,7 +590,7 @@ Online mode must begin in replay/shadow mode before live execution.
 11. update CapabilityProfile / online statistics
 
 ## 10.3 Candidate count
-MarketFramer should emit a small set only.  
+MarketFramer should emit a small set only.
 Default recommendation:
 - 1 to 3 trade candidates,
 - 1 WAIT candidate.
@@ -664,7 +664,7 @@ Any ranking or threshold logic must be:
 Behavior should be as consistent as possible across modes.
 
 ## 12.3 Hard constraint
-RiskEngine decisions must be final for live actioning.  
+RiskEngine decisions must be final for live actioning.
 Neither MarketFramer nor Solver nor WatsonOW can override them directly.
 
 ---
@@ -911,7 +911,7 @@ Must cover:
 - backwards compatibility for family `00`.
 
 ## 17.4 Smoke profiles
-Keep lightweight smoke configs that can run without full GPU training.  
+Keep lightweight smoke configs that can run without full GPU training.
 Do not tie correctness to expensive long runs.
 
 ---
@@ -1036,7 +1036,7 @@ This implementation standard is considered established when the repo can do all 
 3. route at least families `00`, `01`, and `02`
 4. run a multi-head solver path
 5. run a true offline proposer->solver loop beyond simple bootstrap
-6. replay a historical rolling window through:  
+6. replay a historical rolling window through:
    MarketFramer -> solver scoring -> DecisionGate -> RiskEngine -> Executor
 7. emit WAIT / NO_ACTION explicitly
 8. log enough structured data for future proposer SFT/QLoRA training
