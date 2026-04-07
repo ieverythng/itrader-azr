@@ -20,3 +20,10 @@ repos:
         entry: ./itrader/tools/run_repo_python.sh -m pytest -q itrader/tests
         language: system
         pass_filenames: false
+
+      - id: gitnexus-advisory
+        name: gitnexus advisory freshness check
+        entry: ./tools/knowledge/pre_commit_advisory.sh
+        language: system
+        pass_filenames: false
+        stages: [manual]
