@@ -10651,3 +10651,9 @@ itrader/models/Qwen2.5-7B-Instruct/model.safetensors.index.txt
 .env.*
 !.env.example
 /.itrader_env
+
+# Local llama.cpp / CUDA workstation artifacts
+/_downloads/
+/_tmp/
+/_tools/
+/_external/llama.cpp/
