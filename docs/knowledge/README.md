@@ -21,6 +21,7 @@ From the repo root:
 - `tools/knowledge/post_commit_refresh.sh`
 
 If you want the shortest walkthrough first, start with [QUICKSTART.md](/Users/juanbendek/repos/itrader-azr/docs/knowledge/QUICKSTART.md).
+For graph-guided agent workflows, also see [WORKFLOWS.md](/Users/juanbendek/repos/itrader-azr/docs/knowledge/WORKFLOWS.md).
 
 ## Default workflow on this Mac
 
@@ -51,7 +52,7 @@ GitNexus may also generate local Claude skill files under `.claude/skills/gitnex
 
 ## Wiki generation
 
-`tools/knowledge/generate_wiki.sh` requires LLM access. On this machine, no default key is configured yet, so the script will refuse to run until an OpenAI-compatible API key or a saved `~/.gitnexus/config.json` is available.
+`tools/knowledge/generate_wiki.sh` requires LLM access through an OpenAI-compatible endpoint or a saved `~/.gitnexus/config.json`.
 
 ChatGPT Plus or Codex access is still useful for working in the repo, but it does not by itself provide the API key GitNexus wiki generation expects.
 
@@ -62,13 +63,15 @@ The simplest supported paths are:
 - `AZURE_OPENAI_API_KEY=... tools/knowledge/generate_wiki.sh`
 - `gitnexus wiki --api-key ...` once, then reuse the saved GitNexus config
 
-Once GitNexus produces `.gitnexus/wiki/`, the repo-local sync step copies Markdown pages and `module_tree.json` into `docs/knowledge/`.
+Once GitNexus produces `.gitnexus/wiki/`, the repo-local sync step copies Markdown pages and `module_tree.json` into `docs/knowledge/`. The repo-local `tools/knowledge/gitnexus.sh wiki ...` wrapper also performs that sync automatically after a successful wiki run.
 
 ## Codex and Cursor
 
 - Codex project config is tracked at `.codex/config.toml`
 - Cursor project config is tracked at `.cursor/mcp.json`
 - `tools/knowledge/codex_with_gitnexus.sh` is the deterministic Codex launcher if you want to force the repo-local GitNexus MCP wiring for a session
+- If the GitNexus web backend is already running, use `GITNEXUS_USE_HTTP=1 tools/knowledge/codex_with_gitnexus.sh` to attach Codex to that same backend
+- In HTTP mode, `codex mcp list` will show the shared backend as `gitnexus_http`; Codex does not cleanly swap a stdio entry to HTTP under the same server name
 
 If a specific Cursor build ignores project-scoped MCP, copy `.cursor/mcp.json` into `~/.cursor/mcp.json` manually.
 

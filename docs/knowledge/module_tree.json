@@ -1,944 +1,318 @@
-{
-  "repo": "itrader-azr",
-  "source": "git-ls-files fallback",
-  "children": [
-    {
-      "name": ".DS_Store",
-      "type": "file"
-    },
-    {
-      "name": ".codex",
-      "type": "directory",
-      "children": [
-        {
-          "name": "config.toml",
-          "type": "file"
-        }
-      ]
-    },
-    {
-      "name": ".cursor",
-      "type": "directory",
-      "children": [
-        {
-          "name": "mcp.json",
-          "type": "file"
-        },
-        {
-          "name": "rules",
-          "type": "directory",
-          "children": [
-            {
-              "name": "daily-log-workflow.mdc",
-              "type": "file"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": ".env.example",
-      "type": "file"
-    },
-    {
-      "name": ".gitignore",
-      "type": "file"
-    },
-    {
-      "name": ".pre-commit-config.yaml",
-      "type": "file"
-    },
-    {
-      "name": ".vscode",
-      "type": "directory",
-      "children": [
-        {
-          "name": "settings.json",
-          "type": "file"
-        }
-      ]
-    },
-    {
-      "name": "AGENTS.md",
-      "type": "file"
-    },
-    {
-      "name": "LICENSE",
-      "type": "file"
-    },
-    {
-      "name": "PBT_SETUP_GUIDE.md",
-      "type": "file"
-    },
-    {
-      "name": "README.md",
-      "type": "file"
-    },
-    {
-      "name": "best_config.json",
-      "type": "file"
-    },
-    {
-      "name": "data",
-      "type": "directory",
-      "children": [
-        {
-          "name": "queries.active",
-          "type": "file"
-        },
-        {
-          "name": "wal",
-          "type": "directory",
-          "children": [
-            {
-              "name": "00000000",
-              "type": "file"
-            },
-            {
-              "name": "00000001",
-              "type": "file"
-            },
-            {
-              "name": "00000002",
-              "type": "file"
-            },
-            {
-              "name": "00000003",
-              "type": "file"
-            },
-            {
-              "name": "00000004",
-              "type": "file"
-            },
-            {
-              "name": "00000005",
-              "type": "file"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "docs",
-      "type": "directory",
-      "children": [
-        {
-          "name": "architecture.md",
-          "type": "file"
-        },
-        {
-          "name": "daily_logs",
-          "type": "directory",
-          "children": [
-            {
-              "name": "2026-02-15.md",
-              "type": "file"
-            },
-            {
-              "name": "2026-03-03.md",
-              "type": "file"
-            },
-            {
-              "name": "COMMANDS.md",
-              "type": "file"
-            },
-            {
-              "name": "README.md",
-              "type": "file"
-            },
-            {
-              "name": "_TEMPLATE.md",
-              "type": "file"
-            }
-          ]
-        },
-        {
-          "name": "iTRADER_Codex_Implementation_Spec.md",
-          "type": "file"
-        },
-        {
-          "name": "knowledge",
-          "type": "directory",
-          "children": [
-            {
-              "name": "DECISIONS.md",
-              "type": "file"
-            },
-            {
-              "name": "EVAL.md",
-              "type": "file"
-            },
-            {
-              "name": "INDEX_STATUS.md",
-              "type": "file"
-            },
-            {
-              "name": "QUICKSTART.md",
-              "type": "file"
-            },
-            {
-              "name": "README.md",
-              "type": "file"
-            },
-            {
-              "name": "module_tree.json",
-              "type": "file"
-            },
-            {
-              "name": "wiki",
-              "type": "directory",
-              "children": [
-                {
-                  "name": "README.md",
-                  "type": "file"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "ops_runbook.md",
-          "type": "file"
-        },
-        {
-          "name": "phase_b_handoff_2026-03-04.md",
-          "type": "file"
-        },
-        {
-          "name": "phase_b_plan.md",
-          "type": "file"
-        }
-      ]
-    },
-    {
-      "name": "env.lock.yml",
-      "type": "file"
-    },
-    {
-      "name": "grafana",
-      "type": "directory",
-      "children": [
-        {
-          "name": "public",
-          "type": "directory",
-          "children": [
-            {
-              "name": "lib",
-              "type": "directory",
-              "children": [
-                {
-                  "name": ".gitignore",
-                  "type": "file"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "storybook",
-          "type": "directory",
-          "children": [
-            {
-              "name": "public",
-              "type": "directory",
-              "children": [
-                {
-                  "name": "lib",
-                  "type": "directory",
-                  "children": [
-                    {
-                      "name": ".gitignore",
-                      "type": "file"
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "itrader",
-      "type": "directory",
-      "children": [
-        {
-          "name": "README.md",
-          "type": "file"
-        },
-        {
-          "name": "__init__.py",
-          "type": "file"
-        },
-        {
-          "name": "__main__.py",
-          "type": "file"
-        },
-        {
-          "name": "agents",
-          "type": "directory",
-          "children": [
-            {
-              "name": "__init__.py",
-              "type": "file"
-            },
-            {
-              "name": "proposer_lora.py",
-              "type": "file"
-            },
-            {
-              "name": "solver_base.py",
-              "type": "file"
-            },
-            {
-              "name": "solver_mlp.py",
-              "type": "file"
-            }
-          ]
-        },
-        {
-          "name": "constraints.txt",
-          "type": "file"
-        },
-        {
-          "name": "data",
-          "type": "directory",
-          "children": [
-            {
-              "name": "itrader.duckdb",
-              "type": "file"
-            },
-            {
-              "name": "ohlcv.parquet",
-              "type": "file"
-            }
-          ]
-        },
-        {
-          "name": "environment.yml",
-          "type": "file"
-        },
-        {
-          "name": "envs",
-          "type": "directory",
-          "children": [
-            {
-              "name": "__init__.py",
-              "type": "file"
-            },
-            {
-              "name": "itrader_env.py",
-              "type": "file"
-            }
-          ]
-        },
-        {
-          "name": "infra",
-          "type": "directory",
-          "children": [
-            {
-              "name": "cluster.yaml",
-              "type": "file"
-            }
-          ]
-        },
-        {
-          "name": "inputs",
-          "type": "directory",
-          "children": [
-            {
-              "name": "PA_helpers.py",
-              "type": "file"
-            },
-            {
-              "name": "backfill.py",
-              "type": "file"
-            },
-            {
-              "name": "etl_job.py",
-              "type": "file"
-            },
-            {
-              "name": "live_data.py",
-              "type": "file"
-            }
-          ]
-        },
-        {
-          "name": "llm",
-          "type": "directory",
-          "children": [
-            {
-              "name": "__init__.py",
-              "type": "file"
-            },
-            {
-              "name": "engine.py",
-              "type": "file"
-            },
-            {
-              "name": "proposer_llm.py",
-              "type": "file"
-            }
-          ]
-        },
-        {
-          "name": "models",
-          "type": "directory",
-          "children": [
-            {
-              "name": "solver_MLP.py",
-              "type": "file"
-            },
-            {
-              "name": "solver_lstm.py",
-              "type": "file"
-            },
-            {
-              "name": "solver_mlp_film.py",
-              "type": "file"
-            }
-          ]
-        },
-        {
-          "name": "proposers",
-          "type": "directory",
-          "children": [
-            {
-              "name": "__init__.py",
-              "type": "file"
-            },
-            {
-              "name": "_shared.py",
-              "type": "file"
-            },
-            {
-              "name": "base.py",
-              "type": "file"
-            },
-            {
-              "name": "factory.py",
-              "type": "file"
-            },
-            {
-              "name": "ollama.py",
-              "type": "file"
-            },
-            {
-              "name": "openai_compat.py",
-              "type": "file"
-            },
-            {
-              "name": "rule_based.py",
-              "type": "file"
-            }
-          ]
-        },
-        {
-          "name": "pyproject.toml",
-          "type": "file"
-        },
-        {
-          "name": "rl_lib",
-          "type": "directory",
-          "children": [
-            {
-              "name": "callbacks",
-              "type": "directory",
-              "children": [
-                {
-                  "name": "auto_plotter.py",
-                  "type": "file"
-                },
-                {
-                  "name": "ps_metrics.py",
-                  "type": "file"
-                }
-              ]
-            },
-            {
-              "name": "prometheus_ray.yml",
-              "type": "file"
-            },
-            {
-              "name": "tasks",
-              "type": "directory",
-              "children": [
-                {
-                  "name": "candidate_task.py",
-                  "type": "file"
-                },
-                {
-                  "name": "capability_profile.py",
-                  "type": "file"
-                },
-                {
-                  "name": "decision_record.py",
-                  "type": "file"
-                },
-                {
-                  "name": "encoder.py",
-                  "type": "file"
-                },
-                {
-                  "name": "execution_intent.py",
-                  "type": "file"
-                },
-                {
-                  "name": "families.py",
-                  "type": "file"
-                },
-                {
-                  "name": "rewards.py",
-                  "type": "file"
-                },
-                {
-                  "name": "samplers.py",
-                  "type": "file"
-                },
-                {
-                  "name": "spec.py",
-                  "type": "file"
-                },
-                {
-                  "name": "task_pool.py",
-                  "type": "file"
-                },
-                {
-                  "name": "validation.py",
-                  "type": "file"
-                }
-              ]
-            },
-            {
-              "name": "train",
-              "type": "directory",
-              "children": [
-                {
-                  "name": "train_AZR.py",
-                  "type": "file"
-                },
-                {
-                  "name": "train_solo_V2.py",
-                  "type": "file"
-                },
-                {
-                  "name": "train_test.py",
-                  "type": "file"
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "name": "scripts",
-          "type": "directory",
-          "children": [
-            {
-              "name": "__init__.py",
-              "type": "file"
-            },
-            {
-              "name": "experiments",
-              "type": "directory",
-              "children": [
-                {
-                  "name": "README.md",
-                  "type": "file"
-                },
-                {
-                  "name": "configs",
-                  "type": "directory",
-                  "children": [
-                    {
-                      "name": "ablation_smoke_quick.json",
-                      "type": "file"
-                    },
-                    {
-                      "name": "ablation_start_idx.example.json",
-                      "type": "file"
-                    },
-                    {
-                      "name": "outputs",
-                      "type": "directory",
-                      "children": [
-                        {
-                          "name": "Phase_A_Smoke_Ablation_20260216_011952",
-                          "type": "directory",
-                          "children": [
-                            {
-                              "name": "ablation_compare.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare.png",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_custom_metrics__act_flat_frac_mean.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_custom_metrics__act_long_frac_mean.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_custom_metrics__act_short_frac_mean.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_custom_metrics__episode_return_mean.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_diagnostics.png",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_entropy.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_entropy.png",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_episode_len.png",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_episode_len_mean.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_policy_loss.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_value_loss.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "summary.json",
-                              "type": "file"
-                            }
-                          ]
-                        },
-                        {
-                          "name": "Phase_A_Stream_Jump_Ablation_20260213_040157",
-                          "type": "directory",
-                          "children": [
-                            {
-                              "name": "ablation_compare.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare.png",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_custom_metrics__act_flat_frac_mean.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_custom_metrics__act_long_frac_mean.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_custom_metrics__act_short_frac_mean.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_custom_metrics__episode_return_mean.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_diagnostics.png",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_entropy.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_entropy.png",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_episode_len.png",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_episode_len_mean.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_policy_loss.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare_value_loss.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "summary.json",
-                              "type": "file"
-                            }
-                          ]
-                        },
-                        {
-                          "name": "Phase_A_Stream_Worker_Ablation_20260213_031848",
-                          "type": "directory",
-                          "children": [
-                            {
-                              "name": "ablation_compare.csv",
-                              "type": "file"
-                            },
-                            {
-                              "name": "ablation_compare.png",
-                              "type": "file"
-                            },
-                            {
-                              "name": "summary.json",
-                              "type": "file"
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "name": "pbt_winner_retrain_compare_20260216.json",
-                      "type": "file"
-                    }
-                  ]
-                },
-                {
-                  "name": "run_ablation.py",
-                  "type": "file"
-                },
-                {
-                  "name": "schemas",
-                  "type": "directory",
-                  "children": [
-                    {
-                      "name": "ablation.schema.json",
-                      "type": "file"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "name": "gen_task_pool.py",
-              "type": "file"
-            },
-            {
-              "name": "inspect_ckpt.py",
-              "type": "file"
-            },
-            {
-              "name": "pbt_output.py",
-              "type": "file"
-            }
-          ]
-        },
-        {
-          "name": "tests",
-          "type": "directory",
-          "children": [
-            {
-              "name": "conftest.py",
-              "type": "file"
-            },
-            {
-              "name": "env_check.py",
-              "type": "file"
-            },
-            {
-              "name": "sanity.py",
-              "type": "file"
-            },
-            {
-              "name": "test_env_core.py",
-              "type": "file"
-            },
-            {
-              "name": "test_llm.py",
-              "type": "file"
-            },
-            {
-              "name": "test_no_nan_forward.py",
-              "type": "file"
-            },
-            {
-              "name": "test_ps_metrics.py",
-              "type": "file"
-            },
-            {
-              "name": "test_rewards.py",
-              "type": "file"
-            },
-            {
-              "name": "test_rule_based_proposer.py",
-              "type": "file"
-            },
-            {
-              "name": "test_task_contracts.py",
-              "type": "file"
-            },
-            {
-              "name": "test_task_validation.py",
-              "type": "file"
-            },
-            {
-              "name": "test_train_config.py",
-              "type": "file"
-            }
-          ]
-        },
-        {
-          "name": "tools",
-          "type": "directory",
-          "children": [
-            {
-              "name": "diagnose_run.py",
-              "type": "file"
-            },
-            {
-              "name": "healthcheck.py",
-              "type": "file"
-            },
-            {
-              "name": "plot_ray_results.py",
-              "type": "file"
-            },
-            {
-              "name": "run_repo_python.sh",
-              "type": "file"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "tools",
-      "type": "directory",
-      "children": [
-        {
-          "name": "knowledge",
-          "type": "directory",
-          "children": [
-            {
-              "name": "bootstrap",
-              "type": "directory",
-              "children": [
-                {
-                  "name": "README.md",
-                  "type": "file"
-                },
-                {
-                  "name": "init_repo_knowledge.sh",
-                  "type": "file"
-                },
-                {
-                  "name": "templates",
-                  "type": "directory",
-                  "children": [
-                    {
-                      "name": "AGENTS.md.tpl",
-                      "type": "file"
-                    },
-                    {
-                      "name": "INDEX_STATUS.md.tpl",
-                      "type": "file"
-                    },
-                    {
-                      "name": "codex-config.toml.tpl",
-                      "type": "file"
-                    },
-                    {
-                      "name": "cursor-mcp.json.tpl",
-                      "type": "file"
-                    },
-                    {
-                      "name": "docs-knowledge-DECISIONS.md.tpl",
-                      "type": "file"
-                    },
-                    {
-                      "name": "docs-knowledge-EVAL.md.tpl",
-                      "type": "file"
-                    },
-                    {
-                      "name": "docs-knowledge-QUICKSTART.md.tpl",
-                      "type": "file"
-                    },
-                    {
-                      "name": "docs-knowledge-README.md.tpl",
-                      "type": "file"
-                    },
-                    {
-                      "name": "module_tree.json.tpl",
-                      "type": "file"
-                    },
-                    {
-                      "name": "wiki-README.md.tpl",
-                      "type": "file"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "name": "codex_with_gitnexus.sh",
-              "type": "file"
-            },
-            {
-              "name": "generate_wiki.sh",
-              "type": "file"
-            },
-            {
-              "name": "gitnexus.sh",
-              "type": "file"
-            },
-            {
-              "name": "index_repo.sh",
-              "type": "file"
-            },
-            {
-              "name": "lib.sh",
-              "type": "file"
-            },
-            {
-              "name": "post_commit_refresh.sh",
-              "type": "file"
-            },
-            {
-              "name": "pre_commit_advisory.sh",
-              "type": "file"
-            },
-            {
-              "name": "serve_http_mcp.sh",
-              "type": "file"
-            },
-            {
-              "name": "setup_gitnexus.sh",
-              "type": "file"
-            },
-            {
-              "name": "status.sh",
-              "type": "file"
-            },
-            {
-              "name": "sync_artifacts.py",
-              "type": "file"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "train_AZR.py",
-      "type": "file"
-    }
-  ]
-}
+[
+  {
+    "name": "Core Application",
+    "slug": "core-application",
+    "files": [
+      "itrader/__init__.py",
+      "itrader/__main__.py"
+    ]
+  },
+  {
+    "name": "Trading Environment",
+    "slug": "trading-environment",
+    "files": [
+      "itrader/envs/__init__.py",
+      "itrader/envs/itrader_env.py"
+    ]
+  },
+  {
+    "name": "Agent Architecture",
+    "slug": "agent-architecture",
+    "files": [
+      "itrader/agents/__init__.py",
+      "itrader/agents/solver_base.py",
+      "itrader/agents/proposer_lora.py",
+      "itrader/agents/solver_mlp.py"
+    ]
+  },
+  {
+    "name": "Neural Network Models",
+    "slug": "neural-network-models",
+    "files": [
+      "itrader/models/solver_MLP.py",
+      "itrader/models/solver_lstm.py",
+      "itrader/models/solver_mlp_film.py"
+    ]
+  },
+  {
+    "name": "LLM Integration",
+    "slug": "llm-integration",
+    "files": [
+      "itrader/llm/__init__.py",
+      "itrader/llm/engine.py",
+      "itrader/llm/proposer_llm.py"
+    ]
+  },
+  {
+    "name": "Task Proposers",
+    "slug": "task-proposers",
+    "files": [
+      "itrader/proposers/__init__.py",
+      "itrader/proposers/base.py",
+      "itrader/proposers/factory.py",
+      "itrader/proposers/_shared.py",
+      "itrader/proposers/ollama.py",
+      "itrader/proposers/openai_compat.py",
+      "itrader/proposers/rule_based.py"
+    ]
+  },
+  {
+    "name": "Data Pipeline",
+    "slug": "data-pipeline",
+    "files": [
+      "itrader/inputs/PA_helpers.py",
+      "itrader/inputs/backfill.py",
+      "itrader/inputs/etl_job.py",
+      "itrader/inputs/live_data.py"
+    ]
+  },
+  {
+    "name": "Task System",
+    "slug": "task-system",
+    "files": [
+      "itrader/rl_lib/tasks/spec.py",
+      "itrader/rl_lib/tasks/families.py",
+      "itrader/rl_lib/tasks/validation.py",
+      "itrader/rl_lib/tasks/candidate_task.py",
+      "itrader/rl_lib/tasks/capability_profile.py",
+      "itrader/rl_lib/tasks/decision_record.py",
+      "itrader/rl_lib/tasks/execution_intent.py",
+      "itrader/rl_lib/tasks/task_pool.py",
+      "itrader/rl_lib/tasks/samplers.py",
+      "itrader/rl_lib/tasks/encoder.py"
+    ]
+  },
+  {
+    "name": "Reward System",
+    "slug": "reward-system",
+    "files": [
+      "itrader/rl_lib/tasks/rewards.py"
+    ]
+  },
+  {
+    "name": "Training Pipeline",
+    "slug": "training-pipeline",
+    "files": [
+      "itrader/rl_lib/callbacks/auto_plotter.py",
+      "itrader/rl_lib/callbacks/ps_metrics.py",
+      "itrader/rl_lib/train/train_AZR.py",
+      "itrader/rl_lib/train/train_solo_V2.py",
+      "itrader/rl_lib/train/train_test.py",
+      "train_AZR.py"
+    ]
+  },
+  {
+    "name": "Experiment Scripts",
+    "slug": "experiment-scripts",
+    "files": [
+      "itrader/scripts/__init__.py",
+      "itrader/scripts/experiments/run_ablation.py",
+      "itrader/scripts/gen_task_pool.py",
+      "itrader/scripts/inspect_ckpt.py",
+      "itrader/scripts/pbt_output.py"
+    ]
+  },
+  {
+    "name": "Diagnostic Tools",
+    "slug": "diagnostic-tools",
+    "files": [
+      "itrader/tools/diagnose_run.py",
+      "itrader/tools/healthcheck.py",
+      "itrader/tools/plot_ray_results.py"
+    ]
+  },
+  {
+    "name": "Knowledge Management",
+    "slug": "knowledge-management",
+    "files": [
+      "tools/knowledge/status_summary.py",
+      "tools/knowledge/sync_artifacts.py"
+    ]
+  },
+  {
+    "name": "Other",
+    "slug": "other",
+    "files": [],
+    "children": [
+      {
+        "name": "Other — AGENTS.md",
+        "slug": "other-agents-md",
+        "files": [
+          "AGENTS.md"
+        ]
+      },
+      {
+        "name": "Other — PBT_SETUP_GUIDE.md",
+        "slug": "other-pbt-setup-guide-md",
+        "files": [
+          "PBT_SETUP_GUIDE.md"
+        ]
+      },
+      {
+        "name": "Other — README.md",
+        "slug": "other-readme-md",
+        "files": [
+          "README.md"
+        ]
+      },
+      {
+        "name": "Other — best_config.json",
+        "slug": "other-best-config-json",
+        "files": [
+          "best_config.json"
+        ]
+      },
+      {
+        "name": "Other — data",
+        "slug": "other-data",
+        "files": [
+          "data/queries.active"
+        ]
+      },
+      {
+        "name": "Other — data-wal",
+        "slug": "other-data-wal",
+        "files": [
+          "data/wal/00000000",
+          "data/wal/00000001",
+          "data/wal/00000002",
+          "data/wal/00000003",
+          "data/wal/00000004",
+          "data/wal/00000005"
+        ]
+      },
+      {
+        "name": "Other — docs",
+        "slug": "other-docs",
+        "files": [
+          "docs/architecture.md",
+          "docs/iTRADER_Codex_Implementation_Spec.md",
+          "docs/ops_runbook.md",
+          "docs/phase_b_handoff_2026-03-04.md",
+          "docs/phase_b_plan.md"
+        ]
+      },
+      {
+        "name": "Other — docs-daily_logs",
+        "slug": "other-docs-daily-logs",
+        "files": [
+          "docs/daily_logs/2026-02-15.md",
+          "docs/daily_logs/2026-03-03.md",
+          "docs/daily_logs/COMMANDS.md",
+          "docs/daily_logs/README.md",
+          "docs/daily_logs/_TEMPLATE.md"
+        ]
+      },
+      {
+        "name": "Other — docs-knowledge",
+        "slug": "other-docs-knowledge",
+        "files": [
+          "docs/knowledge/DECISIONS.md",
+          "docs/knowledge/EVAL.md",
+          "docs/knowledge/INDEX_STATUS.md",
+          "docs/knowledge/QUICKSTART.md",
+          "docs/knowledge/README.md",
+          "docs/knowledge/WORKFLOWS.md",
+          "docs/knowledge/module_tree.json",
+          "docs/knowledge/wiki/README.md"
+        ]
+      },
+      {
+        "name": "Other — env.lock.yml",
+        "slug": "other-env-lock-yml",
+        "files": [
+          "env.lock.yml"
+        ]
+      },
+      {
+        "name": "Other — itrader",
+        "slug": "other-itrader",
+        "files": [
+          "itrader/README.md",
+          "itrader/constraints.txt",
+          "itrader/environment.yml",
+          "itrader/pyproject.toml"
+        ]
+      },
+      {
+        "name": "Other — itrader-infra",
+        "slug": "other-itrader-infra",
+        "files": [
+          "itrader/infra/cluster.yaml"
+        ]
+      },
+      {
+        "name": "Other — itrader-rl_lib",
+        "slug": "other-itrader-rl-lib",
+        "files": [
+          "itrader/rl_lib/prometheus_ray.yml"
+        ]
+      },
+      {
+        "name": "Other — itrader-scripts",
+        "slug": "other-itrader-scripts",
+        "files": [
+          "itrader/scripts/experiments/README.md",
+          "itrader/scripts/experiments/configs/ablation_smoke_quick.json",
+          "itrader/scripts/experiments/configs/ablation_start_idx.example.json",
+          "itrader/scripts/experiments/configs/pbt_winner_retrain_compare_20260216.json",
+          "itrader/scripts/experiments/schemas/ablation.schema.json"
+        ]
+      },
+      {
+        "name": "Other — itrader-tests",
+        "slug": "other-itrader-tests",
+        "files": [
+          "itrader/tests/conftest.py",
+          "itrader/tests/env_check.py",
+          "itrader/tests/sanity.py",
+          "itrader/tests/test_env_core.py",
+          "itrader/tests/test_llm.py",
+          "itrader/tests/test_no_nan_forward.py",
+          "itrader/tests/test_ps_metrics.py",
+          "itrader/tests/test_rewards.py",
+          "itrader/tests/test_rule_based_proposer.py",
+          "itrader/tests/test_task_contracts.py",
+          "itrader/tests/test_task_validation.py",
+          "itrader/tests/test_train_config.py"
+        ]
+      },
+      {
+        "name": "Other — itrader-tools",
+        "slug": "other-itrader-tools",
+        "files": [
+          "itrader/tools/run_repo_python.sh"
+        ]
+      },
+      {
+        "name": "Other — tools-knowledge",
+        "slug": "other-tools-knowledge",
+        "files": [
+          "tools/knowledge/bootstrap/README.md",
+          "tools/knowledge/bootstrap/init_repo_knowledge.sh",
+          "tools/knowledge/bootstrap/templates/AGENTS.md.tpl",
+          "tools/knowledge/bootstrap/templates/INDEX_STATUS.md.tpl",
+          "tools/knowledge/bootstrap/templates/codex-config.toml.tpl",
+          "tools/knowledge/bootstrap/templates/cursor-mcp.json.tpl",
+          "tools/knowledge/bootstrap/templates/docs-knowledge-DECISIONS.md.tpl",
+          "tools/knowledge/bootstrap/templates/docs-knowledge-EVAL.md.tpl",
+          "tools/knowledge/bootstrap/templates/docs-knowledge-QUICKSTART.md.tpl",
+          "tools/knowledge/bootstrap/templates/docs-knowledge-README.md.tpl",
+          "tools/knowledge/bootstrap/templates/docs-knowledge-WORKFLOWS.md.tpl",
+          "tools/knowledge/bootstrap/templates/module_tree.json.tpl",
+          "tools/knowledge/bootstrap/templates/wiki-README.md.tpl",
+          "tools/knowledge/codex_with_gitnexus.sh",
+          "tools/knowledge/generate_wiki.sh",
+          "tools/knowledge/gitnexus.sh",
+          "tools/knowledge/index_repo.sh",
+          "tools/knowledge/lib.sh",
+          "tools/knowledge/post_commit_refresh.sh",
+          "tools/knowledge/pre_commit_advisory.sh",
+          "tools/knowledge/serve_http_mcp.sh",
+          "tools/knowledge/setup_gitnexus.sh",
+          "tools/knowledge/status.sh"
+        ]
+      }
+    ]
+  }
+]

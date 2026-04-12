@@ -10,6 +10,7 @@ Use `init_repo_knowledge.sh <target-repo-path>` to seed:
 - `.cursor/mcp.json`
 - `docs/knowledge/` skeleton files
 - `docs/knowledge/QUICKSTART.md`
+- `docs/knowledge/WORKFLOWS.md`
 
 Design goals:
 

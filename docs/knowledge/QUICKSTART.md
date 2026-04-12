@@ -14,7 +14,7 @@ This is the shortest path to test the GitNexus knowledge layer in `itrader-azr`.
 
 - `tools/knowledge/generate_wiki.sh`
 
-That is the only part of this rollout that needs an OpenAI-compatible chat endpoint.
+That is the only part of this rollout that needs an OpenAI-compatible chat endpoint. If `~/.gitnexus/config.json` is already configured, the repo-local wiki commands can use it directly.
 
 ## First-run bootstrap
 
@@ -57,6 +57,20 @@ Inside that session, GitNexus MCP is injected explicitly for this repo.
 
 Use this when you want the most deterministic Codex test path.
 
+If the GitNexus HTTP backend is already running, attach Codex to that shared backend instead:
+
+```bash
+GITNEXUS_USE_HTTP=1 tools/knowledge/codex_with_gitnexus.sh
+```
+
+Or point it at a custom GitNexus MCP endpoint:
+
+```bash
+GITNEXUS_MCP_URL=http://127.0.0.1:4747/api/mcp tools/knowledge/codex_with_gitnexus.sh
+```
+
+In that HTTP-backed mode, `codex mcp list` will show the shared backend as `gitnexus_http`.
+
 ### 3. Web UI / observability view
 
 Start the local backend:
@@ -74,6 +88,8 @@ The local backend is exposed at:
 ```text
 http://127.0.0.1:4747/api/mcp
 ```
+
+When the UI backend is already live, this HTTP-attached Codex path is usually the cleanest setup.
 
 If you want another machine on your LAN to use this Mac-hosted backend, use:
 
@@ -142,6 +158,12 @@ Example shape:
 
 ```bash
 tools/knowledge/generate_wiki.sh --base-url http://<host>:11434/v1 --api-key dummy --model <model-name>
+```
+
+If you prefer the lower-level wrapper, this also works and syncs the tracked Markdown wiki into `docs/knowledge/wiki/` afterward:
+
+```bash
+tools/knowledge/gitnexus.sh wiki --provider openai --base-url http://<host>:11434/v1 --api-key dummy --model <model-name>
 ```
 
 ## Bootstrap for another repo

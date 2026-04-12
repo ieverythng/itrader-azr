@@ -3,13 +3,13 @@
 - Repo: `itrader-azr`
 - Backend: GitNexus `1.5.3`
 - Local index: present
-- Indexed at: `2026-04-06T19:24:49.079Z`
-- Indexed commit: `78d4d4fc77a5d509af673e44d86479e980685a88`
-- Files: `122`
-- Nodes: `1038`
-- Edges: `2171`
-- Communities: `58`
-- Processes: `83`
+- Indexed at: `2026-04-07T01:56:03.721Z`
+- Indexed commit: `42595f2157b49a087f3183735cd22363fddef79b`
+- Files: `129`
+- Nodes: `1070`
+- Edges: `2212`
+- Communities: `59`
+- Processes: `86`
 - Embeddings: `0`
 
 Refresh commands:
