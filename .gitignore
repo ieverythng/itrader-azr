@@ -10649,3 +10649,6 @@ itrader/models/Qwen2.5-7B-Instruct/model.safetensors.index.txt
 .env.*
 !.env.example
 /.itrader_env
+/_external
+/_tmp
+/_tools
