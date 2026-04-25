@@ -1,6 +1,10 @@
 param(
     [string]$BaseUrl = "http://127.0.0.1:8080/v1",
-    [string]$Model = "qwen35-27b-q3km",
+    [ValidateSet("q3", "q4")]
+    [string]$Preset = "q3",
+    [ValidateSet("qwen35", "qwen36")]
+    [string]$ModelSeries = "qwen35",
+    [string]$Model = "",
     [string]$SystemPrompt = "You are a concise helpful assistant.",
     [string]$Prompt = "Reply with exactly CUDA_OK and nothing else.",
     [double]$Temperature = 0.7,
@@ -14,6 +18,15 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+
+if (-not $Model) {
+    switch ("{0}/{1}" -f $ModelSeries, $Preset) {
+        "qwen35/q3" { $Model = "qwen35-27b-q3km" }
+        "qwen35/q4" { $Model = "qwen35-27b-q4km" }
+        "qwen36/q3" { $Model = "qwen36-27b-q3km" }
+        "qwen36/q4" { $Model = "qwen36-27b-q4km" }
+    }
+}
 
 $headers = @{
     "Content-Type" = "application/json"

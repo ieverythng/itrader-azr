@@ -21,12 +21,14 @@ class OllamaProposer(BaseProposer):
         timeout_s: float = 60.0,
         temperature: float = 0.2,
         num_predict: int = 768,
+        disable_thinking: bool = True,
     ):
         self.model = str(model)
         self.base_url = str(base_url).rstrip("/")
         self.timeout_s = float(timeout_s)
         self.temperature = float(temperature)
         self.num_predict = int(num_predict)
+        self.disable_thinking = bool(disable_thinking)
 
     def _schema_hint(self) -> str:
         return schema_hint()
@@ -49,6 +51,8 @@ class OllamaProposer(BaseProposer):
                 "num_predict": self.num_predict,
             },
         }
+        if self.disable_thinking:
+            payload["think"] = False
         req = request.Request(
             f"{self.base_url}/api/generate",
             data=json.dumps(payload).encode("utf-8"),
@@ -66,7 +70,21 @@ class OllamaProposer(BaseProposer):
         except error.URLError as exc:
             raise RuntimeError(f"Ollama connection error at {self.base_url}: {exc}") from exc
         parsed = json.loads(body)
-        return str(parsed.get("response", "")).strip()
+        response_text = str(parsed.get("response", "")).strip()
+        if response_text:
+            return response_text
+        thinking_text = str(parsed.get("thinking", "")).strip()
+        if thinking_text:
+            done_reason = str(parsed.get("done_reason", "")).strip() or "unknown"
+            snippet = thinking_text[:240].replace("\n", " ")
+            raise RuntimeError(
+                "Ollama returned empty response text while thinking output was present "
+                f"(done_reason={done_reason}). Snippet: {snippet}"
+            )
+        raise RuntimeError(
+            "Ollama returned empty response text and no thinking output; "
+            "cannot parse proposer payload."
+        )
 
     def _parse_json_with_repair(self, text: str, expected_n: int) -> List[Dict[str, Any]]:
         return parse_json_with_repair(text, expected_n)

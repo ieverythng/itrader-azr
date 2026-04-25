@@ -2,6 +2,9 @@ param(
     [ValidateSet("q3", "q4")]
     [string]$Preset = "q3",
 
+    [ValidateSet("qwen35", "qwen36")]
+    [string]$ModelSeries = "qwen35",
+
     [string]$ModelPath = "",
     [string]$BinDir = "",
     [string]$BindHost = "127.0.0.1",
@@ -62,30 +65,54 @@ if (-not (Test-Path -LiteralPath $serverExe)) {
     throw "llama-server.exe not found at '$serverExe'"
 }
 
+function Get-FirstDefinedEnvValue([string[]]$Names) {
+    foreach ($name in $Names) {
+        $value = [Environment]::GetEnvironmentVariable($name)
+        if ($value) {
+            return $value
+        }
+    }
+
+    return $null
+}
+
+$modelCatalog = @{
+    qwen35 = @{
+        q3 = @{
+            env_vars = @("LLAMA_CPP_QWEN35_MODEL_Q3", "LLAMA_CPP_MODEL_Q3")
+            default_path = "D:\MODELS\Qwen3.5-27B-Q3_K_M.gguf"
+            alias = "qwen35-27b-q3km"
+        }
+        q4 = @{
+            env_vars = @("LLAMA_CPP_QWEN35_MODEL_Q4", "LLAMA_CPP_MODEL_Q4")
+            default_path = "D:\MODELS\Qwen3.5-27B.Q4_K_M.gguf"
+            alias = "qwen35-27b-q4km"
+        }
+    }
+    qwen36 = @{
+        q3 = @{
+            env_vars = @("LLAMA_CPP_QWEN36_MODEL_Q3")
+            default_path = "D:\MODELS\Qwen3.6-27B-Q3_K_M.gguf"
+            alias = "qwen36-27b-q3km"
+        }
+        q4 = @{
+            env_vars = @("LLAMA_CPP_QWEN36_MODEL_Q4")
+            default_path = "D:\MODELS\Qwen3.6-27B.Q4_K_M.gguf"
+            alias = "qwen36-27b-q4km"
+        }
+    }
+}
+
+$modelConfig = $modelCatalog[$ModelSeries][$Preset]
+
 if (-not $ModelPath) {
-    switch ($Preset) {
-        "q3" {
-            if ($env:LLAMA_CPP_MODEL_Q3) {
-                $ModelPath = $env:LLAMA_CPP_MODEL_Q3
-            }
-            else {
-                $ModelPath = "D:\MODELS\Qwen3.5-27B-Q3_K_M.gguf"
-            }
-            if (-not $Alias) {
-                $Alias = "qwen35-27b-q3km"
-            }
-        }
-        "q4" {
-            if ($env:LLAMA_CPP_MODEL_Q4) {
-                $ModelPath = $env:LLAMA_CPP_MODEL_Q4
-            }
-            else {
-                $ModelPath = "D:\MODELS\Qwen3.5-27B.Q4_K_M.gguf"
-            }
-            if (-not $Alias) {
-                $Alias = "qwen35-27b-q4km"
-            }
-        }
+    $ModelPath = Get-FirstDefinedEnvValue -Names $modelConfig.env_vars
+    if (-not $ModelPath) {
+        $ModelPath = $modelConfig.default_path
+    }
+
+    if (-not $Alias) {
+        $Alias = $modelConfig.alias
     }
 }
 
@@ -147,6 +174,8 @@ $quoted = @($serverExe) + $args | ForEach-Object {
 
 Write-Host "Repo root : $repoRoot"
 Write-Host "Binary dir: $BinDir"
+Write-Host "Series    : $ModelSeries"
+Write-Host "Preset    : $Preset"
 Write-Host "Model     : $ModelPath"
 Write-Host "Alias     : $Alias"
 Write-Host "URL       : http://$BindHost`:$Port"

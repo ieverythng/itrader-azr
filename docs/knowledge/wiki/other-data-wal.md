@@ -49,10 +49,10 @@ flowchart LR
     A[Write Operation] --> B[Append to Active Segment]
     B --> C[Flush to Disk]
     C --> D[Apply to MemTable]
-    
+
     E[Segment Full] --> F[Create New Segment]
     F --> G[Increment Number]
-    
+
     H[Compaction] --> I[Checkpoint Complete]
     I --> J[Delete Old Segments]
 ```

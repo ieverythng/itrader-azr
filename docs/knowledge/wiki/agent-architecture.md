@@ -64,20 +64,20 @@ classDiagram
         +act(obs) Action
         +learn(*args, **kwargs) void
     }
-    
+
     class SolverMLP {
         -model: nn.Module
         +act(obs) Action
         +learn(*args, **kwargs) void
     }
-    
+
     class ProposerLoRA {
         -base_model: nn.Module
         -lora_adapter: Module
         +propose(context) Proposal
         +learn(*args, **kwargs) void
     }
-    
+
     SolverBase <|-- SolverMLP
 ```
 
@@ -121,7 +121,7 @@ class MyCustomSolver(SolverBase):
     def act(self, obs):
         # Your action selection logic
         return action
-    
+
     def learn(self, *args, **kwargs):
         # Your learning update logic
         pass

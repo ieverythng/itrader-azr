@@ -213,14 +213,14 @@ def _get_metric(rec: Dict[str, Any], metric_key: str) -> Optional[float]:
     # 1. Direct key lookup
     if metric_key in rec:
         return _safe_float(rec.get(metric_key))
-    
+
     # 2. Nested under "custom_metrics"
     if metric_key.startswith("custom_metrics/"):
         sub = metric_key.split("/", 1)[1]
         cm = rec.get("custom_metrics")
         if isinstance(cm, dict) and sub in cm:
             return _safe_float(cm.get(sub))
-    
+
     # 3. Nested under "sampler_results"
     sr = rec.get("sampler_results")
     if isinstance(sr, dict):
@@ -251,13 +251,13 @@ flowchart LR
         C[run_ablation.py] --> D[Training Module]
         E[inspect_ckpt.py] --> F[pbt_output.py]
     end
-    
+
     subgraph External
         D --> G[ray_results/]
         F --> G
         A --> H[proposers/]
     end
-    
+
     subgraph Output
         C --> I[Comparison Plots]
         E --> J[Config Dump]

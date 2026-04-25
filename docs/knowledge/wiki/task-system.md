@@ -13,25 +13,25 @@ graph TB
         TaskFamilySpec[TaskFamilySpec]
         FamilyRegistry[Family Registry]
     end
-    
+
     subgraph "Validation Layer"
         ValidateTask[validate_and_clamp_task]
         ValidateCandidate[validate_candidate_task]
         ValidateDecision[validate_decision_record]
     end
-    
+
     subgraph "Storage & Sampling"
         TaskPool[TaskPool JSONL]
         TaskSampler[TaskSampler00]
     end
-    
+
     subgraph "Supporting Structures"
         CandidateTask[CandidateTask]
         ExecutionIntent[ExecutionIntent]
         CapabilityProfile[CapabilityProfile]
         DecisionRecord[DecisionRecord]
     end
-    
+
     TaskFamilySpec --> FamilyRegistry
     FamilyRegistry --> ValidateTask
     TaskSpec --> ValidateTask

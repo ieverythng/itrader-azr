@@ -2,6 +2,9 @@ param(
     [ValidateSet("q3", "q4")]
     [string]$Preset = "q3",
 
+    [ValidateSet("qwen35", "qwen36")]
+    [string]$ModelSeries = "qwen35",
+
     [string]$BindHost = "127.0.0.1",
     [int]$Port = 8080,
     [int]$ContextSize = 16384,
@@ -39,14 +42,62 @@ function Get-Models([int]$HealthPort) {
     }
 }
 
+function Get-ExpectedAlias(
+    [string]$RequestedSeries,
+    [string]$RequestedPreset,
+    [string]$RequestedAlias,
+    [string]$RequestedModelPath
+) {
+    if ($RequestedAlias) {
+        return $RequestedAlias
+    }
+
+    if ($RequestedModelPath) {
+        return [IO.Path]::GetFileNameWithoutExtension($RequestedModelPath)
+    }
+
+    switch ("{0}/{1}" -f $RequestedSeries, $RequestedPreset) {
+        "qwen35/q3" { return "qwen35-27b-q3km" }
+        "qwen35/q4" { return "qwen35-27b-q4km" }
+        "qwen36/q3" { return "qwen36-27b-q3km" }
+        "qwen36/q4" { return "qwen36-27b-q4km" }
+        default { return $null }
+    }
+}
+
+$requestedAlias = Get-ExpectedAlias `
+    -RequestedSeries $ModelSeries `
+    -RequestedPreset $Preset `
+    -RequestedAlias $Alias `
+    -RequestedModelPath $ModelPath
+
 if (Test-Path -LiteralPath $stateFile) {
     try {
         $state = Get-Content $stateFile -Raw | ConvertFrom-Json
         if ($state.port -eq $Port -and (Test-Health -HealthPort $Port)) {
-            Write-Host ("Already running on http://127.0.0.1:{0}" -f $Port)
             $models = Get-Models -HealthPort $Port
+            $currentModelIds = @()
             if ($models -and $models.data) {
-                Write-Host ("Model(s): {0}" -f (($models.data | ForEach-Object { $_.id }) -join ", "))
+                $currentModelIds = @($models.data | ForEach-Object { $_.id })
+            }
+
+            $currentSummary = $null
+            if ($currentModelIds.Count -gt 0) {
+                $currentSummary = $currentModelIds -join ", "
+            }
+            elseif ($state.alias) {
+                $currentSummary = $state.alias
+            }
+
+            if ($requestedAlias -and $currentSummary -and ($currentModelIds.Count -eq 0 -or ($currentModelIds -notcontains $requestedAlias))) {
+                Write-Host ("Port {0} is already serving '{1}', not requested '{2}'." -f $Port, $currentSummary, $requestedAlias)
+                Write-Host "Stop the existing server or choose a different port."
+                exit 1
+            }
+
+            Write-Host ("Already running on http://127.0.0.1:{0}" -f $Port)
+            if ($currentSummary) {
+                Write-Host ("Model(s): {0}" -f $currentSummary)
             }
             exit 0
         }
@@ -62,6 +113,7 @@ $argList = @(
     "-ExecutionPolicy", "Bypass",
     "-File", $launcher,
     "-Preset", $Preset,
+    "-ModelSeries", $ModelSeries,
     "-BindHost", $BindHost,
     "-Port", $Port,
     "-ContextSize", $ContextSize,
@@ -91,6 +143,7 @@ $proc = Start-Process -FilePath "powershell.exe" `
 
 $state = [ordered]@{
     preset = $Preset
+    model_series = $ModelSeries
     bind_host = $BindHost
     port = $Port
     pid = $proc.Id

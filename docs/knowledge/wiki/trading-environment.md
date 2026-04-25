@@ -26,14 +26,14 @@ flowchart TB
         C --> D[Initialize TaskSampler]
         D --> E[Define Observation Space]
     end
-    
+
     subgraph Reset["reset()"]
         F[Sample Task] --> G[Choose Start Index]
         G --> H[Reset Episode State]
         H --> I[Generate Task Embedding]
         I --> J[Build Observation]
     end
-    
+
     subgraph Step["step(action)"]
         K[Map Action to Position] --> L[Advance Index]
         L --> M[Compute Return/PnL]
@@ -42,7 +42,7 @@ flowchart TB
         O --> P[Compute Reward]
         P --> Q[Build Next Observation]
     end
-    
+
     Init --> Reset --> Step
 ```
 

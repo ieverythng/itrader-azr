@@ -4,6 +4,8 @@ import json
 import re
 from typing import Any, Dict, List
 
+from itrader.rl_lib.tasks.families import llm_constraints_text
+
 
 _JSON_PATTERNS = (r"\[[\s\S]*\]", r"\{[\s\S]*\}")
 _TASK_SCHEMA_HINT = (
@@ -16,7 +18,7 @@ _TASK_SCHEMA_HINT = (
 
 
 def schema_hint() -> str:
-    return _TASK_SCHEMA_HINT
+    return f"{_TASK_SCHEMA_HINT} {llm_constraints_text()}"
 
 
 def normalize_count(n: int) -> int:

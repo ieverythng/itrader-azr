@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -10,20 +11,7 @@ from .spec import TaskSpec
 
 
 class TaskSampler00:
-    """Samples TaskSpec for family ("00").
-
-    env_config example:
-    {
-      "price_ids": ["AAPL", "BTCUSDT"],
-      "horizon": [64, 128, 256],
-      "reward_ids": ["pnl_sharpe"],
-      "reward_params": {"pnl_w": 1.0, "dd_w": 0.1, "turnover_w": 0.0},      "window_size": 30,
-      "n_features": 5,
-      "t_embed_dim": 32,
-      "action_dim": 3,
-      "seed": 1234
-    }
-    """
+    """Samples TaskSpec for family ("00")."""
 
     def __init__(self, env_config: Dict[str, Any]):
         self.cfg = env_config
@@ -89,6 +77,7 @@ class TaskSampler00:
         task_dict = dict(pool_tasks[0])
         task_dict.update(self._task_shape())
         task_dict["seed"] = self._sample_seed()
+        task_dict.setdefault("family_id", "00")
         task_dict.setdefault("bar_resolution", self.bar_resolution)
         return TaskSpec.from_dict(task_dict)
 

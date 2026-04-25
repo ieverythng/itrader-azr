@@ -92,7 +92,7 @@ Post-PBT analysis workflow:
 # Standard extraction pattern
 analysis = tune.ExperimentAnalysis("~/ray_results/Phase_A")
 df_sorted = analysis.results_df.sort_values(
-    'custom_metrics/episode_return_mean', 
+    'custom_metrics/episode_return_mean',
     ascending=False
 )
 best_config = analysis.best_config

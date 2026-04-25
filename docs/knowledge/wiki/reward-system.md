@@ -12,30 +12,30 @@ graph TD
         REG[_REGISTRY]
         RS[RewardSpec]
     end
-    
+
     subgraph Engine
         RE[RewardEngine]
         RE -->|compute| REG
         RE -->|normalize_params| REG
         RE -->|sample_params| REG
     end
-    
+
     subgraph Functions
         RPL[reward_pnl_linear]
         RPS[reward_pnl_sharpe]
         RCL[reward_composed_linear]
     end
-    
+
     RPL -->|register| REG
     RPS -->|register| REG
     RCL -->|register| REG
-    
+
     subgraph Consumers
         ENV[itrader_env.step]
         VAL[validation.validate_and_clamp_task]
         SAM[samplers._reward_params_for]
     end
-    
+
     ENV -->|compute| RE
     VAL -->|normalize_params| RE
     SAM -->|sample_params| RE
@@ -287,7 +287,7 @@ sequenceDiagram
     participant Engine as RewardEngine
     participant Spec as RewardSpec
     participant Normalizer
-    
+
     Caller->>Engine: sample_params(id, rng)
     Engine->>Spec: get from registry
     Spec->>Normalizer: sample_params(rng)

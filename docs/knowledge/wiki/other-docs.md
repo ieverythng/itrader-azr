@@ -24,15 +24,15 @@ The `docs/` module contains the canonical planning, architecture, and operationa
 flowchart LR
     A[Phase A<br/>Baseline Training] --> B[Phase B<br/>Proposer-Solver Loop]
     B --> C[Phase C<br/>Offline/Online Coupled]
-    
+
     A --> A1[solo_V2 training]
     A --> A2[TaskSpec contracts]
     A --> A3[PPO + FiLM solver]
-    
+
     B --> B1[CurriculumProposer]
     B --> B2[Multi-head solver]
     B --> B3[CapabilityProfile]
-    
+
     C --> C1[MarketFramer]
     C --> C2[DecisionGate]
     C --> C3[RiskEngine]

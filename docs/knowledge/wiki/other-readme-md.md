@@ -33,12 +33,12 @@ flowchart TB
         Env["ITraderEnv<br/>(Gymnasium environment)"]
         Reward["Reward Registry<br/>(pnl_linear, pnl_sharpe, composed_linear)"]
     end
-    
+
     subgraph PhaseB["Phase B (Active Development)"]
         Proposer["LLM Proposer<br/>(task curriculum generation)"]
         TaskPool["Task Pool"]
     end
-    
+
     Proposer --> TaskPool
     TaskPool --> Sampler
     TaskSpec --> Sampler

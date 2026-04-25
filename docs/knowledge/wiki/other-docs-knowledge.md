@@ -19,19 +19,19 @@ graph LR
         DECISIONS[DECISIONS.md]
         EVAL[EVAL.md]
     end
-    
+
     subgraph "GitNexus Backend"
         DB[(.gitnexus/)]
         CLI[gitnexus CLI]
         MCP[MCP Server]
     end
-    
+
     subgraph "Consumers"
         CODEX[Codex]
         CURSOR[Cursor]
         WEB[Web UI]
     end
-    
+
     CLI --> DB
     MCP --> DB
     CODEX --> MCP

@@ -9,25 +9,25 @@ This module provides custom PyTorch neural network models for RLlib-based reinfo
 ```mermaid
 graph TB
     subgraph "Model Hierarchy"
-        A[TorchModelV2] 
+        A[TorchModelV2]
         B[nn.Module]
         C[SolverMLPModel]
         D[SolverLSTMModel]
         E[SolverMLPFiLM]
     end
-    
+
     A --> C
     B --> C
     A --> D
     B --> D
     A --> E
     B --> E
-    
+
     subgraph "Output Heads"
         F[Policy Head pi]
         G[Value Head vf]
     end
-    
+
     C --> F
     C --> G
     D --> F
@@ -40,7 +40,7 @@ graph TB
 
 ### SolverMLPModel
 
-**File:** `itrader/models/solver_MLP.py`  
+**File:** `itrader/models/solver_MLP.py`
 **Registration name:** `"solver_mlp"`
 
 A straightforward multi-layer perceptron for policy and value estimation. Best suited for environments where observations are already feature-engineered or don't require temporal modeling.
@@ -74,7 +74,7 @@ The model expects flat observations and processes them through a 2-layer MLP tru
 
 ### SolverLSTMModel
 
-**File:** `itrader/models/solver_lstm.py`  
+**File:** `itrader/models/solver_lstm.py`
 **Registration name:** `"solver_lstm_v2"`
 
 An LSTM-based model for temporal sequence processing. Reshapes flat observations into a time series format before processing.
@@ -103,7 +103,7 @@ def forward(self, input_dict, state, seq_lens):
     x = F.relu(self.fc(x))                    # (B, T, 128)
     seq, _ = self.lstm(x)                     # (B, T, 64)
     h = seq[:, -1]                            # Last timestep (B, 64)
-    
+
     logits = self.pi(h)
     self._value_out = self.vf(h).squeeze(-1)
     return logits, state
@@ -115,7 +115,7 @@ The model extracts the final LSTM hidden state for policy and value prediction.
 
 ### SolverMLPFiLM
 
-**File:** `itrader/models/solver_mlp_film.py`  
+**File:** `itrader/models/solver_mlp_film.py`
 **Registration name:** Not registered by default (instantiate directly)
 
 An MLP with Feature-wise Linear Modulation (FiLM) conditioning. Designed for multi-task learning where a task embedding modulates the network's hidden representations.
@@ -169,13 +169,13 @@ This allows the task embedding to scale and shift hidden activations, enabling t
 def forward(self, input_dict, state, seq_lens):
     x = torch.nan_to_num(input_dict["obs"].float())  # NaN handling
     price, task_embed = self._split_obs(x)
-    
+
     if self.training and self.t_keep_p < 1.0:
         task_embed = self.dropout(task_embed)
-    
+
     hidden = self.trunk(price)
     hidden = self._condition_hidden(hidden, task_embed)
-    
+
     logits = self.pi(hidden)
     self._value_out = self.vf(hidden).squeeze(-1)
     return logits, state

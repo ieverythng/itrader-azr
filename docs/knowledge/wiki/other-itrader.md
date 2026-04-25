@@ -25,23 +25,23 @@ graph TB
         GYM[Gymnasium]
         PZ[PettingZoo]
     end
-    
+
     subgraph "Data Layer"
         PANDAS[Pandas 2.2]
         DUCK[DuckDB 0.10.2]
         ARROW[PyArrow 13.0]
     end
-    
+
     subgraph "Trading"
         TA[Technical Analysis]
         VBT[VectorBT 0.26]
     end
-    
+
     subgraph "LLM Integration"
         TRANS[Transformers 4.41]
         LLAMA[llama-cpp-python]
     end
-    
+
     RL --> GYM
     RL --> PZ
     PANDAS --> DUCK

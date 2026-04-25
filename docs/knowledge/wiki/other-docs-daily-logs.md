@@ -85,21 +85,21 @@ Closing section aggregates session outcomes:
 ### During Session
 
 ```
-Append an automatic daily log entry to docs/daily_logs/YYYY-MM-DD.md 
+Append an automatic daily log entry to docs/daily_logs/YYYY-MM-DD.md
 with what changed, why, validation, and follow-ups.
 ```
 
 ### End Of Session
 
 ```
-Generate daily log for today and append a final AUTOMATIC DAILY LOG 
+Generate daily log for today and append a final AUTOMATIC DAILY LOG
 section to docs/daily_logs/YYYY-MM-DD.md.
 ```
 
 ### Notion Export
 
 ```
-Generate a Notion-ready daily summary from docs/daily_logs/YYYY-MM-DD.md 
+Generate a Notion-ready daily summary from docs/daily_logs/YYYY-MM-DD.md
 with sections: Outcomes, Changes, Validation, Pending.
 ```
 
@@ -139,7 +139,7 @@ The COMMANDS.md file includes a prompt template for generating Notion-compatible
 ### Entry 14:32
 - Change: added `itrader/tools/healthcheck.py` for environment diagnostics
 - Why: introduce repeatable pre-commit checks for faster debugging
-- Validation: healthcheck script compiled; runtime execution pending 
+- Validation: healthcheck script compiled; runtime execution pending
   environment dependency setup
 - Notes: pre-commit hooks include hygiene checks, healthcheck, and tests
 ```

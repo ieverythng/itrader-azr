@@ -4,12 +4,14 @@ LLM-based task proposer using Transformers + bitsandbytes for 4-bit quantization
 Generates TaskSpec JSON from market summaries without requiring training loop integration.
 """
 from __future__ import annotations
-from typing import List, Dict, Any, Optional
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
-import torch
 
-from itrader.proposers.base import BaseProposer
+from typing import Any, Dict, List, Optional
+
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+
 from itrader.proposers._shared import parse_json_with_repair, schema_hint as shared_schema_hint
+from itrader.proposers.base import BaseProposer
 
 
 class ProposerLLM(BaseProposer):
@@ -34,14 +36,12 @@ class ProposerLLM(BaseProposer):
                     load_in_4bit=True,
                     bnb_4bit_compute_dtype=torch.float16,
                     bnb_4bit_use_double_quant=True,
-                    bnb_4bit_quant_type="nf4"
+                    bnb_4bit_quant_type="nf4",
                 )
             except Exception:
-                # Fallback to full precision if bitsandbytes not available
                 print("Warning: bitsandbytes not available, loading model in full precision")
                 quantization_config = None
 
-        # Load tokenizer and model
         print(f"Loading {model_id} on {self.device}...")
         self.tokenizer = AutoTokenizer.from_pretrained(model_id)
         if quantization_config:
@@ -58,7 +58,7 @@ class ProposerLLM(BaseProposer):
                 trust_remote_code=True,
             )
         self.model.eval()
-        print(f"Model loaded successfully.")
+        print("Model loaded successfully.")
 
     def generate_tasks(
         self,
@@ -70,16 +70,6 @@ class ProposerLLM(BaseProposer):
     ) -> List[Dict[str, Any]]:
         """
         Generate n TaskSpec dicts from market summary.
-
-        Args:
-            market_summary: Text description of market conditions/context
-            n: Number of tasks to generate
-            schema_hint: Optional schema description (if None, uses default)
-            temperature: Sampling temperature
-            max_new_tokens: Max tokens to generate
-
-        Returns:
-            List of TaskSpec dicts (may be empty if parsing fails)
         """
         if schema_hint is None:
             schema_hint = shared_schema_hint()
@@ -92,10 +82,8 @@ Task Schema: {schema_hint}
 
 Generate {n} tasks as a JSON array of objects. Each object must be a valid TaskSpec. Return ONLY the JSON array, no additional text."""
 
-        # Tokenize
         inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
 
-        # Generate
         with torch.no_grad():
             outputs = self.model.generate(
                 **inputs,
@@ -105,15 +93,9 @@ Generate {n} tasks as a JSON array of objects. Each object must be a valid TaskS
                 pad_token_id=self.tokenizer.eos_token_id,
             )
 
-        # Decode
         generated_text = self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-        # Extract JSON (remove prompt part)
-        json_text = generated_text[len(prompt):].strip()
-
-        # Parse JSON with repair
-        tasks = self._parse_json_with_repair(json_text, n)
-        return tasks
+        json_text = generated_text[len(prompt) :].strip()
+        return self._parse_json_with_repair(json_text, n)
 
     def propose_tasks(self, market_summary: str, n: int, **kwargs: Any) -> List[Dict[str, Any]]:
         return self.generate_tasks(market_summary=market_summary, n=n, **kwargs)

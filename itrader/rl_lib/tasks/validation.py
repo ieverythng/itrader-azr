@@ -3,7 +3,7 @@ from __future__ import annotations
 import random
 from typing import Any, Dict, List, Optional
 
-from .families import get_family_spec
+from .families import get_family_spec, normalize_family_id
 from .rewards import RewardEngine
 from .spec import normalize_task_spec_payload
 
@@ -80,7 +80,7 @@ def validate_and_clamp_task(
     if fallback_seed is None:
         fallback_seed = random.randint(0, 1_000_000)
 
-    out["family_id"] = str(out.get("family_id", "00"))
+    out["family_id"] = normalize_family_id(out.get("family_id", "00"))
     family = get_family_spec(out["family_id"])
     out["price_id"] = str(out.get("price_id", "SIM"))
     out["reward_id"] = str(
@@ -245,7 +245,7 @@ def validate_candidate_task(
 
 def validate_capability_profile(profile_dict: Dict[str, Any] | None) -> Dict[str, Any]:
     raw = dict(profile_dict or {})
-    task_family = str(raw.get("task_family", raw.get("family_id", "00")))
+    task_family = normalize_family_id(raw.get("task_family", raw.get("family_id", "00")))
     bar_resolution = str(raw.get("bar_resolution", "1m"))
     horizon_bars = _as_int(raw.get("horizon_bars", raw.get("horizon", 0)), 0)
     return {

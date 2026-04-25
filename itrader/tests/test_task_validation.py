@@ -138,3 +138,12 @@ def test_task_sampler_uses_reward_specific_params_for_sampled_reward():
     assert "dd_w" in task.reward_params
     assert "turnover_w" in task.reward_params
     assert "dd_mode" not in task.reward_params
+
+
+def test_validation_normalizes_numeric_family_ids():
+    task = validate_and_clamp_task(
+        {"family_id": 2, "reward_id": "pnl_linear"},
+        {"window_size": 30, "n_features": 5, "t_embed_dim": 32, "action_dim": 3},
+        fallback_seed=222,
+    )
+    assert task["family_id"] == "02"

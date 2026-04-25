@@ -9,12 +9,13 @@ from __future__ import annotations
 import argparse
 import os
 import random
-from typing import Dict, Any
+from typing import Any, Dict
 
 from itrader.proposers import build_proposer
 from itrader.rl_lib.tasks.families import DEFAULT_BAR_RESOLUTION
-from itrader.rl_lib.tasks.task_pool import TaskPool
+from itrader.rl_lib.tasks.market_summary import build_market_summary_from_ohlcv_path
 from itrader.rl_lib.tasks.spec import TaskSpec
+from itrader.rl_lib.tasks.task_pool import TaskPool
 from itrader.rl_lib.tasks.validation import validate_and_clamp_task
 
 
@@ -56,6 +57,12 @@ def _parse_args() -> argparse.Namespace:
         type=float,
         default=0.2,
         help="Ollama generation temperature",
+    )
+    parser.add_argument(
+        "--ollama_num_predict",
+        type=int,
+        default=768,
+        help="Ollama max generated tokens per request",
     )
     parser.add_argument(
         "--api_model",
@@ -115,6 +122,31 @@ def _parse_args() -> argparse.Namespace:
         default="Generate diverse trading tasks with varying horizons and reward parameters.",
         help="Market summary/context for task generation",
     )
+    parser.add_argument(
+        "--market_summary_mode",
+        type=str,
+        choices=["static", "ohlcv_window"],
+        default="static",
+        help="How to build market_summary text for proposer calls",
+    )
+    parser.add_argument(
+        "--summary_df_path",
+        type=str,
+        default="itrader/data/ohlcv.parquet",
+        help="Parquet path used when --market_summary_mode ohlcv_window",
+    )
+    parser.add_argument(
+        "--summary_window",
+        type=int,
+        default=256,
+        help="Rows for market summary window (ohlcv_window mode)",
+    )
+    parser.add_argument(
+        "--summary_end_idx",
+        type=int,
+        default=-1,
+        help="Inclusive end index for summary window, -1 means latest row",
+    )
     return parser.parse_args()
 
 
@@ -127,6 +159,7 @@ def _build_proposer_from_args(args: argparse.Namespace):
             base_url=args.ollama_base_url,
             timeout_s=args.ollama_timeout_s,
             temperature=args.ollama_temperature,
+            num_predict=args.ollama_num_predict,
         )
     if args.backend in {"vllm", "sglang"}:
         print(f"Initializing {args.backend} proposer with model: {args.api_model} @ {args.api_base_url}")
@@ -172,9 +205,33 @@ def _metadata(args: argparse.Namespace) -> Dict[str, Any]:
     return meta
 
 
+def _market_summary(args: argparse.Namespace) -> str:
+    if args.market_summary_mode == "static":
+        return str(args.market_summary)
+
+    end_idx = int(args.summary_end_idx)
+    if end_idx < 0:
+        end_idx = None
+
+    try:
+        summary = build_market_summary_from_ohlcv_path(
+            args.summary_df_path,
+            window_size=int(args.summary_window),
+            end_idx=end_idx,
+        )
+        print("Using generated market summary from OHLCV window:")
+        print(summary)
+        return summary
+    except Exception as e:
+        print(f"Warning: failed to generate market summary from data: {e}")
+        print("Falling back to static --market_summary text.")
+        return str(args.market_summary)
+
+
 def main() -> int:
     args = _parse_args()
     random.seed(args.seed)
+    market_summary = _market_summary(args)
 
     proposer = _build_proposer_from_args(args)
     pool = TaskPool(args.out, read_only=False)
@@ -202,7 +259,7 @@ def main() -> int:
 
         try:
             raw_tasks = proposer.propose_tasks(
-                market_summary=args.market_summary,
+                market_summary=market_summary,
                 n=current_batch,
             )
         except Exception as e:

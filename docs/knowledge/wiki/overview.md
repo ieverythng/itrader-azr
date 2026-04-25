@@ -24,41 +24,41 @@ flowchart TB
         CLI[CLI Main]
         TRAIN[Training Pipeline]
     end
-    
+
     subgraph Core["Core Runtime"]
         ENV[Trading Environment]
         AGENT[Agent Architecture]
         MODELS[Neural Network Models]
     end
-    
+
     subgraph TaskLayer["Task & Reward Layer"]
         TASKS[Task System]
         REWARDS[Reward System]
         PROPOSERS[Task Proposers]
     end
-    
+
     subgraph Intelligence["Intelligence Layer"]
         LLM[LLM Integration]
     end
-    
+
     subgraph Data["Data Layer"]
         DATA[Data Pipeline]
     end
-    
+
     CLI --> TRAIN
     TRAIN --> ENV
     TRAIN --> TASKS
     TRAIN --> PROPOSERS
-    
+
     ENV --> TASKS
     ENV --> REWARDS
     ENV --> AGENT
     AGENT --> MODELS
-    
+
     TASKS --> REWARDS
     PROPOSERS --> REWARDS
     PROPOSERS --> LLM
-    
+
     DATA --> ENV
 ```
 

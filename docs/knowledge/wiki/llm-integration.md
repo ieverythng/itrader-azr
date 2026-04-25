@@ -22,7 +22,7 @@ graph TD
     D --> F[schema_hint]
     B --> G[Transformers Model]
     G --> H[4-bit Quantization]
-    
+
     I[engine.py] --> J[Llama GGUF]
     J --> K[GPU Layers]
 ```
@@ -150,12 +150,12 @@ sequenceDiagram
     participant P as ProposerLLM
     participant M as Transformers Model
     participant S as Shared Utils
-    
+
     F->>P: ProposerLLM()
     P->>M: Load with 4-bit quantization
-    
+
     Note over P: Later...
-    
+
     P->>P: propose_tasks()
     P->>P: generate_tasks()
     P->>S: schema_hint()

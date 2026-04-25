@@ -48,6 +48,15 @@ Write-Host ("Healthy: {0}" -f $healthy)
 if ($state) {
     Write-Host ("PID: {0}" -f $state.pid)
     Write-Host ("Started: {0}" -f $state.started_at)
+    if ($state.model_series) {
+        Write-Host ("Model series: {0}" -f $state.model_series)
+    }
+    if ($state.alias) {
+        Write-Host ("Alias: {0}" -f $state.alias)
+    }
+    if ($state.model_path) {
+        Write-Host ("Model path: {0}" -f $state.model_path)
+    }
     Write-Host ("stdout: {0}" -f $state.stdout_log)
     Write-Host ("stderr: {0}" -f $state.stderr_log)
     if (-not $healthy) {
