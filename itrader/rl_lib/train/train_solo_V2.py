@@ -32,7 +32,7 @@ from itrader.rl_lib.callbacks.ps_metrics import PSMetrics
 
 from gymnasium.envs.registration import EnvSpec
 
-EXPERIMENT_NAME = "Phase_A"
+EXPERIMENT_NAME = "Phase_B"
 DEFAULT_T_EMBED_DIM = 32
 DEFAULT_FCNET_HIDDENS = [256, 256]
 DEFAULT_TASK_HORIZONS = [96, 128, 160, 200]

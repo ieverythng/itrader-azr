@@ -1,5 +1,7 @@
 from types import SimpleNamespace
 
+import numpy as np
+
 from itrader.rl_lib.callbacks.ps_metrics import PSMetrics
 
 
@@ -28,3 +30,8 @@ def test_ps_metrics_emits_dynamic_reward_component_metrics():
     assert episode.custom_metrics["episode_return"] == 1.25
     assert episode.custom_metrics["act_0_frac"] == 0.5
     assert episode.custom_metrics["act_2_frac"] == 0.5
+
+
+def test_ps_metrics_accepts_numpy_action_counts():
+    counts = PSMetrics._normalized_action_counts(np.array([1, 2, 3]))
+    assert counts == [1.0, 2.0, 3.0]

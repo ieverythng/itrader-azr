@@ -17,6 +17,8 @@ _PROPOSER_FACTORIES = {
     "openai": OpenAICompatProposer,
     "openai_compat": OpenAICompatProposer,
     "openai_compatible": OpenAICompatProposer,
+    "llama_cpp": OpenAICompatProposer,
+    "llamacpp": OpenAICompatProposer,
     "vllm": OpenAICompatProposer,
     "sglang": OpenAICompatProposer,
 }

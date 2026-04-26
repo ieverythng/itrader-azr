@@ -25,7 +25,7 @@ def _parse_args() -> argparse.Namespace:
         "--backend",
         type=str,
         default="rule_based",
-        choices=["rule_based", "llm", "ollama", "vllm", "sglang"],
+        choices=["rule_based", "llm", "ollama", "openai_compat", "llama_cpp", "vllm", "sglang"],
         help="Proposer backend",
     )
     parser.add_argument(
@@ -161,7 +161,7 @@ def _build_proposer_from_args(args: argparse.Namespace):
             temperature=args.ollama_temperature,
             num_predict=args.ollama_num_predict,
         )
-    if args.backend in {"vllm", "sglang"}:
+    if args.backend in {"openai_compat", "llama_cpp", "vllm", "sglang"}:
         print(f"Initializing {args.backend} proposer with model: {args.api_model} @ {args.api_base_url}")
         token = os.getenv(args.api_key_env, "").strip()
         return build_proposer(
@@ -199,7 +199,7 @@ def _metadata(args: argparse.Namespace) -> Dict[str, Any]:
     elif args.backend == "ollama":
         meta["model_id"] = args.ollama_model
         meta["base_url"] = args.ollama_base_url
-    elif args.backend in {"vllm", "sglang"}:
+    elif args.backend in {"openai_compat", "llama_cpp", "vllm", "sglang"}:
         meta["model_id"] = args.api_model
         meta["base_url"] = args.api_base_url
     return meta
@@ -249,17 +249,25 @@ def main() -> int:
     n_generated = 0
     n_valid = 0
     n_invalid = 0
+    n_duplicate = 0
     empty_batches = 0
     backend_errors = 0
+    max_attempts = max(int(args.n_tasks), int(args.n_tasks) * 10)
 
     print(f"Generating {args.n_tasks} tasks...")
-    while n_generated < args.n_tasks:
-        remaining = args.n_tasks - n_generated
+    while n_valid < args.n_tasks and n_generated < max_attempts:
+        remaining = args.n_tasks - n_valid
         current_batch = min(max(1, args.batch_size), remaining)
+        batch_context = (
+            f"{market_summary}\n\n"
+            f"Generation batch index: {n_generated // max(1, args.batch_size)}. "
+            "Avoid exact duplicates of previously generated tasks by varying seed, horizon, "
+            "start_idx, reward parameters, regime tags, or metadata where valid."
+        )
 
         try:
             raw_tasks = proposer.propose_tasks(
-                market_summary=market_summary,
+                market_summary=batch_context,
                 n=current_batch,
             )
         except Exception as e:
@@ -289,8 +297,12 @@ def main() -> int:
                     fallback_seed=random.randint(0, 1_000_000),
                 )
                 TaskSpec.from_dict(validated_task)
+                size_before = pool.size()
                 pool.add(validated_task, meta=meta)
-                n_valid += 1
+                if pool.size() > size_before:
+                    n_valid += 1
+                else:
+                    n_duplicate += 1
                 if n_valid % 10 == 0:
                     print(f"  Generated {n_valid} valid tasks (attempts: {n_generated})")
             except Exception as e:
@@ -300,7 +312,9 @@ def main() -> int:
 
     print("\nGeneration complete")
     print(f"  Valid tasks added: {n_valid}")
+    print(f"  Duplicate tasks skipped: {n_duplicate}")
     print(f"  Invalid tasks dropped: {n_invalid}")
+    print(f"  Total proposer attempts: {n_generated}")
     print(f"  Final pool size: {pool.size()}")
     print(f"  Output file: {args.out}")
     return 0

@@ -40,6 +40,25 @@ def test_task_spec_from_dict_supports_aliases_and_serializes_canonical_fields():
     assert payload["reward_id"] == "pnl_sharpe"
 
 
+def test_task_spec_from_dict_drops_duplicate_alias_fields():
+    spec = TaskSpec.from_dict(
+        {
+            "task_family": "01",
+            "family_id": "00",
+            "price_id": "SIM",
+            "horizon_bars": 24,
+            "horizon": 96,
+            "reward_id": "pnl_linear",
+            "reward_params": {},
+            "seed": 1,
+            "obs_dim": 182,
+            "action_dim": 3,
+        }
+    )
+    assert spec.family_id == "00"
+    assert spec.horizon == 96
+
+
 def test_execution_intent_validation_clamps_bounds():
     intent = validate_and_clamp_execution_intent(
         {

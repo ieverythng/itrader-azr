@@ -70,6 +70,11 @@ def test_factory_builds_vllm_proposer():
     assert isinstance(proposer, OpenAICompatProposer)
 
 
+def test_factory_builds_llama_cpp_proposer():
+    proposer = build_proposer("llama_cpp", model="qwen36-27b-q3km", base_url="http://localhost:8080/v1")
+    assert isinstance(proposer, OpenAICompatProposer)
+
+
 def test_openai_compat_parse_json_with_repair_handles_prefixed_text():
     p = OpenAICompatProposer(model="dummy", base_url="http://localhost:8000/v1")
     text = 'agent reply [{"family_id":"00","price_id":"SIM"},{"family_id":"00","price_id":"BTC"}]'

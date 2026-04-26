@@ -104,6 +104,21 @@ def test_validation_uses_env_bar_resolution_when_provided():
     assert TaskSpec.from_dict(task).bar_resolution == "1m"
 
 
+def test_validation_env_bar_resolution_overrides_model_output():
+    task = validate_and_clamp_task(
+        {"family_id": "00", "price_id": "SIM", "bar_resolution": "1h"},
+        {
+            "window_size": 30,
+            "n_features": 5,
+            "t_embed_dim": 32,
+            "action_dim": 3,
+            "bar_resolution": "1m",
+        },
+        fallback_seed=78,
+    )
+    assert task["bar_resolution"] == "1m"
+
+
 def test_validation_preserves_unknown_reward_params_for_future_reward_families():
     task = validate_and_clamp_task(
         {

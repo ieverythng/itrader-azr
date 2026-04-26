@@ -73,10 +73,12 @@ class PSMetrics(DefaultCallbacks):
 
     @staticmethod
     def _normalized_action_counts(act_counts) -> list[float]:
+        if act_counts is None:
+            act_counts = []
         if isinstance(act_counts, dict):
             max_index = max(act_counts.keys(), default=-1)
             act_counts = [act_counts.get(i, 0) for i in range(max_index + 1)]
-        return [float(value) for value in list(act_counts or [])]
+        return [float(value) for value in list(act_counts)]
 
     @staticmethod
     def _record_action_metrics(episode, act_counts: list[float], steps: int) -> None:

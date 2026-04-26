@@ -83,17 +83,25 @@ def _generate_task_pool(args: argparse.Namespace) -> Path:
     n_generated = 0
     n_valid = 0
     n_invalid = 0
+    n_duplicate = 0
     empty_batches = 0
     target_n = max(1, int(args.n_tasks))
     batch_size = max(1, int(args.gen_batch_size))
     max_empty = max(1, int(args.max_empty_batches))
+    max_attempts = target_n * 10
 
     print(f"[AZR] Generating {target_n} tasks into pool: {pool_path}")
-    while n_generated < target_n:
-        current_batch = min(batch_size, target_n - n_generated)
+    while n_valid < target_n and n_generated < max_attempts:
+        current_batch = min(batch_size, target_n - n_valid)
+        batch_context = (
+            f"{args.market_summary}\n\n"
+            f"Generation batch index: {n_generated // batch_size}. "
+            "Avoid exact duplicates of previously generated tasks by varying seed, horizon, "
+            "start_idx, reward parameters, regime tags, or metadata where valid."
+        )
         try:
             raw_tasks = proposer.propose_tasks(
-                market_summary=args.market_summary,
+                market_summary=batch_context,
                 n=current_batch,
             )
         except Exception as e:
@@ -118,16 +126,20 @@ def _generate_task_pool(args: argparse.Namespace) -> Path:
                     fallback_seed=random.randint(0, 1_000_000),
                 )
                 TaskSpec.from_dict(validated)
+                size_before = pool.size()
                 pool.add(validated, meta=meta)
-                n_valid += 1
+                if pool.size() > size_before:
+                    n_valid += 1
+                else:
+                    n_duplicate += 1
             except Exception as e:
                 n_invalid += 1
                 if n_invalid <= 5:
                     print(f"[AZR] Dropped invalid task: {e}")
 
     print(
-        f"[AZR] Generation complete. valid={n_valid} invalid={n_invalid} "
-        f"pool_size={pool.size()} path={pool_path}"
+        f"[AZR] Generation complete. valid={n_valid} duplicate={n_duplicate} invalid={n_invalid} "
+        f"attempts={n_generated} pool_size={pool.size()} path={pool_path}"
     )
     return pool_path
 

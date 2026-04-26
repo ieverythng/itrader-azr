@@ -108,9 +108,9 @@ def validate_and_clamp_task(
         _as_dict(out.get("reward_params")),
     )
 
-    bar_resolution = out.get("bar_resolution")
+    bar_resolution = cfg.get("bar_resolution")
     if bar_resolution is None or not str(bar_resolution).strip():
-        bar_resolution = cfg.get("bar_resolution")
+        bar_resolution = out.get("bar_resolution")
     if bar_resolution is not None and str(bar_resolution).strip():
         out["bar_resolution"] = str(bar_resolution)
     else:

@@ -55,10 +55,10 @@ def build_market_snapshot(
     if len(w) < 2:
         raise ValueError("Window too small to summarize")
 
-    closes = w[close_name].astype(float).to_numpy()
-    highs = w[high_name].astype(float).to_numpy()
-    lows = w[low_name].astype(float).to_numpy()
-    volumes = w[volume_name].astype(float).to_numpy()
+    closes = np.nan_to_num(w[close_name].astype(float).to_numpy(), nan=0.0, posinf=0.0, neginf=0.0)
+    highs = np.nan_to_num(w[high_name].astype(float).to_numpy(), nan=0.0, posinf=0.0, neginf=0.0)
+    lows = np.nan_to_num(w[low_name].astype(float).to_numpy(), nan=0.0, posinf=0.0, neginf=0.0)
+    volumes = np.nan_to_num(w[volume_name].astype(float).to_numpy(), nan=0.0, posinf=0.0, neginf=0.0)
 
     rets = np.diff(closes) / np.maximum(np.abs(closes[:-1]), 1e-8)
     ret_1 = _safe_float(rets[-1] if len(rets) > 0 else 0.0)
@@ -67,7 +67,10 @@ def build_market_snapshot(
 
     if len(closes) >= 2:
         x = np.arange(len(closes), dtype=float)
-        slope = np.polyfit(x, closes, deg=1)[0]
+        x = x - float(np.mean(x))
+        y = closes - float(np.mean(closes))
+        denom = float(np.dot(x, x))
+        slope = float(np.dot(x, y) / denom) if denom > 0.0 else 0.0
     else:
         slope = 0.0
     trend_slope = _safe_float(slope / max(abs(closes[-1]), 1e-8))
