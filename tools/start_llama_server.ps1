@@ -9,8 +9,8 @@ param(
     [string]$BinDir = "",
     [string]$BindHost = "127.0.0.1",
     [int]$Port = 8080,
-    [int]$ContextSize = 16384,
-    [string]$GpuLayers = "auto",
+   [int]$ContextSize = 8192,
+    [string]$GpuLayers = "999",
 
     [ValidateSet("on", "off")]
     [string]$Fit = "on",
@@ -37,7 +37,10 @@ param(
     [double]$PresencePenalty = 1.5,
     [double]$RepeatPenalty = 1.0,
 
-    [int]$Parallel = 1,
+     [int]$Parallel = 1,
+    [int]$BatchSize = 512,
+    [int]$UBatchSize = 256,
+    [switch]$ContinuousBatching,
     [string]$Alias = "",
     [string]$ApiKey = "",
 
@@ -151,13 +154,19 @@ $args = @(
     "--repeat-penalty", $RepeatPenalty,
     "--host", $BindHost,
     "--port", $Port,
-    "-np", $Parallel,
+     "-np", $Parallel,
+    "-b", $BatchSize,
+    "-ub", $UBatchSize,
     "--slots",
     "--webui"
 )
 
 if ($Metrics) {
     $args += "--metrics"
+}
+
+if ($ContinuousBatching) {
+    $args += "--cont-batching"
 }
 
 if ($ApiKey) {

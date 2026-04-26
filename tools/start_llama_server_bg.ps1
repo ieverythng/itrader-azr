@@ -7,8 +7,8 @@ param(
 
     [string]$BindHost = "127.0.0.1",
     [int]$Port = 8080,
-    [int]$ContextSize = 16384,
-    [string]$GpuLayers = "auto",
+  [int]$ContextSize = 8192,
+    [string]$GpuLayers = "999",
     [string]$Alias = "",
     [string]$ModelPath = "",
     [int]$Parallel = 1,
