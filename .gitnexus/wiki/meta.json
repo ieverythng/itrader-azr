@@ -1,0 +1,593 @@
+{
+  "fromCommit": "5699b7d90d1d9bed0c8bcb66430f0e06f0fea1ae",
+  "generatedAt": "2026-04-12T17:56:27.266Z",
+  "model": "glm-5:cloud",
+  "moduleFiles": {
+    "Core Application": [
+      "itrader/__init__.py",
+      "itrader/__main__.py"
+    ],
+    "Trading Environment": [
+      "itrader/envs/__init__.py",
+      "itrader/envs/itrader_env.py"
+    ],
+    "Agent Architecture": [
+      "itrader/agents/__init__.py",
+      "itrader/agents/solver_base.py",
+      "itrader/agents/proposer_lora.py",
+      "itrader/agents/solver_mlp.py"
+    ],
+    "Neural Network Models": [
+      "itrader/models/solver_MLP.py",
+      "itrader/models/solver_lstm.py",
+      "itrader/models/solver_mlp_film.py"
+    ],
+    "LLM Integration": [
+      "itrader/llm/__init__.py",
+      "itrader/llm/engine.py",
+      "itrader/llm/proposer_llm.py"
+    ],
+    "Task Proposers": [
+      "itrader/proposers/__init__.py",
+      "itrader/proposers/base.py",
+      "itrader/proposers/factory.py",
+      "itrader/proposers/_shared.py",
+      "itrader/proposers/ollama.py",
+      "itrader/proposers/openai_compat.py",
+      "itrader/proposers/rule_based.py"
+    ],
+    "Data Pipeline": [
+      "itrader/inputs/PA_helpers.py",
+      "itrader/inputs/backfill.py",
+      "itrader/inputs/etl_job.py",
+      "itrader/inputs/live_data.py"
+    ],
+    "Task System": [
+      "itrader/rl_lib/tasks/spec.py",
+      "itrader/rl_lib/tasks/families.py",
+      "itrader/rl_lib/tasks/validation.py",
+      "itrader/rl_lib/tasks/candidate_task.py",
+      "itrader/rl_lib/tasks/capability_profile.py",
+      "itrader/rl_lib/tasks/decision_record.py",
+      "itrader/rl_lib/tasks/execution_intent.py",
+      "itrader/rl_lib/tasks/task_pool.py",
+      "itrader/rl_lib/tasks/samplers.py",
+      "itrader/rl_lib/tasks/encoder.py"
+    ],
+    "Reward System": [
+      "itrader/rl_lib/tasks/rewards.py"
+    ],
+    "Training Pipeline": [
+      "itrader/rl_lib/callbacks/auto_plotter.py",
+      "itrader/rl_lib/callbacks/ps_metrics.py",
+      "itrader/rl_lib/train/train_AZR.py",
+      "itrader/rl_lib/train/train_solo_V2.py",
+      "itrader/rl_lib/train/train_test.py",
+      "train_AZR.py"
+    ],
+    "Experiment Scripts": [
+      "itrader/scripts/__init__.py",
+      "itrader/scripts/experiments/run_ablation.py",
+      "itrader/scripts/gen_task_pool.py",
+      "itrader/scripts/inspect_ckpt.py",
+      "itrader/scripts/pbt_output.py"
+    ],
+    "Diagnostic Tools": [
+      "itrader/tools/diagnose_run.py",
+      "itrader/tools/healthcheck.py",
+      "itrader/tools/plot_ray_results.py"
+    ],
+    "Knowledge Management": [
+      "tools/knowledge/status_summary.py",
+      "tools/knowledge/sync_artifacts.py"
+    ],
+    "Other": [
+      "AGENTS.md",
+      "PBT_SETUP_GUIDE.md",
+      "README.md",
+      "best_config.json",
+      "data/queries.active",
+      "data/wal/00000000",
+      "data/wal/00000001",
+      "data/wal/00000002",
+      "data/wal/00000003",
+      "data/wal/00000004",
+      "data/wal/00000005",
+      "docs/architecture.md",
+      "docs/iTRADER_Codex_Implementation_Spec.md",
+      "docs/ops_runbook.md",
+      "docs/phase_b_handoff_2026-03-04.md",
+      "docs/phase_b_plan.md",
+      "docs/daily_logs/2026-02-15.md",
+      "docs/daily_logs/2026-03-03.md",
+      "docs/daily_logs/COMMANDS.md",
+      "docs/daily_logs/README.md",
+      "docs/daily_logs/_TEMPLATE.md",
+      "docs/knowledge/DECISIONS.md",
+      "docs/knowledge/EVAL.md",
+      "docs/knowledge/INDEX_STATUS.md",
+      "docs/knowledge/QUICKSTART.md",
+      "docs/knowledge/README.md",
+      "docs/knowledge/WORKFLOWS.md",
+      "docs/knowledge/module_tree.json",
+      "docs/knowledge/wiki/README.md",
+      "env.lock.yml",
+      "itrader/README.md",
+      "itrader/constraints.txt",
+      "itrader/environment.yml",
+      "itrader/pyproject.toml",
+      "itrader/infra/cluster.yaml",
+      "itrader/rl_lib/prometheus_ray.yml",
+      "itrader/scripts/experiments/README.md",
+      "itrader/scripts/experiments/configs/ablation_smoke_quick.json",
+      "itrader/scripts/experiments/configs/ablation_start_idx.example.json",
+      "itrader/scripts/experiments/configs/pbt_winner_retrain_compare_20260216.json",
+      "itrader/scripts/experiments/schemas/ablation.schema.json",
+      "itrader/tests/conftest.py",
+      "itrader/tests/env_check.py",
+      "itrader/tests/sanity.py",
+      "itrader/tests/test_env_core.py",
+      "itrader/tests/test_llm.py",
+      "itrader/tests/test_no_nan_forward.py",
+      "itrader/tests/test_ps_metrics.py",
+      "itrader/tests/test_rewards.py",
+      "itrader/tests/test_rule_based_proposer.py",
+      "itrader/tests/test_task_contracts.py",
+      "itrader/tests/test_task_validation.py",
+      "itrader/tests/test_train_config.py",
+      "itrader/tools/run_repo_python.sh",
+      "tools/knowledge/bootstrap/README.md",
+      "tools/knowledge/bootstrap/init_repo_knowledge.sh",
+      "tools/knowledge/bootstrap/templates/AGENTS.md.tpl",
+      "tools/knowledge/bootstrap/templates/INDEX_STATUS.md.tpl",
+      "tools/knowledge/bootstrap/templates/codex-config.toml.tpl",
+      "tools/knowledge/bootstrap/templates/cursor-mcp.json.tpl",
+      "tools/knowledge/bootstrap/templates/docs-knowledge-DECISIONS.md.tpl",
+      "tools/knowledge/bootstrap/templates/docs-knowledge-EVAL.md.tpl",
+      "tools/knowledge/bootstrap/templates/docs-knowledge-QUICKSTART.md.tpl",
+      "tools/knowledge/bootstrap/templates/docs-knowledge-README.md.tpl",
+      "tools/knowledge/bootstrap/templates/docs-knowledge-WORKFLOWS.md.tpl",
+      "tools/knowledge/bootstrap/templates/module_tree.json.tpl",
+      "tools/knowledge/bootstrap/templates/wiki-README.md.tpl",
+      "tools/knowledge/codex_with_gitnexus.sh",
+      "tools/knowledge/generate_wiki.sh",
+      "tools/knowledge/gitnexus.sh",
+      "tools/knowledge/index_repo.sh",
+      "tools/knowledge/lib.sh",
+      "tools/knowledge/post_commit_refresh.sh",
+      "tools/knowledge/pre_commit_advisory.sh",
+      "tools/knowledge/serve_http_mcp.sh",
+      "tools/knowledge/setup_gitnexus.sh",
+      "tools/knowledge/status.sh"
+    ],
+    "Other — AGENTS.md": [
+      "AGENTS.md"
+    ],
+    "Other — PBT_SETUP_GUIDE.md": [
+      "PBT_SETUP_GUIDE.md"
+    ],
+    "Other — README.md": [
+      "README.md"
+    ],
+    "Other — best_config.json": [
+      "best_config.json"
+    ],
+    "Other — data": [
+      "data/queries.active"
+    ],
+    "Other — data-wal": [
+      "data/wal/00000000",
+      "data/wal/00000001",
+      "data/wal/00000002",
+      "data/wal/00000003",
+      "data/wal/00000004",
+      "data/wal/00000005"
+    ],
+    "Other — docs": [
+      "docs/architecture.md",
+      "docs/iTRADER_Codex_Implementation_Spec.md",
+      "docs/ops_runbook.md",
+      "docs/phase_b_handoff_2026-03-04.md",
+      "docs/phase_b_plan.md"
+    ],
+    "Other — docs-daily_logs": [
+      "docs/daily_logs/2026-02-15.md",
+      "docs/daily_logs/2026-03-03.md",
+      "docs/daily_logs/COMMANDS.md",
+      "docs/daily_logs/README.md",
+      "docs/daily_logs/_TEMPLATE.md"
+    ],
+    "Other — docs-knowledge": [
+      "docs/knowledge/DECISIONS.md",
+      "docs/knowledge/EVAL.md",
+      "docs/knowledge/INDEX_STATUS.md",
+      "docs/knowledge/QUICKSTART.md",
+      "docs/knowledge/README.md",
+      "docs/knowledge/WORKFLOWS.md",
+      "docs/knowledge/module_tree.json",
+      "docs/knowledge/wiki/README.md"
+    ],
+    "Other — env.lock.yml": [
+      "env.lock.yml"
+    ],
+    "Other — itrader": [
+      "itrader/README.md",
+      "itrader/constraints.txt",
+      "itrader/environment.yml",
+      "itrader/pyproject.toml"
+    ],
+    "Other — itrader-infra": [
+      "itrader/infra/cluster.yaml"
+    ],
+    "Other — itrader-rl_lib": [
+      "itrader/rl_lib/prometheus_ray.yml"
+    ],
+    "Other — itrader-scripts": [
+      "itrader/scripts/experiments/README.md",
+      "itrader/scripts/experiments/configs/ablation_smoke_quick.json",
+      "itrader/scripts/experiments/configs/ablation_start_idx.example.json",
+      "itrader/scripts/experiments/configs/pbt_winner_retrain_compare_20260216.json",
+      "itrader/scripts/experiments/schemas/ablation.schema.json"
+    ],
+    "Other — itrader-tests": [
+      "itrader/tests/conftest.py",
+      "itrader/tests/env_check.py",
+      "itrader/tests/sanity.py",
+      "itrader/tests/test_env_core.py",
+      "itrader/tests/test_llm.py",
+      "itrader/tests/test_no_nan_forward.py",
+      "itrader/tests/test_ps_metrics.py",
+      "itrader/tests/test_rewards.py",
+      "itrader/tests/test_rule_based_proposer.py",
+      "itrader/tests/test_task_contracts.py",
+      "itrader/tests/test_task_validation.py",
+      "itrader/tests/test_train_config.py"
+    ],
+    "Other — itrader-tools": [
+      "itrader/tools/run_repo_python.sh"
+    ],
+    "Other — tools-knowledge": [
+      "tools/knowledge/bootstrap/README.md",
+      "tools/knowledge/bootstrap/init_repo_knowledge.sh",
+      "tools/knowledge/bootstrap/templates/AGENTS.md.tpl",
+      "tools/knowledge/bootstrap/templates/INDEX_STATUS.md.tpl",
+      "tools/knowledge/bootstrap/templates/codex-config.toml.tpl",
+      "tools/knowledge/bootstrap/templates/cursor-mcp.json.tpl",
+      "tools/knowledge/bootstrap/templates/docs-knowledge-DECISIONS.md.tpl",
+      "tools/knowledge/bootstrap/templates/docs-knowledge-EVAL.md.tpl",
+      "tools/knowledge/bootstrap/templates/docs-knowledge-QUICKSTART.md.tpl",
+      "tools/knowledge/bootstrap/templates/docs-knowledge-README.md.tpl",
+      "tools/knowledge/bootstrap/templates/docs-knowledge-WORKFLOWS.md.tpl",
+      "tools/knowledge/bootstrap/templates/module_tree.json.tpl",
+      "tools/knowledge/bootstrap/templates/wiki-README.md.tpl",
+      "tools/knowledge/codex_with_gitnexus.sh",
+      "tools/knowledge/generate_wiki.sh",
+      "tools/knowledge/gitnexus.sh",
+      "tools/knowledge/index_repo.sh",
+      "tools/knowledge/lib.sh",
+      "tools/knowledge/post_commit_refresh.sh",
+      "tools/knowledge/pre_commit_advisory.sh",
+      "tools/knowledge/serve_http_mcp.sh",
+      "tools/knowledge/setup_gitnexus.sh",
+      "tools/knowledge/status.sh"
+    ]
+  },
+  "moduleTree": [
+    {
+      "name": "Core Application",
+      "slug": "core-application",
+      "files": [
+        "itrader/__init__.py",
+        "itrader/__main__.py"
+      ]
+    },
+    {
+      "name": "Trading Environment",
+      "slug": "trading-environment",
+      "files": [
+        "itrader/envs/__init__.py",
+        "itrader/envs/itrader_env.py"
+      ]
+    },
+    {
+      "name": "Agent Architecture",
+      "slug": "agent-architecture",
+      "files": [
+        "itrader/agents/__init__.py",
+        "itrader/agents/solver_base.py",
+        "itrader/agents/proposer_lora.py",
+        "itrader/agents/solver_mlp.py"
+      ]
+    },
+    {
+      "name": "Neural Network Models",
+      "slug": "neural-network-models",
+      "files": [
+        "itrader/models/solver_MLP.py",
+        "itrader/models/solver_lstm.py",
+        "itrader/models/solver_mlp_film.py"
+      ]
+    },
+    {
+      "name": "LLM Integration",
+      "slug": "llm-integration",
+      "files": [
+        "itrader/llm/__init__.py",
+        "itrader/llm/engine.py",
+        "itrader/llm/proposer_llm.py"
+      ]
+    },
+    {
+      "name": "Task Proposers",
+      "slug": "task-proposers",
+      "files": [
+        "itrader/proposers/__init__.py",
+        "itrader/proposers/base.py",
+        "itrader/proposers/factory.py",
+        "itrader/proposers/_shared.py",
+        "itrader/proposers/ollama.py",
+        "itrader/proposers/openai_compat.py",
+        "itrader/proposers/rule_based.py"
+      ]
+    },
+    {
+      "name": "Data Pipeline",
+      "slug": "data-pipeline",
+      "files": [
+        "itrader/inputs/PA_helpers.py",
+        "itrader/inputs/backfill.py",
+        "itrader/inputs/etl_job.py",
+        "itrader/inputs/live_data.py"
+      ]
+    },
+    {
+      "name": "Task System",
+      "slug": "task-system",
+      "files": [
+        "itrader/rl_lib/tasks/spec.py",
+        "itrader/rl_lib/tasks/families.py",
+        "itrader/rl_lib/tasks/validation.py",
+        "itrader/rl_lib/tasks/candidate_task.py",
+        "itrader/rl_lib/tasks/capability_profile.py",
+        "itrader/rl_lib/tasks/decision_record.py",
+        "itrader/rl_lib/tasks/execution_intent.py",
+        "itrader/rl_lib/tasks/task_pool.py",
+        "itrader/rl_lib/tasks/samplers.py",
+        "itrader/rl_lib/tasks/encoder.py"
+      ]
+    },
+    {
+      "name": "Reward System",
+      "slug": "reward-system",
+      "files": [
+        "itrader/rl_lib/tasks/rewards.py"
+      ]
+    },
+    {
+      "name": "Training Pipeline",
+      "slug": "training-pipeline",
+      "files": [
+        "itrader/rl_lib/callbacks/auto_plotter.py",
+        "itrader/rl_lib/callbacks/ps_metrics.py",
+        "itrader/rl_lib/train/train_AZR.py",
+        "itrader/rl_lib/train/train_solo_V2.py",
+        "itrader/rl_lib/train/train_test.py",
+        "train_AZR.py"
+      ]
+    },
+    {
+      "name": "Experiment Scripts",
+      "slug": "experiment-scripts",
+      "files": [
+        "itrader/scripts/__init__.py",
+        "itrader/scripts/experiments/run_ablation.py",
+        "itrader/scripts/gen_task_pool.py",
+        "itrader/scripts/inspect_ckpt.py",
+        "itrader/scripts/pbt_output.py"
+      ]
+    },
+    {
+      "name": "Diagnostic Tools",
+      "slug": "diagnostic-tools",
+      "files": [
+        "itrader/tools/diagnose_run.py",
+        "itrader/tools/healthcheck.py",
+        "itrader/tools/plot_ray_results.py"
+      ]
+    },
+    {
+      "name": "Knowledge Management",
+      "slug": "knowledge-management",
+      "files": [
+        "tools/knowledge/status_summary.py",
+        "tools/knowledge/sync_artifacts.py"
+      ]
+    },
+    {
+      "name": "Other",
+      "slug": "other",
+      "files": [],
+      "children": [
+        {
+          "name": "Other — AGENTS.md",
+          "slug": "other-agents-md",
+          "files": [
+            "AGENTS.md"
+          ]
+        },
+        {
+          "name": "Other — PBT_SETUP_GUIDE.md",
+          "slug": "other-pbt-setup-guide-md",
+          "files": [
+            "PBT_SETUP_GUIDE.md"
+          ]
+        },
+        {
+          "name": "Other — README.md",
+          "slug": "other-readme-md",
+          "files": [
+            "README.md"
+          ]
+        },
+        {
+          "name": "Other — best_config.json",
+          "slug": "other-best-config-json",
+          "files": [
+            "best_config.json"
+          ]
+        },
+        {
+          "name": "Other — data",
+          "slug": "other-data",
+          "files": [
+            "data/queries.active"
+          ]
+        },
+        {
+          "name": "Other — data-wal",
+          "slug": "other-data-wal",
+          "files": [
+            "data/wal/00000000",
+            "data/wal/00000001",
+            "data/wal/00000002",
+            "data/wal/00000003",
+            "data/wal/00000004",
+            "data/wal/00000005"
+          ]
+        },
+        {
+          "name": "Other — docs",
+          "slug": "other-docs",
+          "files": [
+            "docs/architecture.md",
+            "docs/iTRADER_Codex_Implementation_Spec.md",
+            "docs/ops_runbook.md",
+            "docs/phase_b_handoff_2026-03-04.md",
+            "docs/phase_b_plan.md"
+          ]
+        },
+        {
+          "name": "Other — docs-daily_logs",
+          "slug": "other-docs-daily-logs",
+          "files": [
+            "docs/daily_logs/2026-02-15.md",
+            "docs/daily_logs/2026-03-03.md",
+            "docs/daily_logs/COMMANDS.md",
+            "docs/daily_logs/README.md",
+            "docs/daily_logs/_TEMPLATE.md"
+          ]
+        },
+        {
+          "name": "Other — docs-knowledge",
+          "slug": "other-docs-knowledge",
+          "files": [
+            "docs/knowledge/DECISIONS.md",
+            "docs/knowledge/EVAL.md",
+            "docs/knowledge/INDEX_STATUS.md",
+            "docs/knowledge/QUICKSTART.md",
+            "docs/knowledge/README.md",
+            "docs/knowledge/WORKFLOWS.md",
+            "docs/knowledge/module_tree.json",
+            "docs/knowledge/wiki/README.md"
+          ]
+        },
+        {
+          "name": "Other — env.lock.yml",
+          "slug": "other-env-lock-yml",
+          "files": [
+            "env.lock.yml"
+          ]
+        },
+        {
+          "name": "Other — itrader",
+          "slug": "other-itrader",
+          "files": [
+            "itrader/README.md",
+            "itrader/constraints.txt",
+            "itrader/environment.yml",
+            "itrader/pyproject.toml"
+          ]
+        },
+        {
+          "name": "Other — itrader-infra",
+          "slug": "other-itrader-infra",
+          "files": [
+            "itrader/infra/cluster.yaml"
+          ]
+        },
+        {
+          "name": "Other — itrader-rl_lib",
+          "slug": "other-itrader-rl-lib",
+          "files": [
+            "itrader/rl_lib/prometheus_ray.yml"
+          ]
+        },
+        {
+          "name": "Other — itrader-scripts",
+          "slug": "other-itrader-scripts",
+          "files": [
+            "itrader/scripts/experiments/README.md",
+            "itrader/scripts/experiments/configs/ablation_smoke_quick.json",
+            "itrader/scripts/experiments/configs/ablation_start_idx.example.json",
+            "itrader/scripts/experiments/configs/pbt_winner_retrain_compare_20260216.json",
+            "itrader/scripts/experiments/schemas/ablation.schema.json"
+          ]
+        },
+        {
+          "name": "Other — itrader-tests",
+          "slug": "other-itrader-tests",
+          "files": [
+            "itrader/tests/conftest.py",
+            "itrader/tests/env_check.py",
+            "itrader/tests/sanity.py",
+            "itrader/tests/test_env_core.py",
+            "itrader/tests/test_llm.py",
+            "itrader/tests/test_no_nan_forward.py",
+            "itrader/tests/test_ps_metrics.py",
+            "itrader/tests/test_rewards.py",
+            "itrader/tests/test_rule_based_proposer.py",
+            "itrader/tests/test_task_contracts.py",
+            "itrader/tests/test_task_validation.py",
+            "itrader/tests/test_train_config.py"
+          ]
+        },
+        {
+          "name": "Other — itrader-tools",
+          "slug": "other-itrader-tools",
+          "files": [
+            "itrader/tools/run_repo_python.sh"
+          ]
+        },
+        {
+          "name": "Other — tools-knowledge",
+          "slug": "other-tools-knowledge",
+          "files": [
+            "tools/knowledge/bootstrap/README.md",
+            "tools/knowledge/bootstrap/init_repo_knowledge.sh",
+            "tools/knowledge/bootstrap/templates/AGENTS.md.tpl",
+            "tools/knowledge/bootstrap/templates/INDEX_STATUS.md.tpl",
+            "tools/knowledge/bootstrap/templates/codex-config.toml.tpl",
+            "tools/knowledge/bootstrap/templates/cursor-mcp.json.tpl",
+            "tools/knowledge/bootstrap/templates/docs-knowledge-DECISIONS.md.tpl",
+            "tools/knowledge/bootstrap/templates/docs-knowledge-EVAL.md.tpl",
+            "tools/knowledge/bootstrap/templates/docs-knowledge-QUICKSTART.md.tpl",
+            "tools/knowledge/bootstrap/templates/docs-knowledge-README.md.tpl",
+            "tools/knowledge/bootstrap/templates/docs-knowledge-WORKFLOWS.md.tpl",
+            "tools/knowledge/bootstrap/templates/module_tree.json.tpl",
+            "tools/knowledge/bootstrap/templates/wiki-README.md.tpl",
+            "tools/knowledge/codex_with_gitnexus.sh",
+            "tools/knowledge/generate_wiki.sh",
+            "tools/knowledge/gitnexus.sh",
+            "tools/knowledge/index_repo.sh",
+            "tools/knowledge/lib.sh",
+            "tools/knowledge/post_commit_refresh.sh",
+            "tools/knowledge/pre_commit_advisory.sh",
+            "tools/knowledge/serve_http_mcp.sh",
+            "tools/knowledge/setup_gitnexus.sh",
+            "tools/knowledge/status.sh"
+          ]
+        }
+      ]
+    }
+  ]
+}

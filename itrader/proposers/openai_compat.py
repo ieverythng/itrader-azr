@@ -9,7 +9,7 @@ from .base import BaseProposer
 
 
 class OpenAICompatProposer(BaseProposer):
-    """OpenAI-compatible proposer for vLLM/SGLang style chat endpoints."""
+    """OpenAI-compatible proposer for vLLM/llama.cpp style chat endpoints."""
 
     backend_name = "openai_compat"
 
