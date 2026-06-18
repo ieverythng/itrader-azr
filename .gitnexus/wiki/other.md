@@ -14,36 +14,36 @@ graph TB
         README[README.md]
         AGENTS[AGENTS.md]
     end
-    
+
     subgraph "Documentation"
         DOCS[docs/]
         DAILY[docs/daily_logs/]
         KNOWLEDGE_DOCS[docs/knowledge/]
     end
-    
+
     subgraph "Configuration"
         BEST[best_config.json]
         ENV[env.lock.yml]
         ITRADER[itrader/]
     end
-    
+
     subgraph "Infrastructure"
         INFRA[itrader-infra/]
         RLLIB[itrader-rl_lib/]
         WAL[data-wal/]
         DATA[data/]
     end
-    
+
     subgraph "Development Tools"
         TOOLS[itrader-tools/]
         SCRIPTS[itrader-scripts/]
         KNOWLEDGE_TOOLS[tools/knowledge/]
     end
-    
+
     subgraph "Testing"
         TESTS[itrader-tests/]
     end
-    
+
     README --> DOCS
     AGENTS --> KNOWLEDGE_TOOLS
     KNOWLEDGE_TOOLS --> KNOWLEDGE_DOCS

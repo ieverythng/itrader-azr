@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Neural Workbench Extended Formal Masterplan</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\(','\\)']], displayMath: [['\\[','\\]']] },
+  svg: { fontCache: 'global' }
+};
+</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+<style>
+:root {
+  --paper:#fbfaf6; --ink:#171717; --muted:#5e646e; --line:#e5ded1;
+  --card:#ffffff; --blue:#2137ff; --cyan:#0077aa; --green:#087f5b;
+  --purple:#6f42c1; --amber:#a15c00; --red:#b42318; --dark:#101626;
+  --cream:#fff6df;
+}
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  margin:0;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(33,55,255,.10), transparent 32%),
+    radial-gradient(circle at 92% 2%, rgba(255,106,61,.11), transparent 30%),
+    linear-gradient(180deg,#fffaf0,var(--paper) 34%, #f7f4ec 100%);
+  color:var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+header { padding:58px 7vw 34px; border-bottom:1px solid var(--line); }
+.eyebrow { font-size:12px; letter-spacing:.14em; text-transform:uppercase; font-weight:900; color:var(--blue); }
+h1 { max-width:1220px; font-size:clamp(38px,6vw,82px); line-height:.92; letter-spacing:-.06em; margin:16px 0 20px; }
+.subtitle { max-width:1110px; color:var(--muted); font-size:20px; line-height:1.62; }
+main { padding:34px 7vw 90px; }
+.grid { display:grid; grid-template-columns:repeat(12,1fr); gap:18px; }
+.card {
+  background:rgba(255,255,255,.88); border:1px solid var(--line); border-radius:26px; padding:26px;
+  box-shadow:0 22px 60px rgba(50,43,30,.07);
+}
+.dark { background:linear-gradient(180deg,var(--dark),#080b14); color:#edf2ff; border-color:rgba(255,255,255,.13); }
+.dark p,.dark li,.dark td { color:#aeb8d4; }
+.dark th { background:rgba(255,255,255,.08); color:#edf2ff; }
+.span-12 { grid-column:span 12; } .span-8 { grid-column:span 8; } .span-7 { grid-column:span 7; }
+.span-6 { grid-column:span 6; } .span-5 { grid-column:span 5; } .span-4 { grid-column:span 4; } .span-3 { grid-column:span 3; }
+h2 { margin:0 0 16px; font-size:30px; letter-spacing:-.025em; }
+h3 { margin:0 0 10px; font-size:20px; }
+p,li { color:var(--muted); line-height:1.62; }
+strong { color:var(--ink); } .dark strong { color:#fff; }
+pre,code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace; }
+pre {
+  background:#111827; color:#eef4ff; border-radius:18px; padding:18px; overflow:auto; line-height:1.52;
+  border:1px solid rgba(255,255,255,.11);
+}
+.eq { background:#fff7e6; border:1px solid #f1dca8; border-radius:18px; padding:18px; color:#241b07; overflow-x:auto; }
+.dark .eq { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.16); color:#fff; }
+table { width:100%; border-collapse:collapse; border-radius:18px; overflow:hidden; }
+th,td { padding:13px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+th { background:#f1eee6; color:#222; font-size:13px; text-transform:uppercase; letter-spacing:.04em; }
+td { color:var(--muted); }
+.kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; }
+.kpis .card { padding:20px; }
+.metric { font-size:42px; font-weight:950; letter-spacing:-.06em; }
+.label { font-size:14px; color:var(--muted); }
+.quote { font-size:23px; line-height:1.48; color:var(--ink); border-left:5px solid var(--blue); padding-left:18px; margin:0; }
+.dark .quote { color:#fff; }
+.badge { display:inline-flex; padding:7px 10px; border-radius:999px; border:1px solid var(--line); background:#fff; color:#222; font-size:13px; font-weight:700; margin:4px 4px 4px 0; }
+.callout { background:#eef8f3; border-color:#c8eadc; }
+.warn { background:#fff7e6; border-color:#f1dca8; }
+svg { width:100%; height:auto; display:block; }
+.caption { font-size:13px; color:var(--muted); margin-top:10px; }
+.toc a { display:block; color:var(--ink); text-decoration:none; padding:8px 0; border-bottom:1px solid var(--line); }
+.toc a:hover { color:var(--blue); }
+@media(max-width:1000px) {
+  .span-3,.span-4,.span-5,.span-6,.span-7,.span-8,.span-12 { grid-column:span 12; }
+  .kpis { grid-template-columns:1fr 1fr; }
+  h1 { font-size:40px; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Extended formal masterplan · 2026-06-13</div>
+  <h1>Neural Workbench as an object calculus for machine learning architecture design</h1>
+  <p class="subtitle">
+    This document formalises the AB framework as a design language for discretising machine learning systems into typed objects, transformations and interaction graphs. The aim is to support architecture search, model comparison and system construction by tracking input type, output type, information flow, computational cost and empirical capability.
+  </p>
+</header>
+
+<main>
+<section class="kpis">
+  <div class="card"><div class="metric">AB</div><div class="label">typed abstraction-bearing objects</div></div>
+  <div class="card"><div class="metric">δAB</div><div class="label">object transformations and training morphisms</div></div>
+  <div class="card"><div class="metric">Γ</div><div class="label">architecture graphs with typed edges</div></div>
+  <div class="card"><div class="metric">Φ</div><div class="label">tracked performance and capability profile</div></div>
+</section>
+
+<div class="grid" style="margin-top:22px">
+
+  <section class="card span-4 toc">
+    <h2>Contents</h2>
+    <a href="#motivation">1. Motivation</a>
+    <a href="#objects">2. AB objects</a>
+    <a href="#signatures">3. Signatures</a>
+    <a href="#delta">4. δAB operators</a>
+    <a href="#graphs">5. Interaction graphs</a>
+    <a href="#meta">6. Meta-strategy</a>
+    <a href="#families">7. Architecture families</a>
+    <a href="#systems">8. AB4 systems</a>
+    <a href="#implementation">9. Implementation route</a>
+  </section>
+
+  <section class="card span-8" id="motivation">
+    <h2>1. Motivation</h2>
+    <p class="quote">
+      We seek a representation in which neural modules, adaptation mechanisms and agentic loops can be compared by their effects on information, rather than only by their historical names.
+    </p>
+    <p>
+      Standard architecture descriptions often mix several layers of explanation. A Transformer may be described as a stack of attention and feedforward modules, as an autoregressive language model, as a trained policy in an agent loop, or as an API component inside a larger tool system. These descriptions are all useful, but they live at different abstraction levels. The AB convention separates these levels, then defines the operators that move between them.
+    </p>
+    <p>
+      The central object is a typed module. It receives an input object, transforms it under constraints, and produces an output object. A system can then be studied as a graph of such transformations. This gives an engineering route to choose the best configuration relative to tracked parameters such as context length, memory, cost, compression, predictive accuracy, calibration, verifier reward and downstream task performance.
+    </p>
+  </section>
+
+  <section class="card span-12 dark">
+    <h2>2. System view</h2>
+    <svg viewBox="0 0 1320 600" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="blue" x1="0" x2="1"><stop offset="0%" stop-color="#68d2ff"/><stop offset="100%" stop-color="#9d8cff"/></linearGradient>
+        <linearGradient id="green" x1="0" x2="1"><stop offset="0%" stop-color="#1ed58a"/><stop offset="100%" stop-color="#69f1c8"/></linearGradient>
+        <linearGradient id="amber" x1="0" x2="1"><stop offset="0%" stop-color="#ffd166"/><stop offset="100%" stop-color="#ff9f1c"/></linearGradient>
+        <filter id="shadow"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="rgba(0,0,0,.35)"/></filter>
+      </defs>
+
+      <text x="35" y="42" fill="#edf2ff" font-size="30" font-weight="800">AB object calculus: modules, deltas, graphs and capability profiles</text>
+
+      <rect x="50" y="85" width="250" height="100" rx="22" fill="#172341" stroke="rgba(255,255,255,.16)"/>
+      <text x="98" y="126" fill="#edf2ff" font-size="25" font-weight="800">Input object</text>
+      <text x="83" y="154" fill="#aeb8d4" font-size="16">tensor · sequence · state · distribution</text>
+
+      <rect x="370" y="65" width="270" height="140" rx="24" fill="url(#blue)" filter="url(#shadow)"/>
+      <text x="430" y="112" fill="#07111f" font-size="27" font-weight="900">AB object</text>
+      <text x="410" y="142" fill="#07111f" font-size="16" font-weight="700">MLP · attention · conv · policy</text>
+      <text x="417" y="166" fill="#07111f" font-size="16" font-weight="700">typed map O: X → Y</text>
+
+      <rect x="720" y="65" width="270" height="140" rx="24" fill="url(#green)" filter="url(#shadow)"/>
+      <text x="778" y="112" fill="#03140e" font-size="27" font-weight="900">δAB operator</text>
+      <text x="760" y="142" fill="#03140e" font-size="16" font-weight="700">LoRA · PPO · GAE · RLVR</text>
+      <text x="762" y="166" fill="#03140e" font-size="16" font-weight="700">transforms object behaviour</text>
+
+      <rect x="1060" y="85" width="220" height="100" rx="22" fill="#172341" stroke="rgba(255,255,255,.16)"/>
+      <text x="1108" y="126" fill="#edf2ff" font-size="25" font-weight="800">Output</text>
+      <text x="1092" y="154" fill="#aeb8d4" font-size="16">prediction · action · latent · score</text>
+
+      <rect x="175" y="330" width="280" height="120" rx="24" fill="url(#amber)" filter="url(#shadow)"/>
+      <text x="243" y="375" fill="#211200" font-size="27" font-weight="900">AB graph Γ</text>
+      <text x="214" y="405" fill="#211200" font-size="16" font-weight="700">composition and routing pattern</text>
+
+      <rect x="525" y="330" width="300" height="120" rx="24" fill="#172341" stroke="rgba(255,255,255,.16)"/>
+      <text x="570" y="375" fill="#edf2ff" font-size="27" font-weight="800">Tracked profile Φ</text>
+      <text x="560" y="405" fill="#aeb8d4" font-size="16">accuracy · cost · stability · calibration</text>
+
+      <rect x="895" y="330" width="280" height="120" rx="24" fill="url(#green)" filter="url(#shadow)"/>
+      <text x="958" y="375" fill="#03140e" font-size="27" font-weight="900">Selection rule</text>
+      <text x="927" y="405" fill="#03140e" font-size="16" font-weight="700">choose configuration under constraints</text>
+
+      <line x1="300" y1="135" x2="370" y2="135" stroke="#68d2ff" stroke-width="4"/><polygon points="370,135 356,127 356,143" fill="#68d2ff"/>
+      <line x1="640" y1="135" x2="720" y2="135" stroke="#1ed58a" stroke-width="4"/><polygon points="720,135 706,127 706,143" fill="#1ed58a"/>
+      <line x1="990" y1="135" x2="1060" y2="135" stroke="#68d2ff" stroke-width="4"/><polygon points="1060,135 1046,127 1046,143" fill="#68d2ff"/>
+
+      <line x1="505" y1="205" x2="315" y2="330" stroke="#ffd166" stroke-width="4"/><polygon points="315,330 330,326 321,313" fill="#ffd166"/>
+      <line x1="855" y1="205" x2="675" y2="330" stroke="#1ed58a" stroke-width="4"/><polygon points="675,330 690,326 681,313" fill="#1ed58a"/>
+      <line x1="825" y1="390" x2="895" y2="390" stroke="#1ed58a" stroke-width="4"/><polygon points="895,390 881,382 881,398" fill="#1ed58a"/>
+      <line x1="1035" y1="330" x2="1160" y2="185" stroke="#1ed58a" stroke-width="4"/><polygon points="1160,185 1146,191 1158,201" fill="#1ed58a"/>
+    </svg>
+    <p class="caption">The same formal grammar can describe a single layer, a model family, or a system such as iTrader. The relevant difference is the level at which the object and its deltas are defined.</p>
+  </section>
+
+  <section class="card span-6" id="objects">
+    <h2>3. AB objects</h2>
+    <p>
+      An AB object is a typed transformation equipped with an expected effect signature and an empirical capability profile. The type signature prevents invalid compositions. The effect signature supplies a prior over how the object may change information. The capability profile records what happened when the object was tested.
+    </p>
+    <div class="eq">
+      \\[
+      O_i = (\\mathcal X_i, \\mathcal Y_i, f_{\\theta_i}, E_i, C_i, \\Phi_i)
+      \\]
+      where \\(\\mathcal X_i\\) is the input type, \\(\\mathcal Y_i\\) is the output type, \\(f_{\\theta_i}\\) is the learned map, \\(E_i\\) is the expected effect vector, \\(C_i\\) is the cost model and \\(\\Phi_i\\) is the measured capability profile.
+    </div>
+  </section>
+
+  <section class="card span-6">
+    <h2>4. AB levels</h2>
+    <table>
+      <tr><th>Level</th><th>Object class</th><th>Examples</th></tr>
+      <tr><td>AB-1</td><td>Execution substrate</td><td>OS, terminal, compiler, CUDA, file system</td></tr>
+      <tr><td>AB0</td><td>Tensor primitive</td><td>matrix multiply, softmax, activation, loss</td></tr>
+      <tr><td>AB1</td><td>Learned operator</td><td>MLP, attention, convolution, recurrence, normalization</td></tr>
+      <tr><td>AB2</td><td>Motif</td><td>Transformer block, residual block, U-Net block</td></tr>
+      <tr><td>AB3</td><td>Model family</td><td>LLM, diffusion model, VAE, policy network</td></tr>
+      <tr><td>AB4</td><td>Coupled system</td><td>proposer, solver, verifier, memory, environment, tools</td></tr>
+    </table>
+  </section>
+
+  <section class="card span-12" id="signatures">
+    <h2>5. Input, output and effect signatures</h2>
+    <p>
+      The framework is useful only if each object is described from both sides: what it accepts and what it emits. A layer name alone is insufficient. A feedforward network may be a feature refiner, a bottleneck, a policy head or a value estimator depending on its input and output contract.
+    </p>
+    <div class="eq">
+      \\[
+      T(O) = (\\tau_{in}, \\tau_{out}), \\qquad
+      E(O) = [\\kappa, \\mu_t, \\mu_f, \\lambda, \\rho, \\eta, \\sigma, \\chi]
+      \\]
+      with \\(\\kappa\\) compression, \\(\\mu_t\\) token mixing, \\(\\mu_f\\) feature mixing, \\(\\lambda\\) locality bias, \\(\\rho\\) long-range routing, \\(\\eta\\) memory capacity, \\(\\sigma\\) stability and \\(\\chi\\) compute cost.
+    </div>
+    <table>
+      <tr><th>AB1 object</th><th>Input</th><th>Output</th><th>Expected effect</th></tr>
+      <tr><td>MLP / FFN</td><td>feature vector or token channel</td><td>refined feature vector</td><td>feature expansion, nonlinear selection, compression</td></tr>
+      <tr><td>Attention</td><td>sequence of token states</td><td>context-mixed token states</td><td>content-addressed routing, associative retrieval</td></tr>
+      <tr><td>Convolution</td><td>grid or local sequence</td><td>local feature map</td><td>local equivariance, spatial hierarchy</td></tr>
+      <tr><td>RNN / state-space</td><td>sequence and previous state</td><td>new state</td><td>streaming memory, temporal compression</td></tr>
+      <tr><td>Autoencoder</td><td>observation</td><td>latent and reconstruction</td><td>explicit bottleneck, manifold coordinate map</td></tr>
+    </table>
+  </section>
+
+  <section class="card span-6" id="delta">
+    <h2>6. δAB operators</h2>
+    <p>
+      A δAB operator changes an existing object, a graph or a system. It may preserve the AB level, as in a LoRA update to a language model. It may also create a higher-level composite, as when an adapter bank is coupled to a router and a verifier.
+    </p>
+    <div class="eq">
+      \\[
+      \\delta : O_{\\theta} \\mapsto O'_{\\theta,\\phi}
+      \\]
+      \\[
+      W' = W + \\Delta W_{\\phi}, \\qquad \\Delta W_{\\phi} = \\frac{\\alpha}{r}BA
+      \\]
+    </div>
+  </section>
+
+  <section class="card span-6">
+    <h2>7. Training and verifier deltas</h2>
+    <p>
+      Reinforcement learning methods are also δAB operators. They do not merely add a layer. They define a rule for changing a policy object from trajectories and rewards.
+    </p>
+    <div class="eq">
+      \\[
+      \\delta_t = r_t + \\gamma V(s_{t+1}) - V(s_t)
+      \\]
+      \\[
+      \\hat A^{GAE}_t = \\sum_{l=0}^{\\infty}(\\gamma\\lambda)^l\\delta_{t+l}
+      \\]
+      \\[
+      L^{PPO}(\\theta)=\\mathbb E\\left[
+      \\min(r_t(\\theta)\\hat A_t,
+      \\operatorname{clip}(r_t(\\theta),1-\\epsilon,1+\\epsilon)\\hat A_t)
+      \\right]
+      \\]
+    </div>
+  </section>
+
+  <section class="card span-12" id="graphs">
+    <h2>8. Interaction graphs</h2>
+    <p>
+      An architecture is represented as a directed typed graph. Nodes are AB objects. Edges are typed information flows. δAB operators annotate either nodes, edges or the whole graph. This representation makes sequential, parallel, residual, gated and recursive arrangements comparable under a shared notation.
+    </p>
+    <div class="eq">
+      \\[
+      \\Gamma = (V,E,D,R)
+      \\]
+      where \\(V\\) are AB objects, \\(E\\) are typed edges, \\(D\\) are δAB operators and \\(R\\) are readout or reward functions.
+    </div>
+    <table>
+      <tr><th>Interaction</th><th>Notation</th><th>Effect</th></tr>
+      <tr><td>Sequential</td><td>\\(O_b \\circ O_a\\)</td><td>staged abstraction</td></tr>
+      <tr><td>Parallel</td><td>\\([O_a(x), O_b(x)]\\)</td><td>multi-view representation</td></tr>
+      <tr><td>Residual</td><td>\\(x + O(x)\\)</td><td>controlled representation drift</td></tr>
+      <tr><td>Gated</td><td>\\(g(x)O_a(x)+(1-g(x))O_b(x)\\)</td><td>conditional routing</td></tr>
+      <tr><td>Recursive</td><td>\\(O(x, O(x_i))\\)</td><td>subproblem decomposition</td></tr>
+      <tr><td>Verifier-coupled</td><td>\\(O \\rightarrow V \\rightarrow \\delta O\\)</td><td>feedback-driven adaptation</td></tr>
+    </table>
+  </section>
+
+  <section class="card span-12 dark">
+    <h2>9. Graph composition diagram</h2>
+    <svg viewBox="0 0 1320 560" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="bb" x1="0" x2="1"><stop offset="0%" stop-color="#68d2ff"/><stop offset="100%" stop-color="#9d8cff"/></linearGradient>
+        <linearGradient id="gg" x1="0" x2="1"><stop offset="0%" stop-color="#1ed58a"/><stop offset="100%" stop-color="#69f1c8"/></linearGradient>
+        <filter id="ss"><feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="rgba(0,0,0,.35)"/></filter>
+      </defs>
+      <text x="35" y="42" fill="#edf2ff" font-size="30" font-weight="800">From object signatures to system search</text>
+
+      <rect x="70" y="95" width="220" height="90" rx="20" fill="#172341" stroke="rgba(255,255,255,.16)"/>
+      <text x="115" y="134" fill="#edf2ff" font-size="24" font-weight="800">Input type</text>
+      <text x="104" y="160" fill="#aeb8d4" font-size="16">sequence, image, market state</text>
+
+      <rect x="360" y="80" width="230" height="120" rx="22" fill="url(#bb)" filter="url(#ss)"/>
+      <text x="420" y="123" fill="#07111f" font-size="25" font-weight="900">Candidate Γ</text>
+      <text x="390" y="153" fill="#07111f" font-size="16" font-weight="700">objects + edges + deltas</text>
+
+      <rect x="660" y="80" width="240" height="120" rx="22" fill="#172341" stroke="rgba(255,255,255,.16)"/>
+      <text x="715" y="123" fill="#edf2ff" font-size="25" font-weight="800">Evaluation Φ</text>
+      <text x="692" y="153" fill="#aeb8d4" font-size="16">accuracy, cost, risk, stability</text>
+
+      <rect x="980" y="80" width="250" height="120" rx="22" fill="url(#gg)" filter="url(#ss)"/>
+      <text x="1040" y="123" fill="#03140e" font-size="25" font-weight="900">Selection</text>
+      <text x="1010" y="153" fill="#03140e" font-size="16" font-weight="700">choose or mutate architecture</text>
+
+      <rect x="205" y="330" width="250" height="100" rx="22" fill="#172341" stroke="rgba(255,255,255,.16)"/>
+      <text x="255" y="373" fill="#edf2ff" font-size="25" font-weight="800">Object library</text>
+      <text x="235" y="400" fill="#aeb8d4" font-size="16">MLP, attention, JEPA, policy</text>
+
+      <rect x="535" y="320" width="270" height="120" rx="22" fill="url(#bb)" filter="url(#ss)"/>
+      <text x="592" y="363" fill="#07111f" font-size="25" font-weight="900">Mutation set</text>
+      <text x="566" y="392" fill="#07111f" font-size="16" font-weight="700">LoRA, routing, PPO, verifier</text>
+
+      <rect x="880" y="330" width="270" height="100" rx="22" fill="#172341" stroke="rgba(255,255,255,.16)"/>
+      <text x="948" y="373" fill="#edf2ff" font-size="25" font-weight="800">Constraints</text>
+      <text x="915" y="400" fill="#aeb8d4" font-size="16">VRAM, latency, drawdown, data</text>
+
+      <line x1="290" y1="140" x2="360" y2="140" stroke="#68d2ff" stroke-width="4"/><polygon points="360,140 346,132 346,148" fill="#68d2ff"/>
+      <line x1="590" y1="140" x2="660" y2="140" stroke="#68d2ff" stroke-width="4"/><polygon points="660,140 646,132 646,148" fill="#68d2ff"/>
+      <line x1="900" y1="140" x2="980" y2="140" stroke="#1ed58a" stroke-width="4"/><polygon points="980,140 966,132 966,148" fill="#1ed58a"/>
+      <line x1="330" y1="330" x2="420" y2="200" stroke="#68d2ff" stroke-width="4"/><polygon points="420,200 405,207 418,216" fill="#68d2ff"/>
+      <line x1="670" y1="320" x2="520" y2="200" stroke="#68d2ff" stroke-width="4"/><polygon points="520,200 535,205 526,217" fill="#68d2ff"/>
+      <line x1="1015" y1="330" x2="1045" y2="200" stroke="#1ed58a" stroke-width="4"/><polygon points="1045,200 1034,212 1050,215" fill="#1ed58a"/>
+    </svg>
+  </section>
+
+  <section class="card span-12" id="meta">
+    <h2>10. Meta-strategy for configuration search</h2>
+    <p>
+      The framework becomes operational when it is used to search over configurations. A configuration is an AB graph with a set of δAB operators and a measured profile. The design problem is to choose a graph that satisfies constraints and maximises an objective over tracked parameters.
+    </p>
+    <div class="eq">
+      \\[
+      \\Gamma^* =
+      \\arg\\max_{\\Gamma \\in \\mathcal G}
+      J(\\Gamma; T, \\mathcal D, \\mathcal C)
+      \\]
+      \\[
+      J = \\alpha P_{task} - \\beta C_{compute} - \\gamma R_{risk} - \\xi I_{instability} + \\zeta V_{verified}
+      \\]
+      where \\(T\\) is the target task, \\(\\mathcal D\\) is data and \\(\\mathcal C\\) is the constraint set.
+    </div>
+    <pre>Meta-strategy loop:
+  define task and constraints
+  select candidate AB objects
+  compose graph Γ
+  attach δAB operators
+  train or evaluate
+  update capability profile Φ
+  choose, mutate or reject Γ</pre>
+  </section>
+
+  <section class="card span-6" id="families">
+    <h2>11. Architecture families in AB terms</h2>
+    <table>
+      <tr><th>Family</th><th>AB description</th><th>Main effect</th></tr>
+      <tr><td>LLM</td><td>stacked Transformer AB2 motifs under autoregressive objective</td><td>sequence distribution modeling</td></tr>
+      <tr><td>Diffusion</td><td>denoiser plus iterative reverse process</td><td>generative trajectory through noisy states</td></tr>
+      <tr><td>JEPA</td><td>context encoder, target encoder, predictor in latent space</td><td>semantic predictive representation</td></tr>
+      <tr><td>RLM</td><td>recursive inference policy over an LLM and external context</td><td>context decomposition and synthesis</td></tr>
+      <tr><td>AZR</td><td>proposer, solver, verifier and coupled rewards</td><td>self-generated task improvement</td></tr>
+    </table>
+  </section>
+
+  <section class="card span-6">
+    <h2>12. Correct system assignments</h2>
+    <table>
+      <tr><th>System</th><th>Assigned method</th><th>Purpose</th></tr>
+      <tr><td>WatsonOW</td><td>RLM only</td><td>recursive reasoning over finite context with existing Qwen stack</td></tr>
+      <tr><td>iTrader</td><td>Market-JEPA</td><td>latent market world model for candidate-window proposal</td></tr>
+      <tr><td>iTrader solver</td><td>MLP + FiLM + PPO + GAE</td><td>task-conditioned policy learning and credit assignment</td></tr>
+      <tr><td>iTrader proposer</td><td>LLM or MarketFramer with possible adapters</td><td>TaskSpec and ExecutionIntent generation</td></tr>
+    </table>
+  </section>
+
+  <section class="card span-12" id="systems">
+    <h2>13. AB4 system formalisation</h2>
+    <p>
+      An AB4 system is a coupled learning or inference arrangement. It contains at least one AB3 model or learned policy, a memory or state substrate, an environment, a verifier or reward source and a policy for updating or selecting actions.
+    </p>
+    <div class="eq">
+      \\[
+      S_{AB4} = (\\mathcal O, \\mathcal D, \\mathcal M, \\mathcal E, \\mathcal V, \\mathcal R, \\Pi)
+      \\]
+      where \\(\\mathcal O\\) is the object set, \\(\\mathcal D\\) the δAB set, \\(\\mathcal M\\) memory, \\(\\mathcal E\\) environment, \\(\\mathcal V\\) verifiers, \\(\\mathcal R\\) reward functions and \\(\\Pi\\) the policy that controls interaction.
+    </div>
+  </section>
+
+  <section class="card span-6">
+    <h2>14. iTrader as AB4</h2>
+    <pre>iTrader_AB4 =
+  objects:
+    Market-JEPA
+    MarketFramer
+    SolverMLPFiLM
+    RiskEngine
+    Executor
+  deltas:
+    PPO, GAE, RLVR-style verifier feedback
+  memory:
+    CapabilityProfile, replay logs
+  environment:
+    market data and execution simulator
+  output:
+    TaskSpec, WAIT, trade action, supervision decision</pre>
+  </section>
+
+  <section class="card span-6">
+    <h2>15. WatsonOW as AB4</h2>
+    <pre>WatsonOW_AB4 =
+  objects:
+    Qwen3.6:27B
+    Hermes harness
+    LiteLLM provider layer
+    llama.cpp runtime
+  delta/policy:
+    RLM recursive inference controller
+  environment:
+    files, repositories, shell, browser, tools
+  output:
+    answer, code plan, tool action, synthesis trace</pre>
+    <p>There is no JEPA component in this WatsonOW assignment.</p>
+  </section>
+
+  <section class="card span-12" id="implementation">
+    <h2>16. Implementation route for Neural Workbench</h2>
+    <table>
+      <tr><th>Step</th><th>Deliverable</th><th>Reason</th></tr>
+      <tr><td>1</td><td>AB object schema</td><td>Represent input type, output type, effect signature, cost and capability.</td></tr>
+      <tr><td>2</td><td>δAB registry</td><td>Describe LoRA, PPO, GAE, RLVR, RLM and other transformations in one grammar.</td></tr>
+      <tr><td>3</td><td>Graph builder</td><td>Create typed AB graphs and validate edge compatibility.</td></tr>
+      <tr><td>4</td><td>Evaluator</td><td>Measure objective values and update capability profiles.</td></tr>
+      <tr><td>5</td><td>Search loop</td><td>Mutate or select configurations under constraints.</td></tr>
+      <tr><td>6</td><td>System adapters</td><td>Apply the grammar to WatsonOW-RLM and iTrader-Market-JEPA.</td></tr>
+    </table>
+  </section>
+
+  <section class="card span-12">
+    <h2>17. Closing statement</h2>
+    <p class="quote">
+      The AB framework is a practical notation for designing machine learning systems under constraints. It treats modules as typed objects, modern training methods as transformations, and agentic architectures as coupled systems with measurable capability profiles.
+    </p>
+  </section>
+
+</div>
+</main>
+</body>
+</html>

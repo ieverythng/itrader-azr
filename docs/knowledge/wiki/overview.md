@@ -2,121 +2,90 @@
 
 # iTrader-AZR
 
-Welcome to iTrader-AZR, an autonomous trading research platform that applies Reinforcement Learning with Verifiable Rewards (RLVR) to financial markets. The system separates learning into two roles: a **Solver** that learns trading behavior, and a **Proposer** that generates task curricula. This architecture is inspired by the Absolute Zero Reasoner (AZR) paradigm.
+Autonomous trading research platform implementing a proposer-solver architecture for Reinforcement Learning with Verifiable Rewards (RLVR). The system separates task generation from policy learning, enabling curriculum-based training with explicit, inspectable reward signals.
 
-## What This Project Does
+## Core Concept
 
-iTrader trains trading agents through verifiable, inspectable reward signals rather than black-box optimization. Instead of a single monolithic learning objective, the system decomposes training into:
+iTrader decouples the trading problem into two distinct roles:
 
-- **Tasks** — parameterized specifications defining trading scenarios (instruments, time horizons, constraints)
-- **Rewards** — explicit, decomposed components (PnL, drawdown, turnover) computed by a registry-based engine
-- **Agents** — neural networks that learn position decisions (long/flat/short) from market observations
+- **Solver** — Learns optimal trading behavior through PPO with a FiLM-conditioned neural network. The solver receives task specifications and learns to maximize shaped rewards.
+- **Proposer** — Generates task curricula for the solver. Currently supports rule-based sampling with a path toward LLM-native task generation.
 
-The project is currently focused on two phases:
-- **Phase A**: Stable solver learning with shaped rewards in a controllable Gymnasium environment
-- **Phase B**: LLM-native task proposers that generate adaptive curricula
+Training follows RLVR principles: rewards are decomposed into measurable components (PnL, drawdown, turnover), tasks are sampled from parameterized specifications, and behavior is optimized under explicit constraints.
 
 ## Architecture
 
 ```mermaid
 flowchart TB
     subgraph Entry["Entry Points"]
-        CLI[CLI Main]
+        CLI[CLI Gateway]
         TRAIN[Training Pipeline]
     end
 
-    subgraph Core["Core Runtime"]
+    subgraph Core["Core Loop"]
+        PROPOSER[Task Proposer]
+        SOLVER[Solver Agent]
         ENV[Trading Environment]
-        AGENT[Agent Architecture]
-        MODELS[Neural Network Models]
     end
 
-    subgraph TaskLayer["Task & Reward Layer"]
+    subgraph Config["Configuration Layer"]
         TASKS[Task System]
         REWARDS[Reward System]
-        PROPOSERS[Task Proposers]
     end
 
-    subgraph Intelligence["Intelligence Layer"]
-        LLM[LLM Integration]
-    end
-
-    subgraph Data["Data Layer"]
-        DATA[Data Pipeline]
-    end
+    DATA[Data Pipeline]
 
     CLI --> TRAIN
-    TRAIN --> ENV
-    TRAIN --> TASKS
-    TRAIN --> PROPOSERS
-
-    ENV --> TASKS
-    ENV --> REWARDS
-    ENV --> AGENT
-    AGENT --> MODELS
-
+    TRAIN --> PROPOSER
+    TRAIN --> SOLVER
+    PROPOSER --> TASKS
     TASKS --> REWARDS
-    PROPOSERS --> REWARDS
-    PROPOSERS --> LLM
-
+    SOLVER --> ENV
+    ENV --> REWARDS
     DATA --> ENV
 ```
 
 ## Key End-to-End Flows
 
-### Training Flow
+### Phase A: Solver Training
 
-The main entry point is the CLI dispatcher in [Core Application](core-application.md). When you run `python -m itrader train`, the system:
+The [Training Pipeline](training-pipeline.md) orchestrates PPO training using Ray RLlib. The [Trading Environment](trading-environment.md) provides a Gymnasium-compatible interface with discrete actions (long/flat/short) and rolling OHLCV observations. The [Solver Agent](agent-architecture.md) uses neural networks from the [Neural Network Models](neural-network-models.md) module—typically `SolverMLPFiLM` for task-conditioned learning.
 
-1. Loads configuration and initializes the [Training Pipeline](training-pipeline.md)
-2. Samples or generates tasks via [Task Proposers](task-proposers.md) (rule-based or LLM-powered)
-3. Validates and clamps task parameters through the [Task System](task-system.md)
-4. Instantiates the [Trading Environment](trading-environment.md) with market data from the [Data Pipeline](data-pipeline.md)
-5. Runs PPO optimization with agents defined in [Agent Architecture](agent-architecture.md) using [Neural Network Models](neural-network-models.md)
-6. Computes rewards via the [Reward System](reward-system.md) registry
+### Phase B: AZR Bootstrap
 
-### Task Generation Flow
+The proposer generates task specifications that define training objectives. [Task Proposers](task-proposers.md) can use rule-based sampling, Ollama local inference, or OpenAI-compatible endpoints. The [LLM Integration](llm-integration.md) module provides both a lightweight llama.cpp engine and a full-featured Transformers-based proposer with 4-bit quantization.
 
-For Phase B curriculum learning, the [LLM Integration](llm-integration.md) module provides two backends:
+### Reward Computation
 
-- A lightweight llama.cpp engine for fast local inference
-- A full-featured proposer using Transformers with 4-bit quantization
+The [Reward System](reward-system.md) uses a registry-based architecture where reward functions are decoupled from environment logic. The [Task System](task-system.md) validates and clamps task parameters before passing them to the reward engine, ensuring verifiable reward shaping.
 
-Task proposers generate structured specifications that the Task System validates before passing to the environment.
+## Development Phases
 
-## Module Overview
-
-The codebase is organized into functional layers:
-
-**Runtime Core** — The [Trading Environment](trading-environment.md) implements a Gymnasium-compatible interface with discrete actions (short/flat/long) and rolling OHLCV observations. Agents are defined through the [Agent Architecture](agent-architecture.md) abstraction, with concrete implementations using [Neural Network Models](neural-network-models.md) that support both MLP and FiLM-conditioned architectures.
-
-**Task & Reward Layer** — The [Task System](task-system.md) provides unified configuration for training tasks, including specification, validation, and embedding generation. The [Reward System](reward-system.md) decouples reward computation from environment logic through a registry pattern, enabling extensible reward shaping.
-
-**Intelligence Layer** — [Task Proposers](task-proposers.md) support multiple generation strategies: deterministic rules, local Ollama inference, and OpenAI-compatible endpoints. The [LLM Integration](llm-integration.md) module handles the underlying model loading and inference.
-
-**Data & Infrastructure** — The [Data Pipeline](data-pipeline.md) manages historical backfill, real-time streaming, and ETL processing. [Training Pipeline](training-pipeline.md) orchestrates Ray RLlib and Ray Tune for distributed training with PBT support.
-
-**Tooling** — [Experiment Scripts](experiment-scripts.md) provide CLI utilities for ablation studies and result analysis. [Diagnostic Tools](diagnostic-tools.md) offer healthchecks and run diagnostics. [Knowledge Management](knowledge-management.md) syncs GitNexus artifacts into documentation.
+| Phase | Focus | Status |
+|-------|-------|--------|
+| A | Stable solver learning with verifiable reward shaping | Active |
+| B | LLM-based proposer integration and AZR loop validation | Planned |
 
 ## Getting Started
 
-1. **Install dependencies** — The project uses Ray RLlib for distributed training. Ensure you have a compatible Python environment.
+The [Core Application](core-application.md) module provides a unified CLI entry point:
 
-2. **Run a healthcheck** — Validate your setup:
-   ```bash
-   python -m itrader healthcheck
-   ```
+```bash
+# Train a solver (Phase A)
+python -m itrader train --config config.yaml
 
-3. **Start training** — Begin with Phase A solo training:
-   ```bash
-   python -m itrader train --config path/to/config.yaml
-   ```
+# Train with AZR bootstrap (Phase B)
+python -m itrader train-azr --config config.yaml
 
-4. **Explore results** — Use the diagnostic tools to inspect checkpoints and plot training progress.
+# Validate environment setup
+python -m itrader healthcheck
+```
 
-## Where to Go Next
+The [Data Pipeline](data-pipeline.md) handles market data collection via Polygon API, storage in DuckDB, and ETL processing for training. Use the [Diagnostic Tools](diagnostic-tools.md) to validate your environment and inspect training runs.
 
-- Read [Trading Environment](trading-environment.md) to understand the observation/action space
-- Review [Reward System](reward-system.md) to see how rewards are decomposed and computed
-- Explore [Task System](task-system.md) to understand task specification and validation
-- Check [Training Pipeline](training-pipeline.md) for PPO hyperparameters and PBT configuration
+## Module Navigation
+
+- **Training**: [Training Pipeline](training-pipeline.md) → [Trading Environment](trading-environment.md) → [Agent Architecture](agent-architecture.md)
+- **Task Generation**: [Task Proposers](task-proposers.md) → [Task System](task-system.md) → [Reward System](reward-system.md)
+- **Infrastructure**: [Data Pipeline](data-pipeline.md) → [LLM Integration](llm-integration.md) → [Experiment Scripts](experiment-scripts.md)
+- **Utilities**: [Diagnostic Tools](diagnostic-tools.md) → [Knowledge Management](knowledge-management.md)

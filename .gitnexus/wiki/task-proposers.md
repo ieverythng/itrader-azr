@@ -14,15 +14,15 @@ graph TD
     A --> C[OllamaProposer]
     A --> D[OpenAICompatProposer]
     A --> E[ProposerLLM]
-    
+
     B --> F[RewardEngine]
     C --> G[Ollama API]
     D --> H[vLLM/SGLang]
-    
+
     I[_shared.py] --> J[parse_json_with_repair]
     I --> K[schema_hint]
     I --> L[normalize_count]
-    
+
     C --> I
     D --> I
 ```

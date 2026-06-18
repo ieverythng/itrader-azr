@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>iTrader System Architecture</title>
+  <style>
+    :root {
+      --bg: #101814;
+      --panel: #17231d;
+      --panel-2: #f6efe2;
+      --ink: #eef8ef;
+      --paper-ink: #173020;
+      --muted: #adc4b4;
+      --green: #5ee6a7;
+      --cyan: #72d7ff;
+      --gold: #f3bd54;
+      --rose: #f07d6f;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 0%, rgba(94, 230, 167, .24), transparent 30rem),
+        radial-gradient(circle at 100% 20%, rgba(114, 215, 255, .16), transparent 28rem),
+        var(--bg);
+      font-family: Avenir Next, Trebuchet MS, sans-serif;
+    }
+    header, main { max-width: 1180px; margin: 0 auto; padding: 42px 24px; }
+    .eyebrow {
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+    h1 { max-width: 900px; margin: 12px 0; font-size: clamp(40px, 7vw, 82px); line-height: .94; }
+    .subtitle { max-width: 780px; color: var(--muted); font: 20px/1.5 Charter, Georgia, serif; }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 18px; }
+    .card {
+      grid-column: span 6;
+      min-height: 220px;
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 30px;
+      padding: 26px;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.025));
+      box-shadow: 0 18px 52px rgba(0,0,0,.25);
+    }
+    .wide { grid-column: span 12; }
+    .paper { background: var(--panel-2); color: var(--paper-ink); }
+    .paper p, .paper li { color: #506757; }
+    h2 { margin: 0 0 16px; font-size: 28px; }
+    p, li { color: var(--muted); font-size: 16px; line-height: 1.55; }
+    code, pre { font-family: Menlo, Consolas, monospace; }
+    pre {
+      white-space: pre-wrap;
+      padding: 18px;
+      border-radius: 20px;
+      color: #07140d;
+      background: linear-gradient(135deg, var(--green), var(--cyan));
+      font-weight: 700;
+      line-height: 1.55;
+    }
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+    }
+    .node {
+      padding: 18px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.1);
+      color: var(--ink);
+      min-height: 92px;
+    }
+    .node strong { display: block; color: var(--green); margin-bottom: 8px; }
+    .tag {
+      display: inline-block;
+      margin: 0 8px 8px 0;
+      padding: 8px 11px;
+      border-radius: 999px;
+      color: #101814;
+      background: var(--gold);
+      font-weight: 800;
+      font-size: 13px;
+    }
+    @media (max-width: 860px) {
+      .card { grid-column: span 12; }
+      .pipeline { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="eyebrow">iTrader architecture</div>
+    <h1>Typed tasks, learned solvers, cautious online gates.</h1>
+    <p class="subtitle">The current branch protects the stable PPO + FiLM baseline while preparing explicit seams for recurrent-window solver experiments, proposer/framer split, and deterministic online risk control.</p>
+  </header>
+  <main class="grid">
+    <section class="card wide">
+      <h2>Implemented Baseline</h2>
+      <pre>OHLCV parquet -> ITraderEnv -> price window + task embedding -> SolverMLPFiLM -> PPO/GAE -> metrics + capability evidence</pre>
+    </section>
+    <section class="card">
+      <h2>Contract Spine</h2>
+      <span class="tag">TaskSpec</span>
+      <span class="tag">ExecutionIntent</span>
+      <span class="tag">CandidateTask</span>
+      <span class="tag">CapabilityProfile</span>
+      <span class="tag">DecisionRecord</span>
+      <p>TaskSpec stays the canonical problem statement. Online execution semantics live in separate contracts so training, risk, and broker behavior do not blur together.</p>
+    </section>
+    <section class="card paper">
+      <h2>Solver Frontier</h2>
+      <p><code>SolverWindowLSTMFiLM</code> is documented as an in-development Phase B candidate only. It should be opt-in, feed-forward PPO compatible, and compared against <code>SolverMLPFiLM</code> on identical seeds and task pools before promotion.</p>
+    </section>
+    <section class="card wide">
+      <h2>Phase C Shadow Loop</h2>
+      <div class="pipeline">
+        <div class="node"><strong>Market Window</strong>live or replayed context</div>
+        <div class="node"><strong>CapabilityProfile</strong>current solver range by family, regime, horizon</div>
+        <div class="node"><strong>MarketFramer</strong>frames capability-conditioned trade and WAIT candidates</div>
+        <div class="node"><strong>Solver</strong>scores solvability, edge, confidence</div>
+        <div class="node"><strong>DecisionGate</strong>deterministically selects, routes, or waits</div>
+        <div class="node"><strong>RiskEngine</strong>applies deterministic limits</div>
+      </div>
+      <p>MarketFramer is capability-aware: it should shape candidate difficulty around the solver heads' current Goldilocks band. Final approval remains deterministic after solver scoring, threshold checks, and risk review.</p>
+    </section>
+    <section class="card">
+      <h2>AB Lens</h2>
+      <p>Use AB/Neural Workbench terminology as a design lens: solver heads are learned objects, PPO/GAE are training deltas, LoRA/adapters may specialize proposer/framer behavior, and capability profiles measure truth.</p>
+    </section>
+    <section class="card">
+      <h2>Knowledge Layer</h2>
+      <p>GitNexus helps narrow architecture and impact work, but source and tests remain authoritative. Check freshness before relying on the graph, then confirm important findings directly.</p>
+    </section>
+  </main>
+</body>
+</html>

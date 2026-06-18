@@ -179,10 +179,10 @@ Each plot function follows the same pattern:
 def plot_XXX_metrics(df: pd.DataFrame, out: Path, xcol: str | None):
     # Create figure with subplots
     fig, axes = plt.subplots(n_rows, 1, figsize=(width, height))
-    
+
     # Plot series with _plot_series()
     # Hide empty axes with _hide_axis_if_empty()
-    
+
     # Save to out/filename.png
 ```
 

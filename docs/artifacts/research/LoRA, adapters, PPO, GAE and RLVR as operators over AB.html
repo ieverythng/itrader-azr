@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Neural Workbench — AB Delta Operators</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root{--bg:#060914;--panel:#10172a;--panel2:#17213c;--text:#f5f7ff;--muted:#a9b5d0;--line:rgba(255,255,255,.13);--blue:#62cfff;--purple:#a988ff;--green:#19d38a;--yellow:#ffd166;--red:#ff6b88;--cyan:#61ead6}*{box-sizing:border-box}body{margin:0;color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:radial-gradient(circle at 16% 0%,rgba(98,207,255,.17),transparent 33%),radial-gradient(circle at 78% 5%,rgba(169,136,255,.18),transparent 34%),linear-gradient(180deg,var(--bg),#03050c 74%)}header{padding:54px 6vw 32px;border-bottom:1px solid var(--line)}.eyebrow{color:var(--cyan);text-transform:uppercase;letter-spacing:.1em;font-size:13px;font-weight:900}h1{font-size:clamp(34px,6vw,76px);line-height:.93;margin:14px 0 18px;max-width:1180px}.subtitle{max-width:1080px;color:var(--muted);font-size:20px;line-height:1.55}main{padding:34px 6vw 84px}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}.card{background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.027));border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 24px 70px rgba(0,0,0,.30)}.span-3{grid-column:span 3}.span-4{grid-column:span 4}.span-5{grid-column:span 5}.span-6{grid-column:span 6}.span-7{grid-column:span 7}.span-8{grid-column:span 8}.span-12{grid-column:span 12}h2{margin:0 0 16px;font-size:28px}h3{margin:0 0 10px;font-size:19px}p,li{color:var(--muted);line-height:1.58}strong{color:var(--text)}code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace}pre{background:rgba(0,0,0,.36);border:1px solid var(--line);border-radius:16px;padding:16px;color:#e6eeff;overflow:auto;line-height:1.48}.badge{display:inline-flex;padding:7px 10px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.06);color:var(--text);font-size:13px;margin:4px 4px 4px 0}.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.kpi .card{padding:18px}.metric{font-size:42px;font-weight:900;letter-spacing:-.04em}.label{color:var(--muted);font-size:14px}.flow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.step{background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:12px 14px;color:var(--text)}.arrow{color:var(--blue);font-weight:900}table{width:100%;border-collapse:collapse;border-radius:16px;overflow:hidden}th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:rgba(255,255,255,.07);color:var(--text)}td{color:var(--muted)}.matrix{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.node{background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:18px;padding:16px}.type{color:var(--blue);font-size:13px;text-transform:uppercase;letter-spacing:.07em;font-weight:900}.quote{font-size:22px;color:var(--text);border-left:4px solid var(--blue);padding-left:18px}.green{color:var(--green)}.yellow{color:var(--yellow)}.blue{color:var(--blue)}.purple{color:var(--purple)}.red{color:var(--red)}footer{margin-top:34px;color:var(--muted);font-size:13px}@media(max-width:1000px){.span-3,.span-4,.span-5,.span-6,.span-7,.span-8,.span-12{grid-column:span 12}.kpi{grid-template-columns:1fr 1fr}.matrix{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Neural Workbench · AB Delta Operators · 2026</div>
+  <h1>LoRA, adapters, PPO, GAE and RLVR as operators over AB objects</h1>
+  <p class="subtitle">This extension treats modern training and adaptation methods not merely as tricks, but as <strong>delta operators</strong> acting on machine-learning objects. The goal is to understand how base AB objects can be adapted, routed, optimized, and composed into higher-order architectures.</p>
+</header>
+<main>
+<section class="kpi">
+  <div class="card"><div class="metric">δAB</div><div class="label">Adaptation morphism: modifies an object without fully replacing it</div></div>
+  <div class="card"><div class="metric">LoRA</div><div class="label">Low-rank weight delta over frozen base operators</div></div>
+  <div class="card"><div class="metric">PPO</div><div class="label">Bounded policy update operator over action distributions</div></div>
+  <div class="card"><div class="metric">RLVR</div><div class="label">Verifier-shaped learning loop for outputs with checkable rewards</div></div>
+</section>
+<div class="grid" style="margin-top:22px;">
+<section class="card span-12"><h2>1. Key answer</h2><p class="quote">LoRA, adapters, PPO, GAE and RLVR are best treated as <strong>δAB operators</strong>: they transform, constrain, route, or evaluate AB objects rather than being ordinary AB1 modules themselves.</p><p>In the AB framework, an MLP or attention head is an AB1 object. A Transformer block is AB2. An LLM is AB3. But LoRA or PPO is slightly different: it is not just another layer; it is a <strong>morphism</strong> that changes how an existing object behaves.</p><pre>Base object:        O_θ : X -> Y
+Adaptation delta:   δ_φ
+Adapted object:     O' = δ_φ(O_θ)
+
+For LoRA:
+  W' = W + ΔW
+  ΔW = (α/r) B A
+  rank(ΔW) << rank(W)</pre></section>
+<section class="card span-6"><h2>2. AB levels plus delta levels</h2><table><tr><th>Class</th><th>Meaning</th><th>Examples</th></tr><tr><td>AB0</td><td>Implementation primitive</td><td>matmul, activation, optimizer step</td></tr><tr><td>AB1</td><td>Learned operator</td><td>MLP, Conv, Attention, RNN, Norm</td></tr><tr><td>AB2</td><td>Reusable motif</td><td>Transformer block, ResNet block, U-Net block</td></tr><tr><td>AB3</td><td>Model family</td><td>LLM, Diffusion model, VAE, CNN</td></tr><tr><td>δAB</td><td>Transformation over objects</td><td>LoRA, adapter, PPO, GAE, RLVR, routing, pruning</td></tr><tr><td>AB4</td><td>Agentic learning system</td><td>Model + tools + memory + environment + reward loop</td></tr></table></section>
+<section class="card span-6"><h2>3. Category-style formalism</h2><p>Let AB objects be nodes in a design category. Modules are objects; adaptation/training methods are arrows.</p><pre>Objects:
+  O ∈ AB_k
+
+Morphisms:
+  δ : O -> O'
+  compose : O_a × O_b -> O_c
+  train_R : O -> O_R
+  route_g : {O_i} -> O_mix
+
+Examples:
+  δ_LoRA : AB3_LLM -> AB3_LLM^task
+  δ_PPO  : Policy_θ -> Policy_θ'
+  δ_RLVR : Generator_θ -> Generator_θ^verifier
+  route_MoLE : {LoRA_i} -> conditional adapter mixture</pre><p>So <code>delta_AB : AB1 -> AB2</code> is a useful case, but the more general form is <code>δAB : AB_k -> AB_k'</code>. Sometimes the level stays the same; sometimes enough deltas plus routing create a higher-level object.</p></section>
+<section class="card span-12"><h2>4. PEFT as AB delta operators</h2><div class="matrix"><div class="node"><div class="type">Adapters</div><h3>Inserted bottleneck delta</h3><p>Adapters insert small trainable bottleneck modules into a frozen model. They preserve the base model while adding task-specific capacity.</p><pre>h' = h + W_up σ(W_down h)</pre><p><strong>AB effect:</strong> adds a small AB1 object inside an AB2/AB3 host.</p></div><div class="node"><div class="type">LoRA</div><h3>Low-rank tangent update</h3><p>LoRA freezes base weights and injects trainable low-rank matrices. It is a weight-space delta, not a full replacement.</p><pre>y = (W + BA)x</pre><p><strong>AB effect:</strong> modifies the direction of an existing operator in a low-dimensional subspace.</p></div><div class="node"><div class="type">QLoRA</div><h3>Quantized base + trainable delta</h3><p>QLoRA backpropagates through a frozen 4-bit quantized model into LoRA adapters.</p><pre>Frozen: quantize(W)
+Train:  ΔW_LoRA</pre><p><strong>AB effect:</strong> makes δAB feasible under hardware limits.</p></div><div class="node"><div class="type">IA³</div><h3>Activation scaling delta</h3><p>IA³ learns tiny vectors that rescale activations. It is a low-parameter control knob over internal channels.</p><pre>h' = l ⊙ h</pre><p><strong>AB effect:</strong> gates feature channels rather than replacing weights.</p></div><div class="node"><div class="type">DoRA</div><h3>Magnitude/direction decomposition</h3><p>DoRA decomposes weights into magnitude and direction and applies LoRA to directional updates.</p><pre>W = m · V / ||V||
+V' = V + ΔV_LoRA</pre><p><strong>AB effect:</strong> separates scale adaptation from directional adaptation.</p></div><div class="node"><div class="type">ReFT / LoReFT</div><h3>Representation intervention delta</h3><p>ReFT learns interventions on hidden representations rather than mainly modifying weights.</p><pre>h' = h + intervention_φ(h)</pre><p><strong>AB effect:</strong> adapts the trajectory through representation space.</p></div></div></section>
+<section class="card span-7"><h2>5. When does a delta create a higher AB object?</h2><p>A single LoRA on one layer usually does not create a new AB level. It is a δAB morphism over an existing object. But a set of adapters plus a router can become AB2 or AB3-like.</p><pre>Single LoRA:
+  AB3_LLM -> adapted AB3_LLM
+
+Many LoRAs:
+  {δ_1, δ_2, ..., δ_n}
+
+Router over LoRAs:
+  g(x) selects or mixes δ_i
+
+Mixture of LoRA Experts:
+  O'(x) = O(x; W + Σ_i g_i(x) ΔW_i)</pre><p>At that point, the system has a new motif:</p><pre>BaseModel + AdapterBank + Router = AB2/AB3 adaptation architecture</pre><p>This is directly relevant to iTrader: each market regime or task family can have its own LoRA/adaptor, with MarketFramer or CapabilityProfile acting as the router.</p></section>
+<section class="card span-5"><h2>6. iTrader adapter interpretation</h2><p>For iTrader, adapter families can map naturally onto task families:</p><table><tr><th>Adapter</th><th>Specialization</th></tr><tr><td>LoRA_00</td><td>Directional prediction</td></tr><tr><td>LoRA_01</td><td>Breakout/expansion</td></tr><tr><td>LoRA_02</td><td>Mean reversion</td></tr><tr><td>LoRA_03</td><td>Hold/exit supervision</td></tr><tr><td>LoRA_04</td><td>WAIT / no-trade judgment</td></tr></table><p>The router can be learned or deterministic:</p><pre>router_input = MarketSummary + CapabilityProfile
+adapter = argmax_i p(adapter_i | context)</pre></section>
+<section class="card span-12"><h2>7. RL as a policy delta over AB objects</h2><p>RL does not merely add a layer. It changes the behavior of a policy object through environment feedback.</p><pre>Policy object:
+  π_θ(a | s)
+
+RL update:
+  θ' = θ + η ∇_θ J(θ)
+
+AB view:
+  δ_RL : Policy_θ -> Policy_θ'</pre><p>If the policy is a neural network, the AB3 object is being reshaped by a reward-conditioned delta. In iTrader, the solver is not just a predictor; it is a policy object living inside an environment with reward, risk, and action consequences.</p></section>
+<section class="card span-6"><h2>8. GAE as credit-assignment object</h2><p>Generalized Advantage Estimation is not a model layer. It is an estimator that tells the training system which actions were better than expected.</p><pre>δ_t = r_t + γ V(s_{t+1}) - V(s_t)
+
+Â_t^GAE(γ,λ) =
+  Σ_{l=0}^{∞} (γλ)^l δ_{t+l}</pre><p><strong>AB role:</strong> GAE is a <span class="blue">credit assignment morphism</span> from trajectories to policy-gradient signal.</p><pre>Trajectory τ -> Advantage estimates -> PPO update</pre></section>
+<section class="card span-6"><h2>9. PPO as bounded policy update</h2><p>PPO constrains how much the policy may move per update by clipping the probability ratio.</p><pre>r_t(θ) = π_θ(a_t|s_t) / π_{θ_old}(a_t|s_t)
+
+L_CLIP(θ) =
+E[min(r_t(θ) Â_t,
+      clip(r_t(θ), 1-ε, 1+ε) Â_t)]</pre><p><strong>AB role:</strong> PPO is a <span class="green">stability-preserving delta</span> over a policy object.</p><pre>δ_PPO : π_old -> π_new
+constraint: update should be useful but not destructive</pre></section>
+<section class="card span-7"><h2>10. RLVR as verifier-shaped delta</h2><p>RLVR replaces vague preference or subjective reward with a verifier when possible. In reasoning tasks this may be an answer checker, unit test, theorem verifier, or format/accuracy rule. In iTrader, it can be a replay/backtest/risk-verifier.</p><pre>Generate candidate y ~ π_θ(. | x)
+Verify reward r = V(x, y)
+
+Update π_θ to increase probability of verifiably good outputs</pre><p><strong>AB role:</strong> RLVR is a <span class="purple">closed-loop verification morphism</span> from output attempts to policy updates.</p><pre>δ_RLVR : Generator_θ -> Generator_θ^verified</pre><p>For iTrader:</p><pre>TaskSpec / CandidateTask -> replay verifier -> r_prop / r_solve -> update proposer/solver</pre></section>
+<section class="card span-5"><h2>11. GRPO in AB terms</h2><p>GRPO removes the separate critic/value model and estimates relative advantage from a group of sampled completions.</p><pre>Given G samples:
+  y_1,...,y_G ~ π(.|x)
+  r_i = verifier(x, y_i)
+
+Group advantage:
+  A_i = (r_i - mean(r)) / std(r)</pre><p><strong>AB role:</strong> group-relative self-comparison operator. Very natural for proposer training:</p><pre>same MarketSummary
+  -> multiple CandidateTasks
+  -> replay/verifier scores
+  -> rank/update proposer</pre></section>
+<section class="card span-12"><h2>12. AB decomposition of complex architectures</h2><p>Yes, an AB3 object can usually be discretized into lower objects, but with important caveats.</p><table><tr><th>Claim</th><th>Verdict</th><th>Reason</th></tr><tr><td>Can a complex model be decomposed into AB1/AB2 objects?</td><td class="green">Mostly yes</td><td>The computation graph is composed of identifiable modules: attention, FFN, norm, conv, gates, residuals.</td></tr><tr><td>Does decomposition fully explain behavior?</td><td class="yellow">No</td><td>Emergent behavior depends on training data, objective, scale, optimizer, and learned representations.</td></tr><tr><td>Can we predict architecture effects from object signatures?</td><td class="yellow">Partially</td><td>Object signatures give priors, not guarantees.</td></tr><tr><td>Can AB theory help architecture search?</td><td class="green">Yes</td><td>It gives a typed grammar for composing and testing modules.</td></tr></table><p>AB theory should be treated as a <strong>design language</strong>, not a complete theory of neural emergence.</p></section>
+<section class="card span-12"><h2>13. Architecture search as AB graph search</h2><p>We can represent architecture improvement as search over typed graphs:</p><pre>Given:
+  task T
+  constraints C
+  object library L = {MLP, Attention, Conv, Norm, Adapter, Gate, ...}
+
+Find:
+  graph G*
+that maximizes:
+  Score(G, T) = performance - cost - instability - risk</pre><p>Each candidate architecture is a graph of AB objects and δAB operators:</p><pre>G = {
+  nodes: AB objects
+  edges: tensor flows
+  deltas: LoRA/adapters/RL updates
+  objectives: supervised/RLVR/PPO/loss functions
+}</pre><p>This becomes extremely relevant to Neural Workbench: we can test not only models, but <strong>object arrangements</strong>.</p></section>
+<section class="card span-6"><h2>14. Practical research program</h2><ol><li>Define AB object signatures.</li><li>Implement a tiny AB graph DSL.</li><li>Run ablations: FFN-only, attention-only, LoRA-only, adapter bank, router.</li><li>Measure compression, routing, stability, generalization.</li><li>Introduce RLVR verifier tasks.</li><li>Train proposer to generate AB graphs.</li><li>Use PPO/GAE when environment action consequences matter.</li></ol></section>
+<section class="card span-6"><h2>15. The iTrader/Watson version</h2><pre>Watson / iTrader AB4 system:
+
+MarketSummary
+  -> MarketFramer AB3 LLM
+  -> adapter/router δAB
+  -> CandidateTask
+  -> Solver policy AB3
+  -> PPO/GAE update
+  -> RiskEngine verifier
+  -> RLVR-style feedback
+  -> CapabilityProfile
+  -> CurriculumProposer</pre><p>Here the full system is not just a model. It is an <strong>agentic learning architecture</strong>.</p></section>
+<section class="card span-12"><h2>16. Final synthesis</h2><p class="quote">Modern architecture improvement is increasingly about adding small, controllable delta mechanisms to large frozen or semi-frozen AB3 objects, then training those deltas with increasingly verifiable reward loops.</p><p>This is exactly where your AB framework becomes powerful. It lets us ask: which base object stays fixed, where the delta should live, whether it preserves or raises the AB level, and how we empirically profile the resulting object by capability rather than by architecture name.</p><p>For iTrader, the answer is likely a hybrid: frozen/served LLMs with LoRA or ReFT-style task adapters for proposer/framer behavior, PPO+GAE for solver policies, RLVR-style verifiers for TaskSpec/CandidateTask quality, and CapabilityProfile as the empirical truth layer.</p></section>
+<section class="card span-12"><h2>17. Research anchors</h2><ol><li>Hu et al., LoRA: Low-Rank Adaptation of Large Language Models, 2021.</li><li>Houlsby et al., Parameter-Efficient Transfer Learning for NLP, 2019.</li><li>Dettmers et al., QLoRA: Efficient Finetuning of Quantized LLMs, 2023.</li><li>Liu et al., Few-Shot Parameter-Efficient Fine-Tuning is Better and Cheaper than In-Context Learning / IA³, 2022.</li><li>Liu et al., DoRA: Weight-Decomposed Low-Rank Adaptation, 2024.</li><li>Wu et al., Mixture of LoRA Experts, 2024.</li><li>Wu et al., ReFT: Representation Finetuning for Language Models, 2024.</li><li>Schulman et al., Generalized Advantage Estimation, 2015.</li><li>Schulman et al., Proximal Policy Optimization Algorithms, 2017.</li><li>Shao et al., DeepSeekMath / GRPO, 2024.</li><li>Wen et al., RLVR implicitly incentivizes correct reasoning, 2025.</li></ol></section>
+</div><footer>Generated for Álvaro's Neural Workbench. Proposed research/design abstraction; empirical validation required.</footer>
+</main>
+</body>
+</html>

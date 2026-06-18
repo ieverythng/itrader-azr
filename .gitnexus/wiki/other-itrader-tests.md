@@ -91,7 +91,7 @@ graph TD
     C --> D[TaskSampler]
     D --> E[Sampled Task]
     E --> F[Environment]
-    
+
     G[CandidateTask] --> H[DecisionRecord]
     G --> I[ExecutionIntent]
     J[CapabilityProfile] --> G
@@ -137,7 +137,7 @@ def test_forward_no_nan_inf_in_logits():
     x[0, 0] = float("nan")
     x[1, 1] = float("inf")
     x[2, 2] = float("-inf")
-    
+
     logits, _ = model.forward({"obs": x}, [], None)
     assert torch.isfinite(logits).all()  # Must produce finite outputs
 ```

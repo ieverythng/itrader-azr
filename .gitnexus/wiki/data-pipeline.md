@@ -12,23 +12,23 @@ flowchart LR
         A[Polygon REST API]
         B[Polygon WebSocket]
     end
-    
+
     subgraph Storage
         C[(DuckDB<br/>ticks table)]
     end
-    
+
     subgraph Processing
         D[etl_job.py<br/>Resample + Features]
     end
-    
+
     subgraph Output
         E[(ohlcv.parquet)]
     end
-    
+
     subgraph Consumers
         F[PA_helpers.py<br/>load_market_data]
     end
-    
+
     A -->|backfill.py| C
     B -->|live_data.py| C
     C --> D
