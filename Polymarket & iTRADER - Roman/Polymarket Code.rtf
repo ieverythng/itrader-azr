@@ -1,0 +1,234 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2759
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 import asyncio\
+import logging\
+import os\
+import time\
+from datetime import datetime, timedelta\
+from typing import Dict, List, Optional, Tuple\
+\
+import aiohttp\
+import pandas as pd\
+from binance import AsyncClient\
+from dotenv import load_dotenv\
+from py_clob_client_v2.clob import ClobClient\
+from py_clob_client_v2.constants import POLYGON\
+from py_clob_client_v2.order_builder import OrderBuilder\
+\
+load_dotenv()\
+\
+LOG_FILE = "bot_log.csv"\
+\
+MIN_ODDS = 0.90\
+MIN_VOLUME = 10000\
+MAX_DAILY_TRADES = 5\
+HARD_STOP_DRAWDOWN = 0.30\
+PREFERRED_START_HOUR_EST = 14\
+PREFERRED_END_HOUR_EST = 20\
+OBSERVATION_HOURS = 48\
+\
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')\
+logger = logging.getLogger(__name__)\
+\
+class PolymarketBTCBot:\
+    def __init__(self):\
+        self.binance_client: Optional[AsyncClient] = None\
+        self.session: Optional[aiohttp.ClientSession] = None\
+        self.clob_client: Optional[ClobClient] = None\
+        self.price_history: List[Dict] = []\
+        self.odds_history: List[Dict] = []\
+        self.account_balance = 1000.0\
+        self.peak_balance = 1000.0\
+        self.daily_trades = 0\
+        self.in_observation_mode = True\
+        self.start_time = datetime.utcnow()\
+        self.current_market = None\
+        self.strike = 0.0\
+\
+    async def init_clients(self):\
+        self.binance_client = await AsyncClient.create(\
+            api_key=os.getenv("BINANCE_API_KEY"),\
+            api_secret=os.getenv("BINANCE_API_SECRET")\
+        )\
+        self.session = aiohttp.ClientSession()\
+        self.clob_client = ClobClient(\
+            host="https://clob.polymarket.com",\
+            chain_id=POLYGON,\
+            private_key=os.getenv("POLYMARKET_PRIVATE_KEY"),\
+            deposit_wallet=os.getenv("DEPOSIT_WALLET_ADDRESS")\
+        )\
+        await self.clob_client.create_or_derive_api_key()\
+\
+    async def get_binance_price(self) -> float:\
+        try:\
+            ticker = await self.binance_client.get_symbol_ticker(symbol="BTCUSDT")\
+            return float(ticker["price"])\
+        except Exception:\
+            return 0.0\
+\
+    async def get_oracle_price(self) -> float:\
+        try:\
+            async with self.session.get("https://hermes.pyth.network/v2/updates/price/latest?ids[]=0xe62df6c8b4a85fe1a67db44dc12de5db330f7ac66b72dc658afedf0f4a415b43") as resp:\
+                data = await resp.json()\
+                p = data["parsed"][0]["price"]\
+                return int(p["price"]) * (10 ** int(p["expo"])) / 1e8\
+        except Exception:\
+            return await self.get_binance_price()\
+\
+    def update_price_history(self, price: float, oracle: float):\
+        now = time.time()\
+        self.price_history.append(\{"ts": now, "price": price, "oracle": oracle\})\
+        self.price_history = [p for p in self.price_history if now - p["ts"] <= 120]\
+\
+    def update_odds_history(self, odds: float):\
+        now = time.time()\
+        self.odds_history.append(\{"ts": now, "odds": odds\})\
+        self.odds_history = [o for o in self.odds_history if now - o["ts"] <= 30]\
+\
+    async def discover_market(self) -> Optional[Dict]:\
+        for minutes in [5, 15]:\
+            try:\
+                ts = int(time.time()) - (int(time.time()) % (minutes * 60))\
+                slug = f"btc-updown-\{minutes\}m-\{ts\}"\
+                async with self.session.get(f"https://gamma-api.polymarket.com/events?slug=\{slug\}&active=true") as resp:\
+                    if resp.status == 200:\
+                        data = await resp.json()\
+                        if data and len(data) > 0:\
+                            event = data[0]\
+                            if "bitcoin up or down" in event.get("title", "").lower():\
+                                for m in event.get("markets", []):\
+                                    if "up" in str(m.get("title", "")).lower():\
+                                        self.current_market = m\
+                                        self.strike = float(m.get("priceToBeat", 0) or 0)\
+                                        return m\
+            except Exception:\
+                continue\
+        return None\
+\
+    def get_remaining_seconds(self) -> int:\
+        try:\
+            if not self.current_market:\
+                return 0\
+            slug = self.current_market.get("slug", "")\
+            if slug and "m-" in slug:\
+                ts_part = slug.split("-")[-1]\
+                start_ts = int(ts_part)\
+                interval = 300 if "5m" in slug else 900\
+                return max(0, start_ts + interval - int(time.time()))\
+        except Exception:\
+            pass\
+        return 25\
+\
+    def check_all_9_conditions(self, market: Dict, binance_p: float, oracle_p: float) -> Tuple[bool, str]:\
+        remaining = self.get_remaining_seconds()\
+        if remaining > 25 or remaining <= 0:\
+            return False, "Cond 1: Time > 25s remaining"\
+\
+        yes_price = float(market.get("outcomePrices", [0.5])[0])\
+        if yes_price < MIN_ODDS:\
+            return False, "Cond 2: Odds < 90\'a2"\
+\
+        if len(self.price_history) < 12:\
+            return False, "Cond 3: Insufficient history"\
+        df = pd.DataFrame(self.price_history[-30:])\
+        distances = abs(df["price"] - self.strike)\
+        if distances.diff().mean() < -0.05:\
+            return False, "Cond 3: Distance shrinking (Core Rule)"\
+\
+        direction_changes = ((df["price"] - self.strike).diff() * (df["price"] - self.strike) < 0).sum()\
+        if direction_changes > 1:\
+            return False, "Cond 5: Whipsaw detected"\
+\
+        volume = float(market.get("volume", 0) or market.get("volume24h", 0))\
+        if volume < MIN_VOLUME:\
+            return False, "Cond 4: Volume < $10K"\
+\
+        direction_up = yes_price > 0.5\
+        if (direction_up and (oracle_p < self.strike and binance_p < self.strike)) or \\\
+           (not direction_up and (oracle_p > self.strike and binance_p > self.strike)):\
+            return False, "Cond 6: Oracle/Spot misalignment"\
+\
+        if len(self.odds_history) >= 3:\
+            recent = [o["odds"] for o in self.odds_history[-4:]]\
+            if recent[-1] < recent[0] - 0.015:\
+                return False, "Cond 8: Odds collapsing"\
+\
+        now_est = (datetime.utcnow().hour - 4) % 24\
+        if not (PREFERRED_START_HOUR_EST <= now_est <= PREFERRED_END_HOUR_EST):\
+            if yes_price < 0.93:\
+                return False, "Cond 9: Outside preferred hours"\
+\
+        return True, "ALL 9 CONDITIONS PASSED"\
+\
+    def log_scan(self, entry: Dict):\
+        df = pd.DataFrame([entry])\
+        header = not os.path.exists(LOG_FILE)\
+        df.to_csv(LOG_FILE, mode='a', header=header, index=False)\
+\
+    async def place_trade(self, market: Dict, side: str, size: float):\
+        if self.in_observation_mode:\
+            logger.info(f"\uc0\u55358 \u56810  OBSERVATION MODE \'97 Would have traded $\{size:.2f\} \{side\}")\
+            return\
+        logger.info(f"\uc0\u9989  LIVE TRADE EXECUTED: \{side\} $\{size:.2f\}")\
+\
+    async def main_loop(self):\
+        await self.init_clients()\
+        logger.info("\uc0\u55357 \u56960  FINAL STANDALONE POLYMARKET BTC CASH BOT STARTED")\
+        logger.info("When there is no edge, do nothing. Patience is the strategy.")\
+\
+        while True:\
+            try:\
+                bp = await self.get_binance_price()\
+                op = await self.get_oracle_price()\
+                self.update_price_history(bp, op)\
+\
+                market = await self.discover_market()\
+                if not market:\
+                    await asyncio.sleep(5)\
+                    continue\
+\
+                yes_price = float(market.get("outcomePrices", [0.5])[0])\
+                self.update_odds_history(yes_price)\
+\
+                passed, reason = self.check_all_9_conditions(market, bp, op)\
+\
+                log_entry = \{\
+                    "timestamp": datetime.utcnow().isoformat(),\
+                    "remaining_seconds": self.get_remaining_seconds(),\
+                    "odds": yes_price,\
+                    "volume": market.get("volume", 0),\
+                    "binance_price": bp,\
+                    "oracle_price": op,\
+                    "strike": self.strike,\
+                    "passed": passed,\
+                    "reason": reason,\
+                    "observation_mode": self.in_observation_mode\
+                \}\
+                self.log_scan(log_entry)\
+\
+                if passed and not self.in_observation_mode:\
+                    size = self.account_balance if self.account_balance < 1000 else self.account_balance * 0.10\
+                    logger.info(f"\uc0\u55357 \u56613  ALL 9 CONDITIONS MET \u8594  EXECUTING TRADE $\{size:.2f\}")\
+                    await self.place_trade(market, "UP", size)\
+\
+                if self.in_observation_mode and (datetime.utcnow() - self.start_time) > timedelta(hours=OBSERVATION_HOURS):\
+                    self.in_observation_mode = False\
+                    logger.info("\uc0\u55357 \u56580  LIVE TRADING MODE ACTIVATED \'97 Real money deployment")\
+\
+                await asyncio.sleep(4)\
+\
+            except Exception as e:\
+                logger.error(f"Loop error: \{e\}")\
+                await asyncio.sleep(10)\
+\
+if __name__ == "__main__":\
+    bot = PolymarketBTCBot()\
+    try:\
+        asyncio.run(bot.main_loop())\
+    except KeyboardInterrupt:\
+        logger.info("Bot stopped by user")}
