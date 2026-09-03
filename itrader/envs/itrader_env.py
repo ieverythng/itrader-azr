@@ -1,22 +1,54 @@
+from collections import deque
+from pathlib import Path
+from typing import Any, Dict, Optional
+
 import gymnasium as gym
 import numpy as np
 import pandas as pd
-from pathlib import Path
-from collections import deque
-from typing import Dict, Any, Optional
 
 from itrader.rl_lib.tasks.samplers import TaskSampler00
 from itrader.rl_lib.tasks.encoder import TaskEncoder, DEFAULT_T_EMBED_DIM
 from itrader.rl_lib.tasks.rewards import RewardEngine
 
+
+_ACTION_TO_POSITION = {0: -1, 1: 0, 2: 1}
+_FEATURE_COLUMN_NAMES = {"OPEN", "HIGH", "LOW", "CLOSE", "VOLUME"}
+_START_IDX_MODES = {"random_episode", "stream_worker", "task_spec"}
+_RET_NORM_RESET_MODES = {"episode", "stream"}
+
+
 def _sanitize(x: np.ndarray) -> np.ndarray:
     """Hard guard against NaN/Inf to keep PPO stable."""
     return np.nan_to_num(x, nan=0.0, posinf=1e6, neginf=-1e6)
 
-# ────────────────────────────────────────────────────────────────────────────
+
+def _resolve_choice(value: Any, allowed: set[str], default: str) -> str:
+    value = str(value).lower()
+    return value if value in allowed else default
+
+
+def _resolve_df_path(df_path: Any) -> Path:
+    if df_path is None:
+        candidate = Path(__file__).resolve().parents[1] / "data" / "ohlcv.parquet"
+    else:
+        candidate = Path(df_path).expanduser()
+        if not candidate.is_absolute():
+            candidate = Path(__file__).resolve().parents[2] / candidate
+    return candidate.resolve(strict=True)
+
+
+def _resolve_feature_columns(df: pd.DataFrame, feature_cols: Any) -> list[str]:
+    default_cols = [col for col in df.columns if col.upper() in _FEATURE_COLUMN_NAMES]
+    columns = list(feature_cols or default_cols)
+    missing = [col for col in columns if col not in df.columns]
+    if missing:
+        raise ValueError(f"Feature columns not in dataframe: {missing}")
+    return columns
+
+
 class ITraderEnv(gym.Env):
     """
-    Long / flat / short trading toy-env that returns a *flattened* rolling
+    Long / flat / short trading environment that returns a *flattened* rolling
     OHLCV window (length = `window_size × n_features`).
 
     ── env_config keys ───────────────────────────────────────────────────────
@@ -27,48 +59,39 @@ class ITraderEnv(gym.Env):
 
     # --------------------------------------------------------------------- #
     def __init__(self, env_config: Optional[dict] = None):
-        env_config   = env_config or {}
-        self.cfg = dict(env_config) if not isinstance(env_config, dict) else env_config
-        cfg = self.cfg  # Keep local variable for backward compatibility
+        raw_cfg = env_config or {}
+        self.cfg = dict(raw_cfg)
+        cfg = self.cfg
         self.T = int(cfg.get("window_size", 30))
 
         # Worker-aware offsets for task sampler (safe defaults if not present)
-        self.worker_index = int(getattr(cfg, "worker_index", cfg.get("worker_index", 0)))
-        self.vector_index = int(getattr(cfg, "vector_index", cfg.get("vector_index", 0)))
+        self.worker_index = int(getattr(raw_cfg, "worker_index", cfg.get("worker_index", 0)))
+        self.vector_index = int(getattr(raw_cfg, "vector_index", cfg.get("vector_index", 0)))
 
         # If you want per-task control, you can move alpha into TaskSpec later.
         self.ret_norm_alpha = float(cfg.get("ret_norm_alpha", 0.01))
         self._ret_ema = 1e-3  # typical per-step abs return; reset each episode
-        self.start_idx_mode = str(cfg.get("start_idx_mode", "random_episode")).lower()
-        if self.start_idx_mode not in ("random_episode", "stream_worker", "task_spec"):
-            self.start_idx_mode = "random_episode"
+        self.start_idx_mode = _resolve_choice(
+            cfg.get("start_idx_mode", "random_episode"),
+            _START_IDX_MODES,
+            "random_episode",
+        )
         self.stream_jump_every_episodes = int(cfg.get("stream_jump_every_episodes", 0))
         self.stream_jump_on_wrap = bool(cfg.get("stream_jump_on_wrap", True))
         self.stream_stride_cfg = int(cfg.get("stream_stride", 0))
-        self.ret_norm_reset_mode = str(cfg.get("ret_norm_reset", "episode")).lower()
-        if self.ret_norm_reset_mode not in ("episode", "stream"):
-            self.ret_norm_reset_mode = "episode"
+        self.ret_norm_reset_mode = _resolve_choice(
+            cfg.get("ret_norm_reset", "episode"),
+            _RET_NORM_RESET_MODES,
+            "episode",
+        )
         self._stream_pos: Optional[int] = None
         self._stream_horizon: Optional[int] = None
         self._stream_episode_count = 0
+        self._reset_count = -1
 
         # ── load dataframe ------------------------------------------------
-        df_path = cfg.get("df_path")
-        if df_path and not Path(df_path).is_absolute():
-            df_path = Path(__file__).resolve().parents[2] / df_path
-        if df_path is None:
-            df_path = Path(__file__).resolve().parents[1] / "data" / "ohlcv.parquet"
-
-        df_path       = Path(df_path).expanduser().resolve(strict=True)
-        self.df: pd.DataFrame = pd.read_parquet(df_path).reset_index(drop=True)
-
-        default_cols  = [c for c in self.df.columns
-                         if c.upper() in ("OPEN", "HIGH", "LOW", "CLOSE", "VOLUME")]
-        self.cols = cfg.get("feature_cols", default_cols)
-
-        missing = [c for c in self.cols if c not in self.df.columns]
-        if missing:
-            raise ValueError(f"Feature columns not in dataframe: {missing}")
+        self.df = pd.read_parquet(_resolve_df_path(cfg.get("df_path"))).reset_index(drop=True)
+        self.cols = _resolve_feature_columns(self.df, cfg.get("feature_cols"))
         close_cols = [c for c in self.df.columns if c.upper() == "CLOSE"]
         if not close_cols:
             raise ValueError("Dataframe does not contain a CLOSE column")
@@ -104,8 +127,8 @@ class ITraderEnv(gym.Env):
 
         # --- episode-level accumulators (used by callbacks) ----------------
         # MUST exist before the first _reset_state() call.
-        self._act_counts = np.zeros(3, dtype=np.int64)
-        self._rc_sums: Dict[str, float] = {"pnl_delta": 0.0, "dd": 0.0, "turnover": 0.0}
+        self._act_counts = np.zeros(int(self.action_space.n), dtype=np.int64)
+        self._rc_sums: Dict[str, float] = {}
         self._last_info: Dict[str, Any] = {}
 
         # initialize state
@@ -124,12 +147,37 @@ class ITraderEnv(gym.Env):
             self._buf.appendleft(self._buf[0])
         return np.concatenate(self._buf, axis=0)
 
+    def _build_obs(self) -> np.ndarray:
+        price_obs = _sanitize(self._get_obs())
+        task_obs = self._task_embed_for_obs()
+        return _sanitize(np.concatenate([price_obs, task_obs]).astype(np.float32))
+
     def _task_embed_for_obs(self) -> np.ndarray:
         if self.t_embed_mode == "off":
             return np.zeros_like(self._t_embed)
         if self.t_embed_mode == "scale":
             return self._t_embed * self.t_scale
         return self._t_embed
+
+    def _clamp_start_idx(self, start_idx: Optional[int]) -> int:
+        if start_idx is None:
+            return self.T
+        min_idx = self.T
+        max_idx = max(min_idx, len(self.df) - 2)
+        return max(min_idx, min(int(start_idx), max_idx))
+
+    def _reset_episode_stats(self) -> None:
+        self._t = 0
+        self._episode_pnl = 0.0
+        self._max_equity = 0.0
+        self._max_dd = 0.0
+        self._act_counts[:] = 0
+        self._rc_sums.clear()
+        self._last_info = {}
+
+    def _accumulate_reward_components(self, comps: Dict[str, float]) -> None:
+        for key, value in comps.items():
+            self._rc_sums[key] = self._rc_sums.get(key, 0.0) + float(value)
 
     def _reset_state(self, start_idx: Optional[int] = None, reset_ret_norm: bool = True):
         """
@@ -141,15 +189,7 @@ class ITraderEnv(gym.Env):
         """
         self.pos  = 0          # -1 short | 0 flat | 1 long
 
-        if start_idx is None:
-            # Default: start after first complete window (backward compatibility)
-            self.idx = self.T
-        else:
-            # Use provided start_idx, clamped to valid range
-            # Must be >= T (to fill buffer) and < len(df) - 1 (to have next price)
-            min_idx = self.T
-            max_idx = max(min_idx, len(self.df) - 2)
-            self.idx = max(min_idx, min(start_idx, max_idx))
+        self.idx = self._clamp_start_idx(start_idx)
         self._episode_start_idx = int(self.idx)
 
         # Fill buffer with rows [idx - T, ..., idx - 1]
@@ -157,17 +197,7 @@ class ITraderEnv(gym.Env):
             (self._row(i) for i in range(self.idx - self.T, self.idx)),
             maxlen=self.T
         )
-        self._t = 0
-        self._episode_pnl = 0.0
-        self._max_equity  = 0.0
-        self._max_dd = 0.0     # maximum drawdown tracking
-
-        # episode aggregates (for plotting via callback)
-
-        self._act_counts[:] = 0
-        for k in self._rc_sums:
-            self._rc_sums[k] = 0.0
-        self._last_info = {}
+        self._reset_episode_stats()
 
         # reset EMA for this episode
         if reset_ret_norm:
@@ -235,6 +265,82 @@ class ITraderEnv(gym.Env):
             start_idx = int(task_start)
         min_idx, max_idx = self._start_idx_bounds(horizon)
         return max(min_idx, min(start_idx, max_idx)), True
+
+    def _should_reset_ret_norm(self, stream_changed: bool) -> bool:
+        if self.ret_norm_reset_mode == "stream" and self.start_idx_mode == "stream_worker":
+            return stream_changed
+        return True
+
+    def _merge_task_sampler_overrides(self) -> None:
+        overrides = self.cfg.get("task_sampler_overrides", {})
+        if overrides:
+            self.current_task.reward_params.update(overrides)
+
+    def _log_reset(self, start_idx: int) -> None:
+        self._reset_count += 1
+        if not self.debug_resets:
+            return
+        if self._reset_count % max(1, self.debug_reset_every) != 0:
+            return
+        print(
+            f"[Worker {self.worker_index}] Reset #{self._reset_count}: "
+            f"start_idx={start_idx}, horizon={self.current_task.horizon}, df_len={len(self.df)}"
+        )
+
+    def _episode_done(self) -> bool:
+        ep_horizon = int(self.current_task.horizon)
+        return bool(self._t >= ep_horizon or self.idx >= len(self.df) - 1)
+
+    def _reward_context(
+        self,
+        *,
+        action: int,
+        price_t: float,
+        price_next: float,
+        pnl_t: float,
+        pnl_t1: float,
+        dd_t: float,
+        dd_t1: float,
+        dd_inc: float,
+        turnover_t: float,
+        ret: float,
+        ret_unit: float,
+        terminal: bool,
+    ) -> dict[str, Any]:
+        return {
+            "pnl_t": pnl_t,
+            "pnl_t1": pnl_t1,
+            "pnl_delta": pnl_t1 - pnl_t,
+            "dd_t": dd_t,
+            "dd_t1": dd_t1,
+            "dd_inc": dd_inc,
+            "max_dd": self._max_dd,
+            "turnover_t": turnover_t,
+            "price_t": price_t,
+            "price_t1": price_next,
+            "position_t": float(self.pos),
+            "action_t": action,
+            "ret": ret,
+            "ret_unit": ret_unit,
+            "ret_ema": self._ret_ema,
+            "terminal": terminal,
+        }
+
+    def _episode_info(self, *, success: bool, comps: dict[str, Any], done: bool) -> dict[str, Any]:
+        info = {
+            "position": self.pos,
+            "reward_comps": comps,
+            "success": success,
+            "task": {**self.current_task.to_dict(), "start_idx": self._episode_start_idx},
+        }
+        if done:
+            info["ep_sums"] = {
+                "steps": max(1, int(self._t)),
+                "horizon": int(self.current_task.horizon),
+                "act_counts": self._act_counts.copy(),
+                "rc_sums": dict(self._rc_sums),
+            }
+        return info
     # ===================================================================== #
     # gymnasium.Env interface
     # --------------------------------------------------------------------- #
@@ -246,39 +352,26 @@ class ITraderEnv(gym.Env):
         start_idx, stream_changed = self._choose_start_idx(horizon)
 
         # Reset state with determined start_idx
-        reset_ret_norm = True
-        if self.ret_norm_reset_mode == "stream" and self.start_idx_mode == "stream_worker":
-            reset_ret_norm = stream_changed
-        self._reset_state(start_idx=start_idx, reset_ret_norm=reset_ret_norm)
+        self._reset_state(
+            start_idx=start_idx,
+            reset_ret_norm=self._should_reset_ret_norm(stream_changed),
+        )
 
         # Create deterministic embedding
         self._t_embed = TaskEncoder.embed(self.current_task, dim=self.t_embed_dim)
-        t = self._task_embed_for_obs()
-        # build first obs
-        price_obs = _sanitize(self._get_obs())
-        obs = _sanitize(np.concatenate([price_obs, t]).astype(np.float32))
+        self._merge_task_sampler_overrides()
+        obs = self._build_obs()
         task_info = self.current_task.to_dict()
         task_info["start_idx"] = start_idx
         info = {"task": task_info}
         self._last_info = info
-        over = self.cfg.get("task_sampler_overrides", {})
-        if over:
-            self.current_task.reward_params.update(over)
-
-        # Debug: log start_idx occasionally (every ~100 episodes)
-        if hasattr(self, "_reset_count"):
-            self._reset_count += 1
-        else:
-            self._reset_count = 0
-        if self.debug_resets and self._reset_count % max(1, self.debug_reset_every) == 0:
-            print(f"[Worker {self.worker_index}] Reset #{self._reset_count}: start_idx={start_idx}, horizon={self.current_task.horizon}, df_len={len(self.df)}")
-
+        self._log_reset(start_idx)
         return obs, info
 
     def step(self, action: int):
         # map discrete action to position target {-1,0,+1}
         action = int(action)
-        target_pos = {0: -1, 1: 0, 2: 1}[action]
+        target_pos = _ACTION_TO_POSITION[action]
 
         # previous price & position
         price_t = float(self._close_values[self.idx - 1])
@@ -317,19 +410,23 @@ class ITraderEnv(gym.Env):
 
         dd_inc = max(0.0, dd_t1 - dd_t)
 
-        ctx = {
-        "pnl_t": pnl_t, "pnl_t1": pnl_t1,
-        "pnl_delta": pnl_t1 - pnl_t,
-        "dd_t": dd_t, "dd_t1": dd_t1, "dd_inc": dd_inc,
-        "max_dd": self._max_dd,
-        "turnover_t": turnover_t,
-        "price_t": price_t, "price_t1": price_next,
-        "position_t": float(self.pos), "action_t": action,
-        "ret": ret,
-        "ret_unit": ret_unit,      # multiply terms by this if normalize=True
-        "ret_ema": self._ret_ema,  # realized_vol for inactivity gating
-        "terminal": False,         # updated below if done
-        }
+        self._t += 1
+        done = self._episode_done()
+        trunc = False
+        ctx = self._reward_context(
+            action=action,
+            price_t=price_t,
+            price_next=price_next,
+            pnl_t=pnl_t,
+            pnl_t1=pnl_t1,
+            dd_t=dd_t,
+            dd_t1=dd_t1,
+            dd_inc=dd_inc,
+            turnover_t=turnover_t,
+            ret=ret,
+            ret_unit=ret_unit,
+            terminal=done,
+        )
 
         # compute reward via registry
         r, comps = self.reward_engine.compute(
@@ -340,44 +437,13 @@ class ITraderEnv(gym.Env):
 
         # accumulate episode aggregates
         self._act_counts[action] += 1
-        self._rc_sums["pnl_delta"] += float(comps.get("pnl_delta", 0.0))
-        self._rc_sums["dd"] += float(comps.get("dd", 0.0))
-        self._rc_sums["turnover"] += float(comps.get("turnover", 0.0))
-
-        self._t += 1
-        ep_horizon = int(self.current_task.horizon)
-        done_by_horizon = (self._t >= ep_horizon)
-        done_by_data    = (self.idx >= len(self.df) - 1)
-        done = bool(done_by_horizon or done_by_data)
-        trunc = False
+        self._accumulate_reward_components(comps)
 
         # baseline success flag for TRR++/curriculum stats (Phase-B)
         success = bool(pnl_t1 > 0.0) if done else False
         comps["success"] = float(success)  # for TRR++/curriculum stats
 
-        price_obs_next = _sanitize(self._get_obs())
-        t = self._task_embed_for_obs()
-        obs_next = _sanitize(np.concatenate([price_obs_next, t]).astype(np.float32))
-
-        if done:
-            ctx["terminal"] = True
-            # Recompute reward with terminal flag? Not needed—our reward_fn handles terminal within same call.
-
-        info = {
-            "position": self.pos,
-            "reward_comps": comps,
-            "success": success,
-            "task": {**self.current_task.to_dict(), "start_idx": self._episode_start_idx},
-        }
-
-        if done:
-            steps = max(1, int(self._t))
-            info["ep_sums"] = {
-                "steps": steps,
-                "horizon": ep_horizon,
-                "act_counts": self._act_counts.copy(),
-                "rc_sums": dict(self._rc_sums),
-            }
-
+        obs_next = self._build_obs()
+        info = self._episode_info(success=success, comps=comps, done=done)
         self._last_info = info
         return obs_next, float(r), done, trunc, info

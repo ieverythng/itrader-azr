@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Neural Workbench — AB Objects for Machine Learning Architectures</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+:root { --bg:#070b18; --panel:#111a33; --panel2:#172341; --text:#f2f5ff; --muted:#a9b4d0; --line:rgba(255,255,255,.12); --blue:#63d0ff; --purple:#9878ff; --green:#19d38a; --yellow:#ffd166; --red:#ff6584; }
+*{box-sizing:border-box} body{margin:0;background:radial-gradient(circle at 20% 0%,rgba(99,208,255,.18),transparent 35%),radial-gradient(circle at 80% 5%,rgba(152,120,255,.18),transparent 30%),linear-gradient(180deg,var(--bg),#050711 70%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{padding:52px 6vw 30px;border-bottom:1px solid var(--line)} .eyebrow{color:var(--blue);font-size:13px;text-transform:uppercase;letter-spacing:.10em;font-weight:800} h1{font-size:clamp(34px,6vw,76px);line-height:.92;margin:14px 0 18px;max-width:1180px}.subtitle{color:var(--muted);font-size:20px;max-width:1050px;line-height:1.55} main{padding:34px 6vw 88px}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:18px}.card{background:linear-gradient(180deg,rgba(255,255,255,.065),rgba(255,255,255,.028));border:1px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 24px 70px rgba(0,0,0,.28)}.span-3{grid-column:span 3}.span-4{grid-column:span 4}.span-5{grid-column:span 5}.span-6{grid-column:span 6}.span-7{grid-column:span 7}.span-8{grid-column:span 8}.span-12{grid-column:span 12} h2{margin:0 0 16px;font-size:28px} h3{margin:0 0 10px;font-size:19px} p,li{color:var(--muted);line-height:1.58} strong{color:var(--text)} code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace} pre{background:rgba(0,0,0,.34);border:1px solid var(--line);border-radius:16px;padding:16px;color:#e5eeff;overflow:auto;line-height:1.45}.badge{display:inline-flex;align-items:center;gap:6px;padding:7px 10px;border:1px solid var(--line);border-radius:999px;color:var(--text);background:rgba(255,255,255,.06);font-size:13px;margin:4px 4px 4px 0}.kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.kpi .card{padding:18px}.metric{font-size:42px;font-weight:900;letter-spacing:-.04em}.label{color:var(--muted);font-size:14px}.flow{display:flex;flex-wrap:wrap;gap:10px;align-items:center}.step{background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:12px 14px;color:var(--text)}.arrow{color:var(--blue);font-weight:900} table{width:100%;border-collapse:collapse;border-radius:16px;overflow:hidden} th,td{padding:12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top} th{background:rgba(255,255,255,.07);color:var(--text)} td{color:var(--muted)}.matrix{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px}.node{background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:18px;padding:16px}.node .type{color:var(--blue);font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.06em}.green{color:var(--green)}.yellow{color:var(--yellow)}.blue{color:var(--blue)}.purple{color:var(--purple)}.red{color:var(--red)}.quote{font-size:22px;color:var(--text);border-left:4px solid var(--blue);padding-left:18px}.small{font-size:13px;color:var(--muted)} footer{margin-top:34px;color:var(--muted);font-size:13px}@media(max-width:1000px){.span-3,.span-4,.span-5,.span-6,.span-7,.span-8,.span-12{grid-column:span 12}.kpi{grid-template-columns:1fr 1fr}.matrix{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <div class="eyebrow">Neural Workbench · AB Object Theory · 2026-06-13</div>
+  <h1>Can neural architectures be designed as compositions of abstraction-bearing objects?</h1>
+  <p class="subtitle">This document formalizes an AB-level grammar for machine-learning modules: MLPs, convolutions, recurrence, attention, normalization, autoencoders, diffusion denoisers, and transformers as composable operators with predictable geometric effects.</p>
+</header>
+<main>
+  <section class="kpi">
+    <div class="card"><div class="metric">AB-1</div><div class="label">Substrate: OS, compiler, CUDA kernels, tensor runtime</div></div>
+    <div class="card"><div class="metric">AB0</div><div class="label">Code/tensor primitives: matmul, activation, loss, optimizer</div></div>
+    <div class="card"><div class="metric">AB1</div><div class="label">ML objects: MLP, Conv, RNN, Attention, Norm, AE</div></div>
+    <div class="card"><div class="metric">AB2+</div><div class="label">Architectures: Transformer blocks, U-Nets, diffusion systems, LLMs</div></div>
+  </section>
+
+  <div class="grid" style="margin-top:22px;">
+    <section class="card span-12">
+      <h2>1. Core thesis</h2>
+      <p class="quote">An ML architecture can be treated as a typed composition of operators that transform distributions, geometry, memory, and controllability.</p>
+      <p>The AB system becomes useful if each object carries a <strong>semantic effect contract</strong>: what it tends to do to information, geometry, memory, invariance, compression, and generative dynamics.</p>
+      <pre>Architecture = composition graph G = (V, E)
+Each node v in V has:
+  type: AB-level object
+  map: f_v : X_in -> X_out
+  effect signature: E(f_v)
+  cost signature: C(f_v)
+  information profile: I(f_v)
+  geometry profile: Γ(f_v)</pre>
+    </section>
+
+    <section class="card span-6">
+      <h2>2. The AB ladder</h2>
+      <table>
+        <tr><th>Level</th><th>Object class</th><th>Examples</th><th>Meaning</th></tr>
+        <tr><td>AB-1</td><td>Substrate</td><td>OS, compiler, CUDA, BLAS, runtime</td><td>Physical/computational substrate enabling tensor execution.</td></tr>
+        <tr><td>AB0</td><td>Code/tensor primitive</td><td>matmul, softmax, conv kernel, gradient step</td><td>Atomic implementation-level operations.</td></tr>
+        <tr><td>AB1</td><td>Learned operator object</td><td>MLP, Conv, Attention, RNN, Norm, AE, Gate</td><td>Reusable module with a functional/geometric role.</td></tr>
+        <tr><td>AB2</td><td>Block or motif</td><td>Transformer block, ResNet block, U-Net block, VAE cell</td><td>Stable composition pattern of AB1 objects.</td></tr>
+        <tr><td>AB3</td><td>Model family</td><td>LLM, ViT, diffusion model, VAE, CNN classifier</td><td>System-level behavior emerges from repeated motifs.</td></tr>
+        <tr><td>AB4</td><td>Agentic model system</td><td>RAG agent, tool-using LLM, iTrader MarketFramer/Solver</td><td>Model + memory + tools + policy + environment loop.</td></tr>
+      </table>
+    </section>
+
+    <section class="card span-6">
+      <h2>3. Operator view</h2>
+      <p>Represent each module as an operator over a state distribution:</p>
+      <pre>x₀ ~ P_data
+h₁ = f₁(x₀)
+h₂ = f₂(h₁)
+...
+y  = f_n(h_{n-1})
+
+P_y = (f_n ∘ ... ∘ f₁)# P_data</pre>
+      <p>The <code>#</code> symbol is pushforward: the architecture transforms an input distribution into an output distribution. Different AB1 objects differ by how they reshape the distribution.</p>
+    </section>
+
+    <section class="card span-12">
+      <h2>4. AB1 object taxonomy</h2>
+      <div class="matrix">
+        <div class="node"><div class="type">MLP / FFN</div><h3>Token-wise nonlinear compressor / feature refiner</h3><p>Applies learned nonlinear transformations independently per token or sample. It can expand hidden dimension, apply nonlinear gating, then compress back.</p><pre>FFN(x) = W₂ σ(W₁x + b₁) + b₂</pre><p><strong>Effect:</strong> feature expansion, selection, compression, nonlinear basis transformation.</p></div>
+        <div class="node"><div class="type">Attention</div><h3>Content-addressable routing / attractor field</h3><p>Creates dynamic edges between tokens based on similarity. It routes value vectors through a learned compatibility kernel.</p><pre>Attn(Q,K,V) = softmax(QKᵀ / √d) V</pre><p><strong>Effect:</strong> long-range coupling, associative retrieval, dynamic graph construction.</p></div>
+        <div class="node"><div class="type">Convolution</div><h3>Local equivariant pattern extractor</h3><p>Shares filters across space, preserving locality and translation structure.</p><pre>y[i,j,c] = Σₐᵦₖ W[a,b,k,c] x[i+a,j+b,k]</pre><p><strong>Effect:</strong> locality, weight sharing, spatial hierarchy, inductive bias.</p></div>
+        <div class="node"><div class="type">RNN / State-space</div><h3>Sequential state accumulator</h3><p>Compresses sequence history into a persistent state.</p><pre>h_t = φ(W_x x_t + W_h h_{t-1})</pre><p><strong>Effect:</strong> temporal memory, causal recurrence, streaming compression.</p></div>
+        <div class="node"><div class="type">Normalization</div><h3>Manifold stabilizer / scale regulator</h3><p>Controls activation statistics so composition remains trainable.</p><pre>LayerNorm(x) = γ (x - μ) / √(σ² + ε) + β</pre><p><strong>Effect:</strong> stabilizes geometry, reduces scale drift, improves optimization.</p></div>
+        <div class="node"><div class="type">Autoencoder</div><h3>Explicit bottleneck / latent coordinate map</h3><p>Encodes observations into a lower or more structured latent space, then reconstructs.</p><pre>z = E(x),  x̂ = D(z)</pre><p><strong>Effect:</strong> dimensionality reduction, manifold discovery, lossy/lossless compression.</p></div>
+      </div>
+    </section>
+
+    <section class="card span-7">
+      <h2>5. Transformer as AB2 → AB3 composition</h2>
+      <p>A Transformer block can be written as a stable AB2 motif:</p>
+      <pre>x' = x + Attention(LN(x))
+y  = x' + FFN(LN(x'))</pre>
+      <p>The AB2 block combines attention for routing, FFN for nonlinear feature refinement, residuals for identity preservation, and normalization for stability. Repeating this motif many times with a language-modeling objective creates an AB3 object: an LLM-like sequence distribution model.</p>
+      <pre>P(x₁:T) = ∏ₜ P(x_t | x_&lt;t)
+logits_t = LMHead(Block_N ∘ ... ∘ Block_1(E(tokens)))</pre>
+    </section>
+
+    <section class="card span-5">
+      <h2>6. Attention as attractor field</h2>
+      <p>Your intuition is strong: attention can be treated as a dynamic field over tokens. Query-key similarity creates a soft energy landscape; values are retrieved through that landscape.</p>
+      <pre>A_ij = softmax_i(q_i · k_j / √d)
+h_i' = Σ_j A_ij v_j</pre>
+      <p>In the modern Hopfield interpretation, attention corresponds to an associative memory update: patterns can be retrieved through energy minima. This gives a mathematical bridge between attention and attractor dynamics.</p>
+      <p><strong>Neural Workbench label:</strong> attention = <span class="blue">associative routing object</span> + <span class="purple">soft attractor field</span>.</p>
+    </section>
+
+    <section class="card span-6">
+      <h2>7. Output compression point of view</h2>
+      <p>Tokens are not all handled “the same.” The token dimension and channel/feature dimension undergo different transformations.</p>
+      <table>
+        <tr><th>Object</th><th>Token mixing?</th><th>Feature mixing?</th><th>Compression effect</th></tr>
+        <tr><td>MLP/FFN</td><td>No, usually per token</td><td>Yes</td><td>Feature expansion → nonlinear selection → compression</td></tr>
+        <tr><td>Attention</td><td>Yes</td><td>Indirect via value projections</td><td>Context selection and token-to-token information routing</td></tr>
+        <tr><td>Conv</td><td>Local spatial mixing</td><td>Yes</td><td>Local feature hierarchy, pooled abstraction</td></tr>
+        <tr><td>RNN</td><td>Sequential accumulation</td><td>Yes</td><td>History compressed into hidden state</td></tr>
+        <tr><td>Autoencoder</td><td>Depends</td><td>Yes</td><td>Explicit bottleneck latent map</td></tr>
+      </table>
+      <pre>CompressionRatio = dim(z) / dim(x)
+InformationRetention ≈ I(z; y) / I(x; y)
+BottleneckScore = I(z; x) - β I(z; y)</pre>
+    </section>
+
+    <section class="card span-6">
+      <h2>8. Residual composition as controlled depth</h2>
+      <p>Residual blocks can be read as near-identity updates:</p>
+      <pre>x_{l+1} = x_l + F_l(x_l)</pre>
+      <p>Stacking many residual blocks resembles a discretized dynamical system:</p>
+      <pre>dx/dt = F_t(x)</pre>
+      <p><strong>AB interpretation:</strong> residual wiring is an architectural policy that allows deep composition without erasing the previous representation too quickly.</p>
+    </section>
+
+    <section class="card span-12">
+      <h2>9. Diffusion models in the AB grammar</h2>
+      <p>Diffusion is not simply “a Conv model.” Modern diffusion systems are AB3 generative processes made from an AB2 denoising network plus an iterative sampling process.</p>
+      <div class="flow"><div class="step">Noise schedule</div><div class="arrow">→</div><div class="step">Denoiser network</div><div class="arrow">→</div><div class="step">Iterative reverse process</div><div class="arrow">→</div><div class="step">Sample</div></div>
+      <pre>Forward:  q(x_t | x_0) = N(√ᾱ_t x_0, (1 - ᾱ_t)I)
+Denoise:  ε_θ(x_t, t, c) ≈ ε
+Reverse:  x_{t-1} = step(x_t, ε_θ, t)</pre>
+      <p>Classical image diffusion often uses a U-Net, which is convolutional and multi-scale, but modern diffusion can also use attention or transformer backbones. Latent diffusion adds an autoencoder bottleneck, then runs diffusion in latent space.</p>
+      <p><strong>Neural Workbench label:</strong> diffusion = <span class="green">iterative denoising dynamical system</span> + <span class="blue">generative trajectory policy</span>.</p>
+    </section>
+
+    <section class="card span-6">
+      <h2>10. AB composition operators</h2>
+      <table>
+        <tr><th>Composition</th><th>Notation</th><th>Effect</th></tr>
+        <tr><td>Sequential</td><td>B ∘ A</td><td>Transforms representation through staged abstraction.</td></tr>
+        <tr><td>Parallel</td><td>[A(x), B(x)]</td><td>Creates multi-view features or ensemble pathways.</td></tr>
+        <tr><td>Residual</td><td>x + A(x)</td><td>Preserves identity while adding transformation.</td></tr>
+        <tr><td>Gated</td><td>g(x)A(x) + (1-g(x))B(x)</td><td>Dynamic path selection.</td></tr>
+        <tr><td>Recurrent</td><td>h_t = A(h_{t-1}, x_t)</td><td>Stateful compression over time.</td></tr>
+        <tr><td>Iterative denoising</td><td>x_{t-1}=A_t(x_t)</td><td>Trajectory through distribution space.</td></tr>
+      </table>
+    </section>
+
+    <section class="card span-6">
+      <h2>11. Object effect signature</h2>
+      <p>Each AB1 object can carry a vector of expected effects:</p>
+      <pre>E(f) = [
+  compression,
+  token_mixing,
+  feature_mixing,
+  locality_bias,
+  long_range_coupling,
+  memory_capacity,
+  equivariance,
+  generativity,
+  stability,
+  compute_cost
+]</pre>
+      <p>This enables a search language: wanted high long-range coupling, medium compression, high memory capacity, low latency → candidate: attention + FFN + residual + KV cache.</p>
+    </section>
+
+    <section class="card span-12">
+      <h2>12. Proposed Neural Workbench experiments</h2>
+      <table>
+        <tr><th>Experiment</th><th>Question</th><th>AB objects</th><th>Metrics</th></tr>
+        <tr><td>FFN-only vs Attention-only</td><td>What does each object contribute?</td><td>MLP, Attention</td><td>loss, entropy, mutual-information proxy, token mixing score</td></tr>
+        <tr><td>Token mixing vs channel mixing</td><td>Can MLP-Mixer-like objects replace attention?</td><td>MLP-Mixer blocks</td><td>accuracy, sequence length scaling, compression</td></tr>
+        <tr><td>Attention as Hopfield retrieval</td><td>Can heads be classified by attractor type?</td><td>Attention heads</td><td>attention entropy, retrieval sharpness, cluster stability</td></tr>
+        <tr><td>Residual depth ablation</td><td>How does identity path preserve geometry?</td><td>Residual blocks</td><td>gradient norm, representation drift, training stability</td></tr>
+        <tr><td>Latent bottleneck strength</td><td>Where is compression useful vs destructive?</td><td>Autoencoder + solver</td><td>reconstruction, downstream task score, latent dimension</td></tr>
+        <tr><td>Diffusion vs autoregression</td><td>Which AB object type better handles generation?</td><td>Denoiser vs decoder-only Transformer</td><td>sample quality, steps, controllability, cost</td></tr>
+      </table>
+    </section>
+
+    <section class="card span-12">
+      <h2>13. Possible formal type system</h2>
+      <pre>MLObject {
+  name: string
+  ab_level: int
+  input_type: TensorType | DistributionType | SequenceType
+  output_type: TensorType | DistributionType | SequenceType
+  operator: callable
+  effect_signature: EffectVector
+  invariances: Set[Symmetry]
+  memory_model: None | State | KVCache | Attractor | Latent
+  cost_model: FLOPs, params, activation_memory
+}
+
+Compose(A, B) valid iff A.output_type compatible with B.input_type</pre>
+    </section>
+
+    <section class="card span-12">
+      <h2>14. Machine-learning object family map</h2>
+      <table>
+        <tr><th>AB3 family</th><th>Dominant AB1/AB2 objects</th><th>Primary behavior</th><th>Workbench type label</th></tr>
+        <tr><td>LLM / Transformer LM</td><td>Attention + FFN + residual + norm</td><td>Autoregressive sequence distribution modeling</td><td>Associative sequence world-model</td></tr>
+        <tr><td>CNN / ResNet</td><td>Conv + residual + pooling/norm</td><td>Local hierarchical perception</td><td>Equivariant feature pyramid</td></tr>
+        <tr><td>RNN / LSTM / GRU</td><td>Recurrent state + gates</td><td>Streaming temporal compression</td><td>Stateful sequence compressor</td></tr>
+        <tr><td>VAE</td><td>Encoder + latent prior + decoder</td><td>Probabilistic latent representation</td><td>Latent manifold generator</td></tr>
+        <tr><td>Diffusion</td><td>Denoiser + noise schedule + iterative sampler</td><td>Reverse-noise generative trajectory</td><td>Denoising dynamical generator</td></tr>
+        <tr><td>Agentic LLM system</td><td>LLM + tools + memory + policy</td><td>Action selection in external environment</td><td>Tool-using cognitive controller</td></tr>
+      </table>
+    </section>
+
+    <section class="card span-12">
+      <h2>15. Key conclusion</h2>
+      <p class="quote">Yes — the AB framework can be made operational. The next step is to annotate every module by its expected effect on information, geometry, memory, routing, and controllability.</p>
+      <p>An LLM is not merely “a Transformer.” It is an AB3 object produced by repeated AB2 Transformer blocks, trained under an autoregressive compression/prediction objective, with attention acting as dynamic associative routing and FFNs acting as token-wise nonlinear feature refinement.</p>
+    </section>
+
+    <section class="card span-12">
+      <h2>References and anchors</h2>
+      <ol>
+        <li>Vaswani et al., <em>Attention Is All You Need</em>, 2017. https://arxiv.org/abs/1706.03762</li>
+        <li>Ramsauer et al., <em>Hopfield Networks is All You Need</em>, 2020. https://arxiv.org/abs/2008.02217</li>
+        <li>Tolstikhin et al., <em>MLP-Mixer: An all-MLP Architecture for Vision</em>, 2021. https://arxiv.org/abs/2105.01601</li>
+        <li>He et al., <em>Deep Residual Learning for Image Recognition</em>, 2015. https://arxiv.org/abs/1512.03385</li>
+        <li>Kingma & Welling, <em>Auto-Encoding Variational Bayes</em>, 2013. https://arxiv.org/abs/1312.6114</li>
+        <li>Ho, Jain & Abbeel, <em>Denoising Diffusion Probabilistic Models</em>, 2020. https://arxiv.org/abs/2006.11239</li>
+        <li>Rombach et al., <em>High-Resolution Image Synthesis with Latent Diffusion Models</em>, 2021. https://arxiv.org/abs/2112.10752</li>
+      </ol>
+    </section>
+  </div>
+
+  <footer>Generated for Neural Workbench. This is a research/design artefact, not a claim of established taxonomy. The AB levels are proposed as an engineering abstraction language for modular ML architecture design.</footer>
+</main>
+</body>
+</html>

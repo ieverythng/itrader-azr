@@ -1,14 +1,11 @@
 from __future__ import annotations
 
 import random
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
-from .families import get_family_spec
+from .families import get_family_spec, normalize_family_id
+from .rewards import RewardEngine
 from .spec import normalize_task_spec_payload
-
-
-_DD_MODES = {"none", "delta", "terminal"}
-_NORM_MODES = {"all", "penalties", "off"}
 
 
 def _as_int(x: Any, default: int) -> int:
@@ -60,6 +57,12 @@ def _as_list_of_str(x: Any) -> List[str]:
     return [text] if text else []
 
 
+def _optional_str(x: Any) -> Optional[str]:
+    if x is None:
+        return None
+    return str(x)
+
+
 def validate_and_clamp_task(
     task_dict: Dict[str, Any] | None,
     env_config: Dict[str, Any] | None = None,
@@ -77,7 +80,7 @@ def validate_and_clamp_task(
     if fallback_seed is None:
         fallback_seed = random.randint(0, 1_000_000)
 
-    out["family_id"] = str(out.get("family_id", "00"))
+    out["family_id"] = normalize_family_id(out.get("family_id", "00"))
     family = get_family_spec(out["family_id"])
     out["price_id"] = str(out.get("price_id", "SIM"))
     out["reward_id"] = str(
@@ -100,30 +103,14 @@ def validate_and_clamp_task(
         start_idx = _as_int(start_idx, -1)
         out["start_idx"] = start_idx if start_idx >= 0 else None
 
-    rp = _as_dict(out.get("reward_params"))
-    rp["pnl_w"] = _clamp(_as_float(rp.get("pnl_w", 1.0), 1.0), 0.0, 10.0)
-    rp["turnover_w"] = _clamp(_as_float(rp.get("turnover_w", 0.0), 0.0), 0.0, 0.01)
-    rp["dd_w"] = _clamp(_as_float(rp.get("dd_w", 0.04), 0.04), 0.0, 0.2)
-    rp["dd_T_weight"] = _clamp(_as_float(rp.get("dd_T_weight", 0.0), 0.0), 0.0, 1.0)
-    rp["turnover_cap"] = _clamp(_as_float(rp.get("turnover_cap", 0.02), 0.02), 0.0, 0.1)
-    rp["dd_cap"] = _clamp(_as_float(rp.get("dd_cap", 0.05), 0.05), 0.0, 0.2)
-    rp["reward_scale"] = _clamp(_as_float(rp.get("reward_scale", 1.0), 1.0), 0.1, 10.0)
-    rp["norm_clip"] = _clamp(_as_float(rp.get("norm_clip", 5.0), 5.0), 1.0, 20.0)
-    rp["inact_w"] = _clamp(_as_float(rp.get("inact_w", 0.0), 0.0), 0.0, 0.01)
-    rp["vol_floor_mult"] = _clamp(_as_float(rp.get("vol_floor_mult", 1.0), 1.0), 0.1, 5.0)
-    rp["clip_abs"] = _clamp(_as_float(rp.get("clip_abs", 0.0), 0.0), 0.0, 1.0)
+    out["reward_params"] = RewardEngine.normalize_params(
+        out["reward_id"],
+        _as_dict(out.get("reward_params")),
+    )
 
-    dd_mode = str(rp.get("dd_mode", "delta")).lower()
-    rp["dd_mode"] = dd_mode if dd_mode in _DD_MODES else "delta"
-
-    norm_mode = str(rp.get("norm_mode", "all")).lower()
-    rp["norm_mode"] = norm_mode if norm_mode in _NORM_MODES else "all"
-
-    rp["normalize"] = _as_bool(rp.get("normalize", True), True)
-    rp["normalize_dd"] = _as_bool(rp.get("normalize_dd", True), True)
-    out["reward_params"] = rp
-
-    bar_resolution = out.get("bar_resolution", cfg.get("bar_resolution"))
+    bar_resolution = cfg.get("bar_resolution")
+    if bar_resolution is None or not str(bar_resolution).strip():
+        bar_resolution = out.get("bar_resolution")
     if bar_resolution is not None and str(bar_resolution).strip():
         out["bar_resolution"] = str(bar_resolution)
     else:
@@ -250,15 +237,15 @@ def validate_candidate_task(
         "expected_utility": expected_utility,
         "rationale": str(raw.get("rationale", "")),
         "abstain_option": abstain_option,
-        "created_at": str(raw["created_at"]) if raw.get("created_at") is not None else None,
-        "ttl_generated_at": str(raw["ttl_generated_at"]) if raw.get("ttl_generated_at") is not None else None,
+        "created_at": _optional_str(raw.get("created_at")),
+        "ttl_generated_at": _optional_str(raw.get("ttl_generated_at")),
         "metadata": _as_dict(raw.get("metadata")),
     }
 
 
 def validate_capability_profile(profile_dict: Dict[str, Any] | None) -> Dict[str, Any]:
     raw = dict(profile_dict or {})
-    task_family = str(raw.get("task_family", raw.get("family_id", "00")))
+    task_family = normalize_family_id(raw.get("task_family", raw.get("family_id", "00")))
     bar_resolution = str(raw.get("bar_resolution", "1m"))
     horizon_bars = _as_int(raw.get("horizon_bars", raw.get("horizon", 0)), 0)
     return {
@@ -287,14 +274,14 @@ def validate_decision_record(
         for item in raw.get("candidate_tasks", [])
     ]
     return {
-        "market_summary_ref": str(raw["market_summary_ref"]) if raw.get("market_summary_ref") is not None else None,
+        "market_summary_ref": _optional_str(raw.get("market_summary_ref")),
         "candidate_tasks": candidate_tasks,
-        "selected_candidate_id": str(raw["selected_candidate_id"]) if raw.get("selected_candidate_id") is not None else None,
+        "selected_candidate_id": _optional_str(raw.get("selected_candidate_id")),
         "wait_selected": _as_bool(raw.get("wait_selected", False), False),
         "solver_scores": _as_dict(raw.get("solver_scores")),
         "risk_decisions": _as_dict(raw.get("risk_decisions")),
         "executor_action": _as_dict(raw.get("executor_action")),
         "realized_outcome": _as_dict(raw.get("realized_outcome")),
-        "created_at": str(raw["created_at"]) if raw.get("created_at") is not None else None,
+        "created_at": _optional_str(raw.get("created_at")),
         "metadata": _as_dict(raw.get("metadata")),
     }

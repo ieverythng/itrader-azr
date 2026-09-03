@@ -9,11 +9,13 @@ from __future__ import annotations
 import argparse
 import os
 import random
-from typing import Dict, Any
+from typing import Any, Dict
 
 from itrader.proposers import build_proposer
-from itrader.rl_lib.tasks.task_pool import TaskPool
+from itrader.rl_lib.tasks.families import DEFAULT_BAR_RESOLUTION
+from itrader.rl_lib.tasks.market_summary import build_market_summary_from_ohlcv_path
 from itrader.rl_lib.tasks.spec import TaskSpec
+from itrader.rl_lib.tasks.task_pool import TaskPool
 from itrader.rl_lib.tasks.validation import validate_and_clamp_task
 
 
@@ -23,7 +25,7 @@ def _parse_args() -> argparse.Namespace:
         "--backend",
         type=str,
         default="rule_based",
-        choices=["rule_based", "llm", "ollama", "vllm", "sglang"],
+        choices=["rule_based", "llm", "ollama", "openai_compat", "llama_cpp", "vllm", "sglang"],
         help="Proposer backend",
     )
     parser.add_argument(
@@ -55,6 +57,12 @@ def _parse_args() -> argparse.Namespace:
         type=float,
         default=0.2,
         help="Ollama generation temperature",
+    )
+    parser.add_argument(
+        "--ollama_num_predict",
+        type=int,
+        default=768,
+        help="Ollama max generated tokens per request",
     )
     parser.add_argument(
         "--api_model",
@@ -99,6 +107,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--n_features", type=int, default=5, help="Number of OHLCV features")
     parser.add_argument("--t_embed_dim", type=int, default=32, help="Task embedding dimension")
     parser.add_argument("--action_dim", type=int, default=3, help="Action space dimension")
+    parser.add_argument("--bar_resolution", type=str, default=DEFAULT_BAR_RESOLUTION, help="Bar resolution label recorded on generated tasks")
     parser.add_argument("--batch_size", type=int, default=5, help="Tasks requested per proposer call")
     parser.add_argument("--max_empty_batches", type=int, default=10, help="Abort after repeated empty proposer outputs")
     parser.add_argument(
@@ -113,6 +122,31 @@ def _parse_args() -> argparse.Namespace:
         default="Generate diverse trading tasks with varying horizons and reward parameters.",
         help="Market summary/context for task generation",
     )
+    parser.add_argument(
+        "--market_summary_mode",
+        type=str,
+        choices=["static", "ohlcv_window"],
+        default="static",
+        help="How to build market_summary text for proposer calls",
+    )
+    parser.add_argument(
+        "--summary_df_path",
+        type=str,
+        default="itrader/data/ohlcv.parquet",
+        help="Parquet path used when --market_summary_mode ohlcv_window",
+    )
+    parser.add_argument(
+        "--summary_window",
+        type=int,
+        default=256,
+        help="Rows for market summary window (ohlcv_window mode)",
+    )
+    parser.add_argument(
+        "--summary_end_idx",
+        type=int,
+        default=-1,
+        help="Inclusive end index for summary window, -1 means latest row",
+    )
     return parser.parse_args()
 
 
@@ -125,8 +159,9 @@ def _build_proposer_from_args(args: argparse.Namespace):
             base_url=args.ollama_base_url,
             timeout_s=args.ollama_timeout_s,
             temperature=args.ollama_temperature,
+            num_predict=args.ollama_num_predict,
         )
-    if args.backend in {"vllm", "sglang"}:
+    if args.backend in {"openai_compat", "llama_cpp", "vllm", "sglang"}:
         print(f"Initializing {args.backend} proposer with model: {args.api_model} @ {args.api_base_url}")
         token = os.getenv(args.api_key_env, "").strip()
         return build_proposer(
@@ -149,6 +184,7 @@ def _build_proposer_from_args(args: argparse.Namespace):
         n_features=args.n_features,
         t_embed_dim=args.t_embed_dim,
         action_dim=args.action_dim,
+        bar_resolution=args.bar_resolution,
     )
 
 
@@ -163,15 +199,39 @@ def _metadata(args: argparse.Namespace) -> Dict[str, Any]:
     elif args.backend == "ollama":
         meta["model_id"] = args.ollama_model
         meta["base_url"] = args.ollama_base_url
-    elif args.backend in {"vllm", "sglang"}:
+    elif args.backend in {"openai_compat", "llama_cpp", "vllm", "sglang"}:
         meta["model_id"] = args.api_model
         meta["base_url"] = args.api_base_url
     return meta
 
 
+def _market_summary(args: argparse.Namespace) -> str:
+    if args.market_summary_mode == "static":
+        return str(args.market_summary)
+
+    end_idx = int(args.summary_end_idx)
+    if end_idx < 0:
+        end_idx = None
+
+    try:
+        summary = build_market_summary_from_ohlcv_path(
+            args.summary_df_path,
+            window_size=int(args.summary_window),
+            end_idx=end_idx,
+        )
+        print("Using generated market summary from OHLCV window:")
+        print(summary)
+        return summary
+    except Exception as e:
+        print(f"Warning: failed to generate market summary from data: {e}")
+        print("Falling back to static --market_summary text.")
+        return str(args.market_summary)
+
+
 def main() -> int:
     args = _parse_args()
     random.seed(args.seed)
+    market_summary = _market_summary(args)
 
     proposer = _build_proposer_from_args(args)
     pool = TaskPool(args.out, read_only=False)
@@ -182,23 +242,32 @@ def main() -> int:
         "n_features": args.n_features,
         "t_embed_dim": args.t_embed_dim,
         "action_dim": args.action_dim,
+        "bar_resolution": args.bar_resolution,
     }
     meta = _metadata(args)
 
     n_generated = 0
     n_valid = 0
     n_invalid = 0
+    n_duplicate = 0
     empty_batches = 0
     backend_errors = 0
+    max_attempts = max(int(args.n_tasks), int(args.n_tasks) * 10)
 
     print(f"Generating {args.n_tasks} tasks...")
-    while n_generated < args.n_tasks:
-        remaining = args.n_tasks - n_generated
+    while n_valid < args.n_tasks and n_generated < max_attempts:
+        remaining = args.n_tasks - n_valid
         current_batch = min(max(1, args.batch_size), remaining)
+        batch_context = (
+            f"{market_summary}\n\n"
+            f"Generation batch index: {n_generated // max(1, args.batch_size)}. "
+            "Avoid exact duplicates of previously generated tasks by varying seed, horizon, "
+            "start_idx, reward parameters, regime tags, or metadata where valid."
+        )
 
         try:
             raw_tasks = proposer.propose_tasks(
-                market_summary=args.market_summary,
+                market_summary=batch_context,
                 n=current_batch,
             )
         except Exception as e:
@@ -228,8 +297,12 @@ def main() -> int:
                     fallback_seed=random.randint(0, 1_000_000),
                 )
                 TaskSpec.from_dict(validated_task)
+                size_before = pool.size()
                 pool.add(validated_task, meta=meta)
-                n_valid += 1
+                if pool.size() > size_before:
+                    n_valid += 1
+                else:
+                    n_duplicate += 1
                 if n_valid % 10 == 0:
                     print(f"  Generated {n_valid} valid tasks (attempts: {n_generated})")
             except Exception as e:
@@ -239,7 +312,9 @@ def main() -> int:
 
     print("\nGeneration complete")
     print(f"  Valid tasks added: {n_valid}")
+    print(f"  Duplicate tasks skipped: {n_duplicate}")
     print(f"  Invalid tasks dropped: {n_invalid}")
+    print(f"  Total proposer attempts: {n_generated}")
     print(f"  Final pool size: {pool.size()}")
     print(f"  Output file: {args.out}")
     return 0

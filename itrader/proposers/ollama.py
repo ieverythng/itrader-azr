@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import json
-import re
 from typing import Any, Dict, List
 from urllib import error, request
 
+from ._shared import normalize_count, parse_json_with_repair, schema_hint
 from .base import BaseProposer
 
 
@@ -21,19 +21,17 @@ class OllamaProposer(BaseProposer):
         timeout_s: float = 60.0,
         temperature: float = 0.2,
         num_predict: int = 768,
+        disable_thinking: bool = True,
     ):
         self.model = str(model)
         self.base_url = str(base_url).rstrip("/")
         self.timeout_s = float(timeout_s)
         self.temperature = float(temperature)
         self.num_predict = int(num_predict)
+        self.disable_thinking = bool(disable_thinking)
 
     def _schema_hint(self) -> str:
-        return (
-            "Return ONLY valid JSON as an array of task objects with fields: "
-            "family_id(str), price_id(str), horizon(int 64-512), reward_id(str), "
-            "reward_params(dict), seed(int), obs_dim(int), action_dim(int), start_idx(null|int)."
-        )
+        return schema_hint()
 
     def _build_prompt(self, market_summary: str, n: int) -> str:
         return (
@@ -53,6 +51,8 @@ class OllamaProposer(BaseProposer):
                 "num_predict": self.num_predict,
             },
         }
+        if self.disable_thinking:
+            payload["think"] = False
         req = request.Request(
             f"{self.base_url}/api/generate",
             data=json.dumps(payload).encode("utf-8"),
@@ -70,43 +70,28 @@ class OllamaProposer(BaseProposer):
         except error.URLError as exc:
             raise RuntimeError(f"Ollama connection error at {self.base_url}: {exc}") from exc
         parsed = json.loads(body)
-        return str(parsed.get("response", "")).strip()
+        response_text = str(parsed.get("response", "")).strip()
+        if response_text:
+            return response_text
+        thinking_text = str(parsed.get("thinking", "")).strip()
+        if thinking_text:
+            done_reason = str(parsed.get("done_reason", "")).strip() or "unknown"
+            snippet = thinking_text[:240].replace("\n", " ")
+            raise RuntimeError(
+                "Ollama returned empty response text while thinking output was present "
+                f"(done_reason={done_reason}). Snippet: {snippet}"
+            )
+        raise RuntimeError(
+            "Ollama returned empty response text and no thinking output; "
+            "cannot parse proposer payload."
+        )
 
     def _parse_json_with_repair(self, text: str, expected_n: int) -> List[Dict[str, Any]]:
-        tasks: List[Dict[str, Any]] = []
-        try:
-            parsed = json.loads(text)
-            if isinstance(parsed, list):
-                tasks.extend([x for x in parsed if isinstance(x, dict)])
-            elif isinstance(parsed, dict):
-                tasks.append(parsed)
-            return tasks[:expected_n]
-        except Exception:
-            pass
-
-        patterns = [
-            r"\[[\s\S]*\]",
-            r"\{[\s\S]*\}",
-        ]
-        for pattern in patterns:
-            for match in re.findall(pattern, text):
-                try:
-                    parsed = json.loads(match)
-                    if isinstance(parsed, list):
-                        tasks.extend([x for x in parsed if isinstance(x, dict)])
-                    elif isinstance(parsed, dict):
-                        tasks.append(parsed)
-                except Exception:
-                    continue
-                if len(tasks) >= expected_n:
-                    break
-            if len(tasks) >= expected_n:
-                break
-        return tasks[:expected_n]
+        return parse_json_with_repair(text, expected_n)
 
     def propose_tasks(self, market_summary: str, n: int, **kwargs: Any) -> List[Dict[str, Any]]:
         del kwargs
-        count = max(0, int(n))
+        count = normalize_count(n)
         if count == 0:
             return []
         prompt = self._build_prompt(market_summary=market_summary, n=count)

@@ -40,6 +40,7 @@ def test_build_base_config_sets_seed_in_all_required_places(tmp_path: Path):
     cfg = build_base_config(args=args, data_path=data_path, use_pbt_mode=False)
     assert cfg["seed"] == 2026
     assert cfg["env_config"]["task_sampler"]["seed"] == 2026
+    assert cfg["env_config"]["task_sampler"]["bar_resolution"] == "1m"
 
 
 def test_build_base_config_pbt_disables_prometheus(tmp_path: Path):
@@ -129,3 +130,68 @@ def test_config_hash_handles_non_json_values():
     digest = _config_hash({"callbacks": FakeCallback, "nested": {"x": 1}})
     assert isinstance(digest, str)
     assert len(digest) == 64
+
+
+def test_extract_report_preserves_dynamic_metric_keys():
+    from itrader.rl_lib.train.train_solo_V2 import _extract_report
+
+    report = _extract_report(
+        {
+            "training_iteration": 4,
+            "time_this_iter_s": 2.0,
+            "episode_reward_mean": 1.25,
+            "custom_metrics": {
+                "act_0_frac_mean": 0.2,
+                "act_3_frac_mean": 0.1,
+                "rc_utility_gain_mean": 0.4,
+                "success_mean": 0.75,
+                "task_horizon_mean": 96.0,
+            },
+            "info": {
+                "learner": {
+                    "default_policy": {
+                        "learner_stats": {
+                            "policy_loss": 0.1,
+                            "vf_loss": 0.2,
+                            "entropy": 0.3,
+                        }
+                    }
+                }
+            },
+        },
+        default_iteration=4,
+    )
+    assert report["custom_metrics/act_0_frac_mean"] == pytest.approx(0.2)
+    assert report["custom_metrics/act_3_frac_mean"] == pytest.approx(0.1)
+    assert report["custom_metrics/rc_utility_gain_mean"] == pytest.approx(0.4)
+    assert report["custom_metrics/success_mean"] == pytest.approx(0.75)
+    assert report["custom_metrics/task_horizon_mean"] == pytest.approx(96.0)
+
+
+def test_append_report_row_expands_csv_header_for_new_metrics(tmp_path: Path):
+    from itrader.rl_lib.train.train_solo_V2 import _append_report_row
+
+    report_path = tmp_path / "report_rows.csv"
+    _append_report_row(report_path, {"training_iteration": 1, "policy_loss": 0.1})
+    _append_report_row(
+        report_path,
+        {
+            "training_iteration": 2,
+            "policy_loss": 0.2,
+            "custom_metrics/rc_utility_gain_mean": 0.4,
+        },
+    )
+
+    rows = report_path.read_text(encoding="utf-8").strip().splitlines()
+    assert rows[0] == "training_iteration,policy_loss,custom_metrics/rc_utility_gain_mean"
+    assert rows[1] == "1,0.1,"
+    assert rows[2] == "2,0.2,0.4"
+
+
+def test_cli_metric_columns_include_generic_action_slots():
+    from itrader.rl_lib.train.train_solo_V2 import _cli_metric_columns
+
+    columns = _cli_metric_columns(4)
+    assert "custom_metrics/act_0_frac_mean" in columns
+    assert "custom_metrics/act_3_frac_mean" in columns
+    assert "custom_metrics/act_long_frac_mean" in columns

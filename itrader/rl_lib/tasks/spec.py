@@ -16,8 +16,10 @@ def normalize_task_spec_payload(cfg: Dict[str, Any] | None) -> Dict[str, Any]:
     raw: Dict[str, Any] = dict(cfg or {})
 
     for alias, canonical in _TASKSPEC_ALIASES.items():
-        if alias in raw and canonical not in raw:
-            raw[canonical] = raw.pop(alias)
+        if alias in raw:
+            value = raw.pop(alias)
+            if canonical not in raw:
+                raw[canonical] = value
 
     reward_cfg = raw.pop("reward_config", None)
     if isinstance(reward_cfg, dict):

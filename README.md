@@ -63,6 +63,8 @@ Training follows RLVR principles:
   - Concrete milestone plan, acceptance criteria, and risk controls.
 - `docs/ops_runbook.md`
   - Main-PC setup, lock workflow, and run/recovery procedures.
+- `docs/knowledge/README.md`
+  - GitNexus-backed knowledge layer, tracked docs surface, and evaluation workflow.
 
 ## Current Phase Status
 

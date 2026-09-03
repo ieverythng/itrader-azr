@@ -1,79 +1,79 @@
-# iTrader Architecture (Phase A Baseline -> Phase B Target)
+# iTrader Architecture Entry Point
 
-## Current Baseline (February 24, 2026)
+Last updated: 2026-06-17
 
-Primary executable training path:
+This file is the compact compatibility entrypoint for iTrader architecture. For
+the fuller review document, see:
 
-- `itrader/rl_lib/train/train_solo_V2.py`
-- `itrader/envs/itrader_env.py`
-- `itrader/rl_lib/tasks/rewards.py`
-- `itrader/rl_lib/tasks/samplers.py`
-- `itrader/models/solver_mlp_film.py`
-- `itrader/rl_lib/callbacks/ps_metrics.py`
-- `itrader/rl_lib/callbacks/auto_plotter.py`
+- `docs/architecture/itrader_system_architecture.md`
+- `docs/architecture/itrader_system_architecture.html`
 
-This path is the effective source of truth for Phase A and experiment operations.
+For phase ordering and roadmap status, see:
 
-## Runtime Components
+- `docs/plans/itrader_masterplan.md`
+- `docs/iTRADER_Codex_Implementation_Spec.md`
 
-1. Data
-- Input parquet: `itrader/data/ohlcv.parquet`
-- Environment loads OHLCV window features and close prices for reward context.
+## Current Baseline
 
-2. Environment
-- `ITraderEnv` emits observation = `flattened_price_window + task_embedding`.
-- Start-index modes:
-  - `random_episode`
-  - `stream_worker`
-  - `task_spec`
-- Reward computed via registry (`RewardEngine`) using inspectable per-step context.
+The reliable executable path is still:
 
-3. Task Layer
-- `TaskSpec` is the contract between sampler/environment/proposer.
-- `TaskSampler00` currently generates task specs stochastically and can optionally sample from a persistent `TaskPool`.
+```text
+itrader/rl_lib/train/train_solo_V2.py
+-> ITraderEnv
+-> TaskSpec / TaskSampler00
+-> RewardEngine
+-> SolverMLPFiLM
+-> PPO/GAE metrics and manifests
+```
 
-4. Solver
-- PPO (RLlib) with custom FiLM-conditioned model (`SolverMLPFiLM`).
-- Training loop supports PBT, checkpointing, stable metrics mirror, and final plotting.
+`SolverMLPFiLM` is the implemented baseline solver. A recurrent-window
+`SolverWindowLSTMFiLM` remains a Phase B development frontier and is not part of
+this branch's operational API yet.
 
-5. Observability and Experimentation
-- Stable metrics mirror:
-  - `~/ray_results/_stable_metrics/<trial>/metrics_full.jsonl`
-  - `~/ray_results/_stable_metrics/<trial>/report_rows.csv`
-- Ablation harness:
-  - `itrader/scripts/experiments/run_ablation.py`
+## Core Runtime Roles
 
-## Architectural Gaps Blocking Phase B
+- Data: `itrader/data/ohlcv.parquet` supplies local OHLCV features.
+- Environment: `ITraderEnv` emits `flattened_price_window + task_embedding`.
+- Task layer: `TaskSpec` remains the canonical task/problem contract.
+- Reward layer: `RewardEngine` computes finite, decomposed solver rewards.
+- Solver: PPO + FiLM-conditioned model learns action/value behavior.
+- Proposer: `itrader/proposers/` provides backend abstractions and fallbacks.
+- Observability: stable metrics, Ray artifacts, run manifests, and GitNexus docs
+  support evaluation and handoff.
 
-1. AZR loop executable gap
-- `itrader/rl_lib/train/train_AZR.py` is conceptual pseudocode, not runnable integration.
+## Phase B Target
 
-2. Proposer integration gap
-- LLM proposer exists (`itrader/llm/proposer_llm.py`) but is not wired into training/runtime loop.
+Phase B should improve solver quality and task-contract discipline without
+destabilizing family `00`:
 
-3. Contract and ownership clarity
-- `TaskSpec` exists but module boundaries for proposer/sampler/solver runtime ownership are not fully explicit.
+1. Preserve the MLP+FiLM baseline.
+2. Evaluate recurrent-window solver heads as opt-in experiments.
+3. Track capability by family, regime, horizon, and calibration.
+4. Keep `CandidateTask`, `ExecutionIntent`, `CapabilityProfile`, and
+   `DecisionRecord` explicit for future online/shadow-mode work.
 
-4. Dependency and environment drift
-- Multiple manifests with divergent version intent make reproducibility and onboarding unstable.
+## Phase C Target
 
-5. Legacy surface area
-- Legacy/stale entrypoints and cached artifacts increase confusion and accidental usage risk.
+The online/shadow stack should remain deterministic at the actioning shell:
 
-## Target Phase B Architecture
+```text
+market window
+-> MarketFramer
+-> CandidateTask set including WAIT
+-> solver scoring
+-> DecisionGate
+-> RiskEngine
+-> Executor / shadow recorder
+-> DecisionRecord + CapabilityProfile update
+```
 
-Control loop target (single process first, distributed second):
+LLM output may frame candidates, but it must not bypass solver scoring,
+decision thresholds, risk limits, or executor constraints.
 
-1. Proposer generates `TaskSpec` candidates from market state summary + curriculum state.
-2. Validator clamps/spec-checks candidate tasks.
-3. Sampler selects task(s) from proposer stream + optional pool mixing policy.
-4. Solver trains/evaluates on selected tasks.
-5. Outcome feedback (`return`, `success`, risk stats) updates proposer memory and task pool stats.
-6. All phases emit versioned run metadata and comparable metrics.
+## Refactor Principles
 
-## Immediate Refactor Principles
-
-1. Single executable truth for each workflow.
-2. Typed contracts before additional model complexity.
-3. Deterministic and inspectable control paths.
-4. Dependency lock process documented and reproducible on target machine.
+- Preserve working training paths.
+- Prefer extension over rewrite.
+- Keep typed contracts central.
+- Keep risk and execution deterministic.
+- Treat GitNexus as advisory and confirm important architecture claims in source.

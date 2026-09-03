@@ -135,17 +135,21 @@ def _plot_metric(df: pd.DataFrame, title: str, ylabel: str, out_png: Path):
 
 
 def _plot_multi_metrics(metric_dfs: dict[str, pd.DataFrame], out_png: Path):
+    action_metric = next(
+        (metric for metric in sorted(metric_dfs) if metric.startswith("custom_metrics/act_") and metric.endswith("_mean")),
+        None,
+    )
     metric_titles = [
         ("custom_metrics/episode_return_mean", "Episode Return Mean"),
         ("entropy", "Entropy"),
         ("episode_len_mean", "Episode Length Mean"),
-        ("custom_metrics/act_long_frac_mean", "Long Action Fraction"),
+        (action_metric, "Action Fraction") if action_metric else (None, "Action Fraction"),
     ]
     fig, axes = plt.subplots(2, 2, figsize=(12, 8))
     axes = axes.flatten()
     for ax, (metric, title) in zip(axes, metric_titles):
         df = metric_dfs.get(metric)
-        if df is None or "training_iteration" not in df.columns:
+        if metric is None or df is None or "training_iteration" not in df.columns:
             ax.set_title(f"{title} (no data)")
             ax.axis("off")
             continue
@@ -194,16 +198,21 @@ def main() -> None:
     out_dir = Path(args.out_dir).expanduser().resolve() if args.out_dir else (cfg_path.parent / "outputs" / run_tag)
     out_dir.mkdir(parents=True, exist_ok=True)
 
+    action_metric_keys = sorted(
+        {
+            column
+            for result in results
+            for column in result.report_df.columns
+            if column.startswith("custom_metrics/act_") and column.endswith("_mean")
+        }
+    )
     metric_keys = [
         "custom_metrics/episode_return_mean",
         "entropy",
         "episode_len_mean",
         "policy_loss",
         "value_loss",
-        "custom_metrics/act_short_frac_mean",
-        "custom_metrics/act_flat_frac_mean",
-        "custom_metrics/act_long_frac_mean",
-    ]
+    ] + action_metric_keys
     metric_dfs: dict[str, pd.DataFrame] = {}
     for m in metric_keys:
         metric_safe = m.replace("/", "__")

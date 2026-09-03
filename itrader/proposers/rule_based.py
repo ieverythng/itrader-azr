@@ -3,6 +3,9 @@ from __future__ import annotations
 import random
 from typing import Any, Dict, List, Sequence
 
+from itrader.rl_lib.tasks.families import DEFAULT_BAR_RESOLUTION
+from itrader.rl_lib.tasks.rewards import RewardEngine
+
 from .base import BaseProposer
 
 
@@ -22,6 +25,8 @@ class RuleBasedProposer(BaseProposer):
         price_ids: Sequence[str] | None = None,
         horizons: Sequence[int] | None = None,
         reward_id: str = "pnl_linear",
+        reward_params: Dict[str, Any] | None = None,
+        bar_resolution: str = DEFAULT_BAR_RESOLUTION,
     ):
         self.rng = random.Random(int(seed))
         self.window_size = int(window_size)
@@ -31,34 +36,30 @@ class RuleBasedProposer(BaseProposer):
         self.price_ids = [str(x) for x in (price_ids or ["SIM"])]
         self.horizons = [int(x) for x in (horizons or [64, 96, 128, 160, 200, 256])]
         self.reward_id = str(reward_id)
+        self.reward_params = dict(reward_params or {})
+        self.bar_resolution = str(bar_resolution)
 
-    def _sample_reward_params(self) -> Dict[str, Any]:
-        return {
-            "pnl_w": 1.0,
-            "turnover_w": self.rng.choice([0.0, 0.0005, 0.001, 0.002]),
-            "dd_mode": "delta",
-            "dd_w": round(self.rng.uniform(0.0, 0.08), 6),
-            "dd_T_weight": 0.0,
-            "turnover_cap": 0.02,
-            "dd_cap": 0.1,
-            "reward_scale": 1.0,
-            "normalize": True,
-            "norm_mode": "all",
-            "unit_clip": 100000000.0,
-        }
+    @property
+    def obs_dim(self) -> int:
+        return self.window_size * self.n_features + self.t_embed_dim
+
+    def _reward_params_for(self) -> Dict[str, Any]:
+        params = RewardEngine.sample_params(self.reward_id, self.rng)
+        params.update(self.reward_params)
+        return RewardEngine.normalize_params(self.reward_id, params)
 
     def _sample_task(self) -> Dict[str, Any]:
-        obs_dim = self.window_size * self.n_features + self.t_embed_dim
         return {
             "family_id": "00",
             "price_id": self.rng.choice(self.price_ids),
             "horizon": self.rng.choice(self.horizons),
             "reward_id": self.reward_id,
-            "reward_params": self._sample_reward_params(),
+            "reward_params": self._reward_params_for(),
             "seed": self.rng.randint(0, 1_000_000),
-            "obs_dim": int(obs_dim),
+            "obs_dim": int(self.obs_dim),
             "action_dim": self.action_dim,
             "start_idx": None,
+            "bar_resolution": self.bar_resolution,
         }
 
     def propose_tasks(self, market_summary: str, n: int, **kwargs: Any) -> List[Dict[str, Any]]:

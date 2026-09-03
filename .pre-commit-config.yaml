@@ -11,12 +11,19 @@ repos:
     hooks:
       - id: itrader-healthcheck
         name: itrader healthcheck
-        entry: ./itrader/tools/run_repo_python.sh itrader/tools/healthcheck.py
+        entry: python itrader/tools/healthcheck.py
         language: system
         pass_filenames: false
 
       - id: itrader-tests-core
         name: itrader core tests
-        entry: ./itrader/tools/run_repo_python.sh -m pytest -q itrader/tests
+        entry: python -m pytest -q itrader/tests
         language: system
         pass_filenames: false
+
+      - id: gitnexus-advisory
+        name: gitnexus advisory freshness check
+        entry: ./tools/knowledge/pre_commit_advisory.sh
+        language: system
+        pass_filenames: false
+        stages: [manual]

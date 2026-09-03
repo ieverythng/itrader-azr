@@ -1,4 +1,6 @@
 itrader/models/Deepseek-6.7B-Q4_K_M/deepseek-coder-6.7b-instruct.Q4_K_M.gguf
+.gitnexus/
+.claude/skills/gitnexus/
 grafana/bin/grafana-cli.exe
 grafana/bin/grafana-server.exe
 grafana/bin/grafana.exe
@@ -10649,6 +10651,9 @@ itrader/models/Qwen2.5-7B-Instruct/model.safetensors.index.txt
 .env.*
 !.env.example
 /.itrader_env
-/_external
-/_tmp
-/_tools
+
+# Local llama.cpp / CUDA workstation artifacts
+/_downloads/
+/_tmp/
+/_tools/
+/_external/llama.cpp/
