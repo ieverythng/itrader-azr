@@ -34,6 +34,13 @@ Last updated: 2026-09-03
 
 ## Next
 
+- Wire `pnl_sharpe` to Family 01 and implement Sharpe-aware rewards for Families 02-03. **[DESIGN COMPLETE 2026-09-03]**
+  - Phase 1 (~2h): Update `families.py` — `secondary_01` default_reward_id → `pnl_sharpe`. Tune params: `w_sharpe=0.5`, `sharpe_window=32`, `sharpe_target=1.0`. Unit test + smoke training.
+  - Phase 2 (~1d): Implement `reward_sharpe_dominant` + `_compute_vol_expansion_bonus` for Family 02. Register, unit test, smoke train.
+  - Phase 3 (~1-2d): Implement `reward_sharpe_trend` + `_compute_trend_persistence_bonus` for Family 03. Requires `ctx["bars_in_position"]` and `ctx["entry_price"]` from env.
+  - Full design: `docs/research/sharpe-reward-design.md`.
+  - Validation: capability reports by family show Sharpe-aware solvers outperform PnL-only on families 01-03.
+
 - Add a proposer-on versus proposer-off comparison run template.
   - Scope: experiment config docs and/or a lightweight script.
   - Validation: reports task-pool acceptance rate, invalid task rate, solver return, drawdown, turnover, and capability uplift.
@@ -43,6 +50,12 @@ Last updated: 2026-09-03
   - Validation: replayed market window -> candidate tasks -> validation -> solver score placeholder -> `DecisionRecord`.
 
 ## Later
+
+- **Proposer model selection + loop closure (Phase B closure criterion).** Per Notion log (23/08/26): lock the proposer model, hook it to the task generation loop, and validate end-to-end.
+  - Candidate models: Qwen3.8-27B 4-bit (~14GB VRAM — tight on 16GB card), Gemma-class with hardware LoRA (~6GB), or CLIProxyAPI GPT-5 (no local VRAM, API cost).
+  - OOM constraint: proposer must run alongside OR replace the llama.cpp server. Separate process + API communication avoids VRAM contention.
+  - Phase B closure = proposer hooked to loop + solver head 00 fully developed (FiLM R0 for family 00, recurrent R2c for families 01-03) + all four families have working reward functions.
+  - Additional ablations needed: proposer-on vs proposer-off, proposer model comparison, task pool acceptance rate by model.
 
 - Evaluate a fully stateful recurrent solver head after a corrected window encoder has been measured.
 - Explore LoRA/QLoRA primarily on the proposer after enough validated candidate/outcome data exists.

@@ -1,5 +1,9 @@
 # Decisions
 
+## 2026-09-03 - Sharpe Reward Design For Task Families 00-03
+
+Full reward architecture designed for all four task families. `pnl_sharpe` exists in code but is not wired to any family — this is the gap. Design: Family 00 stays PnL-dominant (short horizon, insufficient data for stable Sharpe), Family 01 gets PnL+Sharpe blend (mean-reversion tracking), Family 02 gets Sharpe-dominant + vol-expansion bonus (breakout patience), Family 03 gets Sharpe + trend-persistence bonus (trade duration memory). The reward shifts from PnL→Sharpe as horizon increases, co-dependent on the solver shifting from FiLM MLP→recurrent LSTM. Implementation roadmap: Phase 1 (wire pnl_sharpe to family 01, ~2h) → Phase 2 (sharpe_dominant for family 02, ~1d) → Phase 3 (sharpe_trend for family 03, ~1-2d) → Phase 4 (R2c recurrent solver integration, ~3-5d) → Phase 5 (proposer model selection + loop closure = Phase B closure). Full design: `docs/research/sharpe-reward-design.md`.
+
 ## 2026-09-03 - FiLM + True Recurrence: The Novel Architecture
 
 The FiLM + true per-episode recurrence combo is the project's key architectural contribution. Full theory, ablation design (R0-R4 + R2a-R2d sub-variants), implementation code, and success criteria documented in `docs/research/recurrent-solver-ablation.md`.
