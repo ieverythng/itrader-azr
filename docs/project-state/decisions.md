@@ -1,5 +1,25 @@
 # Decisions
 
+## 2026-09-03 - FiLM + True Recurrence: The Novel Architecture
+
+The FiLM + true per-episode recurrence combo is the project's key architectural contribution. Full theory, ablation design (R0-R4 + R2a-R2d sub-variants), implementation code, and success criteria documented in `docs/research/recurrent-solver-ablation.md`.
+
+Core insight: persistent hidden state compounds across steps within an episode, giving the solver a working model of *where it is in the trading process* — not just what the market looks like. FiLM keeps task identity alive at every step (not just init), enabling timescale separation (fast components → short-term patterns, slow components → regime/trend) and implicit episode progress tracking. This is verification-aware trading: the solver tracks progress toward the task's definition of success, which no feed-forward architecture can do.
+
+## 2026-09-03 - Keep All Ablation Variants On FiLM; Defer LSTM Head Fix
+
+- Decision: The episode/regime alignment ablation (v0-v3) runs entirely on `SolverMLPFiLM`. The `SolverLSTMModel` obs-shape fix (`flat_dim // win` breaking with task embeddings) is deferred to the solver-head ablation (next-actions item 4).
+- Why: Mixing an uncorrected LSTM head into the alignment ablation would confound two variables at once (alignment + head architecture). The FiLM baseline handles arbitrary flat obs via `flat_dim - t_dim`, so all 4 variants get a clean comparison.
+- Consequences: v3 (horizon-aligned) uses FiLM, not LSTM. If alignment results are positive, the solver-head ablation can then test whether a corrected window encoder or true recurrent policy adds value on top of the best alignment mode.
+- Revisit when: Solver-head ablation (item 4) is scoped, or if alignment results show horizon-aligned tasks benefit disproportionately from temporal inductive bias.
+
+## 2026-09-03 - Stash@{0} proposer_llm.py Is Superseded; Stash Can Be Dropped After Verification
+
+- Decision: The 199-line Transformers+bitsandbytes `proposer_llm.py` that exists only in `stash@{0}` is considered superseded by the lighter ollama/openai_compat proposers integrated in commits `4921708` and `bd6453e`.
+- Why: The old proposer required a local 4-bit quantized Qwen2.5-7B via HuggingFace Transformers, which is heavier and less flexible than the OpenAI-compatible endpoint path already wired into the proposer factory.
+- Consequences: No branch needs the stashed file. After Juan verifies nothing else in stash@{0} is needed, all 3 stashes can be dropped to clean up the reflog.
+- Revisit when: If a future task requires offline Transformers inference without a server (e.g., edge deployment), the file can be recovered via `git show "stash@{0}:itrader/llm/proposer_llm.py"`.
+
 ## 2026-05-02 - Treat Episode-Aligned PPO Optimization As An Experiment, Not A Default
 
 - Decision: Keep the current PPO `batch_mode = "complete_episodes"` baseline, and evaluate stricter episode/regime alignment as an ablation instead of making it the default training path.

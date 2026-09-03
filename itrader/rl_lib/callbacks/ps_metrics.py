@@ -170,3 +170,15 @@ class PSMetrics(DefaultCallbacks):
                         )
             except Exception as exc:
                 self._warn_once("task_pool_metrics", f"task pool aggregate metrics failed (continuing): {exc}")
+
+    def on_train_result(self, *, algorithm, result: dict, **kwargs):
+        # success_mean is aggregated by Ray over episodes in the last train() call.
+        # Expose it at top level so Tune TB/CSV has a stable `p_solve` key
+        # (recovered from stash@{1} wip-local-before-sync).
+        cm = result.get("custom_metrics", {}) or {}
+        psolve = cm.get("success_mean", None)
+        if psolve is not None:
+            try:
+                result["p_solve"] = float(psolve)
+            except (TypeError, ValueError):
+                pass

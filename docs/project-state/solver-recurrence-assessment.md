@@ -1,6 +1,6 @@
 # Solver Recurrence Assessment
 
-Last updated: 2026-05-02
+Last updated: 2026-09-03
 
 ## Short Answer
 
@@ -125,6 +125,45 @@ Recommended order:
 2. Implement a corrected window encoder head that explicitly splits price features and task embedding.
 3. Compare on identical task pools and held-out rolling windows.
 4. Only then implement a true RLlib recurrent policy if the window encoder improves or exposes failure modes that need longer memory.
+
+## 2026-09-03 Update: True Recurrence Is The Priority
+
+The core value of an RNN solver is **persistent hidden state across environment steps** — not just within-window encoding. A window-encoder LSTM that resets every step forfeits the compounding benefit: reward-function bias, position awareness, and regime memory should carry forward through the episode.
+
+### What "truly recurrent" means for iTrader
+
+- Hidden state `(h_t, c_t)` persists from step `t` to step `t+1` within an episode.
+- At each step, the model consumes the **latest observation slice** (or a short recent window), not the full flat window reshaped into pseudo-sequences.
+- Episode boundary → hidden state reset (via RLlib's `get_initial_state` / `done` masking).
+- Minibatching must preserve temporal chunks: PPO with `shuffle_sequences=False` or sequence-aware batching so gradients flow through valid recurrent paths.
+- The task embedding conditions the **initial state** and/or is injected via FiLM at each step, rather than being baked into a flat vector that breaks reshape assumptions.
+
+### Why this matters for trading specifically
+
+- **Path-dependent drawdown awareness**: A recurrent solver can "remember" that it's been losing for 12 consecutive steps and modulate risk without needing an explicit drawdown feature in the observation.
+- **Regime persistence**: If vol has been elevated for 50 bars, the hidden state encodes that regime context even if the latest 3-bar window looks calm.
+- **Position carry-over memory**: The solver can implicitly track its own recent action sequence (buying pressure, entry timing) without a separate position-history feature.
+- **Compounding reward bias**: PPO's advantage estimation + recurrent state means the value function accumulates knowledge of "what happens if I keep doing this" across the episode, not just per-window.
+
+### Implementation path (refined)
+
+1. **Fix obs-shape split** (prerequisite): Model receives `obs = [price_window_flat(150), task_embed(32)]`. Explicitly slice: `price = obs[:, :150]`, `task = obs[:, 150:]`. No more `flat_dim // win` inference.
+2. **True recurrent step**: At each env step, feed only the **new bar** (or last K bars) into the LSTM. Hidden state carries forward. This is RLlib's native recurrent policy interface (`state_inputs`, `seq_lens`, `RNN` model type).
+3. **Task conditioning via FiLM on initial state + per-step**: Task embedding modulates the LSTM's initial hidden state AND is FiLM-injected at each step so the network knows which task it's solving throughout the episode.
+4. **Sequence-aware PPO config**: `shuffle_sequences=False`, appropriate `max_seq_length`, `recurrent_policy=True` in RLlib config. Minibatch size must divide sequence length cleanly.
+5. **Evaluation**: Same held-out rolling windows as the alignment ablation, plus a new metric — **memory utilization** (does performance on long-horizon tasks improve more than short-horizon ones?).
+
+### Ablation design for recurrence (to run after alignment ablation)
+
+| Variant | Head | State | Purpose |
+|---------|------|-------|---------|
+| R0 | FiLM MLP | None | Baseline (control) |
+| R1 | Window LSTM (encoder) | Reset every step | Within-window temporal bias only |
+| R2 | True recurrent LSTM | Persists across steps, reset at episode end | Full recurrence |
+| R3 | True recurrent GRU | Persists across steps, reset at episode end | Compare LSTM vs GRU (fewer params, faster) |
+| R4 | Recurrent + task-FiLM on state | Persists, task-conditioned init | Isolate task conditioning benefit |
+
+All variants: same task pool, same dataset slice, same train budget, same seed set. Evaluation: held-out rolling windows + capability report by family/regime/horizon.
 
 ## Evaluation Standard
 

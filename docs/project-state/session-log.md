@@ -1,5 +1,12 @@
 # Session Log
 
+## 2026-09-03 - Episode/Regime Alignment Ablation Scaffolded + Stash Audit
+
+- Changed: Created ablation config (4 variants v0-v3), regime tagger, capability reporter, and Lazarus launcher script. Recovered `p_solve` hook in ps_metrics.py from stash@{1}. Updated next-actions.md, current-state.md, decisions.md.
+- Validation: All Python files pass syntax check. Bash script passes `bash -n`. JSON config matches run_ablation.py schema.
+- Notes: Training not yet run (OOM constraint with llama.cpp). Branch is clean fast-forward over Phase-B-Training. Stash@{0} proposer_llm.py confirmed superseded; stash can be dropped after user verification.
+- Follow-up: Run ablation via Lazarus script, generate capability reports, compare variants on held-out windows.
+
 ## 2026-05-02 - Episode Alignment Feasibility Check
 
 - Changed: Added `docs/project-state/` as a durable handoff layer and recorded the PPO episode-alignment assessment.
