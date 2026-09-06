@@ -1,430 +1,117 @@
-<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Sharpe-Aware Reward Design — Task Families 00-03</title>
-<style>
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 920px; margin: 2rem auto; padding: 0 1.5rem; line-height: 1.7; color: #1a1a2e; }
-pre { background: #f5f5f5; padding: 1rem; overflow-x: auto; border-radius: 4px; font-size: 0.9em; }
-table { border-collapse: collapse; width: 100%; margin: 1rem 0; font-size: 0.92em; }
-th, td { border: 1px solid #ddd; padding: 8px 10px; text-align: left; }
-th { background: #f0f0f0; }
-h1 { border-bottom: 2px solid #333; padding-bottom: 0.5rem; font-size: 1.6em; }
-h2 { margin-top: 2.5rem; color: #2c3e50; font-size: 1.3em; }
-h3 { margin-top: 1.8rem; color: #34495e; font-size: 1.1em; }
-li { margin: 0.3rem 0; }
-li.todo { list-style: none; margin-left: -1.2em; }
-strong { color: #c0392b; }
-em { color: #555; }
-p { margin: 0.5rem 0; }
-</style></head><body>
-<h1>Sharpe-Aware Reward Design — Task Families 00-03 &amp; Recurrent Solver Alignment</h1>
-
-<p>Last updated: 2026-09-03</p>
-<p>Status: <strong>Design complete, implementation pending</strong> (after alignment ablation runs)</p>
-
-<h2>Context: Where We Are</h2>
-
-<p>The current reward system has two registered functions:</p>
-
-<table>
-<tr><th>Reward ID</th><th>Family</th><th>Formula</th><th>Status</th></tr>
-<tr><td>-----------</td><td>--------</td><td>---------</td><td>--------</td></tr>
-<tr><td>`pnl_linear`</td><td>00 (primary)</td><td>`w_pnl * sign(pnl) * min(abs(pnl), cap) / ret_unit`</td><td>Active, default</td></tr>
-<tr><td>`pnl_sharpe`</td><td>01 (secondary)</td><td>PnL term + Sharpe bonus/penalty on rolling returns</td><td>Registered, NOT wired to any family</td></tr>
-</table>
-
-<p>Family registry:</p>
-
-<table>
-<tr><th>Family ID</th><th>Name</th><th>Default Reward</th><th>Status</th></tr>
-<tr><td>-----------</td><td>------</td><td>----------------</td><td>--------</td></tr>
-<tr><td>`primary_00`</td><td>Primary / baseline</td><td>`pnl_linear`</td><td>Active</td></tr>
-<tr><td>`secondary_01`</td><td>Secondary / mean-reversion</td><td>`pnl_linear` (should be `pnl_sharpe`)</td><td>**Misconfigured**</td></tr>
-<tr><td>`tertiary_02`</td><td>Tertiary / vol-breakout</td><td>None registered</td><td>Stub</td></tr>
-<tr><td>`quaternary_03`</td><td>Quaternary / trend-following</td><td>None registered</td><td>Stub</td></tr>
-</table>
-
-<p>The gap: `pnl_sharpe` exists in code but no family uses it. Families 02 and 03 have no reward functions at all. This doc designs the full reward system for all four families, with Sharpe as the unifying risk-adjusted metric.</p>
-
-<h2>Why Sharpe Is The Right Surrogate For Trading RL</h2>
-
-<h3>The Problem With Pure PnL Reward</h3>
-
-<p>`pnl_linear` rewards <em>absolute profit</em>. This creates three failure modes:</p>
-
-<p>1. <strong>Risk-blindness</strong>: A strategy that makes 5% in low-vol conditions and -20% in high-vol conditions gets the same reward signal as one that makes 3% consistently. The solver learns to be aggressive when it shouldn&#x27;t.</p>
-
-<p>2. <strong>Horizon mismatch</strong>: PnL accumulates linearly with time. A 256-step episode naturally produces larger PnL than a 32-step episode, even with identical per-step skill. The solver is implicitly rewarded for <em>longer</em> episodes, not <em>better</em> trading.</p>
-
-<p>3. <strong>No drawdown awareness</strong>: PnL doesn&#x27;t distinguish between &quot;steady +1% per step&quot; and &quot;+5% then -3% then +4%.&quot; Both end at +6%, but the second has much higher risk. The solver learns nothing about path quality.</p>
-
-<h3>What Sharpe Fixes</h3>
-
-<p>The Sharpe ratio (excess return / volatility of returns) addresses all three:</p>
-
-<li>**Risk-normalized**: High returns in high-vol conditions are penalized; consistent returns in low-vol are rewarded.</li>
-<li>**Horizon-invariant**: Sharpe is a *rate*, not a *total*. A 256-step episode and a 32-step episode can have identical Sharpe if per-step skill is the same.</li>
-<li>**Path-aware**: Volatility of returns captures drawdowns, whipsaws, and inconsistency. A smooth equity curve scores higher than a bumpy one with the same terminal PnL.</li>
-
-<h3>The Catch: Sharpe Is Noisy At Short Horizons</h3>
-
-<p>Sharpe ratio requires enough return observations to estimate volatility reliably. With &lt;20 steps, the vol estimate is dominated by 2-3 outlier bars. This is why:</p>
-
-<li>Family 00 (short horizon, 32-64 steps): `pnl_linear` is still appropriate. Not enough data for stable Sharpe.</li>
-<li>Family 01 (medium horizon, 64-128 steps): `pnl_sharpe` with a *blended* formula. PnL provides the signal; Sharpe regularizes risk.</li>
-<li>Family 02 (long horizon, 128-256 steps): Full `sharpe_dominant` reward. Enough data for stable vol estimates.</li>
-<li>Family 03 (very long horizon, 256+ steps): `sharpe_trend` reward. Sharpe + trend persistence bonus.</li>
-
-<h2>Reward Design Per Family</h2>
-
-<h3>Family 00: Primary / Baseline (Short Horizon, 32-64 Steps)</h3>
-
-<p><strong>Current</strong>: `pnl_linear` — correct as-is.</p>
-
-<p><strong>Proposed addition</strong>: Optional Sharpe <em>regularization</em> term (not dominant, just a penalty for excessive vol):</p>
-
-<pre><code>
-reward = pnl_term - lambda_vol * max(0, rolling_std - vol_target)
-</code></pre>
-
-<p>Where:</p>
-<li>`pnl_term` = existing `w_pnl * sign(pnl) * min(abs(pnl), cap) / ret_unit`</li>
-<li>`rolling_std` = std of per-step returns over last `win` steps</li>
-<li>`vol_target` = task-specified target volatility (e.g., 0.02 per step)</li>
-<li>`lambda_vol` = small penalty weight (0.1-0.3), NOT dominant</li>
-
-<p>This keeps PnL as the primary signal but penalizes <em>excessive</em> risk-taking. The solver learns &quot;make money, but don&#x27;t be a maniac.&quot;</p>
-
-<p><strong>Why not full Sharpe here?</strong> At 32-64 steps, the vol window is too short for stable estimation. A single outlier bar dominates the std. The penalty term is robust to this (it only fires when vol <em>exceeds</em> target), while full Sharpe would be noise-dominated.</p>
-
-<p><strong>Solver fit</strong>: FiLM MLP (R0) is sufficient. Short episodes don&#x27;t benefit much from recurrence — there&#x27;s not enough history to compound. The alignment ablation (v0-v3) runs on this family.</p>
-
-<h3>Family 01: Secondary / Mean-Reversion (Medium Horizon, 64-128 Steps)</h3>
-
-<p><strong>Current</strong>: `pnl_linear` (misconfigured — should use Sharpe).</p>
-
-<p><strong>Proposed</strong>: `pnl_sharpe` with tuned parameters. The existing implementation is close but needs refinement:</p>
-
-<pre><code>
-def reward_pnl_sharpe_v2(params, ctx):
-    &quot;&quot;&quot;PnL + Sharpe blend for medium-horizon mean-reversion tasks.
-    
-    The solver should fade deviations from the mean and capture reversion.
-    Sharpe regularizes risk; PnL provides the primary signal.
-    &quot;&quot;&quot;
-    w_pnl = params.get(&quot;w_pnl&quot;, 1.0)
-    w_sharpe = params.get(&quot;w_sharpe&quot;, 0.5)  # &lt; w_pnl: PnL dominates
-    sharpe_window = params.get(&quot;sharpe_window&quot;, min(32, len(ctx[&quot;returns&quot;])))
-    sharpe_target = params.get(&quot;sharpe_target&quot;, 1.0)
-    
-    pnl_term = w_pnl * sign(pnl) * min(abs(pnl), cap) / ret_unit
-    
-    # Sharpe on rolling returns (risk-adjusted performance)
-    if len(returns) &gt;= sharpe_window:
-        recent = returns[-sharpe_window:]
-        mu = mean(recent)
-        sigma = std(recent) + 1e-8
-        sharpe = sqrt(n_steps_per_year) * (mu / sigma) if sigma &gt; 1e-6 else 0.0
-        # Reward for hitting target Sharpe, penalize for missing it
-        sharpe_term = w_sharpe * tanh(sharpe / sharpe_target)
-    else:
-        sharpe_term = 0.0  # not enough data yet
-    
-    return pnl_term + sharpe_term
-</code></pre>
-
-<p><strong>Key differences from current `pnl_sharpe`</strong>:</p>
-<li>`w_sharpe &lt; w_pnl` (0.5 vs 1.0): PnL is still the primary signal. Sharpe is a *regularizer*, not the objective.</li>
-<li>`tanh(sharpe / target)` instead of raw Sharpe: bounded reward, no explosion from outlier vol estimates.</li>
-<li>`sharpe_window = min(32, len(returns))`: adaptive window, never exceeds available data.</li>
-
-<p><strong>Why this fits mean-reversion</strong>: Mean-reversion strategies are inherently low-Sharpe (they fade moves, so returns are small and frequent). The PnL term captures &quot;did I profit from the reversion?&quot; while Sharpe captures &quot;was my risk reasonable for a fading strategy?&quot; A solver that over-fades (enters too early, gets stopped out) has high PnL variance → low Sharpe → penalized.</p>
-
-<p><strong>Solver fit</strong>: <strong>Recurrent LSTM (R2c) is the target.</strong> Mean-reversion requires tracking:</p>
-<li>How far price has deviated from mean (needs 20-50 bars of context)</li>
-<li>Whether the deviation is reverting or persisting (needs trend awareness)</li>
-<li>Position P&amp;L trajectory (needs episode progress memory)</li>
-
-<p>This is exactly what persistent hidden state provides. The FiLM task embedding tells the solver &quot;you&#x27;re solving mean-reversion&quot; and the recurrence tracks the deviation/reversion cycle across steps.</p>
-
-<h3>Family 02: Tertiary / Volatility Breakout (Long Horizon, 128-256 Steps)</h3>
-
-<p><strong>Current</strong>: No reward function registered.</p>
-
-<p><strong>Proposed</strong>: `sharpe_dominant` — Sharpe is the primary signal, PnL is secondary.</p>
-
-<pre><code>
-def reward_sharpe_dominant(params, ctx):
-    &quot;&quot;&quot;Sharpe-dominant reward for long-horizon vol-breakout tasks.
-    
-    Vol-breakout strategies enter on volatility expansion and ride the move.
-    They need: (1) patience to wait for the breakout, (2) conviction to hold
-    through the move, (3) risk management to cut losers fast.
-    
-    Sharpe captures all three: patience → consistent small returns while waiting,
-    conviction → large positive returns during the move, risk management → low
-    vol on losing trades.
-    &quot;&quot;&quot;
-    w_sharpe = params.get(&quot;w_sharpe&quot;, 1.0)  # dominant
-    w_pnl = params.get(&quot;w_pnl&quot;, 0.3)        # secondary
-    sharpe_window = params.get(&quot;sharpe_window&quot;, 64)
-    sharpe_target = params.get(&quot;sharpe_target&quot;, 1.5)  # higher bar for breakout
-    
-    # Sharpe term (primary)
-    if len(returns) &gt;= sharpe_window:
-        recent = returns[-sharpe_window:]
-        mu, sigma = mean(recent), std(recent) + 1e-8
-        sharpe = sqrt(n_steps_per_year) * (mu / sigma)
-        sharpe_term = w_sharpe * tanh(sharpe / sharpe_target)
-    else:
-        # Warmup: use PnL until enough data for Sharpe
-        sharpe_term = 0.0
-    
-    # PnL term (secondary, captures terminal wealth)
-    pnl_term = w_pnl * sign(pnl) * min(abs(pnl), cap) / ret_unit
-    
-    # Vol-expansion bonus: reward entering when vol is expanding
-    vol_expansion_bonus = _compute_vol_expansion_bonus(ctx, params)
-    
-    return sharpe_term + pnl_term + vol_expansion_bonus
-</code></pre>
-
-<p><strong>Vol-expansion bonus</strong> (new component):</p>
-<pre><code>
-def _compute_vol_expansion_bonus(ctx, params):
-    &quot;&quot;&quot;Bonus for entering positions when volatility is expanding.
-    
-    Vol-breakout strategies make money by being *early* to the breakout.
-    This bonus rewards the solver for taking position when rolling vol
-    crosses above its recent mean (expansion signal).
-    &quot;&quot;&quot;
-    w_vol = params.get(&quot;w_vol_expansion&quot;, 0.2)
-    vol_window = params.get(&quot;vol_window&quot;, 50)
-    
-    if len(ctx[&quot;returns&quot;]) &lt; vol_window * 2:
-        return 0.0
-    
-    recent_vol = std(returns[-vol_window:])
-    prior_vol = std(returns[-2*vol_window:-vol_window])
-    
-    # Vol expansion ratio: &gt;1 means vol is increasing
-    expansion = recent_vol / (prior_vol + 1e-8)
-    
-    # Bonus if solver has position AND vol is expanding
-    position_size = abs(ctx.get(&quot;position&quot;, 0))
-    if position_size &gt; 0.1 and expansion &gt; 1.2:
-        return w_vol * min(expansion - 1.0, 2.0)  # capped bonus
-    
-    return 0.0
-</code></pre>
-
-<p><strong>Why Sharpe-dominant here</strong>: Vol-breakout strategies have a specific risk profile — they accept small losses while waiting for the breakout, then capture large moves. Pure PnL reward would penalize the waiting period (small negative returns). Sharpe normalizes this: consistent small losses while waiting + one large winning move = high Sharpe. The solver learns to be <em>patient</em> because patience improves Sharpe even if it hurts short-term PnL.</p>
-
-<p><strong>Solver fit</strong>: <strong>Recurrent LSTM (R2c) is essential.</strong> Vol-breakout requires:</p>
-<li>Tracking vol regime over 50-100 bars (is vol expanding or contracting?)</li>
-<li>Patience: staying flat while waiting for the signal (needs memory of &quot;I&#x27;ve been waiting for 30 bars&quot;)</li>
-<li>Conviction: holding through the move (needs memory of &quot;I entered at bar 40, I&#x27;m at bar 60, the move is still going&quot;)</li>
-<li>Asymmetry: cutting losers fast but letting winners run (needs P&amp;L trajectory memory)</li>
-
-<p>A feed-forward window encoder <em>cannot</em> do this. It sees the last 30 bars and decides &quot;vol looks elevated, enter.&quot; But it doesn&#x27;t know if it&#x27;s been waiting for 5 bars or 50 bars, or if it already entered at bar 40 and should hold. The recurrent state encodes all of this.</p>
-
-<h3>Family 03: Quaternary / Trend-Following (Very Long Horizon, 256+ Steps)</h3>
-
-<p><strong>Current</strong>: No reward function registered.</p>
-
-<p><strong>Proposed</strong>: `sharpe_trend` — Sharpe + trend persistence bonus.</p>
-
-<pre><code>
-def reward_sharpe_trend(params, ctx):
-    &quot;&quot;&quot;Sharpe + trend persistence for very long-horizon trend-following.
-    
-    Trend-following strategies identify and ride trends over 100+ bars.
-    They need: (1) trend detection, (2) entry timing, (3) trailing stops,
-    (4) the ability to STAY IN the trade for the full trend duration.
-    
-    The key challenge: the solver must not exit prematurely. A feed-forward
-    network sees &quot;price is still going up&quot; and might exit at bar 80 of a
-    200-bar trend. A recurrent solver knows &quot;I&#x27;ve been in this trend for
-    80 bars, trends typically last 150-200 bars, I should hold.&quot;
-    &quot;&quot;&quot;
-    w_sharpe = params.get(&quot;w_sharpe&quot;, 1.0)
-    w_pnl = params.get(&quot;w_pnl&quot;, 0.3)
-    w_trend = params.get(&quot;w_trend_persistence&quot;, 0.3)
-    sharpe_window = params.get(&quot;sharpe_window&quot;, 64)
-    
-    # Sharpe (primary, same as family 02)
-    sharpe_term = _compute_sharpe_term(ctx, params)
-    
-    # PnL (secondary)
-    pnl_term = w_pnl * sign(pnl) * min(abs(pnl), cap) / ret_unit
-    
-    # Trend persistence bonus: reward for staying in winning trends
-    trend_bonus = _compute_trend_persistence_bonus(ctx, params)
-    
-    return sharpe_term + pnl_term + trend_bonus
-
-def _compute_trend_persistence_bonus(ctx, params):
-    &quot;&quot;&quot;Bonus for maintaining position through trending moves.
-    
-    If the solver has been in a position for N bars and the price has moved
-    favorably by M%, award a bonus proportional to N * M. This directly
-    rewards the &quot;stay in the trade&quot; behavior that trend-following requires.
-    &quot;&quot;&quot;
-    w_trend = params.get(&quot;w_trend_persistence&quot;, 0.3)
-    min_trend_bars = params.get(&quot;min_trend_bars&quot;, 20)
-    
-    position = ctx.get(&quot;position&quot;, 0)
-    if abs(position) &lt; 0.1:
-        return 0.0
-    
-    # How long has the solver been in this position?
-    # (Approximated from ctx[&quot;position_history&quot;] if available,
-    #  otherwise from the recurrent state&#x27;s implicit memory)
-    bars_in_position = ctx.get(&quot;bars_in_position&quot;, 0)
-    
-    if bars_in_position &lt; min_trend_bars:
-        return 0.0
-    
-    # Favorable move since entry
-    entry_price = ctx.get(&quot;entry_price&quot;, None)
-    if entry_price is None:
-        return 0.0
-    
-    current_price = ctx[&quot;close&quot;][-1]
-    if position &gt; 0:  # long
-        favorable_move = (current_price - entry_price) / entry_price
-    else:  # short
-        favorable_move = (entry_price - current_price) / entry_price
-    
-    if favorable_move &lt;= 0:
-        return 0.0  # only reward winning trends
-    
-    # Bonus scales with duration * magnitude, capped
-    raw_bonus = bars_in_position * favorable_move
-    return w_trend * min(raw_bonus, 5.0)  # cap at 5.0
-</code></pre>
-
-<p><strong>Why trend persistence bonus</strong>: This is the component that <em>cannot</em> be captured by Sharpe alone. Sharpe measures risk-adjusted returns, but it doesn&#x27;t specifically reward <em>duration in a winning trade</em>. A solver that enters at bar 100, exits at bar 120 (capturing 2% of a 5% trend), and re-enters at bar 130 has the same Sharpe as one that stays in from bar 100 to bar 200. But the latter is <em>better</em> trend-following — less turnover, less slippage, more consistent. The persistence bonus explicitly rewards this.</p>
-
-<p><strong>Solver fit</strong>: <strong>Recurrent LSTM (R2c) is non-negotiable.</strong> Trend-following is the <em>ultimate</em> test of recurrence:</p>
-<li>Trend detection requires 50-100 bars of context (is this a trend or noise?)</li>
-<li>Entry timing requires knowing where in the trend you are (early = more upside, late = less)</li>
-<li>Trailing stops require tracking the peak since entry (needs memory of &quot;highest price since I entered was X&quot;)</li>
-<li>Duration awareness requires counting bars in position (needs episode progress tracking)</li>
-
-<p>A feed-forward network is <em>fundamentally incapable</em> of trend-following at this horizon. It has no concept of &quot;I&#x27;ve been in this trade for 80 bars.&quot; The recurrent state IS the trade tracker. This is the family where the R2c architecture shows its maximum advantage over R0.</p>
-
-<h2>Reward Architecture Summary</h2>
-
-<table>
-<tr><th>Family</th><th>Horizon</th><th>Primary Signal</th><th>Secondary Signal</th><th>Bonus Term</th><th>Solver Fit</th></tr>
-<tr><td>--------</td><td>---------</td><td>---------------</td><td>-----------------</td><td>------------</td><td>------------</td></tr>
-<tr><td>00 (Primary)</td><td>32-64</td><td>PnL</td><td>Vol penalty (small)</td><td>None</td><td>R0 (FiLM MLP)</td></tr>
-<tr><td>01 (Mean-Reversion)</td><td>64-128</td><td>PnL</td><td>Sharpe (tanh-bounded)</td><td>None</td><td>**R2c (Recurrent FiLM LSTM)**</td></tr>
-<tr><td>02 (Vol-Breakout)</td><td>128-256</td><td>Sharpe</td><td>PnL</td><td>Vol-expansion bonus</td><td>**R2c (Recurrent FiLM LSTM)**</td></tr>
-<tr><td>03 (Trend-Following)</td><td>256+</td><td>Sharpe</td><td>PnL</td><td>Trend-persistence bonus</td><td>**R2c (Recurrent FiLM LSTM)**</td></tr>
-</table>
-
-<p><strong>Pattern</strong>: As horizon increases, the reward shifts from PnL-dominant to Sharpe-dominant, and the solver shifts from feed-forward to recurrent. This is not a coincidence — it&#x27;s a direct consequence of the information requirements:</p>
-
-<li>Short horizon → limited history → PnL is sufficient (you don&#x27;t need risk adjustment when you only have 32 data points) → feed-forward is sufficient (you don&#x27;t need memory when the episode is short)</li>
-<li>Long horizon → rich history → Sharpe provides meaningful risk normalization → recurrence provides the memory to exploit long-horizon patterns</li>
-
-<h2>Implementation Roadmap</h2>
-
-<h3>Phase 1: Wire `pnl_sharpe` to Family 01 (Quick Win)</h3>
-
-<p>1. Update `families.py`: change `secondary_01` default_reward_id from `pnl_linear` to `pnl_sharpe`</p>
-<p>2. Tune `pnl_sharpe` params: `w_sharpe=0.5`, `sharpe_window=32`, `sharpe_target=1.0`</p>
-<p>3. Add unit test: verify family 01 tasks get `pnl_sharpe` reward</p>
-<p>4. Run smoke training on family 01 with R0 (FiLM) to verify no NaN</p>
-
-<p><strong>Effort</strong>: ~2 hours. <strong>Risk</strong>: Low. <strong>Value</strong>: Validates the Sharpe reward mechanism before building families 02/03.</p>
-
-<h3>Phase 2: Implement `sharpe_dominant` for Family 02</h3>
-
-<p>1. Add `reward_sharpe_dominant` to `rewards.py`</p>
-<p>2. Add `_compute_vol_expansion_bonus` helper</p>
-<p>3. Register in `REWARD_REGISTRY`</p>
-<p>4. Update `families.py`: `tertiary_02` default_reward_id = `sharpe_dominant`</p>
-<p>5. Unit tests: Sharpe computation, vol-expansion bonus, edge cases (empty returns, zero vol)</p>
-<p>6. Smoke training on family 02 with R0 (baseline) and R2c (recurrent, if available)</p>
-
-<p><strong>Effort</strong>: ~1 day. <strong>Risk</strong>: Medium (new reward components need careful tuning). <strong>Value</strong>: First family where Sharpe is the primary signal.</p>
-
-<h3>Phase 3: Implement `sharpe_trend` for Family 03</h3>
-
-<p>1. Add `reward_sharpe_trend` to `rewards.py`</p>
-<p>2. Add `_compute_trend_persistence_bonus` helper</p>
-<p>3. Requires `ctx[&quot;bars_in_position&quot;]` and `ctx[&quot;entry_price&quot;]` — check if env provides these, add if not</p>
-<p>4. Register in `REWARD_REGISTRY`</p>
-<p>5. Update `families.py`: `quaternary_03` default_reward_id = `sharpe_trend`</p>
-<p>6. Unit tests + smoke training</p>
-
-<p><strong>Effort</strong>: ~1-2 days. <strong>Risk</strong>: Medium-High (trend persistence bonus is novel, needs tuning). <strong>Value</strong>: Completes the 4-family reward system.</p>
-
-<h3>Phase 4: Recurrent Solver (R2c) Integration</h3>
-
-<p>1. Implement `SolverRecurrentLSTMTFiLM` (design in `recurrent-solver-ablation.md`)</p>
-<p>2. Wire into RLlib recurrent policy interface</p>
-<p>3. Run R0 vs R2c comparison on families 01, 02, 03</p>
-<p>4. Validate: R2c should show larger gains on 02/03 (long horizon) than 01 (medium horizon)</p>
-
-<p><strong>Effort</strong>: ~3-5 days. <strong>Risk</strong>: High (new architecture, RLlib recurrent API). <strong>Value</strong>: The core architectural contribution.</p>
-
-<h3>Phase 5: Proposer Model Selection + Loop Closure</h3>
-
-<p>Per the Notion log (23/08/26), Phase B closure requires:</p>
-<p>1. <strong>Proposer model locked</strong>: Qwen3.8-27B (heavily quantized, ~4-bit) or Gemma-class with hardware LoRA support. OOM constraint: must run alongside llama.cpp server OR replace it.</p>
-<p>2. <strong>Proposer hooked to task generation loop</strong>: Proposer generates candidate tasks → validator filters → solver trains on accepted tasks → capability report feeds back.</p>
-<p>3. <strong>Solver head 00 fully developed</strong>: FiLM (R0) for family 00, recurrent LSTM (R2c) for families 01-03.</p>
-
-<p><strong>The OOM problem</strong>: Qwen3.8-27B at 4-bit is ~14GB. The RTX 5070 Ti has 16GB VRAM. This leaves ~2GB for the solver training + environment. <strong>Tight but feasible</strong> if:</p>
-<li>Proposer runs in inference-only mode (no gradients)</li>
-<li>Solver training uses CPU offloading for optimizer states</li>
-<li>Batch sizes are reduced during proposer-active periods</li>
-
-<p><strong>Alternative</strong>: Run proposer on a separate process with its own VRAM allocation, communicate via API (the existing `openai_compat` proposer path). This avoids VRAM contention entirely.</p>
-
-<h2>Connection To The Recurrent Solver Ablation</h2>
-
-<p>The reward design and the solver architecture are <strong>co-dependent</strong>:</p>
-
-<table>
-<tr><th></th><th>R0 (FiLM MLP)</th><th>R2c (Recurrent FiLM LSTM)</th></tr>
-<tr><td>---</td><td>---</td><td>---</td></tr>
-<tr><td>Family 00 (PnL)</td><td>✓ Sufficient</td><td>Overkill (short episodes)</td></tr>
-<tr><td>Family 01 (PnL+Sharpe)</td><td>Baseline</td><td>**Target** (mean-reversion tracking)</td></tr>
-<tr><td>Family 02 (Sharpe+Vol)</td><td>Inadequate</td><td>**Essential** (patience + conviction)</td></tr>
-<tr><td>Family 03 (Sharpe+Trend)</td><td>Inadequate</td><td>**Non-negotiable** (trade duration memory)</td></tr>
-</table>
-
-<p>The ablation design in `recurrent-solver-ablation.md` should be extended: run R0 vs R2c on each family separately, not just a pooled comparison. The hypothesis is that the R2c advantage <em>grows with horizon</em>:</p>
-
-<li>Family 00: R2c ≈ R0 (no significant difference)</li>
-<li>Family 01: R2c &gt; R0 (moderate improvement, mean-reversion tracking)</li>
-<li>Family 02: R2c &gt;&gt; R0 (large improvement, vol-breakout patience)</li>
-<li>Family 03: R2c &gt;&gt;&gt; R0 (transformative improvement, trend-following memory)</li>
-
-<p>If this gradient holds, it&#x27;s strong evidence that the recurrent architecture is not just &quot;better&quot; but <em>necessary</em> for long-horizon trading. That&#x27;s a publishable result.</p>
-
-<h2>Open Questions</h2>
-
-<p>1. <strong>Sharpe window length</strong>: Is 32/64/64 optimal? Should it scale with horizon (e.g., `min(0.25 * horizon, 64)`)?</p>
-<p>2. <strong>Tanh vs linear Sharpe</strong>: Tanh bounds the reward but compresses high-Sharpe signals. Is this desirable or does it cap the solver&#x27;s incentive to excel?</p>
-<p>3. <strong>Vol-expansion bonus tuning</strong>: The `expansion &gt; 1.2` threshold is arbitrary. Should it be task-specified?</p>
-<p>4. <strong>Trend persistence vs turnover penalty</strong>: The current design rewards staying in trades. But excessive holding also has costs (opportunity cost, drawdown risk). Should there be a <em>penalty</em> for holding too long past the trend peak?</p>
-<p>5. <strong>Proposer model</strong>: Qwen3.8-27B 4-bit (~14GB) vs Gemma-2-9B (~6GB) vs CLIProxyAPI GPT-5 (no local VRAM). The Notion log mentions &quot;hardware LoRA like Gemma&quot; — does this mean fine-tuning the proposer on iTrader task data? If so, that&#x27;s a separate workstream.</p>
-
-<h2>Success Criteria For The Full System</h2>
-
-<p>The 4-family reward + recurrent solver system is &quot;complete&quot; when:</p>
-
-<p>1. All four families have distinct, tested reward functions</p>
-<p>2. R2c outperforms R0 on families 01-03 (held-out evaluation)</p>
-<p>3. The performance gradient holds: R2c advantage grows with horizon</p>
-<p>4. Capability reports show family-specific improvements (not just aggregate)</p>
-<p>5. Proposer generates tasks for all four families, validator accepts &gt;60%</p>
-<p>6. End-to-end loop: proposer → validator → solver training → capability report → (feedback to proposer)</p>
-
-<p>This is the Phase B closure criterion from the Notion log.</p>
-
-</body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>iTrader Sharpe-Aware Reward Design</title>
+  <style>
+    :root { --ink:#17201b; --muted:#546159; --line:#cfd6d1; --paper:#f7f8f5; --panel:#fff; --green:#176b49; --blue:#1f5f8b; --amber:#a45f14; }
+    * { box-sizing:border-box; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:"Segoe UI",Arial,sans-serif; line-height:1.55; }
+    header { border-bottom:1px solid var(--line); background:#eef2ed; }
+    header div, main { width:min(1120px, calc(100% - 40px)); margin:auto; }
+    header div { padding:42px 0 34px; }
+    .kicker { color:var(--green); font-size:13px; font-weight:700; text-transform:uppercase; }
+    h1 { max-width:850px; margin:8px 0 10px; font:700 42px/1.08 Georgia,serif; }
+    .lede { max-width:800px; color:var(--muted); font-size:18px; }
+    main { padding:30px 0 56px; }
+    section { padding:24px 0; border-bottom:1px solid var(--line); }
+    h2 { margin:0 0 12px; font:700 25px/1.2 Georgia,serif; }
+    h3 { margin:20px 0 8px; font-size:17px; }
+    p, li { color:var(--muted); }
+    code, pre { font-family:Consolas,monospace; }
+    code { color:#173e58; }
+    pre { overflow:auto; padding:16px; color:#edf4ef; background:#1b2720; border-left:4px solid var(--green); }
+    table { width:100%; border-collapse:collapse; background:var(--panel); font-size:14px; }
+    th, td { padding:10px; border:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { background:#e9eeea; }
+    .status { display:flex; gap:18px; flex-wrap:wrap; margin-top:18px; }
+    .status span { padding:6px 10px; border-left:3px solid var(--blue); background:#fff; color:var(--muted); font-size:14px; }
+    .callout { padding:16px 18px; border-left:4px solid var(--amber); background:#fff8ec; color:#654417; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+    ul, ol { padding-left:22px; }
+    @media (max-width:760px) { h1{font-size:34px}.grid{grid-template-columns:1fr} table{display:block;overflow:auto} }
+  </style>
+</head>
+<body>
+  <header><div>
+    <div class="kicker">iTrader / reward research</div>
+    <h1>Sharpe-aware shaping, implemented as a bounded experiment.</h1>
+    <p class="lede">PnL remains the only proven default. Sharpe-only and PnL+Sharpe are explicit challengers whose family assignment remains evidence-gated.</p>
+    <div class="status"><span>Updated 2026-09-03</span><span>Default: pnl_linear</span><span>Challengers: experimental</span></div>
+  </div></header>
+  <main>
+    <section>
+      <h2>Decision</h2>
+      <p><code>pnl_linear</code> is the only reward proven in training and remains family 00's sole default. <code>sharpe_only</code> and the <code>pnl_sharpe</code> blend are selectable challengers.</p>
+      <pre>score_t = tanh((mean(strategy_returns) / std(strategy_returns)) / target)
+sharpe_only_t = w_sharpe * (score_t - score_(t-1))
+pnl_sharpe_t = pnl_linear_t + sharpe_only_t</pre>
+      <p class="callout">The incremental score avoids paying the same path-level Sharpe repeatedly. Optimization uses no minute-scale annualization, which would saturate the bounded signal.</p>
+    </section>
+    <section>
+      <h2>Canonical Family Map</h2>
+      <table>
+        <thead><tr><th>ID</th><th>Family</th><th>State</th><th>Reward decision</th></tr></thead>
+        <tbody>
+          <tr><td>00</td><td>directional_predictor</td><td>Enabled</td><td>PnL sole default; two experimental challengers</td></tr>
+          <tr><td>01</td><td>breakout_expansion</td><td>Disabled bootstrap</td><td>Compare rewards after family implementation</td></tr>
+          <tr><td>02</td><td>mean_reversion</td><td>Disabled bootstrap</td><td>Compare rewards after family implementation</td></tr>
+          <tr><td>03</td><td>trade_management</td><td>Future</td><td>Defer until position/action contract exists</td></tr>
+          <tr><td>04</td><td>abstain_unsuitable_regime</td><td>Future</td><td>WAIT semantics, not a Sharpe family</td></tr>
+        </tbody>
+      </table>
+      <p>Previous labels that made 01 mean reversion, 02 breakout, and 03 trend following did not match <code>families.py</code> and have been retired.</p>
+    </section>
+    <section class="grid">
+      <div>
+        <h2>Why It Is Compelling</h2>
+        <ul>
+          <li>Values consistency rather than terminal PnL alone.</li>
+          <li>Blends with dense PnL during estimator warmup.</li>
+          <li>Bounds low-volatility edge cases.</li>
+          <li>Exposes <code>sharpe_delta</code> in reward telemetry.</li>
+        </ul>
+      </div>
+      <div>
+        <h2>Why It Is Experimental</h2>
+        <ul>
+          <li>Serial correlation weakens naive Sharpe assumptions.</li>
+          <li>Short windows produce noisy dispersion estimates.</li>
+          <li>Breakout returns may be punished for useful asymmetry.</li>
+          <li>Aggregate training reward cannot establish held-out utility.</li>
+        </ul>
+      </div>
+    </section>
+    <section>
+      <h2>Implemented Contract</h2>
+      <table>
+        <thead><tr><th>Parameter</th><th>Default</th><th>Role</th></tr></thead>
+        <tbody>
+          <tr><td>w_sharpe</td><td>0.5</td><td>Weight on bounded score change</td></tr>
+          <tr><td>sharpe_window</td><td>32</td><td>Rolling strategy-return window</td></tr>
+          <tr><td>sharpe_min_samples</td><td>8</td><td>Zero-reward warmup threshold</td></tr>
+          <tr><td>sharpe_target</td><td>1.0</td><td>Scale before tanh</td></tr>
+        </tbody>
+      </table>
+      <p><code>ITraderEnv</code> owns episode strategy-return history; <code>RewardEngine</code> owns calculation and finite components. No broker or risk semantics enter <code>TaskSpec</code>.</p>
+    </section>
+    <section>
+      <h2>Matched Evaluation</h2>
+      <ol>
+        <li>Compare <code>pnl_linear</code>, <code>sharpe_only</code>, and the <code>pnl_sharpe</code> blend on SolverMLPFiLM.</li>
+        <li>Run <code>sharpe_reward_ablation.json</code>; hold data, task seeds, PPO budget, horizon, and sampling mode constant.</li>
+        <li>Report held-out return, Sharpe, drawdown, turnover, entropy, saturation, and confidence intervals.</li>
+        <li>Repeat under the winning recurrent head only after the recurrent ablation is valid.</li>
+      </ol>
+      <p>Reward-parameter sampling uses a separate RNG, so switching reward ID does not change sampled horizons or market-window seeds.</p>
+      <p class="callout">Do not add Sharpe-dominant or trend-persistence rewards until this shared reward demonstrates incremental value. Family 03 is trade management and needs a separate state contract.</p>
+    </section>
+    <section>
+      <h2>Promotion Gate</h2>
+      <p>Keep PnL as the sole default unless a challenger passes focused and full tests, three matched seeds without collapse, and held-out improvement without unacceptable loss of return or throughput.</p>
+      <p>Markdown source: <code>docs/research/sharpe-reward-design.md</code></p>
+    </section>
+  </main>
+</body>
+</html>

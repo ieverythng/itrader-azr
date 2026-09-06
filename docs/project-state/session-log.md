@@ -1,5 +1,25 @@
 # Session Log
 
+## 2026-09-03 - Sharpe And Recurrent Proposal Reconciliation
+
+- Changed: Kept `pnl_linear` as the sole proven/default reward, added bounded
+  incremental `sharpe_only` and blended `pnl_sharpe` challengers, and added
+  environment strategy-return history. Also added task-horizon/reward CLI
+  overrides, repaired the Lazarus launcher, and created matched experiments.
+- Added: reward selection CLI/config and independent reward RNG streams so a
+  reward comparison does not silently compare different task/window sequences.
+- Research: Preserved the recurrent-FiLM and risk-adjusted reward hypotheses,
+  while correcting family IDs, newest-bar indexing, RLlib state-reset/BPTT
+  claims, and the missing trade-state observation fields.
+- Docs: Synchronized research Markdown/HTML, architecture, masterplan, decisions,
+  current state, next actions, and handoff.
+- Validation: The recreated lock-synchronized environment passes healthcheck and
+  all 67 tests. Pre-commit also passes after routing its Python hooks through
+  the repo launcher and teaching the launcher to prefer `.venv`. The ambient
+  Python still has a NumPy versus pandas/pyarrow ABI mismatch.
+- Follow-up: Execute alignment and reward ablations before implementing R1/R2
+  recurrence.
+
 ## 2026-09-03 - Episode/Regime Alignment Ablation Scaffolded + Stash Audit
 
 - Changed: Created ablation config (4 variants v0-v3), regime tagger, capability reporter, and Lazarus launcher script. Recovered `p_solve` hook in ps_metrics.py from stash@{1}. Updated next-actions.md, current-state.md, decisions.md.

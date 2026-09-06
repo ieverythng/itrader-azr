@@ -19,7 +19,8 @@ def test_task_family_active_set_is_only_00_for_now():
     assert enforce_active_family_id("03") == "00"
 
 
-def test_reward_enforcement_is_pnl_linear_for_now():
+def test_family_00_allows_experimental_rewards_but_keeps_pnl_default():
     assert enforce_active_reward_id("pnl_sharpe", family_id="00") == "pnl_sharpe"
+    assert enforce_active_reward_id("sharpe_only", family_id="00") == "sharpe_only"
     assert enforce_active_reward_id("pnl_linear", family_id="00") == "pnl_linear"
     assert enforce_active_reward_id("not_registered", family_id="00") == "pnl_linear"

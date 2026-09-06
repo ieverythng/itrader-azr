@@ -1,299 +1,251 @@
-# Recurrent Solver Ablation — Design & Rationale
+# Recurrent Solver + FiLM Ablation
 
 Last updated: 2026-09-03
-Status: **Design complete, implementation pending** (after alignment ablation runs)
+Status: **Design corrected; implementation pending behind matched baselines**
 
-## The Core Insight
+## Executive Position
 
-The real power of an RNN solver is not "encoding a window." Any feed-forward network can encode a window. The power is **persistent hidden state that compounds across environment steps within an episode.**
+A stateful recurrent solver is a compelling iTrader frontier because the
+current `SolverMLPFiLM` can only infer temporal structure from the rolling
+window in each observation. Persistent state could encode information beyond
+that window and could support episode-aware behavior.
 
-In trading terms:
+That value is a hypothesis, not an implemented capability. The branch currently
+contains:
 
-- Step 1: Market opens, solver sees first bar. Hidden state initialized (task-conditioned).
-- Step 2: New bar arrives. LSTM updates `(h, c)` using previous state + new input. The network now "remembers" step 1's context.
-- Step 3: Another bar. State accumulates. If the solver has been losing for 3 steps, the hidden state encodes that drawdown trajectory without needing an explicit `drawdown_so_far` feature.
-- ...
-- Step N (episode end): State resets. New episode starts fresh.
+- `SolverMLPFiLM`, the working default;
+- `SolverLSTMModel`, a legacy reset-every-step window encoder that is incompatible
+  with the appended task embedding because it infers feature count from the
+  entire observation width;
+- no `SolverWindowLSTMFiLM` implementation;
+- no RLlib stateful recurrent FiLM policy.
 
-This is **compounding**: each step's gradient update flows through the entire recurrent path back to the episode start. The value function learns "what happens over the next 20 steps if I'm in *this* state," not just "what does this window look like."
+The research program must distinguish three effects: temporal structure inside
+the supplied window, persistent state across environment steps, and FiLM task
+conditioning. Mixing them in one first implementation would make any gain hard
+to interpret.
 
-### Why FiLM MLP Can't Do This
+## The Core Proposition
 
-`SolverMLPFiLM` is stateless. Every forward pass is independent: `f(obs_t) → action_t`. There is no memory of `obs_{t-1}`, `obs_{t-2}`, etc. The only "temporal" information is whatever the environment packs into the rolling observation window — and that's a fixed-size snapshot, not a learned accumulation.
+The environment emits a rolling market window and a static task embedding:
 
-### Why Window-Encoder LSTM Is Not Enough Either
+```text
+observation_t = [window_t(T x F), task_embedding]
+```
 
-The current `SolverLSTMModel` reshapes the flat obs into `(B, win, F)` and runs an LSTM over those `win` timesteps. But it **resets every step**. The hidden state from processing bar 1..30 is discarded when the next observation arrives. It's a fancy window encoder, not a recurrent policy.
+FiLM gives the task embedding a clear role as a condition on market features.
+A stateful LSTM or GRU adds a separate memory path across episode steps. The
+combination could learn task-dependent memory horizons: a breakout task may
+retain volatility expansion context, while a mean-reversion task may emphasize
+shorter deviations.
 
-The difference:
+Possible benefits include:
 
-| | Window Encoder (current) | True Recurrent (target) |
-|---|---|---|
-| Input per step | Full flat window (150 dims) | New bar(s) only (5-10 dims) |
-| Hidden state | Computed, discarded each step | Persists across steps |
-| Memory | Limited to `win` bars | Unlimited within episode |
-| Gradient flow | Within window only | Through entire episode |
-| Task conditioning | Baked into flat vector (breaks reshape) | FiLM on initial state + per-step injection |
+- context beyond the fixed observation window;
+- regime-transition memory;
+- task-dependent filtering of incoming market observations;
+- path-dependent value estimates;
+- improved behavior on longer horizons.
 
-## Why FiLM + True Recurrence Is The Right Architecture For iTrader
+These outcomes are not automatic. Recurrent state can be ignored, become
+unstable, memorize episode locations, or add optimization cost without held-out
+benefit. Measurements must decide.
 
-A trading episode has two fundamentally different kinds of information:
+## Critical Contract Discovery
 
-1. **Static task identity** — "You are solving a mean-reversion task on EURUSD, horizon 256, target Sharpe 1.2." This never changes within an episode. It's a *condition*, not a *signal*.
-2. **Dynamic market state** — Prices, volumes, volatility, position P&L. This evolves every step. It's the *input stream*.
+The current observation contains market features and a task embedding, but not
+explicit position, previous action, realized reward, unrealized PnL, or episode
+progress. A recurrent model receiving only the current contract cannot reliably
+act as a complete trade or plan tracker merely because it has hidden state.
 
-FiLM is the perfect interface between these two because it's literally "modulate the representation based on a condition." The task embedding doesn't get *added* to the observation (which would conflate identity with signal) — it *reshapes how the network processes* the signal. Different scale, different shift, per feature channel.
+Therefore separate these questions:
 
-Make that recurrent and you get **task-aware compounding**: by step 50, the hidden state has accumulated 50 steps of market context *filtered through the task lens*. A mean-reversion solver's hidden state at step 50 looks fundamentally different from a momentum solver's hidden state at step 50 — not because the inputs are different (same market data), but because FiLM shaped every single recurrent update differently.
+1. Does market-only recurrence help beyond the rolling window?
+2. Do explicit solver-state features such as `position_t` and normalized
+   `episode_progress` add value?
 
-### What FiLM Buys Over "Just Concat Task To Input"
+Do not add those features to the recurrent variant alone in the first head
+ablation. That would confound architecture with observation content. A later
+matched feature ablation can add them to both feed-forward and recurrent heads.
 
-If you concat `[price, task_embed]` and feed into LSTM, the task embedding gets **diluted** over 256 steps. The LSTM's effective attention drifts toward recent prices. FiLM avoids this because it's applied *after* the recurrent update — the task condition is reasserted at every step, not just at initialization. It's a constant reminder: "You're still solving mean-reversion, don't forget."
+## Correct Input Semantics
 
-### Attention To The Moving Window: Short-Term vs Long-Term Pattern Derivation
+The environment remains the owner of rolling-window assembly. A recurrent head
+must split market and task dimensions explicitly:
 
-This is where the architecture becomes genuinely interesting for RL trading. A true recurrent FiLM solver gets **two timescales of pattern detection for free**:
+```python
+price_dim = window_size * n_features
+price_flat = obs[..., :price_dim]
+task_embed = obs[..., price_dim:]
+price_window = price_flat.reshape(*price_flat.shape[:-1], window_size, n_features)
+newest_bar = price_window[..., -1, :]
+```
 
-**Short-term patterns (1-20 bars):**
-The hidden state's *fast-moving components* (the parts that change most between consecutive steps) capture recent price action, momentum bursts, and microstructure signals. These are the "what just happened" features. The LSTM's input-to-hidden weights (`W_ih`) dominate here — new information flows in directly.
+The newest bar is the last row because `ITraderEnv` builds the buffer in
+chronological order. Selecting `obs[..., :n_features]` would feed the oldest bar
+in the window, not the newest.
 
-**Long-term patterns (50-256+ bars):**
-The hidden state's *slow-moving components* (the parts that persist across many steps) encode regime context: "vol has been elevated for 40 bars," "this is a trending market, not mean-reverting," "I've been in drawdown for 15 steps." These are the "what's been happening" features. The hidden-to-hidden weights (`Whh`) dominate here — information persists and compounds.
+## Architecture Matrix
 
-**The key insight**: A single recurrent state naturally separates these timescales through its internal dynamics. Fast components decay (forgetting gate), slow components persist (input + forget gates aligned). This is *exactly* what a trader needs: react quickly to new information while maintaining awareness of the broader regime. No explicit multi-scale feature engineering required — the LSTM learns the decomposition.
-
-**FiLM's role in timescale separation**: The task embedding modulates *which* timescale matters for the current task. A mean-reversion task (short horizon) should weight fast components more heavily; a trend-following task (long horizon) should weight slow components. FiLM scale/shift effectively reweights the hidden state's channels per-task, so the same recurrent architecture adapts its effective "memory horizon" based on what it's solving.
-
-**Overarching goal within the episode**: The solver isn't just predicting the next bar — it's optimizing a *trajectory*. The hidden state at step t encodes not just "where am I in market state space" but "where am I in my *plan*." If the task is "buy EURUSD, hold 100 bars, target +2%," then at step 50 the hidden state should encode: "I'm halfway through my holding period, position is +0.8%, vol has been calm, I should hold." The recurrence *is* the plan tracker. This is something a feed-forward window encoder fundamentally cannot do — it has no concept of "progress toward goal."
-
-### Practical Implications For Pattern Discovery
-
-| Pattern Type | Timescale | How Recurrent FiLM Captures It | Example |
+| ID | Head | Cross-step state | Purpose |
 |---|---|---|---|
-| Momentum burst | 1-5 bars | Fast hidden components, input-dominated | Price gaps up 3σ in 2 bars → immediate buy signal |
-| Mean reversion | 5-20 bars | Medium persistence, forget gate tuned | Price deviates from 20-bar MA → fade the move |
-| Regime shift | 20-100 bars | Slow components accumulate vol/trend context | Vol regime transitions from low to high over 30 bars |
-| Trend persistence | 50-256 bars | Long-term hidden state, slow decay | Uptrend continues for 80+ bars → hold and trail stop |
-| Episode progress | Full episode | State encodes "how far along am I" | Step 120/256: time to start reducing position |
+| R0 | `SolverMLPFiLM` | None | Current control |
+| R1 | corrected window-LSTM + FiLM | None | Test temporal inductive bias inside the existing window |
+| R2a | true recurrent LSTM + task concat | Persistent | Establish recurrence baseline |
+| R2b | true recurrent LSTM + per-step FiLM | Persistent | Test repeated task conditioning |
+| R3 | true recurrent GRU + per-step FiLM | Persistent | Compare lower-cost recurrent cell |
+| R4 | winning head plus explicit solver-state features | Persistent | Separate market memory from trade-state observability |
 
-The last row is the killer feature. **Episode progress tracking** emerges naturally from recurrence: the hidden state at step t is a function of all t previous inputs, so it implicitly knows "how much has happened." A feed-forward network would need an explicit `t/T` feature; the recurrent solver learns it automatically.
+R1 must explicitly split price and task dimensions. R2 and R3 should consume
+the newest bar while retaining the existing environment observation contract;
+this keeps rollout and evaluation infrastructure stable.
 
-## Ablation Design
+## FiLM Placement
 
-### Variants
+Two task-conditioning mechanisms are worth comparing:
 
-| ID | Name | Head | State | Purpose |
-|----|------|------|-------|---------|
-| R0 | FiLM Baseline | `SolverMLPFiLM` | None | Control. Current default. |
-| R1 | Window LSTM Encoder | Corrected `SolverWindowLSTMFiLM` | Reset every step | Isolate within-window temporal bias. Same compute as R0-ish, but with LSTM structure over the window. |
-| R2 | True Recurrent LSTM | `SolverRecurrentLSTM` | Persists across steps, reset at episode end | **The main event.** Full recurrence. Hidden state carries reward bias, position memory, regime awareness through the episode. |
-| R3 | True Recurrent GRU | `SolverRecurrentGRU` | Persists across steps, reset at episode end | Compare LSTM vs GRU. GRU has fewer params (no separate cell state), may train faster. Tests if full LSTM capacity is needed. |
-| R4 | Recurrent + Task-FiLM State | `SolverRecurrentLSTMTaskFiLM` | Persists, task-conditioned initial state | Isolate the benefit of task conditioning on the recurrent state itself. Does knowing *which task* you're solving at initialization improve long-horizon performance? |
+- **concat**: append the task embedding to the recurrent input each step;
+- **per-step FiLM**: transform recurrent features with task-derived scale and
+  shift before the policy and value heads.
 
-### R2 Sub-Variants: Isolating FiLM's Role In Recurrence
+Task-conditioned initial state is not part of the first implementation. Under
+RLlib's legacy ModelV2 API, `get_initial_state()` does not receive the current
+task observation. Adding observation-dependent initialization requires explicit
+sequence-boundary handling and should only be attempted after per-step FiLM is
+working.
 
-The FiLM + recurrence combo is the novel contribution. Break it down:
+Identity-centered scale is the conservative FiLM form:
 
-| ID | Variant | Task Conditioning | What It Isolates |
-|----|---------|-------------------|------------------|
-| R2a | Recurrent LSTM, task concat to input | Concat `[price, task]` → LSTM | Baseline recurrence (task as just another input) |
-| R2b | Recurrent LSTM + FiLM init only | Task → initial `(h₀, c₀)` via FiLM | Does task-conditioned *start* help? |
-| R2c | Recurrent LSTM + FiLM per-step | Task → FiLM modulation after each LSTM step | Does *reasserting* task every step help? (The "constant reminder" effect) |
-| R2d | Recurrent LSTM + FiLM init + per-step on value head only | Task-FiLM on value network's hidden state, not policy | Does the *value function* benefit more from task conditioning than the policy? |
-
-**Hypothesis**: For short episodes (<100 steps), R2b ≈ R2c (init-only is enough, task identity doesn't fade). For long episodes (256+), R2c > R2b (task identity fades from hidden state without per-step reassertion). R2d tests whether the value function (which estimates "expected future reward") needs task awareness more than the policy (which just outputs actions).
-
-### What Each Pair Isolates
-
-- **R0 → R1**: Does LSTM structure over the window help vs MLP? (Temporal inductive bias within a fixed window.)
-- **R1 → R2**: Does persistent state help vs reset-every-step? (**The compounding effect.** This is the key comparison.)
-- **R2a → R2b**: Does FiLM init beat concat for task conditioning?
-- **R2b → R2c**: Does per-step FiLM beat init-only? (The "constant reminder" hypothesis.)
-- **R2c → R2d**: Does the value head benefit more from task-FiLM than the policy head?
-- **R2 → R3**: Is LSTM's extra capacity (cell state) worth it vs GRU? (Practical: training speed, overfitting risk.)
-
-### Shared Configuration
-
-All variants:
-- Same task pool (generated once, tagged with regimes)
-- Same dataset slice, same seed set
-- Same train budget (total timesteps)
-- Same PPO hyperparameters (lr, clip range, gamma, GAE lambda) — EXCEPT:
-  - R2-R4: `shuffle_sequences=False`, `recurrent_policy=True`
-  - R2-R4: `minibatch_size` must divide `max_seq_length` cleanly
-  - R2-R4: `max_seq_length` = episode length (or capped at 512)
-- Evaluation: held-out rolling windows, capability report by family/regime/horizon
-
-### New Metric: Memory Utilization
-
-For recurrent variants only, track:
-- **Long/short horizon ratio**: Performance on horizon≥256 tasks vs horizon≤64 tasks. A truly recurrent solver should show *larger* gains on long-horizon tasks (more steps = more compounding).
-- **State norm trajectory**: L2 norm of `(h, c)` over the episode. Should grow then stabilize, not explode or collapse.
-- **Forgetting probe**: Inject a regime shift mid-episode (e.g., vol spike at step 50/100). Does the solver's risk adjust faster than R0/R1?
-- **Timescale separation score** (new): Correlation between fast hidden components (high step-to-step variance) and short-horizon task performance, vs slow components (low variance, high persistence) and long-horizon task performance. Validates that the LSTM is actually decomposing timescales as theorized.
-
-## Implementation Notes
-
-### Obs-Shape Fix (Prerequisite for All)
-
-```python
-# In model __init__:
-price_dim = win * n_feat  # e.g., 30 * 5 = 150
-task_dim = 32
-assert obs_space.shape[0] == price_dim + task_dim
-
-# In forward:
-obs = input_dict["obs"].float()
-price_flat = obs[:, :price_dim]       # (B, 150)
-task_embed = obs[:, price_dim:]       # (B, 32)
+```text
+conditioned_h = h * (1 + scale(task)) + shift(task)
 ```
 
-No more `flat_dim // win`. Explicit, testable, no silent breakage.
+The implementation must test zero-task behavior, output shapes, and finite
+state transitions rather than assume this parameterization is stable.
 
-### R2c: True Recurrent LSTM + Per-Step FiLM (The Novel Variant)
+## RLlib 2.9 Integration Contract
 
-```python
-class SolverRecurrentLSTMTFiLM(nn.Module):
-    """True recurrent LSTM with per-step task-FiLM modulation.
-    
-    The hidden state persists across environment steps within an episode.
-    Task embedding modulates the state at initialization AND after every
-    recurrent update, keeping task identity "alive" throughout the episode.
-    """
-    def __init__(self, n_feat=5, hidden_dim=128, task_dim=32):
-        super().__init__()
-        self.n_feat = n_feat
-        self.hidden_dim = hidden_dim
-        self.task_dim = task_dim
+The pinned repository stack uses Ray/RLlib 2.9 and the legacy ModelV2 path. A
+true recurrent implementation should use RLlib's recurrent model contract,
+including `get_initial_state`, sequence lengths, and `forward_rnn`-style batched
+sequence processing. It must not detect episode starts by checking whether a
+state tensor happens to sum to zero; valid learned states may be zero and batch
+members may be at different boundaries.
 
-        # Core recurrent cell: processes the NEW BAR only (not full window)
-        self.lstm_cell = nn.LSTMCell(n_feat, hidden_dim)
+RLlib owns state resets at episode boundaries. PPO uses truncated
+backpropagation through time according to sequence chopping and
+`max_seq_len`; gradients do not automatically flow through the entire episode.
+`batch_mode="complete_episodes"` controls collection, not unlimited BPTT.
 
-        # FiLM on initial state: task sets the "personality" at episode start
-        self.film_init_h = nn.Linear(task_dim, hidden_dim)
-        self.film_init_c = nn.Linear(task_dim, hidden_dim)
+Configuration questions to test explicitly:
 
-        # FiLM per-step: task reasserted after every recurrent update
-        # Scale centered at 1 (identity) so bad embeddings can't zero the state
-        self.film_step_scale = nn.Linear(task_dim, hidden_dim)
-        self.film_step_shift = nn.Linear(task_dim, hidden_dim)
+- `max_seq_len` and sequence padding;
+- sequence-preserving minibatches and shuffling behavior;
+- hidden-state shape under vectorized workers;
+- terminal reset and truncated-sequence carry state;
+- batch size and GPU memory at the pinned dependency versions.
 
-        # Action head
-        self.pi_head = nn.Linear(hidden_dim, action_dim)
-        self.vf_head = nn.Linear(hidden_dim, 1)
+Avoid undocumented flags such as `recurrent_policy=True`; model behavior and
+RLlib's native recurrent interface should determine recurrence.
 
-    def get_initial_state(self):
-        return [torch.zeros(1, self.hidden_dim),
-                torch.zeros(1, self.hidden_dim)]
+## TDD Implementation Slices
 
-    def forward(self, input_dict, state, seq_lens):
-        obs = input_dict["obs"].float()
-        # CRITICAL: only the new bar goes into the LSTM (5 dims)
-        # The recurrence IS the window — hidden state replaces rolling buffer
-        price = obs[:, :self.n_feat]       # (B, 5)
-        task  = obs[:, self.n_feat:]      # (B, 32)
+### Slice R1: Corrected Window Encoder
 
-        B = price.size(0)
+1. Add failing shape tests for `[T*F + task_dim]` observations.
+2. Implement explicit market/task splitting.
+3. Apply FiLM to the encoded window before separate policy/value heads.
+4. Add a model selector to `train_solo_V2` without changing its default.
+5. Run forward, backward, and 10-step PPO smoke tests.
 
-        if state[0].abs().sum() == 0:     # episode start
-            h = torch.tanh(self.film_init_h(task))  # bounded init
-            c = torch.tanh(self.film_init_c(task))
-        else:
-            h, c = state                   # carry forward from previous step
+### Slice R2: Stateful Recurrent Baseline
 
-        # Recurrent update: new bar + previous state → new state
-        h, c = self.lstm_cell(price, (h, c))
+1. Add failing tests for RLlib initial state, two-step state carry, batch/sequence
+   shapes, and terminal reset through an integration rollout.
+2. Implement the smallest LSTM recurrent model using the newest market bar.
+3. Keep task conditioning as concat for R2a.
+4. Add per-step FiLM as R2b only after R2a is green.
+5. Record parameter count, steps/second, GPU memory, and state norms.
 
-        # Per-step FiLM: task modulates the post-LSTM state
-        scale = 1.0 + self.film_step_scale(task)   # centered at identity
-        shift = self.film_step_shift(task)
-        h = h * scale + shift
+### Slice R4: Solver-State Observability
 
-        logits = self.pi_head(h)
-        value = self.vf_head(h)
-        return logits, [h, c]  # NEW state carried to next environment step
+1. Define typed observation fields for position and normalized episode progress.
+2. Add the same fields to feed-forward and recurrent comparison cells.
+3. Evaluate whether recurrence still adds value once state is observable.
+
+## Experiment Order
+
+1. Run the episode/regime alignment ablation on R0.
+2. Run `pnl_linear`, `sharpe_only`, and `pnl_sharpe` on R0 using matched
+   horizon cells.
+3. Implement and compare R0 versus R1 under the winning data/reward setup.
+4. Compare R1 versus R2a to isolate persistent memory.
+5. Compare R2a versus R2b to isolate per-step FiLM.
+6. Compare LSTM versus GRU only if persistent recurrence wins.
+7. Add explicit solver-state features as a separate matched experiment.
+
+This staged design costs more wall-clock time than jumping directly to R2b, but
+it tells us which mechanism produced the result.
+
+## Evaluation
+
+Every comparison uses the same task pool, data split, seeds, PPO timestep
+budget, reward, and observation contract. Report:
+
+- held-out return, Sharpe, max drawdown, and turnover;
+- action distribution and entropy;
+- performance by horizon and regime;
+- training steps/second and GPU memory;
+- recurrent state norm and saturation;
+- long-horizon uplift relative to short-horizon uplift;
+- bootstrap confidence intervals across seeds.
+
+Useful probes:
+
+- **state ablation**: zero recurrent state during evaluation and measure loss;
+- **history permutation**: preserve current window but scramble earlier episode
+  order;
+- **regime shift**: inject a controlled transition and measure adaptation;
+- **task swap**: hold market sequence fixed and change only task embedding.
+
+A hidden-state timescale analysis is exploratory. Channel variance alone does
+not prove semantic fast/slow decomposition; probes must connect state changes to
+held-out behavior.
+
+## Promotion Gates
+
+R1 advances only if it improves held-out behavior or sample efficiency enough
+to justify its compute cost. R2 advances only if it beats R1, proving value from
+persistent state rather than merely LSTM window encoding. R2b advances only if
+it beats R2a, proving value from FiLM rather than recurrence alone.
+
+No recurrent head becomes the default until:
+
+- tests cover state lifecycle and observation splitting;
+- at least three matched seeds complete;
+- no NaN, action collapse, or hidden-state explosion occurs;
+- gains survive held-out rolling windows and regime slices;
+- throughput and memory costs are recorded;
+- the default remains selectable and checkpoint compatibility is documented.
+
+## Relationship To Task Families
+
+Family `00` is the first experimental surface because it is implemented and
+provides a stable three-action control path. Families `01` and `02` retain the
+same action dimension in their current contracts, making them plausible later
+users of a shared recurrent trunk. Family `03` is trade management, not a
+generic trend-following family; it requires its own state and action-contract
+review before sharing a head.
+
+The long-term multi-head shape remains:
+
+```text
+shared market encoder / recurrent trunk
+    -> family-routed policy head
+    -> family-routed value head
 ```
 
-Key design decisions:
-- **Only the new bar** (5 dims) enters the LSTM, not the full 150-dim window. The hidden state *is* the learned window — no more `win` parameter, no reshape assumptions, no `flat_dim // win` bugs. This is a massive simplification.
-- **`scale = 1 + ...`** — FiLM scale centered at identity. A zero-initialized or corrupted task embedding degrades to "no modulation" rather than "zero out the state."
-- **`tanh` on init** — keeps initial state bounded, prevents explosion from step 1.
-- **`return logits, [h, c]`** — RLlib carries this state to the next environment step. State resets only when `done=True`.
-
-### PPO Config Delta (R2-R4)
-
-```python
-# In train_solo_V2.py, for recurrent variants:
-config = {
-    "recurrent_policy": True,
-    "shuffle_sequences": False,
-    "max_seq_length": episode_length,  # e.g., 256 or 512
-    "rollout_fragment_length": "auto",  # = max_seq_length
-    # minibatch_size must be: seq_len * (batch / seq_len)
-    # e.g., seq=256, batch=4096 → minibatch=256*16=4096 ✓
-}
-```
-
-### Testing Checklist
-
-- [ ] Unit test: obs-shape split produces correct `(price, task)` tensors
-- [ ] Unit test: `get_initial_state` returns zero state; after forward, state is non-zero
-- [ ] Unit test: state persists across 2 consecutive forward calls (simulate 2 steps)
-- [ ] Unit test: state resets to zero after `done=True`
-- [ ] Unit test: FiLM scale is ≈1 when task embedding is zero (identity check)
-- [ ] Integration: 10-step smoke run, verify no NaN, state norm bounded
-- [ ] Ablation: R0 vs R2c on small task pool (5 tasks, 500 steps), verify R2c trains without crashing
-- [ ] Timescale probe: after training, correlate hidden component variance with horizon
-
-## Relationship To Alignment Ablation
-
-The alignment ablation (v0-v3) and the recurrence ablation (R0-R4) are **orthogonal**:
-
-- Alignment: How are episodes batched/sequenced in PPO training?
-- Recurrence: What architecture does the solver use?
-
-Ideally, you'd run a 2D grid (4 alignment × 5 recurrent = 20 runs), but that's expensive. Practical approach:
-
-1. Run alignment ablation on R0 (FiLM) first — cheap, establishes baseline.
-2. Run recurrence ablation on the BEST alignment mode from step 1.
-3. If both show gains, optionally confirm the interaction on the winning cell.
-
-This keeps total runs to ~9 instead of 20 while capturing 90% of the information.
-
-## Risk Register
-
-| Risk | Likelihood | Mitigation |
-|------|-----------|------------|
-| Recurrent PPO is much slower (sequence-aware batching) | High | Cap `max_seq_length` at 256; use GRU (R3) as faster alternative |
-| Hidden state explosion on long episodes | Medium | LayerNorm on state; clip h,c to [-10, 10]; monitor state norm |
-| Task embedding doesn't condition state well | Low-Medium | R2b/R2c/R2d isolate this; fallback: concat task to input (R2a) |
-| RLlib recurrent API quirks (version-specific) | Medium | Pin Ray version; test `get_initial_state` + state reset explicitly |
-| OOM with recurrent models (state tensors in batch) | Medium | Same llama.cpp guard; reduce batch size for R2-R4 if needed |
-| Task embedding overfitting on small task pools | Low-Medium | Weight decay on FiLM layers; freeze embeddings after warmup |
-| Timescale separation doesn't emerge (LSTM acts like bag-of-recent-bars) | Medium | Check timescale separation score metric; if absent, try GRU or add explicit `t/T` feature as fallback |
-
-## Success Criteria
-
-R2c (true recurrent LSTM + per-step FiLM) "wins" if:
-1. Held-out return on horizon≥128 tasks exceeds R0 by >15% (compounding effect visible).
-2. Drawdown on long episodes is lower than R0 (memory helps risk management).
-3. State norm trajectory is stable (no explosion/collapse over 500+ steps).
-4. Capability report shows improvement concentrated in long-horizon + high-vol regimes (where memory matters most).
-5. **Timescale separation score** confirms fast components correlate with short-horizon performance, slow components with long-horizon performance.
-6. **Episode progress tracking**: solver performance degrades less in the latter half of episodes vs R0 (it "knows" it's near the end and starts reducing position).
-
-If R2c ≈ R1 (window encoder), recurrence isn't helping beyond window encoding → the task structure doesn't need cross-step memory, and we save compute by staying on R1.
-
-If R2b ≈ R2c, per-step FiLM is unnecessary → simpler architecture wins (init-only task conditioning).
-
-If R2d > R2c, the value function is the bottleneck → invest in value-head task conditioning, not policy-head.
-
-## The Overarching Goal: What This Enables For iTrader
-
-This isn't just a better model. It's a different *kind* of trading agent:
-
-**Current (FiLM MLP):** A reactive pattern-matcher. "Given these 30 bars, what's the best action?" No memory, no plan, no sense of progress. Every step is independent.
-
-**Target (Recurrent FiLM LSTM):** A deliberative trader with a working model of the episode. "I'm 60% through my holding period, vol has been calm, my position is +1.2%, and I'm solving a mean-reversion task — I should hold and trail my stop." The hidden state *is* the trader's mental model of where they are in the trading process.
-
-This is the RLVR connection: the proposer generates tasks with explicit success criteria (target Sharpe, max drawdown, horizon). The recurrent solver doesn't just optimize reward — it *tracks progress toward the task's definition of success*. The task embedding tells it what "success" looks like; the recurrence lets it track how close it is. That's verification-aware trading, and it's something no feed-forward architecture can do.
+Only one family head is routed for a given `TaskSpec`. A mixed batch may contain
+multiple families, so routing must be vectorized per sample and metrics must
+remain family-sliced. This remains scaffolding until families `01` and `02` are
+operational.

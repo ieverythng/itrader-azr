@@ -1,4 +1,5 @@
 from argparse import Namespace
+import json
 from pathlib import Path
 
 import pytest
@@ -68,6 +69,50 @@ def test_build_base_config_wires_task_pool_when_path_is_set(tmp_path: Path):
     ts = cfg["env_config"]["task_sampler"]
     assert ts["task_pool_path"] == "itrader/data/task_pool_azr.jsonl"
     assert ts["p_pool"] == pytest.approx(0.9)
+
+
+def test_build_base_config_accepts_a_single_horizon_ablation_override(tmp_path: Path):
+    from itrader.rl_lib.train.train_solo_V2 import build_base_config
+
+    args = _args(seed=777)
+    args.task_horizons = "128"
+    data_path = tmp_path / "fake.parquet"
+    data_path.write_bytes(b"dummy")
+
+    cfg = build_base_config(args=args, data_path=data_path, use_pbt_mode=False)
+    assert cfg["env_config"]["task_sampler"]["horizons"] == [128]
+
+
+def test_build_base_config_accepts_a_reward_ablation_override(tmp_path: Path):
+    from itrader.rl_lib.train.train_solo_V2 import build_base_config
+
+    args = _args(seed=778)
+    args.task_reward_ids = "pnl_sharpe"
+    data_path = tmp_path / "fake.parquet"
+    data_path.write_bytes(b"dummy")
+
+    cfg = build_base_config(args=args, data_path=data_path, use_pbt_mode=False)
+    assert cfg["env_config"]["task_sampler"]["reward_ids"] == ["pnl_sharpe"]
+
+
+def test_alignment_ablation_has_a_matched_fixed_horizon_pair():
+    config_path = (
+        Path(__file__).resolve().parents[1]
+        / "scripts"
+        / "experiments"
+        / "configs"
+        / "episode_regime_alignment_ablation.json"
+    )
+    variants = {
+        variant["id"]: variant["args"]
+        for variant in json.loads(config_path.read_text(encoding="utf-8"))["variants"]
+    }
+
+    random_args = variants["v3_random_horizon_128"]
+    stream_args = variants["v4_stream_horizon_128"]
+    assert random_args["task_horizons"] == stream_args["task_horizons"] == "128"
+    assert random_args["start_idx_mode"] == "random_episode"
+    assert stream_args["start_idx_mode"] == "stream_worker"
 
 
 def test_build_base_config_defaults_new_ppo_args_when_missing(tmp_path: Path):

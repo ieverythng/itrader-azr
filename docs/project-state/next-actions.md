@@ -4,64 +4,92 @@ Last updated: 2026-09-03
 
 ## Now
 
-- Define an `episode/regime alignment` ablation around the existing PPO baseline. **[SCAFFOLDED 2026-09-03]**
-  - Scope: `itrader/rl_lib/train/train_solo_V2.py`, experiment configs, docs.
-  - Compare: current `random_episode` baseline, `stream_worker` contiguous windows, `ret_norm_reset=stream`, and horizon-aligned task sets.
-  - Validation: same seed set, same dataset slice, same train budget, held-out rolling-window evaluation.
-  - Config: `itrader/scripts/experiments/configs/episode_regime_alignment_ablation.json` (4 variants v0-v3).
-  - Launcher: `bash itrader/scripts/experiments/run_ablation_lazarus.sh` (checks llama.cpp is down first).
-  - Regime tagging: `itrader/scripts/tag_pool_regimes.py`. Capability report: `itrader/scripts/generate_capability_report.py`.
-  - Known limitation: v3 uses FiLM head (not LSTM) — SolverLSTMModel has an obs-shape assumption (`flat_dim // win`) that breaks with task embeddings. Defer LSTM to solver-head ablation (item 4).
+1. Finish the five-cell episode/regime alignment run.
+   - Config:
+     `itrader/scripts/experiments/configs/episode_regime_alignment_ablation.json`.
+   - Mixed controls: random episode, contiguous stream, and stream-level return
+     normalization.
+   - Fixed-horizon matched pair: random-128 versus stream-128.
+   - The launcher now passes the config through the runner's positional CLI and
+     consumes `--force` locally.
+   - Hold solver head, reward, data, seeds, and PPO budget constant.
 
-- Add capability reporting by task family, regime tags, and horizon.
-  - Scope: `itrader/rl_lib/tasks/capability_profile.py`, metrics/report scripts, `docs/iTRADER_Codex_Implementation_Spec.md`.
-  - Expected output: a small JSON/CSV report with `p_solve`, expected utility, calibration error, sample count, and horizon/regime keys.
-  - Validation: unit tests for validation/coercion and a smoke report from existing metrics.
+2. Run the first Sharpe reward ablation on family `00`.
+   - Config: `itrader/scripts/experiments/configs/sharpe_reward_ablation.json`.
+   - Compare proven `pnl_linear`, experimental `sharpe_only`, and experimental
+     `pnl_sharpe` blend with `SolverMLPFiLM`.
+   - Use fixed-horizon matched cells before pooling horizons.
+   - Track held-out return, Sharpe, drawdown, turnover, action entropy,
+     `sharpe_delta` saturation, and throughput.
+   - Keep `pnl_linear` as the sole default unless a challenger passes promotion
+     criteria.
+   - Reward-parameter RNG is isolated from task/horizon/seed RNG so the two
+     variants receive matched task identities.
 
-- Record the solver-head reality before deeper training claims.
-  - Scope: `README.md`, `docs/project-state/current-state.md`, maybe a training config comment.
-  - Fact to preserve: current default solver is `SolverMLPFiLM`; LSTM exists but is not the default training head.
-
-- Design a solver-head ablation for recurrence. **[PRIORITY ELEVATED 2026-09-03]**
-  - Scope: `itrader/models/`, `itrader/rl_lib/train/train_solo_V2.py`, tests, and experiment docs.
-  - Compare: `SolverMLPFiLM` (R0), corrected window LSTM encoder (R1), true recurrent LSTM with persistent hidden state (R2), recurrent GRU (R3), recurrent + task-FiLM on initial state (R4).
-  - **Key requirement**: R2-R4 must use RLlib's native recurrent policy interface — hidden state persists across environment steps within an episode, resets at episode boundaries. This is the "compounding effect" where reward bias, position memory, and regime awareness carry forward through windows.
-  - Prerequisite: Fix obs-shape split (explicit `price = obs[:, :win*n_feat]`, `task = obs[:, win*n_feat:]`) — no more `flat_dim // win` inference.
-  - PPO config for recurrent variants: `shuffle_sequences=False`, `recurrent_policy=True`, sequence-aware minibatching.
-  - Validation: identical task pool, identical dataset slices, held-out rolling-window evaluation, capability metrics by family/regime/horizon. New metric: **memory utilization** (does long-horizon performance improve more than short-horizon?).
-  - Full design: `docs/project-state/solver-recurrence-assessment.md` (§ "2026-09-03 Update").
-  - Ablation doc: `docs/research/recurrent-solver-ablation.md` + `.html`.
+3. Make capability slices truthful.
+   - Ensure family, horizon, and regime metadata reaches each stable metrics
+     record consumed by `generate_capability_report.py`.
+   - Do not describe the current reporter as family/regime calibrated when
+     `task_breakdown_available` is false.
+   - Replace dataset-wide fallback tagging with episode-window-aware regime
+     attribution for streamer runs.
 
 ## Next
 
-- Wire `pnl_sharpe` to Family 01 and implement Sharpe-aware rewards for Families 02-03. **[DESIGN COMPLETE 2026-09-03]**
-  - Phase 1 (~2h): Update `families.py` — `secondary_01` default_reward_id → `pnl_sharpe`. Tune params: `w_sharpe=0.5`, `sharpe_window=32`, `sharpe_target=1.0`. Unit test + smoke training.
-  - Phase 2 (~1d): Implement `reward_sharpe_dominant` + `_compute_vol_expansion_bonus` for Family 02. Register, unit test, smoke train.
-  - Phase 3 (~1-2d): Implement `reward_sharpe_trend` + `_compute_trend_persistence_bonus` for Family 03. Requires `ctx["bars_in_position"]` and `ctx["entry_price"]` from env.
-  - Full design: `docs/research/sharpe-reward-design.md`.
-  - Validation: capability reports by family show Sharpe-aware solvers outperform PnL-only on families 01-03.
+4. Implement solver variant R1 through TDD.
+   - Add failing tests for explicit `[window * features | task embedding]`
+     splitting.
+   - Implement a reset-every-step window-LSTM encoder with FiLM policy/value
+     heads.
+   - Add an opt-in model selector to `train_solo_V2`; preserve MLP-FiLM default.
+   - Compare R0 and R1 on identical tasks, seeds, reward, and data.
 
-- Add a proposer-on versus proposer-off comparison run template.
-  - Scope: experiment config docs and/or a lightweight script.
-  - Validation: reports task-pool acceptance rate, invalid task rate, solver return, drawdown, turnover, and capability uplift.
+5. Implement true recurrent variants only after R1 is measurable.
+   - R2a: native RLlib 2.9 recurrent LSTM with task concatenation.
+   - R2b: per-step FiLM as a separate comparison.
+   - Test initial state, state carry, sequence shapes, terminal reset, finite
+     backward pass, state norms, and truncated BPTT settings.
+   - Feed the newest row of the chronological market window, not its oldest row.
 
-- Implement a shadow-mode online replay skeleton.
-  - Scope: future `itrader/online/` package and existing task contracts.
-  - Validation: replayed market window -> candidate tasks -> validation -> solver score placeholder -> `DecisionRecord`.
+6. Evaluate solver-state observability separately.
+   - Candidate fields: current position and normalized episode progress first;
+     unrealized PnL and position age only when their semantics are explicit.
+   - Add fields to matched feed-forward and recurrent cells to avoid confounding
+     recurrence with extra information.
+
+7. Lock families `01` and `02`.
+   - `01` is `breakout_expansion`; `02` is `mean_reversion`.
+   - Both retain the three-action shape, but need real samplers, validation,
+     evaluation slices, and reward comparisons before being enabled.
+   - Do not make Sharpe a family default based on name or horizon alone.
 
 ## Later
 
-- **Proposer model selection + loop closure (Phase B closure criterion).** Per Notion log (23/08/26): lock the proposer model, hook it to the task generation loop, and validate end-to-end.
-  - Candidate models: Qwen3.8-27B 4-bit (~14GB VRAM — tight on 16GB card), Gemma-class with hardware LoRA (~6GB), or CLIProxyAPI GPT-5 (no local VRAM, API cost).
-  - OOM constraint: proposer must run alongside OR replace the llama.cpp server. Separate process + API communication avoids VRAM contention.
-  - Phase B closure = proposer hooked to loop + solver head 00 fully developed (FiLM R0 for family 00, recurrent R2c for families 01-03) + all four families have working reward functions.
-  - Additional ablations needed: proposer-on vs proposer-off, proposer model comparison, task pool acceptance rate by model.
+8. Build the shared trunk plus family-routed policy/value heads after two
+   families are operational. One TaskSpec routes to one family head; mixed PPO
+   batches may route samples to different heads.
 
-- Evaluate a fully stateful recurrent solver head after a corrected window encoder has been measured.
-- Explore LoRA/QLoRA primarily on the proposer after enough validated candidate/outcome data exists.
-- Add stronger regime labeling for market windows so capability estimates are not only horizon-based.
+9. Complete the Phase B proposer loop in `train_AZR` after the solver baseline,
+    reward choice, and capability reporting are credible. Keep
+    `train_solo_V2` independently runnable.
 
-## Blocked
+10. Add proposer-on/off and proposer-model comparisons with task acceptance,
+    invalid-output, diversity, difficulty, solver-uplift, and LLM-throughput
+    metrics.
 
-- True solver-quality conclusions require actual training/evaluation runs on the target workstation.
-- Online decision thresholds require calibrated capability reports, not just training reward curves.
+11. Build Phase C replay/shadow flow through `MarketFramer -> CandidateTask ->
+    solver -> DecisionGate -> RiskEngine -> Executor -> DecisionRecord`, with
+    `WAIT` first class and risk/execution deterministic.
+
+12. Explore Market-JEPA behind the MarketFramer representation seam. Compare
+    masked latent prediction and regime-transition objectives against the same
+    downstream candidate and solver contracts before adding online influence.
+
+## Blocked Evidence
+
+- Solver-quality conclusions require completed matched training and held-out
+  evaluation on the target workstation.
+- Recurrent claims require a real RLlib stateful implementation; the legacy
+  `SolverLSTMModel` is not evidence.
+- Online thresholds require calibrated capability records, not aggregate reward
+  curves.

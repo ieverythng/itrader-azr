@@ -4,7 +4,11 @@ from itrader.rl_lib.tasks.validation import validate_and_clamp_task
 
 
 def test_validation_populates_required_defaults():
-    task = validate_and_clamp_task({}, {"window_size": 30, "n_features": 5, "t_embed_dim": 32, "action_dim": 3}, fallback_seed=111)
+    task = validate_and_clamp_task(
+        {},
+        {"window_size": 30, "n_features": 5, "t_embed_dim": 32, "action_dim": 3},
+        fallback_seed=111,
+    )
     assert task["family_id"] == "00"
     assert task["price_id"] == "SIM"
     assert task["reward_id"] == "pnl_linear"
@@ -36,7 +40,11 @@ def test_validation_clamps_out_of_range_values():
             "normalize": "true",
         },
     }
-    task = validate_and_clamp_task(raw, {"window_size": 30, "n_features": 5, "t_embed_dim": 32, "action_dim": 3}, fallback_seed=123)
+    task = validate_and_clamp_task(
+        raw,
+        {"window_size": 30, "n_features": 5, "t_embed_dim": 32, "action_dim": 3},
+        fallback_seed=123,
+    )
     assert task["horizon"] == 512
     assert task["start_idx"] is None
     assert task["reward_params"]["turnover_w"] == 0.01
@@ -152,7 +160,27 @@ def test_task_sampler_uses_reward_specific_params_for_sampled_reward():
     assert task.reward_id == "pnl_sharpe"
     assert "dd_w" in task.reward_params
     assert "turnover_w" in task.reward_params
-    assert "dd_mode" not in task.reward_params
+    assert task.reward_params["dd_mode"] == "delta"
+    assert task.reward_params["sharpe_window"] >= task.reward_params["sharpe_min_samples"]
+
+
+def test_reward_choice_does_not_change_sampled_task_seed_sequence():
+    common = {
+        "seed": 91,
+        "window_size": 30,
+        "n_features": 5,
+        "t_embed_dim": 32,
+        "action_dim": 3,
+        "horizons": [96, 128, 160],
+    }
+    pnl_sampler = TaskSampler00({**common, "reward_ids": ["pnl_linear"]})
+    sharpe_sampler = TaskSampler00({**common, "reward_ids": ["pnl_sharpe"]})
+
+    pnl_tasks = [pnl_sampler.sample() for _ in range(5)]
+    sharpe_tasks = [sharpe_sampler.sample() for _ in range(5)]
+
+    assert [task.horizon for task in pnl_tasks] == [task.horizon for task in sharpe_tasks]
+    assert [task.seed for task in pnl_tasks] == [task.seed for task in sharpe_tasks]
 
 
 def test_validation_normalizes_numeric_family_ids():

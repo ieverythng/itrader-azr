@@ -10645,6 +10645,8 @@ itrader/models/Qwen2.5-7B-Instruct/model.safetensors.index.txt
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+*.egg-info/
+.venv/
 
 # Local secret files
 .env

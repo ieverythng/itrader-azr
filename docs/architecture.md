@@ -1,6 +1,6 @@
 # iTrader Architecture Entry Point
 
-Last updated: 2026-06-17
+Last updated: 2026-09-03
 
 This file is the compact compatibility entrypoint for iTrader architecture. For
 the fuller review document, see:
@@ -26,9 +26,11 @@ itrader/rl_lib/train/train_solo_V2.py
 -> PPO/GAE metrics and manifests
 ```
 
-`SolverMLPFiLM` is the implemented baseline solver. A recurrent-window
-`SolverWindowLSTMFiLM` remains a Phase B development frontier and is not part of
-this branch's operational API yet.
+`SolverMLPFiLM` is the implemented baseline solver. A corrected reset-every-step
+window-LSTM-FiLM encoder and a native RLlib stateful recurrent FiLM policy are
+separate Phase B frontiers; neither is part of this branch's operational API.
+The legacy `SolverLSTMModel` is not a stateful policy and is incompatible with
+the current task-embedded observation shape.
 
 ## Core Runtime Roles
 
@@ -36,6 +38,8 @@ this branch's operational API yet.
 - Environment: `ITraderEnv` emits `flattened_price_window + task_embedding`.
 - Task layer: `TaskSpec` remains the canonical task/problem contract.
 - Reward layer: `RewardEngine` computes finite, decomposed solver rewards.
+  `pnl_linear` is the only proven and default reward. `sharpe_only` and the
+  `pnl_sharpe` blend are experimental options.
 - Solver: PPO + FiLM-conditioned model learns action/value behavior.
 - Proposer: `itrader/proposers/` provides backend abstractions and fallbacks.
 - Observability: stable metrics, Ray artifacts, run manifests, and GitNexus docs
@@ -47,7 +51,8 @@ Phase B should improve solver quality and task-contract discipline without
 destabilizing family `00`:
 
 1. Preserve the MLP+FiLM baseline.
-2. Evaluate recurrent-window solver heads as opt-in experiments.
+2. Evaluate window encoding, persistent recurrence, and FiLM as separate opt-in
+   experiment factors.
 3. Track capability by family, regime, horizon, and calibration.
 4. Keep `CandidateTask`, `ExecutionIntent`, `CapabilityProfile`, and
    `DecisionRecord` explicit for future online/shadow-mode work.

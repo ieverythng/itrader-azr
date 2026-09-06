@@ -28,6 +28,12 @@ Run pre-commit without relying on Conda being available on `PATH`:
 uv run pre-commit run --all-files
 ```
 
+Repository hooks call `itrader/tools/run_repo_python.sh`. Its interpreter
+resolution order is `ITRADER_PYTHON_BIN`, repo `.venv`, legacy
+`.itrader_env`, active Conda, then `python` on `PATH`. A synced uv environment
+therefore remains authoritative even when an incompatible ambient Python is
+installed.
+
 ## Current Main-PC Reality
 
 The current validated workstation environment reports:

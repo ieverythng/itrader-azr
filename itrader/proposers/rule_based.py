@@ -28,7 +28,9 @@ class RuleBasedProposer(BaseProposer):
         reward_params: Dict[str, Any] | None = None,
         bar_resolution: str = DEFAULT_BAR_RESOLUTION,
     ):
-        self.rng = random.Random(int(seed))
+        seed = int(seed)
+        self.rng = random.Random(seed)
+        self._reward_rng = random.Random(seed + 1)
         self.window_size = int(window_size)
         self.n_features = int(n_features)
         self.t_embed_dim = int(t_embed_dim)
@@ -44,7 +46,7 @@ class RuleBasedProposer(BaseProposer):
         return self.window_size * self.n_features + self.t_embed_dim
 
     def _reward_params_for(self) -> Dict[str, Any]:
-        params = RewardEngine.sample_params(self.reward_id, self.rng)
+        params = RewardEngine.sample_params(self.reward_id, self._reward_rng)
         params.update(self.reward_params)
         return RewardEngine.normalize_params(self.reward_id, params)
 

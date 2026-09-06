@@ -1,20 +1,60 @@
 # Decisions
 
-## 2026-09-03 - Sharpe Reward Design For Task Families 00-03
+## 2026-09-03 - Isolate Reward RNG From Task Identity
 
-Full reward architecture designed for all four task families. `pnl_sharpe` exists in code but is not wired to any family — this is the gap. Design: Family 00 stays PnL-dominant (short horizon, insufficient data for stable Sharpe), Family 01 gets PnL+Sharpe blend (mean-reversion tracking), Family 02 gets Sharpe-dominant + vol-expansion bonus (breakout patience), Family 03 gets Sharpe + trend-persistence bonus (trade duration memory). The reward shifts from PnL→Sharpe as horizon increases, co-dependent on the solver shifting from FiLM MLP→recurrent LSTM. Implementation roadmap: Phase 1 (wire pnl_sharpe to family 01, ~2h) → Phase 2 (sharpe_dominant for family 02, ~1d) → Phase 3 (sharpe_trend for family 03, ~1-2d) → Phase 4 (R2c recurrent solver integration, ~3-5d) → Phase 5 (proposer model selection + loop closure = Phase B closure). Full design: `docs/research/sharpe-reward-design.md`.
+- Decision: task samplers and the rule-based proposer use a dedicated RNG for
+  reward parameters, separate from price, horizon, and task-seed sampling.
+- Why: reward functions consume different numbers of random draws. A shared RNG
+  changes later task seeds and market windows, invalidating a reward ablation.
+- Consequences: matched reward variants preserve task identity while still
+  sampling reward-specific parameters deterministically.
+- Revisit when: task generation adopts immutable pre-generated evaluation pools.
 
-## 2026-09-03 - FiLM + True Recurrence: The Novel Architecture
+## 2026-09-03 - Keep PnL Default And Test Two Sharpe Challengers
 
-The FiLM + true per-episode recurrence combo is the project's key architectural contribution. Full theory, ablation design (R0-R4 + R2a-R2d sub-variants), implementation code, and success criteria documented in `docs/research/recurrent-solver-ablation.md`.
+- Decision: `pnl_linear` remains the sole proven/default reward. `sharpe_only`
+  tests bounded incremental strategy Sharpe alone; `pnl_sharpe` adds the same
+  component to normalized `pnl_linear`. Both challengers are unannualized during
+  optimization, have a warmup floor, and are not family defaults.
+- Why: a full rolling Sharpe level paid every step double-counts prior path
+  quality and minute-scale annualization saturates a bounded signal. The
+  incremental form is finite, inspectable, and approximately telescoping.
+- Consequences: family `00` can run a three-way matched comparison without
+  changing its default or semantics. Family-specific reward assignments remain
+  deferred until a challenger wins held-out evaluation.
+- Revisit when: held-out multi-seed reward comparisons are available.
 
-Core insight: persistent hidden state compounds across steps within an episode, giving the solver a working model of *where it is in the trading process* — not just what the market looks like. FiLM keeps task identity alive at every step (not just init), enabling timescale separation (fast components → short-term patterns, slow components → regime/trend) and implicit episode progress tracking. This is verification-aware trading: the solver tracks progress toward the task's definition of success, which no feed-forward architecture can do.
+## 2026-09-03 - Treat Recurrent FiLM As A Factorized Hypothesis
+
+- Decision: compare R0 MLP-FiLM, R1 reset-every-step window-LSTM-FiLM, R2a
+  stateful LSTM plus task concatenation, and R2b stateful LSTM plus per-step FiLM
+  in that order.
+- Why: this separates within-window temporal bias, persistent state, and task
+  modulation. The current observation also lacks explicit trade state, so plan
+  tracking cannot be attributed to recurrence without a later matched feature
+  ablation.
+- Consequences: the legacy `SolverLSTMModel` is not a valid recurrent baseline.
+  RLlib 2.9 state lifecycle and truncated BPTT need TDD coverage before training
+  claims. The newest bar is the last row of the chronological market window.
+- Revisit when: the alignment and reward baselines are measured.
+
+## 2026-09-03 - Preserve Canonical Family Semantics
+
+- Decision: documentation and experiments use the source registry: `00`
+  directional, `01` breakout, `02` mean reversion, `03` trade management, and
+  `04` abstention.
+- Why: prior research prose swapped `01`/`02` and treated `03` as trend
+  following, which would make reward and head routing ambiguous.
+- Consequences: no reward is assigned by an obsolete family label.
+- Revisit when: a deliberate, migrated family-registry change is proposed.
 
 ## 2026-09-03 - Keep All Ablation Variants On FiLM; Defer LSTM Head Fix
 
-- Decision: The episode/regime alignment ablation (v0-v3) runs entirely on `SolverMLPFiLM`. The `SolverLSTMModel` obs-shape fix (`flat_dim // win` breaking with task embeddings) is deferred to the solver-head ablation (next-actions item 4).
+- Decision: The episode/regime alignment ablation runs entirely on `SolverMLPFiLM`. It now contains mixed-horizon controls plus a matched random-128 versus stream-128 pair. The `SolverLSTMModel` obs-shape fix (`flat_dim // win` breaking with task embeddings) is deferred to the solver-head ablation.
 - Why: Mixing an uncorrected LSTM head into the alignment ablation would confound two variables at once (alignment + head architecture). The FiLM baseline handles arbitrary flat obs via `flat_dim - t_dim`, so all 4 variants get a clean comparison.
-- Consequences: v3 (horizon-aligned) uses FiLM, not LSTM. If alignment results are positive, the solver-head ablation can then test whether a corrected window encoder or true recurrent policy adds value on top of the best alignment mode.
+- Consequences: fixed-horizon alignment is measured by comparing v3 and v4,
+  rather than comparing a mixed-horizon control with a single-horizon cell. If
+  alignment helps, solver-head experiments use the winning mode.
 - Revisit when: Solver-head ablation (item 4) is scoped, or if alignment results show horizon-aligned tasks benefit disproportionately from temporal inductive bias.
 
 ## 2026-09-03 - Stash@{0} proposer_llm.py Is Superseded; Stash Can Be Dropped After Verification

@@ -57,7 +57,9 @@ if (-not $BinDir) {
         $BinDir = $env:LLAMA_CPP_BIN_DIR
     }
     else {
-        $BinDir = Join-Path $repoRoot "_tools\llama-bin-win-cuda13-b8604"
+        # Share the verified CUDA 13.3 runtime with Watson/Hermes instead of
+        # depending on a private, untracked bundle inside this repository.
+        $BinDir = "C:\Users\Admin\PROJECTS\llama-b10621-win-cuda133"
     }
 }
 
@@ -66,6 +68,29 @@ $serverExe = Join-Path $BinDir "llama-server.exe"
 
 if (-not (Test-Path -LiteralPath $serverExe)) {
     throw "llama-server.exe not found at '$serverExe'"
+}
+
+if ($BinDir -match '(?i)cuda' -and (Get-Command nvidia-smi.exe -ErrorAction SilentlyContinue)) {
+    $probeOut = [IO.Path]::GetTempFileName()
+    $probeErr = [IO.Path]::GetTempFileName()
+    try {
+        $probe = Start-Process -FilePath (Get-Command nvidia-smi.exe).Source `
+            -ArgumentList '--query-gpu=name,driver_version', '--format=csv,noheader,nounits' `
+            -WindowStyle Hidden -RedirectStandardOutput $probeOut -RedirectStandardError $probeErr -PassThru
+        if (-not $probe.WaitForExit(5000)) {
+            try { $probe.Kill() } catch { }
+            throw 'NVIDIA driver health probe failed or timed out. Reset the GPU/reboot before launching llama.cpp.'
+        }
+        $probe.Refresh()
+        $exitCode = $probe.ExitCode
+        $probeOutput = Get-Content -LiteralPath $probeOut -Raw -ErrorAction SilentlyContinue
+        if (($null -ne $exitCode -and $exitCode -ne 0) -or [string]::IsNullOrWhiteSpace($probeOutput)) {
+            throw 'NVIDIA driver health probe failed or returned no GPU data. Reset the GPU/reboot before launching llama.cpp.'
+        }
+    }
+    finally {
+        Remove-Item -LiteralPath $probeOut,$probeErr -Force -ErrorAction SilentlyContinue
+    }
 }
 
 function Get-FirstDefinedEnvValue([string[]]$Names) {

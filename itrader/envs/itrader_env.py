@@ -169,6 +169,7 @@ class ITraderEnv(gym.Env):
     def _reset_episode_stats(self) -> None:
         self._t = 0
         self._episode_pnl = 0.0
+        self._episode_strategy_returns: list[float] = []
         self._max_equity = 0.0
         self._max_dd = 0.0
         self._act_counts[:] = 0
@@ -321,6 +322,7 @@ class ITraderEnv(gym.Env):
             "position_t": float(self.pos),
             "action_t": action,
             "ret": ret,
+            "strategy_returns": tuple(self._episode_strategy_returns),
             "ret_unit": ret_unit,
             "ret_ema": self._ret_ema,
             "terminal": terminal,
@@ -398,6 +400,7 @@ class ITraderEnv(gym.Env):
         pnl_t  = self._episode_pnl
         mtm    = float(self.pos) * ret
         pnl_t1 = pnl_t + mtm
+        self._episode_strategy_returns.append(mtm)
 
         # drawdown (level and delta) BEFORE updating max_equity
         dd_t = max(0.0, self._max_equity - pnl_t)

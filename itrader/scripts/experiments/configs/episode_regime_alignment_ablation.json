@@ -45,10 +45,21 @@
       }
     },
     {
-      "id": "v3_horizon_aligned",
+      "id": "v3_random_horizon_128",
       "args": {
         "start_idx_mode": "random_episode",
-        "ret_norm_reset": "episode"
+        "ret_norm_reset": "episode",
+        "task_horizons": "128"
+      }
+    },
+    {
+      "id": "v4_stream_horizon_128",
+      "args": {
+        "start_idx_mode": "stream_worker",
+        "ret_norm_reset": "episode",
+        "stream_stride": 0,
+        "stream_jump_every_episodes": 0,
+        "task_horizons": "128"
       }
     }
   ]

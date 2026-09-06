@@ -1,84 +1,76 @@
 # Handoff
 
-Last updated: 2026-05-02
+Last updated: 2026-09-03
 
-## Start Here
+## Resume Point
 
-Repo: `/Users/juanbendek/repos/itrader-azr`
+The branch audit and first Sharpe/alignment correction are in the working tree.
+No recurrent model was implemented. The pinned `.venv` and repository hooks are
+validated; review the diff before launching training.
 
-Branch: `Phase-B-Training`
+## Working-Tree Changes
 
-Current focus: assess whether PPO solver learning should synchronize gradient updates more tightly with episode/market-window boundaries, and preserve that decision for future proposer/online work.
+- Reward candidates: proven/default `pnl_linear`, experimental `sharpe_only`,
+  and experimental `pnl_sharpe` blend.
+- `ITraderEnv`: episode strategy-return history in reward context.
+- `train_solo_V2`: optional comma-separated `--task_horizons` override.
+- `train_solo_V2`: optional comma-separated `--task_reward_ids` override.
+- Task and rule-based proposer reward RNGs are separated from task-identity RNGs
+  so reward comparisons preserve sampled horizons and task seeds.
+- Sharpe reward config:
+  `itrader/scripts/experiments/configs/sharpe_reward_ablation.json`.
+- Alignment config: five cells, including random-128 versus stream-128.
+- Lazarus launcher: corrected positional config invocation.
+- Tests: reward behavior, environment plumbing, horizon override, and matched
+  alignment pair.
+- Docs: corrected Sharpe/recurrent research, masterplan, decisions, current
+  state, next actions, and HTML companions.
+- Environment tooling: repository hooks and the shared Python launcher now
+  resolve the repo `.venv` instead of relying on ambient `python`.
 
-## Current State
+## Validation So Far
 
-- The latest inspected commits add llama.cpp serving improvements, env locks, GitNexus slice contracts, future online contracts, and proposer infrastructure.
-- The solver training baseline is PPO in `itrader/rl_lib/train/train_solo_V2.py`.
-- The default model config currently uses `SolverMLPFiLM`, not the registered `SolverLSTMModel`.
-- The existing `SolverLSTMModel` is a rolling-window sequence encoder, not a stateful recurrent RLlib policy.
-- The existing `SolverLSTMModel` is probably stale for the current observation shape because it does not split off the task embedding before reshaping the price window.
-- PPO uses `batch_mode = "complete_episodes"`, `train_batch_size = 4800`, `sgd_minibatch_size = 128`, and `num_sgd_iter = 30`.
-- Task horizons default to `[96, 128, 160, 200]` bars at `1m`, though generated task pools may narrow that range.
+- Direct reward seam execution: pass.
+- `bash -n` on Lazarus launcher: pass.
+- `git diff --check`: pass.
+- The recreated lock-synchronized `.venv` passes healthcheck and all 67 tests.
+- `pre-commit run --all-files`: pass, including repository healthcheck and core
+  tests through `.venv`.
+- C: has about 52 GB free. The ambient interpreter still has NumPy 2.3.5 with
+  incompatible pandas/pyarrow binaries; use the project environment.
+- GitNexus: stale index and no local indexed repository available. Refresh was
+  attempted but exited nonzero after upstream tree-sitter deprecation warnings.
 
-## Latest Assessment
+## Architectural Conclusions
 
-The strongest current recommendation is to keep PPO's complete-episode baseline and test stricter episode/regime alignment as an ablation.
+- `SolverMLPFiLM` remains the default and control.
+- The legacy LSTM is a broken-for-current-observation window encoder, not a
+  stateful policy.
+- Recurrence should be measured as R0 -> R1 -> R2a -> R2b, separating window
+  encoding, state persistence, and FiLM.
+- The current observation lacks explicit position and episode progress; test
+  those later as matched features.
+- `pnl_linear` is the sole proven/default reward. Both Sharpe candidates are
+  experimental and have no family default assignment.
+- Canonical families are 00 directional, 01 breakout, 02 mean reversion, 03
+  trade management, and 04 abstention.
 
-Reasoning:
+## Commands
 
-- Rewards, episode termination, and GAE are already episode-scoped by `batch_mode = "complete_episodes"`.
-- PPO still aggregates many complete episodes into one optimization batch and shuffles minibatches. That is normal and often stabilizes gradients.
-- Forcing every gradient update to stay inside a single episode would likely increase variance and overfit to local market noise unless the goal is a deliberately online/adaptive solver.
-- The more promising structure is regime-aware evaluation and capability tracking by family/regime/horizon, especially for future online gating.
+```bash
+uv sync --frozen --group dev
+./itrader/tools/run_repo_python.sh -m pytest -q itrader/tests/test_rewards.py itrader/tests/test_env_core.py itrader/tests/test_train_config.py
+./itrader/tools/run_repo_python.sh itrader/tools/healthcheck.py
+./itrader/tools/run_repo_python.sh -m pytest -q itrader/tests
+./itrader/tools/run_repo_python.sh -m pre_commit run --all-files
+bash itrader/scripts/experiments/run_ablation_lazarus.sh
+```
 
-For solver-head work, the recommended order is:
+Run llama.cpp and PPO training separately on the 16 GB target when the model
+cannot coexist with training memory.
 
-- keep `SolverMLPFiLM` as the baseline,
-- add a corrected window LSTM/GRU/attention encoder that explicitly splits price window and task embedding,
-- compare on identical task pools and held-out rolling windows,
-- only then implement a fully stateful recurrent policy if longer memory appears necessary.
+## Next Experiment
 
-## Working Tree
-
-At the time of this handoff, the repo already had user/generated modifications before this docs pass:
-
-- `.DS_Store`
-- `itrader/proposers/openai_compat.py`
-
-This handoff added docs under `docs/project-state/` only.
-
-## Commands Run
-
-- `git status --short --branch`
-- `git log --oneline -n 12 --decorate`
-- `git show --stat --oneline --decorate --no-renames -n 5`
-- `git show --name-only --format=fuller bd6453e5`
-- `git show --name-only --format=fuller 78d4d4fc`
-- `git show --name-only --format=fuller cd25ade2`
-- `rg` searches across docs, tests, task contracts, rewards, and training code
-- Read `train_solo_V2.py`, `itrader_env.py`, task contracts, validation, rewards, solver models, and relevant docs/tests
-
-No full test suite was run in this pass.
-
-## Caveats And Blockers
-
-- Solver-quality conclusions require real training/evaluation runs on the target workstation.
-- Current `CapabilityProfile` is a contract, not a fully wired updater.
-- Current LSTM code should not be treated as proof of a stateful recurrent PPO setup.
-- `sgd_minibatch_size` alignment to horizon length may help diagnostics, but it does not by itself guarantee one episode per gradient update in PPO.
-- More detail: `docs/project-state/solver-recurrence-assessment.md`.
-
-## Next Action
-
-Create a small ablation that compares:
-
-- current baseline: `random_episode`, `ret_norm_reset=episode`,
-- stream-contiguous variant: `start_idx_mode=stream_worker`, `ret_norm_reset=stream`,
-- horizon-focused variant: one narrow horizon bucket at a time,
-- optional low-mix variant: lower `train_batch_size` and `sgd_minibatch_size` near the episode horizon for diagnostics only.
-
-Judge by held-out rolling-window capability by family/regime/horizon, not training reward alone.
-
-## Continuation Prompt
-
-Read `/Users/juanbendek/repos/itrader-azr/docs/project-state/handoff.md` and continue Phase B solver-quality work. First task: design and implement a controlled PPO ablation for episode/regime alignment without changing the default baseline. Preserve `TaskSpec` and future online contracts, and report results by family/regime/horizon so `CapabilityProfile` can later drive online candidate gating.
+Complete the five-cell alignment ablation on MLP-FiLM. Then run the matched
+three-way reward experiment from `sharpe_reward_ablation.json` before any
+recurrent implementation or family default changes.

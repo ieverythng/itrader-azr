@@ -17,6 +17,7 @@ class TaskSampler00:
         self.cfg = env_config
         self.seed = int(self.cfg.get("seed", 1234))
         self.rng = np.random.default_rng(self.seed)
+        self._reward_rng = np.random.default_rng(np.random.SeedSequence([self.seed, 1]))
         self.window_size = int(self.cfg.get("window_size", 30))
         self.n_features = int(self.cfg.get("n_features", 5))
         self.t_embed_dim = int(self.cfg.get("t_embed_dim", 32))
@@ -93,7 +94,7 @@ class TaskSampler00:
         return overrides
 
     def _reward_params_for(self, reward_id: str) -> dict[str, Any]:
-        params = RewardEngine.sample_params(reward_id, self.rng)
+        params = RewardEngine.sample_params(reward_id, self._reward_rng)
         params.update(self._reward_param_overrides(reward_id))
         return RewardEngine.normalize_params(reward_id, params)
 

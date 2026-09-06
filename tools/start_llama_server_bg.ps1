@@ -42,6 +42,21 @@ function Get-Models([int]$HealthPort) {
     }
 }
 
+function Get-ListenerProcessIds([int]$ListenPort) {
+    return @(
+        Get-NetTCPConnection -State Listen -LocalPort $ListenPort -ErrorAction SilentlyContinue |
+            Select-Object -ExpandProperty OwningProcess -Unique |
+            Where-Object { $_ -and $_ -ne 0 }
+    )
+}
+
+function Stop-ProcessTree([int]$ProcessId) {
+    if (-not $ProcessId) { return }
+    try { & taskkill.exe /PID $ProcessId /T /F *> $null } catch { }
+    Start-Sleep -Milliseconds 500
+    Stop-Process -Id $ProcessId -Force -ErrorAction SilentlyContinue
+}
+
 function Get-ExpectedAlias(
     [string]$RequestedSeries,
     [string]$RequestedPreset,
@@ -103,6 +118,24 @@ if (Test-Path -LiteralPath $stateFile) {
         }
     } catch {
     }
+}
+
+if (Test-Health -HealthPort $Port) {
+    Write-Host ("Already running on http://127.0.0.1:{0}" -f $Port)
+    exit 0
+}
+
+$staleOwners = Get-ListenerProcessIds -ListenPort $Port
+foreach ($owner in $staleOwners) {
+    Write-Warning ("Port {0} has an unhealthy listener (pid {1}); stopping it before launch." -f $Port, $owner)
+    Stop-ProcessTree -ProcessId ([int]$owner)
+}
+for ($wait = 0; $wait -lt 20; $wait++) {
+    if (-not (Get-ListenerProcessIds -ListenPort $Port)) { break }
+    Start-Sleep -Milliseconds 250
+}
+if (Get-ListenerProcessIds -ListenPort $Port) {
+    throw "Port $Port is occupied by an unhealthy listener that could not be stopped."
 }
 
 if (Test-Path -LiteralPath $stdout) { Remove-Item -LiteralPath $stdout -Force }
@@ -173,6 +206,7 @@ if (-not $ready) {
     if (Test-Path -LiteralPath $stderr) {
         Get-Content -LiteralPath $stderr -Tail 80
     }
+    Stop-ProcessTree -ProcessId $proc.Id
     exit 1
 }
 

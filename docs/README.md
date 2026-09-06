@@ -36,6 +36,10 @@ architecture docs, trust the code and call out the mismatch.
 
 ## Artifacts And Research
 
+- `research/sharpe-reward-design.md` (+ `.html`) - implemented incremental
+  Sharpe seam, family mapping, and promotion experiment.
+- `research/recurrent-solver-ablation.md` (+ `.html`) - factorized R0-R4 solver
+  study and RLlib state-lifecycle requirements.
 - `artifacts/research/` - imported or exploratory HTML references, including
   Neural Workbench, AB-object theory, LoRA/PPO/GAE/RLVR notes, and Market-JEPA.
 - `daily_logs/` - ongoing engineering logs.

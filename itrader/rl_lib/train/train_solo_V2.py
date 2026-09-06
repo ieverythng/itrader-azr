@@ -27,6 +27,7 @@ from itrader.models.solver_lstm import SolverLSTMModel
 from itrader.models.solver_MLP import SolverMLPModel
 from itrader.models.solver_mlp_film import SolverMLPFiLM
 from itrader.rl_lib.tasks.families import DEFAULT_BAR_RESOLUTION
+from itrader.rl_lib.tasks.rewards import RewardEngine
 from itrader.rl_lib.callbacks.auto_plotter import AutoPlotterCallback
 from itrader.rl_lib.callbacks.ps_metrics import PSMetrics
 
@@ -70,7 +71,8 @@ def _task_sampler_config(args) -> dict:
         "action_dim": 3,
         "seed": int(args.seed),
         "bar_resolution": DEFAULT_BAR_RESOLUTION,
-        "horizons": DEFAULT_TASK_HORIZONS,
+        "horizons": _parse_task_horizons(getattr(args, "task_horizons", "")),
+        "reward_ids": _parse_task_reward_ids(getattr(args, "task_reward_ids", "")),
         "turnover_w_choices": DEFAULT_TURNOVER_W_CHOICES,
         "dd_modes": ["delta"],
         "dd_w_range": DEFAULT_DD_W_RANGE,
@@ -81,6 +83,30 @@ def _task_sampler_config(args) -> dict:
         cfg["task_pool_path"] = task_pool_path
         cfg["p_pool"] = float(getattr(args, "p_pool", 0.7))
     return cfg
+
+
+def _parse_task_horizons(value) -> list[int]:
+    if value is None or value == "":
+        return list(DEFAULT_TASK_HORIZONS)
+    if isinstance(value, (list, tuple)):
+        raw_values = value
+    else:
+        raw_values = str(value).split(",")
+    horizons = [int(str(item).strip()) for item in raw_values if str(item).strip()]
+    if not horizons or any(horizon <= 0 for horizon in horizons):
+        raise ValueError("task_horizons must contain positive comma-separated integers")
+    return horizons
+
+
+def _parse_task_reward_ids(value) -> list[str]:
+    if value is None or value == "":
+        return ["pnl_linear"]
+    reward_ids = [item.strip() for item in str(value).split(",") if item.strip()]
+    unknown = sorted(set(reward_ids).difference(RewardEngine.registered_ids()))
+    if not reward_ids or unknown:
+        detail = f": {', '.join(unknown)}" if unknown else ""
+        raise ValueError(f"task_reward_ids contains unknown reward IDs{detail}")
+    return reward_ids
 
 
 def _model_config(args) -> dict:
@@ -663,6 +689,8 @@ if __name__ == "__main__":
     parser.add_argument("--ret_norm_reset", type=str, default="episode", choices=["episode", "stream"], help="Reset reward normalization every episode or only when stream changes")
     parser.add_argument("--task_pool_path", type=str, default="", help="Optional JSONL task pool path for sampler")
     parser.add_argument("--p_pool", type=float, default=0.7, help="Probability of sampling from task pool when configured")
+    parser.add_argument("--task_horizons", type=str, default="", help="Comma-separated task horizons; empty uses the Phase A defaults")
+    parser.add_argument("--task_reward_ids", type=str, default="", help="Comma-separated registered reward IDs; empty uses pnl_linear")
     parser.add_argument("--experiment_name", type=str, default="Phase_A", help="Ray Tune experiment folder name under ~/ray_results")
     parser.add_argument("--auto_plot_on_end", action=argparse.BooleanOptionalAction, default=True, help="Generate plots automatically at trial end")
     parser.add_argument(

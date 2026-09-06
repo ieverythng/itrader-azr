@@ -30,7 +30,7 @@ TASK_FAMILY_REGISTRY: Dict[str, TaskFamilySpec] = {
         description="Current proven short-horizon directional task family.",
         scope="Single-instrument intraday directional",
         extra_features=("rsi14", "sma20", "sin_tod", "cos_tod"),
-        allowed_reward_ids=("pnl_linear", "pnl_sharpe", "composed_linear"),
+        allowed_reward_ids=("pnl_linear", "pnl_sharpe", "sharpe_only", "composed_linear"),
         enabled=True,
         bootstrap=True,
     ),

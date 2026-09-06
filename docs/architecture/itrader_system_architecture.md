@@ -1,6 +1,6 @@
 # iTrader System Architecture
 
-Last updated: 2026-06-17
+Last updated: 2026-09-03
 
 ## Current Implemented Path
 
@@ -64,6 +64,24 @@ price_window_flat + t_embed
 `SolverWindowLSTMFiLM` is not available on this branch yet. It should be treated
 as an in-development candidate that must be opt-in, tested, and compared against
 the MLP baseline before it becomes operational guidance.
+
+A true stateful recurrent policy is a separate candidate. It must use RLlib's
+sequence/state contract and be compared against the window encoder before any
+gain is attributed to episode memory. The current observation does not expose
+position or episode progress, so those features require a later matched
+observation ablation.
+
+## Reward Architecture
+
+`pnl_linear` is the only reward proven in training and remains the enabled
+family `00` default. Two challengers are available only for ablation:
+`sharpe_only` uses bounded incremental unannualized strategy Sharpe, while
+`pnl_sharpe` adds that component to the `pnl_linear` base. Neither is a family
+default. Reward and solver-head experiments should be run independently before
+testing their interaction.
+
+Canonical family semantics are `00` directional prediction, `01` breakout
+expansion, `02` mean reversion, `03` trade management, and `04` abstention.
 
 ## Offline Loop
 

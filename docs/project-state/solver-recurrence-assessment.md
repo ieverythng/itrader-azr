@@ -128,6 +128,12 @@ Recommended order:
 
 ## 2026-09-03 Update: True Recurrence Is The Priority
 
+> Superseded clarification: the authoritative corrected experiment design is
+> `docs/research/recurrent-solver-ablation.md`. The propositions below are kept
+> for provenance, but claims about implicit position/drawdown memory,
+> task-conditioned initial state, `recurrent_policy=True`, and full-episode
+> gradient flow must not be treated as implementation guidance.
+
 The core value of an RNN solver is **persistent hidden state across environment steps** — not just within-window encoding. A window-encoder LSTM that resets every step forfeits the compounding benefit: reward-function bias, position awareness, and regime memory should carry forward through the episode.
 
 ### What "truly recurrent" means for iTrader

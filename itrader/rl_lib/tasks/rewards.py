@@ -104,11 +104,29 @@ def _normalize_pnl_linear_params(params: dict[str, Any]) -> dict[str, Any]:
     return normalized
 
 
+def _normalize_sharpe_params(params: dict[str, Any]) -> dict[str, Any]:
+    normalized: dict[str, Any] = {}
+    normalized["w_sharpe"] = _bounded_float(params.get("w_sharpe"), 0.5, lo=0.0, hi=2.0)
+    normalized["sharpe_window"] = int(
+        _bounded_float(params.get("sharpe_window"), 32.0, lo=2.0, hi=512.0)
+    )
+    normalized["sharpe_min_samples"] = int(
+        _bounded_float(
+            params.get("sharpe_min_samples"),
+            8.0,
+            lo=2.0,
+            hi=float(normalized["sharpe_window"]),
+        )
+    )
+    normalized["sharpe_target"] = _bounded_float(
+        params.get("sharpe_target"), 1.0, lo=1e-3, hi=10.0
+    )
+    return normalized
+
+
 def _normalize_pnl_sharpe_params(params: dict[str, Any]) -> dict[str, Any]:
-    normalized = dict(params)
-    normalized["pnl_w"] = _bounded_float(normalized.get("pnl_w"), 1.0, lo=0.0, hi=10.0)
-    normalized["dd_w"] = _bounded_float(normalized.get("dd_w"), 0.04, lo=0.0, hi=0.2)
-    normalized["turnover_w"] = _bounded_float(normalized.get("turnover_w"), 0.0, lo=0.0, hi=0.01)
+    normalized = _normalize_pnl_linear_params(params)
+    normalized.update(_normalize_sharpe_params(params))
     return normalized
 
 
@@ -146,12 +164,19 @@ def _sample_pnl_linear_params(rng: Any) -> dict[str, Any]:
     }
 
 
-def _sample_pnl_sharpe_params(rng: Any) -> dict[str, Any]:
+def _sample_sharpe_params(rng: Any) -> dict[str, Any]:
     return {
-        "pnl_w": 1.0,
-        "dd_w": round(_rng_uniform(rng, 0.0, 0.08), 6),
-        "turnover_w": _rng_choice(rng, [0.0, 0.0005, 0.001, 0.002]),
+        "w_sharpe": _rng_choice(rng, [0.25, 0.5, 0.75]),
+        "sharpe_window": _rng_choice(rng, [16, 32, 64]),
+        "sharpe_min_samples": 8,
+        "sharpe_target": 1.0,
     }
+
+
+def _sample_pnl_sharpe_params(rng: Any) -> dict[str, Any]:
+    params = _sample_pnl_linear_params(rng)
+    params.update(_sample_sharpe_params(rng))
+    return params
 
 
 def _sample_composed_linear_params(rng: Any) -> dict[str, Any]:
@@ -292,27 +317,75 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
 
     return r, comps
 
+
+def _bounded_sharpe_score(
+    strategy_returns: Any,
+    *,
+    window: int,
+    min_samples: int,
+    target: float,
+) -> float:
+    try:
+        values = [_finite_float(value) for value in strategy_returns]
+    except TypeError:
+        return 0.0
+    values = values[-window:]
+    if len(values) < min_samples:
+        return 0.0
+
+    mean = sum(values) / len(values)
+    variance = sum((value - mean) ** 2 for value in values) / (len(values) - 1)
+    std = math.sqrt(max(0.0, variance))
+    if std <= 1e-12:
+        return 0.0
+    return math.tanh((mean / std) / target)
+
+
+def _incremental_sharpe(params: dict[str, Any], ctx: dict[str, Any]) -> float:
+    try:
+        history = tuple(ctx.get("strategy_returns", ()))
+    except TypeError:
+        history = ()
+    window = int(params.get("sharpe_window", 32))
+    min_samples = int(params.get("sharpe_min_samples", 8))
+    target = max(1e-3, float(params.get("sharpe_target", 1.0)))
+    weight = float(params.get("w_sharpe", 0.5))
+
+    current_score = _bounded_sharpe_score(
+        history,
+        window=window,
+        min_samples=min_samples,
+        target=target,
+    )
+    previous_score = _bounded_sharpe_score(
+        history[:-1],
+        window=window,
+        min_samples=min_samples,
+        target=target,
+    )
+    return weight * (current_score - previous_score)
+
+
+@register(
+    "sharpe_only",
+    normalize_params=_normalize_sharpe_params,
+    sample_params=_sample_sharpe_params,
+)
+def reward_sharpe_only(params: Dict[str, Any], ctx: Dict[str, Any]):
+    sharpe_delta = _incremental_sharpe(params, ctx)
+    return sharpe_delta, {"sharpe_delta": sharpe_delta}
+
 @register(
     "pnl_sharpe",
     normalize_params=_normalize_pnl_sharpe_params,
     sample_params=_sample_pnl_sharpe_params,
 )
 def reward_pnl_sharpe(params: Dict[str, Any], ctx: Dict[str, Any]):
-    pnl_w = float(params.get("pnl_w", 1.0))
-    dd_w = float(params.get("dd_w", 0.0))
-    turnover_w = float(params.get("turnover_w", 0.0))
+    base_reward, components = reward_pnl_linear(params, ctx)
+    sharpe_delta = _incremental_sharpe(params, ctx)
+    components["sharpe_delta"] = sharpe_delta
+    return base_reward + sharpe_delta, components
 
-    # primitives
-    pnl_delta = float(ctx.get("pnl_t1", 0.0) - ctx.get("pnl_t", 0.0))
-    dd = float(ctx.get("dd_t1", 0.0))  # positive number
-    turnover = float(ctx.get("turnover_t", 0.0))
-
-    reward = pnl_w * pnl_delta - dd_w * dd - turnover_w * turnover
-    return reward, {
-        "pnl_delta": pnl_delta,
-        "dd": dd,
-        "turnover": turnover,
-    }
 
 @register(
     "composed_linear",

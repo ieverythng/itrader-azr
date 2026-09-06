@@ -267,7 +267,7 @@
         <article class="card span-6 accent"><div class="label">Implemented · Phase A/B</div><h3>Reliable solver baseline</h3><p>Parquet market data enters <code>ITraderEnv</code>; flattened windows and task embeddings feed <code>SolverMLPFiLM</code>; RLlib PPO + GAE produces policies, checkpoints and decomposed metrics.</p></article>
         <article class="card span-6"><div class="label">Implemented · Bootstrap</div><h3>Validated proposer handoff</h3><p>Rule-based, Ollama and OpenAI-compatible backends generate tasks through one proposer interface. Validation and clamping protect the persistent <code>TaskPool</code> and environment reset path.</p></article>
         <article class="card"><div class="label">Contract-ready</div><h3>Online language</h3><p><code>CandidateTask</code>, <code>ExecutionIntent</code>, <code>CapabilityProfile</code> and <code>DecisionRecord</code> define the data boundaries for replay and shadow mode.</p></article>
-        <article class="card warm"><div class="label">In development</div><h3>Solver depth</h3><p>Task families 01/02, shared-trunk family heads, capability estimation and <code>SolverWindowLSTMFiLM</code> are Phase B frontiers that require controlled ablation.</p></article>
+        <article class="card warm"><div class="label">In development</div><h3>Solver depth</h3><p>Task families 01/02, truthful capability slices, reset-every-step window encoding and native RLlib recurrent FiLM are separate Phase B frontiers that require matched ablations.</p></article>
         <article class="card dark"><div class="label">Planned · Phase C/D</div><h3>Cautious autonomy</h3><p>MarketFramer, DecisionGate, RiskEngine, Executor, WatsonOW integration and optional Market-JEPA representations arrive only behind replay evidence and deterministic controls.</p></article>
       </div>
     </section>
@@ -343,21 +343,20 @@
       </div>
       <div class="grid">
         <article class="card span-6 accent"><div class="label">Implemented control</div><h3><code>SolverMLPFiLM</code></h3><p>The flattened price window enters an MLP trunk. A task embedding modulates hidden features through FiLM before policy logits and value estimation. This remains the reference head for all ablations.</p></article>
-        <article class="card span-6 warm"><div class="label">Phase B candidate</div><h3><code>SolverWindowLSTMFiLM</code></h3><p>Reshape only the price slice into time × features, encode within-window temporal structure, then apply task conditioning. This is not a stateful recurrent RLlib policy and is not implemented on this branch yet.</p></article>
+        <article class="card span-6 warm"><div class="label">Phase B candidates</div><h3>Window LSTM + stateful FiLM</h3><p>R1 reshapes only the price slice and resets each decision. R2 carries RLlib state across steps. Both are unimplemented and must be compared separately; the newest input is the final row of the chronological window.</p></article>
         <article class="card"><div class="label">Next architecture</div><h3>Shared trunk</h3><p>One observation encoder with explicit task and optional regime conditioning.</p></article>
         <article class="card"><div class="label">Next architecture</div><h3>Family heads</h3><p>Separate policy/value outputs where family action semantics genuinely differ.</p></article>
-        <article class="card"><div class="label">Deferred</div><h3>Stateful recurrence / MoE</h3><p>Persistent episode memory and expert routing wait until simpler temporal and family ablations justify their complexity.</p></article>
+        <article class="card"><div class="label">Observation check</div><h3>Trade state is explicit</h3><p>The current observation lacks position and episode progress. Add those later to matched feed-forward and recurrent cells instead of assuming hidden state can recover them.</p></article>
       </div>
       <div class="grid" style="margin-top: 16px">
         <div class="card span-6 dark">
           <div class="label">Solver reward · PPO/GAE</div>
-          <pre class="formula"><em>r_solve</em> = + pnl_net
-          + task_success
-          + calibration_gain
-          − drawdown
-          − turnover
-          − transaction_cost
-          − invalid_action</pre>
+          <pre class="formula"><em>default</em> = pnl_linear
+
+<em>challenger A</em> = delta_bounded_sharpe
+
+<em>challenger B</em> = pnl_linear
+               + delta_bounded_sharpe</pre>
         </div>
         <div class="card span-6 dark">
           <div class="label">Proposer reward · future coupling</div>
@@ -454,7 +453,7 @@
   <footer class="footer">
     <div class="shell footer-inner">
       <div><strong>iTrader Architecture Atlas</strong><p>This page is the high-level memory surface. The canonical implementation specification, Markdown architecture source, masterplan, project-state handoff, source code and tests provide the detailed truth beneath it.</p></div>
-      <div class="updated">Updated 18 June 2026</div>
+      <div class="updated">Updated 3 September 2026</div>
     </div>
   </footer>
 

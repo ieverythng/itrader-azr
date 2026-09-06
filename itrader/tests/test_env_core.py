@@ -88,3 +88,40 @@ def test_env_applies_terminal_drawdown_penalty_on_final_step(tiny_ohlcv_path):
     assert done is True
     assert np.isfinite(reward)
     assert info["reward_comps"]["dd"] < 0.0
+
+
+def test_env_supplies_episode_returns_to_sharpe_reward(tiny_ohlcv_path):
+    env = ITraderEnv(
+        {
+            "df_path": str(tiny_ohlcv_path),
+            "window_size": 30,
+            "task_sampler": {
+                "seed": 11,
+                "window_size": 30,
+                "n_features": 5,
+                "t_embed_dim": 32,
+                "action_dim": 3,
+                "horizons": [8],
+                "reward_ids": ["pnl_sharpe"],
+                "reward_params_by_id": {
+                    "pnl_sharpe": {
+                        "normalize": False,
+                        "sharpe_min_samples": 4,
+                        "sharpe_window": 8,
+                    }
+                },
+            },
+        }
+    )
+    env.reset()
+
+    info = {}
+    sharpe_deltas = []
+    for action in (2, 0, 2, 0, 2, 0, 2, 0):
+        _, reward, done, _, info = env.step(action)
+        assert np.isfinite(reward)
+        sharpe_deltas.append(info["reward_comps"]["sharpe_delta"])
+
+    assert done is True
+    assert np.isfinite(sharpe_deltas).all()
+    assert any(delta != 0.0 for delta in sharpe_deltas)

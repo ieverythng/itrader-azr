@@ -2,60 +2,78 @@
 
 Last updated: 2026-09-03
 
-## Product Goal
+## Branch Position
 
-`itrader-azr` is an RLVR-style trading stack with a solver trained on explicit, decomposed rewards and a proposer that generates validated task curricula. The near-term goal is to make the solver reliable enough that proposer quality, future QLoRA/LoRA work, and online task/candidate selection can be judged against a stable baseline.
+The active branch is `feat/codex-adversarialproposer` at `6714b22`. Before this
+working-tree pass it was five commits ahead of `origin/Phase-B-Training` and had
+no divergence. The latest commits add Sharpe/recurrent research and ablation
+scaffolding; they do not add a recurrent solver implementation.
 
-## Current Phase
+The GitNexus index is stale at `1d5ba82` and the local query wrapper reports no
+indexed repository. A refresh was attempted but exited with only upstream
+tree-sitter deprecation output and no completed index. Source, tests, configs,
+and active docs were used directly.
 
-Phase B is complete through `feat: itrader main architecture E2E` (`3b3abc8`). Development has moved to the `feat/codex-adversarialproposer` branch, which is strictly ahead of `Phase-B-Training` by 3 commits (task contract scaffolding, gitignore for llama.cpp artifacts, merge) with zero divergence — a clean fast-forward target if merged back.
+## Implemented Baseline
 
-Recent commits show the project has moved through:
+- Main PPO entrypoint: `itrader/rl_lib/train/train_solo_V2.py`.
+- Default solver: `SolverMLPFiLM`.
+- Main environment: `ITraderEnv`, emitting a chronological flattened market
+  window plus task embedding.
+- Active family: `00`, `directional_predictor`, with three actions.
+- Default reward: `pnl_linear`.
+- Candidate proposer endpoints: Ollama and OpenAI-compatible local servers,
+  including llama.cpp.
+- Future contracts: `CandidateTask`, `ExecutionIntent`, `CapabilityProfile`, and
+  `DecisionRecord`.
 
-- task contract hardening and reward plumbing,
-- future online contracts for `CandidateTask`, `ExecutionIntent`, `CapabilityProfile`, and `DecisionRecord`,
-- GitNexus-backed repo knowledge docs,
-- OpenAI-compatible proposer serving through local llama.cpp/vLLM-style endpoints,
-- dependency lock and main-PC operations improvements.
+## This Working-Tree Pass
 
-## What Was Done (2026-09-03)
+- Kept proven `pnl_linear` as the sole default, replaced placeholder
+  `pnl_sharpe` with an explicit PnL+incremental-Sharpe blend, and added a
+  separate experimental `sharpe_only` reward.
+- Added episode strategy-return history to the environment reward context.
+- Added reward tests for warmup, boundedness, and component accounting plus an
+  environment plumbing test.
+- Added `--task_horizons` to `train_solo_V2` for controlled ablations.
+- Added `--task_reward_ids` and a fixed-horizon PnL-versus-Sharpe experiment
+  config.
+- Split task/proposer reward-parameter RNG from task-identity RNG so changing a
+  reward does not silently change sampled horizons or market-window seeds.
+- Repaired the Lazarus runner invocation.
+- Changed the alignment design from four cells with a duplicate baseline to
+  five cells, including a matched random-128 versus stream-128 comparison.
+- Corrected the Sharpe and recurrent research docs and their HTML companions.
 
-- **Episode/regime alignment ablation scaffolded** (next-actions item 1):
-  - Config: `itrader/scripts/experiments/configs/episode_regime_alignment_ablation.json` — 4 variants (v0 random baseline, v1 stream contiguous, v2 stream+ret_norm_reset=stream, v3 horizon-aligned).
-  - Regime tagger: `itrader/scripts/tag_pool_regimes.py` — labels task pools with vol/trend/liquidity regime tags from OHLCV.
-  - Capability reporter: `itrader/scripts/generate_capability_report.py` — parses Ray stable_metrics.jsonl into p_solve / expected utility / calibration error by family/regime/horizon.
-  - Lazarus launcher: `itrader/scripts/experiments/run_ablation_lazarus.sh` — probes llama.cpp at 172.24.16.1:8080 before launching; aborts if server is UP (OOM guard). Override with `--force`.
-- **p_solve recovery**: `on_train_result` hook restored in `itrader/rl_lib/callbacks/ps_metrics.py` (was in stash@{1}, never committed). Exposes `p_solve` at top level of Tune results for stable TB/CSV consumption.
-- **Stash audit**: All 3 stashes inspected. `stash@{0}` content ~70% already committed; unique artifact is a superseded Transformers+bitsandbytes `proposer_llm.py`. `stash@{1}` p_solve hook recovered. `stash@{2}` (Phase-A GitHub Desktop) fully superseded.
-- **SolverLSTMModel obs-shape issue confirmed**: `flat_dim // self.win` breaks when task embeddings or regime tags are prepended to the flat observation vector. Decision: keep all 4 ablation variants on `SolverMLPFiLM`; defer LSTM head fix to the solver-head ablation (next-actions item 4).
+## Important Non-Capabilities
 
-## What is currently true in code
+- `SolverLSTMModel` is a reset-every-step window encoder and incorrectly infers
+  market feature width from an observation that also contains the task embed.
+- `SolverWindowLSTMFiLM` and a native RLlib stateful recurrent FiLM head remain
+  unimplemented.
+- The current solver observation does not expose position, previous action,
+  reward, unrealized PnL, or episode progress. Recurrence alone cannot be
+  described as a complete trade-state tracker.
+- Families `01` (`breakout_expansion`) and `02` (`mean_reversion`) are disabled
+  bootstrap contracts. Family `03` is trade management, not trend following.
+- Capability reports are not yet family/regime calibrated unless task metadata
+  is present in the metrics records.
+- No Sharpe or recurrent training result has been produced by this pass.
 
-- Main environment: `itrader/envs/itrader_env.py`
-- Main PPO training entrypoint: `itrader/rl_lib/train/train_solo_V2.py`
-- AZR bootstrap runner: `itrader/rl_lib/train/train_AZR.py`
-- Task contracts and validation: `itrader/rl_lib/tasks/`
-- Proposer backends: `itrader/proposers/` (ollama, openai_compat, rule_based — the old Transformers-based `proposer_llm.py` from stash@{0} is NOT in any branch)
-- Knowledge layer: `docs/knowledge/`
-- Ablation/experiment harness: `itrader/scripts/experiments/` (run_ablation.py, configs/, run_ablation_lazarus.sh)
+## Validation State
 
-## What is intentionally not true yet
+The recreated lock-synchronized `.venv` passes healthcheck and all 67 tests.
+Pre-commit passes all hooks through the shared launcher, which now prefers the
+repo `.venv` over legacy or ambient interpreters.
+About 52 GB is free on C:. The ambient non-project interpreter remains
+ABI-incompatible (NumPy 2.3.5 versus its installed pandas/pyarrow binaries), so
+repository commands should continue to use `.venv` or the runner script.
 
-- The default solver is still the FiLM MLP baseline. The existing LSTM model is a window encoder over the flat rolling observation, not a stateful recurrent policy, and has an obs-shape limitation that must be fixed before it can consume task-embedded observations.
-- Episode/regime alignment ablation is scaffolded but **not yet run**. Training requires the llama.cpp server to be offline (16GB RAM constraint). Use the Lazarus launcher or manually stop the server first.
-- Capability profiles are not yet calibrated on held-out evaluation slices. The reporter script exists but needs real training output to produce meaningful numbers.
-- Proposer work is still scaffolding for later QLoRA/LoRA and online candidate selection, not a production loop.
+## Highest-ROI Sequence
 
-## Highest-value next actions
-
-1. **Run the ablation**: Stop llama.cpp, invoke `bash itrader/scripts/experiments/run_ablation_lazarus.sh`, let all 4 variants complete.
-2. Generate capability reports from the ablation runs using `generate_capability_report.py`.
-3. Compare v0-v3 on held-out rolling windows; decide whether stream/horizon alignment is worth promoting to default.
-4. If recurrence shows value, fix `SolverLSTMModel` obs-shape handling and run the solver-head ablation (item 4).
-
-## Open risks / watch items
-
-- **OOM**: Training + Qwen 3.8 UD-Q3_K_XL (13GB) cannot coexist on 16GB RAM. The Lazarus script guards this, but manual training invocations must still respect it.
-- **Stash@{0} proposer_llm.py**: The 199-line Transformers+bitsandbytes LLM proposer exists only in the stash. It was superseded by ollama/openai_compat proposers. If you want it back, `git show "stash@{0}:itrader/llm/proposer_llm.py"`. Otherwise the stash can be dropped after verification.
-- **Solver head confusion**: Do not attribute alignment-ablation results to recurrence. The FiLM baseline has no hidden state across steps; any recurrent claim needs the corrected window encoder or a true RLlib recurrent policy first.
-- **Capability calibration**: Until evaluation-slice capability reports exist, online gating thresholds should stay advisory, not production-blocking.
+1. Run the five-cell alignment ablation.
+2. Run matched `pnl_linear`, `sharpe_only`, and `pnl_sharpe` cells on MLP-FiLM.
+3. Repair metrics metadata for capability slices.
+4. Implement and measure R1 window-LSTM-FiLM.
+5. Implement R2a recurrence, then isolate per-step FiLM as R2b.
+6. Lock families `01` and `02` only after those measurements are credible.

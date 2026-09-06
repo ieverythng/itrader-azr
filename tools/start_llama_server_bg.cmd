@@ -4,7 +4,7 @@ setlocal
 set "SCRIPT_DIR=%~dp0"
 for %%I in ("%SCRIPT_DIR%..") do set "REPO_ROOT=%%~fI"
 
-if not defined LLAMA_CPP_BIN_DIR set "LLAMA_CPP_BIN_DIR=%REPO_ROOT%\_tools\llama-bin-win-cuda13-b8604"
+if not defined LLAMA_CPP_BIN_DIR set "LLAMA_CPP_BIN_DIR=C:\Users\Admin\PROJECTS\llama-b10621-win-cuda133"
 if not defined LLAMA_CPP_QWEN35_MODEL_Q3 set "LLAMA_CPP_QWEN35_MODEL_Q3=D:\MODELS\Qwen3.5-27B-Q3_K_M.gguf"
 if not defined LLAMA_CPP_QWEN35_MODEL_Q4 set "LLAMA_CPP_QWEN35_MODEL_Q4=D:\MODELS\Qwen3.5-27B.Q4_K_M.gguf"
 if not defined LLAMA_CPP_QWEN36_MODEL_Q3 set "LLAMA_CPP_QWEN36_MODEL_Q3=D:\MODELS\Qwen3.6-27B-Q3_K_M.gguf"

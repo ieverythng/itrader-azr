@@ -61,5 +61,4 @@ fi
 echo "[lazarus] Launching ablation: ${CONFIG}"
 cd "${REPO_ROOT}"
 exec "${PYTHON}" -m itrader.scripts.experiments.run_ablation \
-  --config "${CONFIG}" \
-  "$@"
+  "${CONFIG}"
