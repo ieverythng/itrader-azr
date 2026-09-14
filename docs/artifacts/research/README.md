@@ -9,7 +9,12 @@ Current references:
 - `Neural_Workbench_AB_ML_Object_Theory.html`
 - `LoRA, adapters, PPO, GAE and RLVR as operators over AB.html`
 - `iTrader Market-JEPA.html`
+- `azr-stack-review-2026-09-12.md` — local AZR v2 synthesis and bounded adaptation notes.
+- `recurrence-code-audit-2026-09-12.md` — independent read-only source audit.
+- `recurrence-docs-revision-audit-2026-09-12.md` — this Markdown coverage and validation audit.
+- `phase-a-performance-validity-audit-2026-09-12.md` (+ `.html`) — authoritative investigation of Phase A reward semantics, restored PBT targets, repaired measurement/search seams, final acceptance probe, and the remaining performance-promotion gate.
 
 These documents inform iTrader architecture, especially the AB design language,
-adapter/proposer framing, and future Market-JEPA frontier. They are not current
-runtime contracts.
+adapter/proposer framing, and future Market-JEPA frontier. Dated reports are
+ evidence/provenance, not current runtime contracts; solver architecture and
+ Phase B/C ordering remain under user review.

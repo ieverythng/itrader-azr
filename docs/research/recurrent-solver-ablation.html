@@ -31,104 +31,556 @@
     ul, ol { padding-left:22px; }
     @media (max-width:760px) { h1{font-size:34px}.grid{grid-template-columns:1fr}table{display:block;overflow:auto} }
   </style>
+<style>
+    /* Faithful Markdown companion fallback */
+    .markdown-companion { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+    .markdown-companion .source-note { margin: 0 0 1rem; }
+    .markdown-source { white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 4; }
+  </style>
+
+  <style>
+    .markdown-companion {
+      width: min(960px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 42px 0 72px;
+    }
+    .markdown-companion .source-note {
+      margin: 0 auto 24px;
+      max-width: 860px;
+      color: var(--muted, #59616d);
+      font-size: 0.9rem;
+    }
+    .markdown-companion .source-note a {
+      color: var(--blue, #205b91);
+    }
+    .markdown-companion .markdown-content {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: clamp(24px, 5vw, 56px);
+      color: var(--ink, #18201c);
+      background: var(--panel, #fff);
+      border: 1px solid var(--line, #cbd2cc);
+      border-radius: 12px;
+      box-shadow: 0 12px 32px rgba(24, 32, 28, 0.08);
+    }
+    .markdown-companion .markdown-content h1,
+    .markdown-companion .markdown-content h2,
+    .markdown-companion .markdown-content h3,
+    .markdown-companion .markdown-content h4 {
+      max-width: none;
+      margin: 1.6em 0 0.65em;
+      color: var(--ink, #18201c);
+      font-family: Georgia, serif;
+      font-weight: 700;
+      letter-spacing: normal;
+      line-height: 1.2;
+    }
+    .markdown-companion .markdown-content h1 {
+      margin-top: 0;
+      font-size: clamp(2rem, 5vw, 3rem);
+    }
+    .markdown-companion .markdown-content h2 { font-size: clamp(1.45rem, 3vw, 2rem); }
+    .markdown-companion .markdown-content h3 { font-size: 1.25rem; }
+    .markdown-companion .markdown-content p,
+    .markdown-companion .markdown-content li,
+    .markdown-companion .markdown-content td,
+    .markdown-companion .markdown-content th {
+      color: var(--muted, #59616d);
+    }
+    .markdown-companion .markdown-content p,
+    .markdown-companion .markdown-content ul,
+    .markdown-companion .markdown-content ol,
+    .markdown-companion .markdown-content blockquote,
+    .markdown-companion .markdown-content table {
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+    .markdown-companion .markdown-content pre {
+      overflow-x: auto;
+      padding: 16px;
+      color: #eef5f0;
+      background: #1b2720;
+      border-left: 4px solid var(--green, #176b49);
+      border-radius: 4px;
+      line-height: 1.5;
+    }
+    .markdown-companion .markdown-content code {
+      overflow-wrap: anywhere;
+    }
+    .markdown-companion .markdown-content table {
+      display: table;
+      width: 100%;
+      overflow: visible;
+      border-collapse: collapse;
+    }
+    .markdown-companion .markdown-content img {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+
+  <style>
+    .markdown-companion {
+      width: min(960px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 42px 0 72px;
+    }
+    .markdown-companion .source-note {
+      margin: 0 auto 24px;
+      max-width: 860px;
+      color: var(--muted, #59616d);
+      font-size: 0.9rem;
+    }
+    .markdown-companion .source-note a {
+      color: var(--blue, #205b91);
+    }
+    .markdown-companion .markdown-content {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: clamp(24px, 5vw, 56px);
+      color: var(--ink, #18201c);
+      background: var(--panel, #fff);
+      border: 1px solid var(--line, #cbd2cc);
+      border-radius: 12px;
+      box-shadow: 0 12px 32px rgba(24, 32, 28, 0.08);
+    }
+    .markdown-companion .markdown-content h1,
+    .markdown-companion .markdown-content h2,
+    .markdown-companion .markdown-content h3,
+    .markdown-companion .markdown-content h4 {
+      max-width: none;
+      margin: 1.6em 0 0.65em;
+      color: var(--ink, #18201c);
+      font-family: Georgia, serif;
+      font-weight: 700;
+      letter-spacing: normal;
+      line-height: 1.2;
+    }
+    .markdown-companion .markdown-content h1 {
+      margin-top: 0;
+      font-size: clamp(2rem, 5vw, 3rem);
+    }
+    .markdown-companion .markdown-content h2 { font-size: clamp(1.45rem, 3vw, 2rem); }
+    .markdown-companion .markdown-content h3 { font-size: 1.25rem; }
+    .markdown-companion .markdown-content p,
+    .markdown-companion .markdown-content li,
+    .markdown-companion .markdown-content td,
+    .markdown-companion .markdown-content th {
+      color: var(--muted, #59616d);
+    }
+    .markdown-companion .markdown-content p,
+    .markdown-companion .markdown-content ul,
+    .markdown-companion .markdown-content ol,
+    .markdown-companion .markdown-content blockquote,
+    .markdown-companion .markdown-content table {
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+    .markdown-companion .markdown-content pre {
+      overflow-x: auto;
+      padding: 16px;
+      color: #eef5f0;
+      background: #1b2720;
+      border-left: 4px solid var(--green, #176b49);
+      border-radius: 4px;
+      line-height: 1.5;
+    }
+    .markdown-companion .markdown-content code {
+      overflow-wrap: anywhere;
+    }
+    .markdown-companion .markdown-content table {
+      display: table;
+      width: 100%;
+      overflow: visible;
+      border-collapse: collapse;
+    }
+    .markdown-companion .markdown-content img {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+
+  <style>
+    .markdown-companion {
+      width: min(960px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 42px 0 72px;
+    }
+    .markdown-companion .source-note {
+      margin: 0 auto 24px;
+      max-width: 860px;
+      color: var(--muted, #59616d);
+      font-size: 0.9rem;
+    }
+    .markdown-companion .source-note a {
+      color: var(--blue, #205b91);
+    }
+    .markdown-companion .markdown-content {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: clamp(24px, 5vw, 56px);
+      color: var(--ink, #18201c);
+      background: var(--panel, #fff);
+      border: 1px solid var(--line, #cbd2cc);
+      border-radius: 12px;
+      box-shadow: 0 12px 32px rgba(24, 32, 28, 0.08);
+    }
+    .markdown-companion .markdown-content h1,
+    .markdown-companion .markdown-content h2,
+    .markdown-companion .markdown-content h3,
+    .markdown-companion .markdown-content h4 {
+      max-width: none;
+      margin: 1.6em 0 0.65em;
+      color: var(--ink, #18201c);
+      font-family: Georgia, serif;
+      font-weight: 700;
+      letter-spacing: normal;
+      line-height: 1.2;
+    }
+    .markdown-companion .markdown-content h1 {
+      margin-top: 0;
+      font-size: clamp(2rem, 5vw, 3rem);
+    }
+    .markdown-companion .markdown-content h2 { font-size: clamp(1.45rem, 3vw, 2rem); }
+    .markdown-companion .markdown-content h3 { font-size: 1.25rem; }
+    .markdown-companion .markdown-content p,
+    .markdown-companion .markdown-content li,
+    .markdown-companion .markdown-content td,
+    .markdown-companion .markdown-content th {
+      color: var(--muted, #59616d);
+    }
+    .markdown-companion .markdown-content p,
+    .markdown-companion .markdown-content ul,
+    .markdown-companion .markdown-content ol,
+    .markdown-companion .markdown-content blockquote,
+    .markdown-companion .markdown-content table {
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+    .markdown-companion .markdown-content pre {
+      overflow-x: auto;
+      padding: 16px;
+      color: #eef5f0;
+      background: #1b2720;
+      border-left: 4px solid var(--green, #176b49);
+      border-radius: 4px;
+      line-height: 1.5;
+    }
+    .markdown-companion .markdown-content code {
+      overflow-wrap: anywhere;
+    }
+    .markdown-companion .markdown-content table {
+      display: table;
+      width: 100%;
+      overflow: visible;
+      border-collapse: collapse;
+    }
+    .markdown-companion .markdown-content img {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
 </head>
 <body>
-  <header><div>
-    <div class="kicker">iTrader / solver research</div>
-    <h1>Recurrent FiLM is a high-value hypothesis, not yet a branch capability.</h1>
-    <p class="lede">The ablation separates window encoding, persistent episode state, task conditioning, and explicit trade-state observability.</p>
-    <div class="status"><span>Updated 2026-09-03</span><span>Baseline: SolverMLPFiLM</span><span>Recurrent implementation: pending</span></div>
-  </div></header>
-  <main>
-    <section>
-      <h2>Branch Reality</h2>
-      <table>
-        <thead><tr><th>Head</th><th>State</th><th>Current status</th></tr></thead>
-        <tbody>
-          <tr><td>SolverMLPFiLM</td><td>None</td><td>Working default</td></tr>
-          <tr><td>SolverLSTMModel</td><td>Reset each call</td><td>Legacy window encoder; task-embedding shape bug</td></tr>
-          <tr><td>SolverWindowLSTMFiLM</td><td>None</td><td>Designed, not implemented</td></tr>
-          <tr><td>Stateful recurrent FiLM</td><td>Across steps</td><td>Research frontier</td></tr>
-        </tbody>
-      </table>
-    </section>
-    <section class="grid">
-      <div>
-        <h2>Compelling Proposition</h2>
-        <ul>
-          <li>Memory beyond the fixed rolling window.</li>
-          <li>Task-dependent filtering of market history.</li>
-          <li>Path-dependent value estimates.</li>
-          <li>Potentially larger gains on long horizons.</li>
-        </ul>
-      </div>
-      <div>
-        <h2>What Must Be Proven</h2>
-        <ul>
-          <li>Persistent state beats a reset-every-step window LSTM.</li>
-          <li>Per-step FiLM beats simple task concatenation.</li>
-          <li>State is used rather than ignored or saturated.</li>
-          <li>Held-out gains justify throughput and memory cost.</li>
-        </ul>
-      </div>
-    </section>
-    <section>
-      <h2>Critical Observation Contract</h2>
-      <p>The current observation includes market features and task embedding, but not previous action, position, reward, unrealized PnL, or episode progress. Hidden state alone does not make a complete trade tracker.</p>
-      <pre>price_dim = window_size * n_features
-price_flat = obs[..., :price_dim]
-task_embed = obs[..., price_dim:]
-price_window = price_flat.reshape(..., window_size, n_features)
-newest_bar = price_window[..., -1, :]</pre>
-      <p class="warning">The environment orders the rolling window chronologically. The first feature row is the oldest bar; a recurrent model must take the last row as the newest input.</p>
-    </section>
-    <section>
-      <h2>Architecture Matrix</h2>
-      <table>
-        <thead><tr><th>ID</th><th>Head</th><th>Cross-step state</th><th>Question</th></tr></thead>
-        <tbody>
-          <tr><td>R0</td><td>MLP + FiLM</td><td>No</td><td>Control</td></tr>
-          <tr><td>R1</td><td>Window LSTM + FiLM</td><td>No</td><td>Does within-window temporal bias help?</td></tr>
-          <tr><td>R2a</td><td>Recurrent LSTM + concat</td><td>Yes</td><td>Does persistence beat R1?</td></tr>
-          <tr><td>R2b</td><td>Recurrent LSTM + per-step FiLM</td><td>Yes</td><td>Does FiLM beat concat?</td></tr>
-          <tr><td>R3</td><td>Recurrent GRU + FiLM</td><td>Yes</td><td>Can a cheaper cell match LSTM?</td></tr>
-          <tr><td>R4</td><td>Winner + solver-state features</td><td>Matched</td><td>Does explicit position/progress matter?</td></tr>
-        </tbody>
-      </table>
-    </section>
-    <section>
-      <h2>RLlib 2.9 Constraints</h2>
-      <ul>
-        <li>Use the native legacy recurrent ModelV2 contract: initial state, sequence lengths, and sequence-shaped forward processing.</li>
-        <li>Let RLlib reset state at episode boundaries; never infer reset from a zero-valued tensor.</li>
-        <li><code>batch_mode="complete_episodes"</code> governs collection, not full-episode gradients.</li>
-        <li>BPTT is truncated by sequence chopping and <code>max_seq_len</code>.</li>
-        <li>Do not rely on an undocumented <code>recurrent_policy=True</code> flag.</li>
-      </ul>
-    </section>
-    <section>
-      <h2>TDD Order</h2>
-      <ol>
-        <li>R1: failing shape tests, explicit market/task split, FiLM heads, forward/backward smoke.</li>
-        <li>R2a: initial-state, state-carry, batch/sequence, and terminal-reset tests.</li>
-        <li>R2b: add per-step FiLM only after the recurrent baseline is green.</li>
-        <li>R3: compare GRU only if recurrence wins.</li>
-        <li>R4: add position and normalized episode progress to both matched heads.</li>
-      </ol>
-    </section>
-    <section>
-      <h2>Experiment Sequence</h2>
-      <p>First lock sampling and reward on R0. Then compare R0→R1, R1→R2a, and R2a→R2b. Every cell holds data, tasks, seeds, reward, PPO budget, and observation contract constant.</p>
-      <p>Measure held-out return, Sharpe, drawdown, turnover, entropy, family/regime/horizon slices, steps per second, GPU memory, state norms, and confidence intervals.</p>
-    </section>
-    <section>
-      <h2>Multi-Head Destination</h2>
-      <pre>shared market encoder / recurrent trunk
-    -> family-routed policy head
-    -> family-routed value head</pre>
-      <p>One family head is selected per TaskSpec, while mixed PPO batches may route different samples to different heads. Families 01 and 02 retain three actions; family 03 requires a separate contract review.</p>
-      <p>Markdown source: <code>docs/research/recurrent-solver-ablation.md</code></p>
-    </section>
+  <main class="markdown-companion">
+    <p class="source-note">Source: <a href="recurrent-solver-ablation.md">recurrent-solver-ablation.md</a></p>
+    <article class="markdown-content">
+<h1 id="recurrent-solver-film-ablation">Recurrent Solver + FiLM Ablation</h1>
+<p>Last updated: 2026-09-12
+Status: <strong>design contract; implementation pending; no recurrent result</strong></p>
+<p>This document is the active R-series provenance and experiment proposal. It
+preserves the original identities from <code>git show 4732a98:docs/research/recurrent-solver-ablation.md</code>;
+it is not an accepted architecture contract. Names are design identities, not
+executable flags.</p>
+<h2 id="executive-position">Executive position</h2>
+<p>The active branch has one implemented/default solver: <code>SolverMLPFiLM</code>. The
+checked-in <code>SolverLSTMModel</code> is a legacy reset-every-forward window encoder that
+reshapes the full observation and discards returned LSTM state. Because the
+current observation appends a task embedding, its <code>flat_dim // window</code> inference
+is incompatible with the normal <code>[T*F | task_dim]</code> layout. It is not a valid
+recurrent baseline.</p>
+<p>The research question has four separable parts:</p>
+<ol>
+<li>Does temporal structure inside the supplied market window help?</li>
+<li>Does carried <code>(h,c)</code> state help under matched input and conditioning?</li>
+<li>Does task conditioning help, and at which placement?</li>
+<li>Do explicit solver-state fields add information beyond OHLCV and task data?</li>
+</ol>
+<p>No answer is implied before matched implementation and held-out evidence.</p>
+<h2 id="current-observation-contract">Current observation contract</h2>
+<p><code>ITraderEnv</code> owns the chronological rolling market buffer. The model-facing
+layout is:</p>
+<pre><code class="language-text">obs_t = [price_window_flat(T * F) | task_embedding(D)]
+price_flat = obs[..., :T*F]
+task_embed = obs[..., T*F:]
+price_window = reshape(price_flat, ..., T, F)
+newest_bar = price_window[..., -1, :]
+</code></pre>
+<p>Selecting the first <code>F</code> values would select the oldest bar, not the newest. A
+model must not infer <code>F</code> from the full observation width. A same-width tensor is
+not evidence of the same information: record feature order, window length, task
+fields, timing, warmup, and state ownership.</p>
+<p>The current <code>SolverMLPFiLM</code> source uses:</p>
+<pre><code class="language-text">hidden = MLP(price_window_flat)
+(gamma_raw, beta) = task_projection(task_embed)
+gamma = tanh(gamma_raw)
+conditioned_hidden = gamma * hidden + beta
+</code></pre>
+<p>Task embedding dropout is applied during training when configured. A
+<code>conditioning</code> value other than <code>film</code> returns the unconditioned hidden state;
+that path does not implement task concatenation. The identity-centred form
+<code>(1 + scale) * hidden + shift</code> is a possible future factor, not current R0.</p>
+<h2 id="r-series-matrix-and-provenance">R-series matrix and provenance</h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Original identity</th>
+<th>Current status</th>
+<th>Attribution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R0</td>
+<td><code>SolverMLPFiLM</code>, no cross-step state</td>
+<td><strong>Implemented/default</strong></td>
+<td>Control</td>
+</tr>
+<tr>
+<td>R1</td>
+<td>Corrected reset-every-step window LSTM + FiLM</td>
+<td><strong>Unimplemented</strong></td>
+<td>Within-window temporal inductive bias</td>
+</tr>
+<tr>
+<td>R2a</td>
+<td>True recurrent LSTM + task concat</td>
+<td><strong>Unimplemented</strong></td>
+<td>Original stateful recurrence baseline</td>
+</tr>
+<tr>
+<td>R2b</td>
+<td>True recurrent LSTM + FiLM initial state only</td>
+<td><strong>Deferred</strong></td>
+<td>Current initial-state hook has no task input</td>
+</tr>
+<tr>
+<td>R2c</td>
+<td>True recurrent LSTM + FiLM per step</td>
+<td><strong>Active candidate; unimplemented</strong></td>
+<td>Original per-step identity; placement/order remains open pending grill-me review</td>
+</tr>
+<tr>
+<td>R2d</td>
+<td>Init + per-step FiLM on value head only</td>
+<td><strong>Deferred</strong></td>
+<td>Requires matched policy/value placement</td>
+</tr>
+<tr>
+<td>R3</td>
+<td>True recurrent GRU + per-step FiLM</td>
+<td><strong>Planned later</strong></td>
+<td>Cell type/compute comparison</td>
+</tr>
+<tr>
+<td>R4-v1</td>
+<td>Winning head plus explicit solver-state features on matched FF/recurrent cells</td>
+<td><strong>Planned, versioned</strong></td>
+<td>Observability study, not historical R4</td>
+</tr>
+</tbody>
+</table>
+<p>Migration note: <code>bec5c77</code> simplified the matrix and called per-step FiLM R2b;
+that label maps to original R2c. Its old init-oriented R4 maps to original R2b.
+The current matched solver-state study is retained as <code>R4-v1</code>. Do not silently
+reuse an historical ID for a different factor.</p>
+<h2 id="causal-controls">Causal controls</h2>
+<h3 id="r0-r1">R0 -&gt; R1</h3>
+<p>This asks whether an explicit sequence encoder over the already supplied window
+helps a feed-forward control. It does not test persistent memory.</p>
+<h3 id="r1-newest-bar-r2">R1 -&gt; newest-bar R2</h3>
+<p>This is an engineering progression, not an isolated memory proof. R1 sees <code>T</code>
+market bars immediately at every call and resets. A newest-bar stateful model
+starts with a cold hidden state (unless a causal warmup is specified) and sees
+one bar per recurrent step. The comparison changes:</p>
+<ul>
+<li>accessible input history;</li>
+<li>cold-start/warmup information;</li>
+<li>task-conditioning placement;</li>
+<li>state lifetime and training sequence semantics.</li>
+</ul>
+<p>State this compound difference in every result.</p>
+<h3 id="same-inputsame-conditioning-carryreset-control">Same-input/same-conditioning carry/reset control</h3>
+<p>Train from scratch with identical data, task pool, feature timing, optimizer,
+seeds, budget, and model capacity:</p>
+<ul>
+<li><strong><code>R2c-CARRY</code></strong> — newest-bar input, the selected per-step FiLM placement,
+  carried <code>(h,c)</code> within real episodes;</li>
+<li><strong><code>R2c-RESET</code></strong> — exactly the same input and conditioning, but reset <code>(h,c)</code>
+  at every scored call.</li>
+</ul>
+<p>The suffixes are control labels, not new R-series IDs. This pair is the minimum
+carry-state attribution control. If the explicit pre-cell placement is studied,
+use the same suffix pair for that placement rather than comparing two factors at
+once.</p>
+<p>A <strong>zero-state evaluation probe</strong> is separate: it resets a trained carry model's
+state at evaluation. It is an out-of-distribution intervention because training
+saw carried states. A performance change is a diagnostic of state sensitivity,
+not a causal estimate on its own. Also report state permutation/history probes
+with their distribution-shift caveat.</p>
+<h2 id="film-placement-vocabulary">FiLM placement vocabulary</h2>
+<table>
+<thead>
+<tr>
+<th>Placement</th>
+<th>Task reaches</th>
+<th style="text-align: right;">Does it change transition?</th>
+<th>State returned</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R2a input concat</td>
+<td>Cell input at each step</td>
+<td style="text-align: right;">Yes, as input</td>
+<td>Raw <code>(h,c)</code></td>
+</tr>
+<tr>
+<td><code>R2c-precell</code> named factor</td>
+<td>New-bar projection or cell/gate input</td>
+<td style="text-align: right;">Yes, candidate</td>
+<td>Raw <code>(h,c)</code></td>
+</tr>
+<tr>
+<td>R2c post-cell/readout (preferred first candidate)</td>
+<td>Policy/value readout after cell</td>
+<td style="text-align: right;">No</td>
+<td>Raw <code>(h,c)</code></td>
+</tr>
+<tr>
+<td>R2b init-only</td>
+<td>Initial <code>(h,c)</code></td>
+<td style="text-align: right;">Indirectly</td>
+<td>Carried <code>(h,c)</code></td>
+</tr>
+<tr>
+<td>R2d value-only</td>
+<td>Value readout placement by design</td>
+<td style="text-align: right;">No policy transition claim</td>
+<td>Matched raw state</td>
+</tr>
+</tbody>
+</table>
+<p>For any placement, state the complete task path before attributing causality. A
+post-cell/readout FiLM path is only readout-only when no other task path (such as
+concat) reaches the cell. If concat reaches the cell, the transition is already
+task-conditioned and FiLM is an additional factor. Readout-first is a proposed
+comparison order, not a settled memory-conditioning decision.</p>
+<p>R2b remains deferred because RLlib's current <code>get_initial_state()</code> contract does
+not receive the current task observation. Do not claim initial-state conditioning
+just because an initial state exists.</p>
+<h2 id="time-and-state-lifecycle">Time and state lifecycle</h2>
+<p>Keep three windows distinct:</p>
+<ol>
+<li><strong>Input window</strong> — bars included in one environment observation.</li>
+<li><strong>BPTT/unroll (<code>max_seq_len</code>)</strong> — training sequence/chunk span; detach at a
+   chunk boundary does not reset environment state.</li>
+<li><strong>Episode horizon</strong> — task/environment episode length and termination scope.</li>
+<li><strong>Reward-statistics window</strong> — history used by a statistic such as Sharpe; it is
+   distinct from the episode horizon and BPTT span.</li>
+</ol>
+<p>A newest-bar model may use:</p>
+<ul>
+<li><strong>cold start</strong>: zero initial state, then process the first available bar;</li>
+<li><strong>causal initial-window warmup</strong>: process prior bars sequentially before the
+  first scored action, with no future bars and no duplicate chronological steps.</li>
+</ul>
+<p>Do not present warmup as extra prediction data, and do not count repeated
+overlapping observation bars as new environment timesteps.</p>
+<p>The current source lock is Ray/RLlib 2.9.0, Gymnasium 0.28.1, Python 3.11.
+The former Phase B Ray 2.47.1 line is historical and not the active API
+authority. Do not invent <code>recurrent_policy=True</code>, <code>shuffle_sequences=False</code>, or
+other flags without verifying the pinned version's native API.</p>
+<p>Before any recurrent result, specify and test:</p>
+<ul>
+<li>native initial-state and recurrent-forward hooks;</li>
+<li><code>(h,c)</code> ordering, shapes, dtype, and device;</li>
+<li><code>seq_lens</code>/valid lengths and sequence packing;</li>
+<li>padding masks for policy and value losses;</li>
+<li>preservation of the last valid <strong>h and c</strong>;</li>
+<li>reset state when the environment actually resets at real episode termination;</li>
+<li>do not treat a truncated bootstrap difference as an episode reset;</li>
+<li>distinguish fragment detach/truncated BPTT from a real environment reset;</li>
+<li>vector-environment state ownership;</li>
+<li>checkpoint save/restore and replay state ownership;</li>
+<li>identical state timing and feature preprocessing in training and inference.</li>
+</ul>
+<p><code>batch_mode="complete_episodes"</code> is a collection boundary. It is not proof of
+stateful rollout handling or full-episode BPTT.</p>
+<h2 id="task-semantics-and-explicit-solver-state">Task semantics and explicit solver state</h2>
+<p>The current default task encoder represents family, price field, reward ID,
+horizon, dimensions, and a bounded seed feature. It omits reward parameters, bar
+resolution, regime tags, difficulty, metadata, and start index. Reward overrides
+are merged after embedding. For initial matched cells, freeze omitted fields and
+report the seed shortcut, or introduce a separately versioned semantic encoder.
+Do not treat the default embedding as complete task semantics.</p>
+<p>The policy observation contains no position, previous action, realized reward,
+unrealized PnL, or episode progress. OHLCV-only recurrence cannot reconstruct the
+agent's sampled actions, fills, position, or reward history exactly. <code>R4-v1</code>
+must define field order, normalization, timing, and terminal behavior, then add
+the same explicit fields to the feed-forward control and the recurrent cell.</p>
+<h2 id="test-and-evaluation-matrix">Test and evaluation matrix</h2>
+<p>All matched cells use the same task pool, data eligibility, chronological splits,
+feature/encoder version, reward, seeds, PPO budget, and evaluation protocol.
+Record:</p>
+<ul>
+<li>held-out return, risk-adjusted metrics, drawdown, turnover, and costs;</li>
+<li>action distribution, entropy, and finite-loss checks;</li>
+<li>slices by horizon and regime only when metadata is emitted;</li>
+<li>steps/second, memory, parameter count, and state norms;</li>
+<li>valid-length/last-state and reset/truncation checks;</li>
+<li>checkpoint/replay state ownership;</li>
+<li>a causal attribution statement for every comparison.</li>
+</ul>
+<p>Do not call PPO logits/value outputs calibrated confidence or expected net utility
+without a separate calibration/economic-evidence procedure. A training curve is
+not held-out evidence.</p>
+<h2 id="azr-relationship-separate-study">AZR relationship (separate study)</h2>
+<p>The local AZR v2 source is summarized in
+<code>docs/artifacts/research/azr-stack-review-2026-09-12.md</code>. Eq. 4 gives proposer
+reward <code>0</code> for observed <code>p=0</code> or <code>p=1</code>, otherwise <code>1-p</code>; it is asymmetric and not
+a symmetric 50% peak or measured pre/post learning progress. Table 2 values are
+AZR coding/math results, not iTrader trading results. Historical OHLCV means this
+project is not zero-data AZR.</p>
+<p><code>train_AZR.py</code> is a bootstrap task-pool generation plus solver handoff. It is not
+a co-adaptive loop. Keep a separate proposer study:</p>
+<ol>
+<li>fixed rule/random validated curriculum control;</li>
+<li>frozen LLM proposer;</li>
+<li>frozen LLM with solver-feedback/reference-conditioned selection;</li>
+<li>adaptive proposer only after repeatable utility/uplift evidence.</li>
+</ol>
+<p>Make frozen versus adaptive reference-buffer updates a named factor. Adaptation
+feedback is validation. Keep an untouched final chronological test unavailable to
+proposer updates, tuning, and head selection. Use deterministic, cost-aware
+verification and report accepted timesteps, rejected tasks, generation calls,
+tokens/latency, total compute, costs, turnover, and drawdown. Do not substitute
+this study for R-series solver attribution.</p>
+<h2 id="experiment-order-and-promotion-gates-proposal">Experiment order and promotion gates (proposal)</h2>
+<p>The following order is an experiment proposal pending the user's grill-me review:
+1. R0 alignment/reward controls.
+2. R1 explicit split and window encoder; correct and measurable is sufficient to
+   proceed, even if it does not win.
+3. R2a native recurrence lifecycle.
+4. R2c readout FiLM and <code>R2c-CARRY</code>/<code>R2c-RESET</code>.
+5. Optional <code>R2c-precell</code>, R2b, R2d, and R3, each with named matched controls.
+6. R4-v1 explicit state features matched across FF/recurrent controls.
+7. Separate proposer/reference-buffer study, then shadow/online work.</p>
+<p>No recurrent head becomes default until lifecycle tests, matched train-from-
+scratch seeds, held-out chronological evaluation, state/compute evidence, and
+checkpoint/replay checks pass. R0 remains the operational control throughout.</p>
+    </article>
   </main>
 </body>
 </html>

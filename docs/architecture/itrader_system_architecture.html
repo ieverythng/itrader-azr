@@ -212,266 +212,568 @@
       .reveal { opacity: 1; transform: none; transition: none; }
     }
   </style>
+<style>
+    /* Faithful Markdown companion fallback */
+    .markdown-companion { max-width: 1100px; margin: 0 auto; padding: 2rem; }
+    .markdown-companion .source-note { margin: 0 0 1rem; }
+    .markdown-source { white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 4; }
+  </style>
+
+  <style>
+    .markdown-companion {
+      width: min(960px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 42px 0 72px;
+    }
+    .markdown-companion .source-note {
+      margin: 0 auto 24px;
+      max-width: 860px;
+      color: var(--muted, #59616d);
+      font-size: 0.9rem;
+    }
+    .markdown-companion .source-note a {
+      color: var(--blue, #205b91);
+    }
+    .markdown-companion .markdown-content {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: clamp(24px, 5vw, 56px);
+      color: var(--ink, #18201c);
+      background: var(--panel, #fff);
+      border: 1px solid var(--line, #cbd2cc);
+      border-radius: 12px;
+      box-shadow: 0 12px 32px rgba(24, 32, 28, 0.08);
+    }
+    .markdown-companion .markdown-content h1,
+    .markdown-companion .markdown-content h2,
+    .markdown-companion .markdown-content h3,
+    .markdown-companion .markdown-content h4 {
+      max-width: none;
+      margin: 1.6em 0 0.65em;
+      color: var(--ink, #18201c);
+      font-family: Georgia, serif;
+      font-weight: 700;
+      letter-spacing: normal;
+      line-height: 1.2;
+    }
+    .markdown-companion .markdown-content h1 {
+      margin-top: 0;
+      font-size: clamp(2rem, 5vw, 3rem);
+    }
+    .markdown-companion .markdown-content h2 { font-size: clamp(1.45rem, 3vw, 2rem); }
+    .markdown-companion .markdown-content h3 { font-size: 1.25rem; }
+    .markdown-companion .markdown-content p,
+    .markdown-companion .markdown-content li,
+    .markdown-companion .markdown-content td,
+    .markdown-companion .markdown-content th {
+      color: var(--muted, #59616d);
+    }
+    .markdown-companion .markdown-content p,
+    .markdown-companion .markdown-content ul,
+    .markdown-companion .markdown-content ol,
+    .markdown-companion .markdown-content blockquote,
+    .markdown-companion .markdown-content table {
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+    .markdown-companion .markdown-content pre {
+      overflow-x: auto;
+      padding: 16px;
+      color: #eef5f0;
+      background: #1b2720;
+      border-left: 4px solid var(--green, #176b49);
+      border-radius: 4px;
+      line-height: 1.5;
+    }
+    .markdown-companion .markdown-content code {
+      overflow-wrap: anywhere;
+    }
+    .markdown-companion .markdown-content table {
+      display: table;
+      width: 100%;
+      overflow: visible;
+      border-collapse: collapse;
+    }
+    .markdown-companion .markdown-content img {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+
+  <style>
+    .markdown-companion {
+      width: min(960px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 42px 0 72px;
+    }
+    .markdown-companion .source-note {
+      margin: 0 auto 24px;
+      max-width: 860px;
+      color: var(--muted, #59616d);
+      font-size: 0.9rem;
+    }
+    .markdown-companion .source-note a {
+      color: var(--blue, #205b91);
+    }
+    .markdown-companion .markdown-content {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: clamp(24px, 5vw, 56px);
+      color: var(--ink, #18201c);
+      background: var(--panel, #fff);
+      border: 1px solid var(--line, #cbd2cc);
+      border-radius: 12px;
+      box-shadow: 0 12px 32px rgba(24, 32, 28, 0.08);
+    }
+    .markdown-companion .markdown-content h1,
+    .markdown-companion .markdown-content h2,
+    .markdown-companion .markdown-content h3,
+    .markdown-companion .markdown-content h4 {
+      max-width: none;
+      margin: 1.6em 0 0.65em;
+      color: var(--ink, #18201c);
+      font-family: Georgia, serif;
+      font-weight: 700;
+      letter-spacing: normal;
+      line-height: 1.2;
+    }
+    .markdown-companion .markdown-content h1 {
+      margin-top: 0;
+      font-size: clamp(2rem, 5vw, 3rem);
+    }
+    .markdown-companion .markdown-content h2 { font-size: clamp(1.45rem, 3vw, 2rem); }
+    .markdown-companion .markdown-content h3 { font-size: 1.25rem; }
+    .markdown-companion .markdown-content p,
+    .markdown-companion .markdown-content li,
+    .markdown-companion .markdown-content td,
+    .markdown-companion .markdown-content th {
+      color: var(--muted, #59616d);
+    }
+    .markdown-companion .markdown-content p,
+    .markdown-companion .markdown-content ul,
+    .markdown-companion .markdown-content ol,
+    .markdown-companion .markdown-content blockquote,
+    .markdown-companion .markdown-content table {
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+    .markdown-companion .markdown-content pre {
+      overflow-x: auto;
+      padding: 16px;
+      color: #eef5f0;
+      background: #1b2720;
+      border-left: 4px solid var(--green, #176b49);
+      border-radius: 4px;
+      line-height: 1.5;
+    }
+    .markdown-companion .markdown-content code {
+      overflow-wrap: anywhere;
+    }
+    .markdown-companion .markdown-content table {
+      display: table;
+      width: 100%;
+      overflow: visible;
+      border-collapse: collapse;
+    }
+    .markdown-companion .markdown-content img {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
+
+  <style>
+    .markdown-companion {
+      width: min(960px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 42px 0 72px;
+    }
+    .markdown-companion .source-note {
+      margin: 0 auto 24px;
+      max-width: 860px;
+      color: var(--muted, #59616d);
+      font-size: 0.9rem;
+    }
+    .markdown-companion .source-note a {
+      color: var(--blue, #205b91);
+    }
+    .markdown-companion .markdown-content {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: clamp(24px, 5vw, 56px);
+      color: var(--ink, #18201c);
+      background: var(--panel, #fff);
+      border: 1px solid var(--line, #cbd2cc);
+      border-radius: 12px;
+      box-shadow: 0 12px 32px rgba(24, 32, 28, 0.08);
+    }
+    .markdown-companion .markdown-content h1,
+    .markdown-companion .markdown-content h2,
+    .markdown-companion .markdown-content h3,
+    .markdown-companion .markdown-content h4 {
+      max-width: none;
+      margin: 1.6em 0 0.65em;
+      color: var(--ink, #18201c);
+      font-family: Georgia, serif;
+      font-weight: 700;
+      letter-spacing: normal;
+      line-height: 1.2;
+    }
+    .markdown-companion .markdown-content h1 {
+      margin-top: 0;
+      font-size: clamp(2rem, 5vw, 3rem);
+    }
+    .markdown-companion .markdown-content h2 { font-size: clamp(1.45rem, 3vw, 2rem); }
+    .markdown-companion .markdown-content h3 { font-size: 1.25rem; }
+    .markdown-companion .markdown-content p,
+    .markdown-companion .markdown-content li,
+    .markdown-companion .markdown-content td,
+    .markdown-companion .markdown-content th {
+      color: var(--muted, #59616d);
+    }
+    .markdown-companion .markdown-content p,
+    .markdown-companion .markdown-content ul,
+    .markdown-companion .markdown-content ol,
+    .markdown-companion .markdown-content blockquote,
+    .markdown-companion .markdown-content table {
+      margin-top: 0.8em;
+      margin-bottom: 0.8em;
+    }
+    .markdown-companion .markdown-content pre {
+      overflow-x: auto;
+      padding: 16px;
+      color: #eef5f0;
+      background: #1b2720;
+      border-left: 4px solid var(--green, #176b49);
+      border-radius: 4px;
+      line-height: 1.5;
+    }
+    .markdown-companion .markdown-content code {
+      overflow-wrap: anywhere;
+    }
+    .markdown-companion .markdown-content table {
+      display: table;
+      width: 100%;
+      overflow: visible;
+      border-collapse: collapse;
+    }
+    .markdown-companion .markdown-content img {
+      max-width: 100%;
+      height: auto;
+    }
+  </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="shell topbar-inner">
-      <div class="brand">iTrader <span>/ architecture atlas</span></div>
-      <nav aria-label="Architecture sections">
-        <a href="#map">System map</a>
-        <a href="#offline">Offline loop</a>
-        <a href="#solver">Solver</a>
-        <a href="#online">Online shell</a>
-        <a href="#roadmap">Roadmap</a>
-        <a href="#operations">Operations</a>
-      </nav>
-    </div>
-    <div class="progress" aria-hidden="true"></div>
-  </header>
-
-  <section class="hero">
-    <div class="shell hero-inner">
-      <div class="kicker">Living system memory · Phase B</div>
-      <h1>From market windows to verifiable decisions.</h1>
-      <p class="hero-copy">iTrader is an RLVR research platform where typed tasks frame the problem, learned solvers estimate action and value, proposers shape the curriculum, and deterministic gates keep future execution inspectable.</p>
-      <div class="hero-meta">
-        <span class="pill">PPO + GAE solver</span>
-        <span class="pill">FiLM task conditioning</span>
-        <span class="pill">Goldilocks curriculum</span>
-        <span class="pill">Replay before live</span>
-        <span class="pill">Risk is final</span>
-      </div>
-      <div class="hero-map" aria-label="End-to-end architecture summary">
-        <div class="hero-node"><small>01 · Observe</small><strong>Market substrate</strong><span>Historical OHLCV, rolling windows, feature assembly and market summaries.</span></div>
-        <div class="hero-node"><small>02 · Frame</small><strong>Typed tasks</strong><span>TaskSpec, families, rewards and validated candidate contracts.</span></div>
-        <div class="hero-node"><small>03 · Learn</small><strong>Proposer ↔ solver</strong><span>Curriculum generation, PPO optimization and capability measurement.</span></div>
-        <div class="hero-node"><small>04 · Decide</small><strong>Online shell</strong><span>Candidate scoring, deterministic gating, risk and WAIT.</span></div>
-        <div class="hero-node"><small>05 · Remember</small><strong>Evidence layer</strong><span>Metrics, manifests, datasets, DecisionRecords and GitNexus.</span></div>
-      </div>
-    </div>
-  </section>
-
-  <main class="shell">
-    <section id="map" class="reveal">
-      <div class="section-head">
-        <div><div class="section-no">01 · System map</div><h2>One platform, four maturity states.</h2></div>
-        <p class="section-lede">The architecture is deliberately evolutionary. Stable research paths remain operational while typed contracts prepare the online system without pretending that every future component already exists.</p>
-      </div>
-      <div class="legend">
-        <span class="status implemented">Implemented</span>
-        <span class="status contract">Contract-ready</span>
-        <span class="status building">In development</span>
-        <span class="status future">Future frontier</span>
-      </div>
-      <div class="grid">
-        <article class="card span-6 accent"><div class="label">Implemented · Phase A/B</div><h3>Reliable solver baseline</h3><p>Parquet market data enters <code>ITraderEnv</code>; flattened windows and task embeddings feed <code>SolverMLPFiLM</code>; RLlib PPO + GAE produces policies, checkpoints and decomposed metrics.</p></article>
-        <article class="card span-6"><div class="label">Implemented · Bootstrap</div><h3>Validated proposer handoff</h3><p>Rule-based, Ollama and OpenAI-compatible backends generate tasks through one proposer interface. Validation and clamping protect the persistent <code>TaskPool</code> and environment reset path.</p></article>
-        <article class="card"><div class="label">Contract-ready</div><h3>Online language</h3><p><code>CandidateTask</code>, <code>ExecutionIntent</code>, <code>CapabilityProfile</code> and <code>DecisionRecord</code> define the data boundaries for replay and shadow mode.</p></article>
-        <article class="card warm"><div class="label">In development</div><h3>Solver depth</h3><p>Task families 01/02, truthful capability slices, reset-every-step window encoding and native RLlib recurrent FiLM are separate Phase B frontiers that require matched ablations.</p></article>
-        <article class="card dark"><div class="label">Planned · Phase C/D</div><h3>Cautious autonomy</h3><p>MarketFramer, DecisionGate, RiskEngine, Executor, WatsonOW integration and optional Market-JEPA representations arrive only behind replay evidence and deterministic controls.</p></article>
-      </div>
-    </section>
-
-    <div class="rule"></div>
-
-    <section id="substrate" class="reveal">
-      <div class="section-head">
-        <div><div class="section-no">02 · Data substrate</div><h2>The market becomes a controlled experiment.</h2></div>
-        <p class="section-lede">Raw bars are not the policy interface. The environment turns market history into repeatable windows, task-conditioned observations, explicit episode boundaries and auditable reward context.</p>
-      </div>
-      <div class="grid">
-        <article class="card"><div class="label">Acquire</div><h3>Historical + live inputs</h3><ul><li>OHLCV parquet datasets</li><li>Backfill and ETL utilities</li><li>Future rolling live feed</li><li>Dataset hash in run manifests</li></ul></article>
-        <article class="card"><div class="label">Assemble</div><h3>Window + summary</h3><ul><li>Configured feature columns</li><li>Rolling price window</li><li>Market snapshot / text summary</li><li>Regime and horizon metadata</li></ul></article>
-        <article class="card accent"><div class="label">Simulate</div><h3><code>ITraderEnv</code></h3><ul><li>Task-conditioned observations</li><li>Random, stream or task start index</li><li>Finite reward context</li><li>Episode and component metrics</li></ul></article>
-        <article class="card span-12 dark"><div class="label">Observation contract</div><h3>Price evidence and task intent remain separable.</h3><p><code>[price_window_flat, task_embedding]</code> is the current stable RLlib observation. Models must split those regions explicitly. A temporal solver may reshape only the price slice to <code>(time, features)</code>; it must never infer feature geometry from the appended task embedding.</p></article>
-      </div>
-    </section>
-
-    <div class="rule"></div>
-
-    <section id="contracts" class="reveal">
-      <div class="section-head">
-        <div><div class="section-no">03 · Typed language</div><h2>Contracts prevent cleverness from becoming ambiguity.</h2></div>
-        <p class="section-lede">Training problems, possible trades, empirical competence and final outcomes are different concepts. iTrader keeps them different on purpose.</p>
-      </div>
-      <div class="contract-row"><code>TaskSpec</code><p>The canonical problem statement: family, horizon, bar resolution, reward configuration, difficulty and market-window reference.</p><span class="contract-owner">Offline + solver</span></div>
-      <div class="contract-row"><code>ExecutionIntent</code><p>How a valid candidate could be traded: side, entry, stop, take-profit, TTL and sizing hints. It does not grant execution.</p><span class="contract-owner">Online semantics</span></div>
-      <div class="contract-row"><code>CandidateTask</code><p>A validated TaskSpec plus optional execution framing, proposer rationale, confidence metadata and candidate identity.</p><span class="contract-owner">MarketFramer output</span></div>
-      <div class="contract-row"><code>CapabilityProfile</code><p>Empirical solver competence indexed by family, regime, horizon and calibration. This defines the moving Goldilocks band.</p><span class="contract-owner">Evaluation truth</span></div>
-      <div class="contract-row"><code>DecisionRecord</code><p>The audit object for candidate set, solver scores, gate/risk decisions, final action and realized outcome.</p><span class="contract-owner">Telemetry + memory</span></div>
-      <div class="family-strip" style="margin-top: 28px">
-        <div class="family"><b>00</b><strong>Direction</strong><span>Current proven short-horizon prediction and action path.</span></div>
-        <div class="family"><b>01</b><strong>Breakout</strong><span>Compression-to-expansion and continuation opportunities.</span></div>
-        <div class="family"><b>02</b><strong>Mean reversion</strong><span>Snapback tasks with distinct entry and reward semantics.</span></div>
-        <div class="family"><b>03</b><strong>Manage</strong><span>Hold, trim or exit an already-open position.</span></div>
-        <div class="family"><b>04</b><strong>Abstain</strong><span>Explicitly learn when the regime is unsuitable for action.</span></div>
-      </div>
-    </section>
-
-    <div class="rule"></div>
-
-    <section id="offline" class="reveal">
-      <div class="section-head">
-        <div><div class="section-no">04 · Offline learning</div><h2>A curriculum that must earn its usefulness.</h2></div>
-        <p class="section-lede">Phase B establishes a frozen proposer, reliable solver evidence and the data needed to define <code>r_prop</code>. Phase C activates proposer reward and closes the co-adaptive loop so held-out evaluation can determine whether either side actually improved.</p>
-      </div>
-      <div class="flow">
-        <div class="flow-title"><h3>Offline proposer ↔ solver loop</h3><span>Phase B foundation · Phase C coupling</span></div>
-        <div class="track">
-          <div class="step"><b>Market sample</b><span>Historical window and compact market summary.</span></div>
-          <div class="step"><b>CurriculumProposer</b><span>Frozen model in Phase B; no LoRA dependency yet.</span></div>
-          <div class="step"><b>Validate + pool</b><span>Clamp schema, deduplicate and persist TaskSpecs.</span></div>
-          <div class="step"><b>Solver PPO</b><span>Train policy/value behavior with r_solve.</span></div>
-          <div class="step"><b>Held-out eval</b><span>Rolling windows by family, regime and horizon.</span></div>
-          <div class="step"><b>CapabilityProfile</b><span>Calibrated p_solve and expected utility.</span></div>
-          <div class="step"><b>r_prop + corpus</b><span>Design and log in B; activate feedback in C.</span></div>
-        </div>
-        <p class="flow-note">Current <code>train_AZR.py</code> implements the bootstrap seam: generate a validated task pool, then hand it to the stable solver trainer. Phase B makes that frozen-proposer path measurable and designs <code>r_prop</code>; Phase C implements the complete rewarded feedback loop.</p>
-      </div>
-      <div class="grid" style="margin-top: 16px">
-        <article class="card span-6"><div class="label">Proposer evolution</div><h3>Freeze first, optimize after evidence.</h3><p>Phase B implements a frozen proposer with validated, family-aware structured output and deterministic fallbacks; LoRA is deliberately out of the critical path. Phase C closes the <code>r_prop</code> loop and tests it properly before later adapter or grouped-candidate optimization.</p></article>
-        <article class="card span-6 warm"><div class="label">Goldilocks principle</div><h3>Neither trivial nor impossible.</h3><p>A useful task creates learnable signal, positive utility after costs, acceptable stability and measurable solver uplift. Win rate alone is not difficulty, capability or value.</p></article>
-      </div>
-    </section>
-
-    <div class="rule"></div>
-
-    <section id="solver" class="reveal">
-      <div class="section-head">
-        <div><div class="section-no">05 · Solver + reward</div><h2>Learned judgment, explicit evidence.</h2></div>
-        <p class="section-lede">The solver is the learned market-control component, not the broker and not the risk authority. Its outputs become useful only when reward components, calibration and held-out behavior remain visible.</p>
-      </div>
-      <div class="grid">
-        <article class="card span-6 accent"><div class="label">Implemented control</div><h3><code>SolverMLPFiLM</code></h3><p>The flattened price window enters an MLP trunk. A task embedding modulates hidden features through FiLM before policy logits and value estimation. This remains the reference head for all ablations.</p></article>
-        <article class="card span-6 warm"><div class="label">Phase B candidates</div><h3>Window LSTM + stateful FiLM</h3><p>R1 reshapes only the price slice and resets each decision. R2 carries RLlib state across steps. Both are unimplemented and must be compared separately; the newest input is the final row of the chronological window.</p></article>
-        <article class="card"><div class="label">Next architecture</div><h3>Shared trunk</h3><p>One observation encoder with explicit task and optional regime conditioning.</p></article>
-        <article class="card"><div class="label">Next architecture</div><h3>Family heads</h3><p>Separate policy/value outputs where family action semantics genuinely differ.</p></article>
-        <article class="card"><div class="label">Observation check</div><h3>Trade state is explicit</h3><p>The current observation lacks position and episode progress. Add those later to matched feed-forward and recurrent cells instead of assuming hidden state can recover them.</p></article>
-      </div>
-      <div class="grid" style="margin-top: 16px">
-        <div class="card span-6 dark">
-          <div class="label">Solver reward · PPO/GAE</div>
-          <pre class="formula"><em>default</em> = pnl_linear
-
-<em>challenger A</em> = delta_bounded_sharpe
-
-<em>challenger B</em> = pnl_linear
-               + delta_bounded_sharpe</pre>
-        </div>
-        <div class="card span-6 dark">
-          <div class="label">Proposer reward · future coupling</div>
-          <pre class="formula"><em>r_prop</em> = + goldilocks
-         + solver_uplift
-         + realized_utility
-         + useful_diversity
-         − too_easy / too_hard
-         − invalid / reward_hacking</pre>
-        </div>
-      </div>
-    </section>
-
-    <div class="rule"></div>
-
-    <section id="online" class="reveal">
-      <div class="section-head">
-        <div><div class="section-no">06 · Online shell</div><h2>Capability-aware framing, deterministic permission.</h2></div>
-        <p class="section-lede">MarketFramer may propose. Solver heads may score. Neither may trade. Every path to action crosses inspectable thresholds and a final rule-based risk boundary; WAIT is a successful decision when evidence is weak.</p>
-      </div>
-      <div class="flow">
-        <div class="flow-title"><h3>Replay → shadow → live decision cycle</h3><span>Contracts present · runtime planned</span></div>
-        <div class="track">
-          <div class="step"><b>Rolling window</b><span>Live or replayed market evidence and portfolio state.</span></div>
-          <div class="step"><b>Capability query</b><span>What each solver head can handle now.</span></div>
-          <div class="step"><b>MarketFramer</b><span>1–3 Goldilocks candidates plus WAIT.</span></div>
-          <div class="step"><b>Solver scoring</b><span>Solvability, edge, value and confidence.</span></div>
-          <div class="step"><b>DecisionGate</b><span>Deterministic validation, thresholds and ranking.</span></div>
-          <div class="step"><b>RiskEngine</b><span>Exposure, drawdown, costs, cooldown and kill switch.</span></div>
-          <div class="step"><b>Executor + record</b><span>Sim/shadow/live action and complete audit trail.</span></div>
-        </div>
-        <p class="flow-note"><strong style="color:#eaf5ed">The key distinction:</strong> MarketFramer uses both the market window and CapabilityProfile to shape task difficulty around a sliding solver-specific Goldilocks band. DecisionGate, not MarketFramer, makes the final deterministic selection after scoring.</p>
-      </div>
-      <div class="grid" style="margin-top: 16px">
-        <article class="card"><div class="label">DecisionGate</div><h3>Inspectable chooser</h3><p>Reject invalid or low-confidence candidates, require positive expected utility, rank surviving options and prefer WAIT when nothing clears the configured bar.</p></article>
-        <article class="card warm"><div class="label">RiskEngine</div><h3>Final authority</h3><p>Spread, slippage, size, exposure, loss, drawdown, cooldown, session windows and kill switches remain deterministic and cannot be overridden.</p></article>
-        <article class="card"><div class="label">Executor</div><h3>Faithful mechanism</h3><p>Translate approved intent into sim, shadow or broker actions; track acknowledgements, fills and failures; never invent strategy or alter risk rules.</p></article>
-        <article class="card span-12 dark"><div class="label">External orchestration</div><h3>WatsonOW may call iTrader later; it never becomes the trading authority.</h3><p>WatsonOW can request analysis, replay or evaluation, summarize evidence and maintain memory. It cannot bypass validation, DecisionGate, RiskEngine or Executor semantics.</p></article>
-      </div>
-    </section>
-
-    <div class="rule"></div>
-
-    <section id="roadmap" class="reveal">
-      <div class="section-head">
-        <div><div class="section-no">07 · Delivery map</div><h2>Progress without architectural amnesia.</h2></div>
-        <p class="section-lede">Each phase preserves the last reliable control path. New intelligence earns promotion through comparison, calibration and replay rather than replacing mature seams on aesthetic grounds.</p>
-      </div>
-      <div class="phase-line">
-        <article class="phase"><div class="phase-id">A</div><h3>Stable RLVR baseline</h3><p>Mostly complete.</p><ul><li>PPO + GAE training</li><li>FiLM solver</li><li>Finite decomposed rewards</li><li>Metrics, plots and manifests</li></ul></article>
-        <article class="phase"><div class="phase-id">B</div><h3>Solver + frozen proposer</h3><p>Active. Family 00 is fundamentally learnable; tuning continues.</p><ul><li>Implement frozen proposer, no LoRA yet</li><li>Tune and baseline family 00</li><li>Add family 01 then 02</li><li>Temporal solver ablation</li><li>Capability profiling + <code>r_prop</code> design</li></ul></article>
-        <article class="phase"><div class="phase-id">C</div><h3>Operational AZR + online format</h3><p>Target: fully coupled operation, accelerated through the WatsonOW seam.</p><ul><li>Activate <code>r_prop</code> and close the AZR loop</li><li>Test proposer/solver co-adaptation</li><li>Introduce MarketFramer online format</li><li>DecisionGate, RiskEngine and Executor</li><li>Replay/shadow operation + WatsonOW</li></ul></article>
-        <article class="phase"><div class="phase-id">D</div><h3>World-model frontier</h3><p>Optional future.</p><ul><li>Market-JEPA latent encoder</li><li>Regime and uncertainty priors</li><li>Candidate-window proposal</li><li>Non-JEPA replay ablation</li></ul></article>
-      </div>
-    </section>
-
-    <div class="rule"></div>
-
-    <section id="operations" class="reveal">
-      <div class="section-head">
-        <div><div class="section-no">08 · Evidence + operations</div><h2>Every run should leave a trail.</h2></div>
-        <p class="section-lede">The platform is not only model code. Reproducibility, observability and shared architectural memory are first-class surfaces across this Mac, the training workstation and future agents.</p>
-      </div>
-      <div class="grid">
-        <article class="card"><div class="label">Experiment identity</div><h3>Run manifests</h3><p>Git commit, config hash, dataset hash, seed, proposer backend and model identity travel with each run.</p></article>
-        <article class="card"><div class="label">Training evidence</div><h3>Ray + stable metrics</h3><p>Trials, checkpoints and reports live under <code>~/ray_results</code>, with stable metric mirrors and plotting tools for comparison.</p></article>
-        <article class="card"><div class="label">Future corpus</div><h3>Golden task records</h3><p>Candidate groups, validation, pre/post capability, utility and acceptance labels support SFT, ranking and regression analysis.</p></article>
-        <article class="card span-6 accent"><div class="label">Knowledge layer</div><h3>GitNexus narrows; source proves.</h3><p>The local graph, MCP tools and generated wiki accelerate architecture exploration and impact checks. Freshness must be checked, and code/tests remain authoritative when graph and source disagree.</p></article>
-        <article class="card span-6"><div class="label">Deployment shape</div><h3>Light client, heavy workstation.</h3><p>This Mac supports docs, graph exploration, smoke tests and local/cloud proposer calls. Long PPO/PBT, larger models and eventual always-on services belong on the main workstation, with explicit network and process boundaries.</p></article>
-      </div>
-    </section>
-
-    <div class="rule"></div>
-
-    <section id="principles" class="reveal">
-      <div class="section-head">
-        <div><div class="section-no">09 · Architectural constitution</div><h2>The rules that survive model changes.</h2></div>
-        <p class="section-lede">Architectures age well when their boundaries are stronger than their current implementation. These are the project’s durable decisions.</p>
-      </div>
-      <div class="principles">
-        <div class="principle"><b>01</b><p>Extend the working path before rewriting it. Family 00 and the FiLM baseline are controls, not legacy clutter.</p></div>
-        <div class="principle"><b>02</b><p>Keep typed contracts central. Task, execution, capability and decision records remain distinct.</p></div>
-        <div class="principle"><b>03</b><p>Reward stays explicit, finite and decomposed. Training return alone never proves capability.</p></div>
-        <div class="principle"><b>04</b><p>Capability is empirical and sliced by family, regime, horizon and calibration.</p></div>
-        <div class="principle"><b>05</b><p>WAIT is first-class. Abstention is often the most intelligent online output.</p></div>
-        <div class="principle"><b>06</b><p>LLMs propose; deterministic systems validate, gate, constrain and execute.</p></div>
-        <div class="principle"><b>07</b><p>Replay precedes shadow; shadow precedes live. Risk decisions remain final.</p></div>
-        <div class="principle"><b>08</b><p>Prefer clear family heads and ablations before MoE, persistent recurrence or capacity tricks.</p></div>
-        <div class="principle"><b>09</b><p>Every experiment must be explainable later through manifests, metrics, datasets and records.</p></div>
-      </div>
-    </section>
+  <main class="markdown-companion">
+    <p class="source-note">Source: <a href="itrader_system_architecture.md">itrader_system_architecture.md</a></p>
+    <article class="markdown-content"><h1>iTrader System Architecture</h1>
+<p>Last updated: 2026-09-12
+Branch snapshot: <code>agent/Watson-dev</code> at <code>bec5c77</code>
+Status: <strong>active working architecture; recurrence and trunk/head design pending grill-me review</strong></p>
+<h2>1. Source-grounded runtime</h2>
+<p>The implemented offline path is:</p>
+<pre><code class="language-text">historical OHLCV parquet
+-&gt; ITraderEnv
+-&gt; chronological flattened market window + task embedding
+-&gt; SolverMLPFiLM
+-&gt; PPO/GAE update
+-&gt; EpisodeEvidence -&gt; held-out metrics, stable provenance, capability report
+</code></pre>
+<p>Source anchors:</p>
+<ul>
+<li><code>itrader/rl_lib/train/train_solo_V2.py</code> currently selects
+<code>custom_model=&quot;solver_mlp_film&quot;</code>; registration of other model names is not a
+selector.</li>
+<li><code>itrader/envs/itrader_env.py</code> owns rolling-window assembly, task-conditioned
+reset, episode state, and reward context.</li>
+<li><code>itrader/rl_lib/tasks/spec.py</code> owns <code>TaskSpec</code>.</li>
+<li><code>itrader/models/solver_mlp_film.py</code> owns the active FiLM baseline.</li>
+<li><code>itrader/rl_lib/train/train_AZR.py</code> generates a task pool then launches the
+solver: this is bootstrap handoff, not co-adaptive AZR training.</li>
+</ul>
+<h2>2. Observation and conditioning contract</h2>
+<p>The current observation is:</p>
+<pre><code class="language-text">obs_t = [price_window_flat(T * F) | task_embedding(D)]
+price_window = reshape(price_window_flat, T, F)
+newest_bar = price_window[-1]
+</code></pre>
+<p>The environment fills the window chronologically. A candidate model must split
+these dimensions explicitly; inferring <code>F</code> from the full observation width is
+invalid once <code>D</code> is appended. The legacy <code>SolverLSTMModel</code> does exactly that and
+is both shape-incompatible for the usual <code>T=30,F=5,D=32</code> layout and non-stateful.</p>
+<p>The active <code>SolverMLPFiLM</code> implementation is source-defined as:</p>
+<pre><code class="language-text">hidden = MLP(price_window_flat)
+(gamma_raw, beta) = task_projection(task_embedding)
+gamma = tanh(gamma_raw)
+readout = gamma * hidden + beta
+</code></pre>
+<p>It also applies task dropout during training when configured. When its
+<code>conditioning</code> is not <code>film</code>, <code>_condition_hidden</code> returns <code>hidden</code>; this is not
+concat. An identity-centred <code>(1 + scale) * hidden + shift</code> parameterization would
+be a new factor and must retain R0 as a control.</p>
+<h3>Task embedding observability</h3>
+<p><code>TaskEncoder</code> exposes an explicit compatibility boundary. <code>legacy_v1</code> retains
+the historical family/price/reward/horizon/dimension/seed representation for
+checkpoint replay. New training uses <code>semantic_v2</code>, which hashes canonical
+solver-relevant fields including normalized reward parameters, bar resolution,
+regime, difficulty, and metadata while excluding episode seed/start. Reward
+overrides normalize before encoding. An encoding version is part of the resolved
+configuration and must not change silently across checkpoint restore.</p>
+<h3>Phase A evidence and partition contract</h3>
+<p><code>ITraderEnv</code> owns the public terminal <code>EpisodeEvidence</code> record because it already
+owns action-to-position transitions and episode accounting. <code>RewardEngine</code> emits
+optimization reward; it does not define economic return. The evidence record
+independently contains gross/cost/net arithmetic returns, turnover including
+terminal liquidation, drawdown, exposure/activity, Sharpe per square-root bar,
+task identity, symbol, split, and row bounds.</p>
+<p><code>DataPartition</code> precomputes valid contiguous starts per symbol for <code>train</code>,
+<code>validation</code>, and <code>test</code>, accounting for lookback, task horizon, and purge rows.
+Training samples only <code>train</code>; PBT evaluates with <code>explore=False</code> on a matched
+validation seed. The final <code>test</code> partition is reserved for post-selection.
+Annualized Sharpe is optional and requires an explicit periods-per-year contract;
+the invariant metric is the unannualized per-square-root-bar value.</p>
+<h2>Phase B architecture decision status</h2>
+<p>Phase B covers both offline/curriculum work and online replay/shadow work. A
+shared recurrent trunk with family-specific policy/value heads is a proposed
+option under review, not a settled architecture. Families <code>00</code>–<code>04</code> remain the
+roadmap; <code>00</code>–<code>02</code> may share <code>Discrete(3)</code> output width without sharing input
+schemas, task semantics, reward assignments, or state ownership. Do not implement
+these choices until the ongoing grill-me review confirms them.</p>
+<p><code>RewardEngine</code> remains the environment-owned solver reward seam. It is not a
+mandatory learned reward head, and reward computation must not be silently
+conflated with policy/value-head design.</p>
+<p>The historical identities below preserve the original file at commit <code>4732a98</code>.
+They are design names, not current CLI flags, and do not settle the architecture.</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Head and conditioning</th>
+<th>State</th>
+<th>Status and purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R0</td>
+<td><code>SolverMLPFiLM</code></td>
+<td>None</td>
+<td><strong>Implemented/default control</strong></td>
+</tr>
+<tr>
+<td>R1</td>
+<td>Corrected reset-every-step window LSTM + FiLM</td>
+<td>None</td>
+<td>Unimplemented; test temporal inductive bias inside the supplied window</td>
+</tr>
+<tr>
+<td>R2a</td>
+<td>Stateful LSTM + task concat at recurrent input</td>
+<td><code>(h,c)</code> across steps</td>
+<td>Unimplemented; original recurrence baseline</td>
+</tr>
+<tr>
+<td>R2b</td>
+<td>Stateful LSTM + FiLM initial state only</td>
+<td><code>(h,c)</code> across steps</td>
+<td>Deferred; <code>get_initial_state()</code> lacks task input under current RLlib contract</td>
+</tr>
+<tr>
+<td>R2c</td>
+<td>Stateful LSTM + per-step FiLM</td>
+<td><code>(h,c)</code> across steps</td>
+<td><strong>Active candidate; unimplemented</strong>; placement remains open pending grill-me review</td>
+</tr>
+<tr>
+<td>R2d</td>
+<td>Init + per-step FiLM on value head only</td>
+<td><code>(h,c)</code> across steps</td>
+<td>Deferred; needs matched policy/value placement controls</td>
+</tr>
+<tr>
+<td>R3</td>
+<td>Stateful GRU + per-step FiLM</td>
+<td><code>h</code> across steps</td>
+<td>Planned after LSTM lifecycle controls</td>
+</tr>
+<tr>
+<td>R4-v1</td>
+<td>Explicit solver-state features on matched FF + recurrent cells</td>
+<td>Cell-dependent</td>
+<td>Planned; versioned observability study, not historical R4</td>
+</tr>
+</tbody>
+</table>
+<p>Migration note: the simplified <code>bec5c77</code> docs called per-step FiLM R2b; that
+label maps to original R2c. The former init-oriented R4 maps to original R2b.
+The current R4 label is retained only as <code>R4-v1</code> for the matched state-feature
+study. Historical IDs are not silently repurposed.</p>
+<h2>4. Causal attribution design</h2>
+<h3>4.1 What R1 versus newest-bar R2 does and does not prove</h3>
+<p>R1 consumes a full window at every decision and resets its window encoder. A
+newest-bar recurrent cell consumes one bar and carries state. The comparison
+therefore changes accessible input history, cold-start warmup, conditioning path,
+and state lifetime. It is a useful engineering progression, not an isolated
+proof that carry-state caused an uplift.</p>
+<p>Use two separately named same-input/same-conditioning controls, trained from
+scratch:</p>
+<ul>
+<li><code>R2c-CARRY</code>: newest-bar input, the chosen explicit per-step FiLM placement,
+carried <code>(h,c)</code> within real episodes.</li>
+<li><code>R2c-RESET</code>: the same architecture, task embedding, input timing, optimizer,
+data, and seeds, but reset <code>(h,c)</code> at every scored call.</li>
+</ul>
+<p>These suffixes do not create new R-series identities. They isolate the lifecycle
+factor after the architecture is held fixed. Compare R1 to R2 as an engineering
+path and <code>R2c-CARRY</code> to <code>R2c-RESET</code> as the carry/reset control.</p>
+<p>A zero-state evaluation probe is a separate diagnostic. It intervenes on a
+trained carry model and is out of distribution relative to training; a return
+drop is not a causal estimate by itself. Report state permutation, carry/reset,
+and zero-state results with that distinction.</p>
+<h3>4.2 FiLM placement vocabulary</h3>
+<table>
+<thead>
+<tr>
+<th>Placement</th>
+<th>Task reaches</th>
+<th>Returned recurrent state</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input concat (R2a)</td>
+<td>Cell input</td>
+<td>Raw <code>(h,c)</code></td>
+<td>Task is an input to the transition</td>
+</tr>
+<tr>
+<td>Pre-cell/input FiLM (<code>R2c-precell</code>, planned factor)</td>
+<td>New-bar projection or cell/gate input</td>
+<td>Raw <code>(h,c)</code></td>
+<td>Candidate task-dependent transition; hold concat fixed for attribution</td>
+</tr>
+<tr>
+<td>Post-cell/readout FiLM (R2c candidate)</td>
+<td>Policy/value readout after cell</td>
+<td>Raw <code>(h,c)</code></td>
+<td>Readout-only only if no other task path reaches the cell; placement remains open</td>
+</tr>
+<tr>
+<td>Initial-state FiLM (R2b)</td>
+<td>Initial <code>(h,c)</code></td>
+<td>Carried state</td>
+<td>Deferred because task is unavailable to <code>get_initial_state()</code> in the current contract</td>
+</tr>
+<tr>
+<td>Value-head-only init + per-step FiLM (R2d)</td>
+<td>Value readout only by design</td>
+<td>Matched raw state</td>
+<td>Deferred until policy/value placement and capacity are matched</td>
+</tr>
+</tbody>
+</table>
+<p>For any placement, state the complete task path before attributing causality. A
+post-cell/readout FiLM path is only a readout-only claim when no other task path
+(such as concat) reaches the cell. If task concatenation reaches the cell, the
+transition is already task-conditioned and the FiLM placement is an additional
+factor. Readout-first is a proposed comparison order, not a settled user
+decision; a memory-conditioning path remains open.</p>
+<h2>5. Time, state, and sequence lifecycle</h2>
+<p>Keep these windows distinct:</p>
+<ol>
+<li><strong>Input window</strong>: the market bars visible in one observation.</li>
+<li><strong>BPTT/unroll (<code>max_seq_len</code>)</strong>: the training sequence/chunk span; chunk
+boundaries may detach gradients without resetting environment state.</li>
+<li><strong>Episode horizon</strong>: the task/environment episode length and termination scope.</li>
+<li><strong>Reward-statistics window</strong>: history used by a reward statistic such as Sharpe;
+it is distinct from both the episode horizon and BPTT span.</li>
+</ol>
+<p>A newest-bar cell may begin with a <strong>cold start</strong> (zero initial state and first
+bar) or with a <strong>causal initial-window warmup</strong> (feed prior bars sequentially
+before scoring the first action). The warmup is input processing, not extra
+future information. Repeating overlapping observation bars as separate
+chronological steps is invalid.</p>
+<p>The pinned source stack is Ray/RLlib 2.9.0 with Gymnasium 0.28.1 from
+<code>pyproject.toml</code>/<code>uv.lock</code>. Future recurrent implementation must verify the exact
+API in that environment; the old <code>phase_b_plan.md</code> Ray 2.47.1 line is historical
+ordering, not the active lock. Do not invent <code>recurrent_policy=True</code> or other
+flags. Use the native recurrent model/state contract available in the pinned
+version.</p>
+<p>Required lifecycle semantics:</p>
+<ul>
+<li>define state ordering and shapes for <code>(h,c)</code>;</li>
+<li>provide native initial-state and recurrent-forward hooks;</li>
+<li>use valid sequence lengths and padding masks;</li>
+<li>preserve the last valid <strong>h and c</strong>, not only h, when packing/chopping;</li>
+<li>mask padded policy/value losses;</li>
+<li>reset state when the environment actually resets at real episode termination;</li>
+<li>do not treat a truncated bootstrap difference as an episode reset;</li>
+<li>distinguish rollout-chunk detach/truncated BPTT from a real environment reset;</li>
+<li>keep vector-worker state ownership separate;</li>
+<li>use identical feature timing/state ordering in training and inference;</li>
+<li>test checkpoint restore and replay state ownership; weights alone are not a
+proof that hidden rollout state was restored.</li>
+</ul>
+<p><code>batch_mode=&quot;complete_episodes&quot;</code> describes collection boundaries. It does not
+imply recurrent state handling or full-episode backpropagation.</p>
+<h2>6. Solver-state observability</h2>
+<p>The current policy observation does not include position, previous action,
+realized reward, unrealized PnL, or episode progress. OHLCV-only recurrence cannot
+reconstruct sampled actions, fills, or position exactly. For <code>R4-v1</code>, define the
+field order, normalization, timing, and terminal semantics, then append identical
+explicit fields to a feed-forward R0 control and the recurrent comparison. Never
+add them only to recurrence and call the result a memory gain.</p>
+<h2>7. AZR-inspired proposer/solver boundary</h2>
+<p>The local AZR v2 source supports a useful but bounded analogy: proposal and
+solving, deterministic validation, task/reference buffers, and role-specific
+feedback. Eq. 4 is <code>0</code> when observed solve rate <code>p</code> is <code>0</code> or <code>1</code>, otherwise
+<code>1-p</code>; it is asymmetric and is not a symmetric 50% peak or measured pre/post
+learning uplift. The source's Table 2 averages are AZR coding/math results, not
+iTrader returns.</p>
+<p>iTrader intentionally differs: historical OHLCV is external data; a language
+model may propose tasks while numerical PPO solves them; <code>train_AZR.py</code> is a
+bootstrap handoff rather than a jointly updated self-play loop. Use the label
+<strong>AZR-inspired adaptive curriculum learning</strong>.</p>
+<p>The proposer study is separate from R-series solver attribution:</p>
+<ol>
+<li>fixed rule/random validated curriculum control;</li>
+<li>frozen LLM proposer under matched validation and solver budget;</li>
+<li>frozen LLM plus solver-feedback/reference-conditioned selection;</li>
+<li>learned proposer only after repeatable utility/uplift evidence.</li>
+</ol>
+<p>Use a reference buffer study with frozen versus adaptive updates as a named
+factor. Adaptation feedback is validation, not an untouched final chronological
+test. Keep a final time-separated test unavailable to proposer updates, tuning,
+and head selection. Record accepted task counts, rejected tasks, generation
+calls, tokens/latency, compute, costs, turnover, and drawdown. A cost-aware
+verifier must not allow proposer-controlled reward parameters to redefine the
+metric.</p>
+<h2>8. Online state ownership</h2>
+<p>For multiple candidate tasks on one market window, do not mutate one shared
+recurrent state once per candidate. Either maintain task-independent market state
+and candidate-specific readouts, or own separate candidate state/replay streams.
+The online shell remains:</p>
+<pre><code class="language-text">market window -&gt; MarketFramer -&gt; CandidateTask(s) + WAIT
+-&gt; solver scoring -&gt; deterministic DecisionGate -&gt; RiskEngine -&gt; Executor
+-&gt; DecisionRecord
+</code></pre>
+<p>PPO logits/value outputs are not automatically calibrated confidence or expected
+net utility. Capability profiles require held-out evaluation slices and explicit
+calibration evidence.</p>
+<h2>9. Promotion gates</h2>
+<ul>
+<li>R0 remains the default.</li>
+<li>R1 needs correct shape semantics, finite forward/backward behavior, and
+measurable matched evaluation; it need not win before R2 is tested.</li>
+<li>R2c only advances when <code>R2c-CARRY</code> beats <code>R2c-RESET</code> and matched controls on
+held-out chronological slices, with stable state norms, valid sequence masks,
+and recorded compute/memory cost.</li>
+<li>R3 waits for a meaningful LSTM result.</li>
+<li>R4-v1 requires identical explicit state features in FF and recurrent cells.</li>
+<li>No recurrent cell becomes operational guidance from an unimplemented design,
+a zero-state probe, PPO logits/value scores, or a training-only curve.</li>
+</ul>
+</article>
   </main>
-
-  <footer class="footer">
-    <div class="shell footer-inner">
-      <div><strong>iTrader Architecture Atlas</strong><p>This page is the high-level memory surface. The canonical implementation specification, Markdown architecture source, masterplan, project-state handoff, source code and tests provide the detailed truth beneath it.</p></div>
-      <div class="updated">Updated 3 September 2026</div>
-    </div>
-  </footer>
-
-  <script>
-    const progress = document.querySelector('.progress');
-    const updateProgress = () => {
-      const max = document.documentElement.scrollHeight - innerHeight;
-      progress.style.transform = `scaleX(${max > 0 ? scrollY / max : 0})`;
-    };
-    addEventListener('scroll', updateProgress, { passive: true });
-    updateProgress();
-
-    const observer = new IntersectionObserver(entries => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) entry.target.classList.add('visible');
-      });
-    }, { threshold: .08 });
-    document.querySelectorAll('.reveal').forEach(section => observer.observe(section));
-  </script>
 </body>
 </html>

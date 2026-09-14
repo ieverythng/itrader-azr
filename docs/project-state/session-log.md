@@ -1,5 +1,34 @@
 # Session Log
 
+## 2026-09-12 — Phase A measurement and PBT implementation loop
+
+- Used the iTrader architecture guardrails, TDD, deep-module design vocabulary,
+  design-report structure, and a repo-specific adaptation of the NAO stack loop.
+- Implemented `EpisodeEvidence`, `DataPartition`, truthful callback metrics,
+  reset/task bounds, `semantic_v2`, held-out evaluation, Ray 2.9-compatible PBT,
+  stable provenance, restore-aware lineage, all-member ablation reporting, and
+  flat-schema capability reporting. Recurrent/LSTM solvers were not changed.
+- Repeated the official JSON ablation path until the final run
+  `phase_a_performance_validity_probe_20260912_031358` satisfied the contract:
+  distinct starts, matched validation seed, fixed batch, real mutations/restores,
+  12 unique iterations and 13,520 timesteps per PBT member, non-empty stable
+  evidence, and generated capability reports.
+- The bounded probe is not a performance claim. Historical winners remain
+  quarantined; deterministic baselines, multiple seeds/costs, block uncertainty,
+  overnight training, and untouched final-test evaluation remain next.
+- Final validation: 87 tests passed with one Ray deprecation warning; healthcheck
+  and the Phase A loadout schema passed on the Windows-native environment.
+
+## 2026-09-12 — Windows recurrence/FiLM/AZR audit and documentation draft
+
+- Source of truth: Windows clone `C:\Users\Admin\PROJECTS\iTRADER\itrader-azr`, `agent/Watson-dev`, starting HEAD `bec5c775d3adaafe758202c7175791f6e8b323a8`. The WSL clone was identified as stale and not used for current conclusions.
+- Read local sibling `AZR-paradigm.pdf` (v2), method, reward equation, ablations and Appendix D; source findings and paper adaptation are attached as dated Markdown reports under `docs/artifacts/research/`.
+- Revised active architecture, masterplan, implementation spec, recurrence/Sharpe design and continuity drafts. Phase B includes offline and online/replay; the shared recurrent trunk, family heads and FiLM placement remain open in the user's `grill-me` workflow.
+- Preserved the existing staged `itrader/rl_lib/tasks/rewards.py` change; no solver code, defaults, environment configuration, branch, staging or commits changed by this pass.
+- Failures: two documentation delegates each timed out at 600 seconds after partial writes. The finalization was split into bounded HTML synchronization and independent consistency review, rather than treating the partial writes as complete.
+- Runtime validation blocked before pytest/healthcheck: Windows Python, PowerShell and CMD each failed with `Exec format error` in this WSL session. A separate static AST check passed for rewards, healthcheck and the three focused test files; it is not a runtime test pass. GitNexus remains stale.
+- Exact coverage, final verification and remaining review status: `../artifacts/research/recurrence-docs-revision-audit-2026-09-12.md`. Earlier test counts below are historical, not repeated here.
+
 ## 2026-09-03 - Sharpe And Recurrent Proposal Reconciliation
 
 - Changed: Kept `pnl_linear` as the sole proven/default reward, added bounded

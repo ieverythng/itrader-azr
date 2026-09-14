@@ -1,95 +1,81 @@
 # Next Actions
 
-Last updated: 2026-09-03
+Last updated: 2026-09-12
 
-## Now
+## Now — evidence and controls
 
-1. Finish the five-cell episode/regime alignment run.
-   - Config:
-     `itrader/scripts/experiments/configs/episode_regime_alignment_ablation.json`.
-   - Mixed controls: random episode, contiguous stream, and stream-level return
-     normalization.
-   - Fixed-horizon matched pair: random-128 versus stream-128.
-   - The launcher now passes the config through the runner's positional CLI and
-     consumes `--force` locally.
-   - Hold solver head, reward, data, seeds, and PPO budget constant.
+1. **Done:** implement a versioned terminal `EpisodeEvidence` contract that reports
+   optimization reward separately from raw gross return, explicit costs/net
+   return, turnover including liquidation, drawdown, actions, task identity,
+   symbol/split, checkpoint, commit, and dataset hash. Rename the current shaped
+   `episode_return` metrics.
+2. **Done:** make reset and evaluation symbol-safe. Define per-symbol chronological
+   train/validation/final-test ranges with lookback and outcome-horizon purge; fit
+   observation normalization on training only and freeze it for evaluation.
+3. **Done:** repair PBT before another long run: independently seed members, sample diverse
+   initial hyperparameters, validate every mutation (`0 < gamma <= 1`), align
+   checkpoint and perturbation cadence, and persist lineage. Make the ablation
+   summary enumerate all population members.
+4. **Done:** persist manifests, resolved configs, trial status, and checkpoint indices
+   atomically outside Tune-owned paths; fail completion when required evidence is
+   empty. Repair `generate_capability_report.py` to consume the same evidence
+   schema.
+5. **Next:** keep R0 `SolverMLPFiLM` as the compatibility control; add matched
+   flat/long/short/random/untrained baselines, then rerun the Phase A
+   random/generated pipeline across multiple training seeds. Promote only on an
+   untouched final test with flat/long/short/random/untrained baselines, block-aware
+   uncertainty, and multiple cost assumptions.
+6. Run alignment and reward comparisons independently on matched task identities.
+   Keep `pnl_linear` default; do not treat reward changes as necessary for
+   recurrence. Incremental Sharpe telescopes only as an undiscounted, pre-clipping
+   sum and is not automatically policy-invariant when `gamma < 1`.
+7. Use the working Windows `.venv` for current validation. The earlier WSL
+   `Exec format error` is historical and does not describe this session.
 
-2. Run the first Sharpe reward ablation on family `00`.
-   - Config: `itrader/scripts/experiments/configs/sharpe_reward_ablation.json`.
-   - Compare proven `pnl_linear`, experimental `sharpe_only`, and experimental
-     `pnl_sharpe` blend with `SolverMLPFiLM`.
-   - Use fixed-horizon matched cells before pooling horizons.
-   - Track held-out return, Sharpe, drawdown, turnover, action entropy,
-     `sharpe_delta` saturation, and throughput.
-   - Keep `pnl_linear` as the sole default unless a challenger passes promotion
-     criteria.
-   - Reward-parameter RNG is isolated from task/horizon/seed RNG so the two
-     variants receive matched task identities.
+## Next — solver controls and true recurrence
 
-3. Make capability slices truthful.
-   - Ensure family, horizon, and regime metadata reaches each stable metrics
-     record consumed by `generate_capability_report.py`.
-   - Do not describe the current reporter as family/regime calibrated when
-     `task_breakdown_available` is false.
-   - Replace dataset-wide fallback tagging with episode-window-aware regime
-     attribution for streamer runs.
+8. Resolve the open solver trunk/head and FiLM-placement decisions through the
+   user's grill-me review; do not implement proposed architecture before approval.
+9. Implement the selected R1/R2 control through TDD with the lifecycle contract.
+10. Run same-input/same-conditioning `R2c-CARRY` versus `R2c-RESET` if R2c remains
+   selected; keep the attribution caveat explicit.
 
-## Next
+## Phase B replay/shadow track
 
-4. Implement solver variant R1 through TDD.
-   - Add failing tests for explicit `[window * features | task embedding]`
-     splitting.
-   - Implement a reset-every-step window-LSTM encoder with FiLM policy/value
-     heads.
-   - Add an opt-in model selector to `train_solo_V2`; preserve MLP-FiLM default.
-   - Compare R0 and R1 on identical tasks, seeds, reward, and data.
+11. In parallel with offline/curriculum evidence, define replay/shadow coverage
+   through `MarketFramer -> CandidateTask -> solver -> DecisionGate -> RiskEngine
+   -> Executor`, with WAIT first class and deterministic risk/execution. Do not
+   defer this track to Phase C or authorize live execution.
 
-5. Implement true recurrent variants only after R1 is measurable.
-   - R2a: native RLlib 2.9 recurrent LSTM with task concatenation.
-   - R2b: per-step FiLM as a separate comparison.
-   - Test initial state, state carry, sequence shapes, terminal reset, finite
-     backward pass, state norms, and truncated BPTT settings.
-   - Feed the newest row of the chronological market window, not its oldest row.
+## Later — matched observability and proposer
 
-6. Evaluate solver-state observability separately.
-   - Candidate fields: current position and normalized episode progress first;
-     unrealized PnL and position age only when their semantics are explicit.
-   - Add fields to matched feed-forward and recurrent cells to avoid confounding
-     recurrence with extra information.
+12. Add `R4-v1` explicit position/progress/PnL fields identically to FF and
+   recurrent controls. Do not infer action/fill/position from OHLCV-only state.
+13. Run the separate proposer study: rule/random control, frozen LLM, frozen LLM
+    plus solver-feedback/reference selection, then adaptive proposer. Include
+    frozen-versus-adaptive reference-buffer factor, cost-aware verifier, accepted
+    solver timesteps, rejects, calls, tokens/latency, cost, turnover, drawdown,
+    chronological validation, and untouched final test.
+14. Build shadow mode only after capability profiles have held-out calibration
+    evidence. PPO logits/value outputs are not automatically confidence or
+    expected net utility. Keep candidate-specific recurrent state/replay; never
+    mutate one shared state across candidate scoring.
+15. Defer R3 GRU, family expansion, MoE, and JEPA until the causal solver and
+    proposer evidence is credible.
 
-7. Lock families `01` and `02`.
-   - `01` is `breakout_expansion`; `02` is `mean_reversion`.
-   - Both retain the three-action shape, but need real samplers, validation,
-     evaluation slices, and reward comparisons before being enabled.
-   - Do not make Sharpe a family default based on name or horizon alone.
+## Remaining blockers to a performance claim
 
-## Later
-
-8. Build the shared trunk plus family-routed policy/value heads after two
-   families are operational. One TaskSpec routes to one family head; mixed PPO
-   batches may route samples to different heads.
-
-9. Complete the Phase B proposer loop in `train_AZR` after the solver baseline,
-    reward choice, and capability reporting are credible. Keep
-    `train_solo_V2` independently runnable.
-
-10. Add proposer-on/off and proposer-model comparisons with task acceptance,
-    invalid-output, diversity, difficulty, solver-uplift, and LLM-throughput
-    metrics.
-
-11. Build Phase C replay/shadow flow through `MarketFramer -> CandidateTask ->
-    solver -> DecisionGate -> RiskEngine -> Executor -> DecisionRecord`, with
-    `WAIT` first class and risk/execution deterministic.
-
-12. Explore Market-JEPA behind the MarketFramer representation seam. Compare
-    masked latent prediction and regime-transition objectives against the same
-    downstream candidate and solver contracts before adding online influence.
-
-## Blocked Evidence
-
-- Solver-quality conclusions require completed matched training and held-out
-  evaluation on the target workstation.
-- Recurrent claims require a real RLlib stateful implementation; the legacy
-  `SolverLSTMModel` is not evidence.
-- Online thresholds require calibrated capability records, not aggregate reward
-  curves.
+- Historical PBT scores are shaped optimization reward, not economic return; both
+  restored targets fail the 1 bp net-return diagnostic and remain quarantined.
+- The repaired PBT population now starts distinctly, validates mutations, aligns
+  checkpoints, matches validation tasks, and records restore-aware lineage.
+- Ray-owned manifests and policy logs still reproduce as zero-byte artifacts;
+  non-empty stable manifests/config history/status/checkpoint indices now replace
+  them as authoritative provenance.
+- No R1/R2/R3/R4 implementation exists on this branch.
+- No recurrent training result exists on this branch. The bounded Phase A PPO
+  probe validates wiring/search only, not performance.
+- New runs use `semantic_v2`; `legacy_v1` remains only for checkpoint compatibility.
+- `train_AZR.py` has an independently audited unbounded backend-exception retry
+  path; track it as a separate implementation issue, not as evidence of a
+  successful AZR loop.

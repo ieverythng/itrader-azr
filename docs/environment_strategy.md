@@ -1,88 +1,82 @@
 # Environment Strategy
 
-This repo now has two supported environment surfaces:
+This document describes environment authority and execution boundaries; it does
+not change dependencies.
 
-1. `pyproject.toml` for uv/pip style reproducibility.
-2. `itrader/environment.yml` for Conda-first workstation setup, especially when native packages such as TA-Lib or CUDA-sensitive PyTorch installs are easier through Conda.
+## Dependency authority
 
-## Preferred New Workflow
+The source-of-truth dependency declarations are `pyproject.toml` and `uv.lock`:
 
-Install uv, then lock and sync from the repo root:
+- Python `>=3.11,<3.12`
+- Ray/RLlib `2.9.0`
+- Gymnasium `0.28.1`
+- DuckDB `0.10.2`
+- PyArrow `13.0.0`
+- setuptools `69.5.1`
+- PyTorch `>=2.3,<2.4`
 
-```powershell
-python -m pip install uv
-uv lock
-uv sync --group dev
-```
+The old `docs/phase_b_plan.md` Ray/RLlib `2.47.1` line is retained only as a
+historical proposal and is not an API authority. No lock or environment change
+was made in the 2026-09-12 docs pass.
 
-Validate:
+## Supported execution surfaces
 
-```powershell
+For a Windows-native checkout, use PowerShell with a Windows Python/uv
+installation and the repo lock. For a POSIX checkout, use a POSIX `.venv` or
+Conda interpreter. In this session's WSL runtime, invoking `.venv/Scripts/python.exe`
+failed with `Exec format error`; do not generalize that observation to every WSL
+configuration.
+
+The repository launcher checks `ITRADER_PYTHON_BIN`, POSIX `.venv`, Windows
+`.venv/Scripts/python.exe`, legacy environments, Conda, and `python` on PATH.
+That fallback order does not make a Windows interpreter executable inside WSL;
+select the compatible shell/environment explicitly.
+
+## Validation commands (compatible environment only)
+
+```text
 uv run python itrader/tools/healthcheck.py
 uv run python -m pytest -q itrader/tests
-```
-
-Run pre-commit without relying on Conda being available on `PATH`:
-
-```powershell
 uv run pre-commit run --all-files
 ```
 
-Repository hooks call `itrader/tools/run_repo_python.sh`. Its interpreter
-resolution order is `ITRADER_PYTHON_BIN`, repo `.venv`, legacy
-`.itrader_env`, active Conda, then `python` on `PATH`. A synced uv environment
-therefore remains authoritative even when an incompatible ambient Python is
-installed.
+Or, with a compatible interpreter selected by the repo launcher:
 
-## Current Main-PC Reality
-
-The current validated workstation environment reports:
-
-- Python `3.11.13`
-- NumPy `1.26.4`
-- pandas `2.1.4`
-- Ray `2.9.0`
-- Gymnasium `1.0.0`
-- DuckDB `0.10.2`
-- llama-cpp-python `0.3.9`
-- CUDA available on `NVIDIA GeForce RTX 5070 Ti`
-
-The root `pyproject.toml` is aligned to the resolver-consistent training stack where practical. One important mismatch exists in the current Conda environment: `ray[rllib]==2.9.0` resolves with `gymnasium==0.28.1`, but the live environment currently contains `gymnasium==1.0.0`. The uv lock follows the Ray-compatible pin rather than reproducing the inconsistent environment.
-
-Ray `2.9.0` also imports `pkg_resources._vendor.packaging`, so `setuptools` is pinned to `69.5.1`. Newer setuptools versions expose different compatibility behavior and break Ray during test collection.
-
-PyTorch is pinned as a stable pip range in `pyproject.toml`. The current workstation is using a CUDA/nightly-style build, so GPU-specific PyTorch installation may still need a machine-local install command or a dedicated extra/index strategy later.
-
-Optional dependency groups:
-
-- `dev`: tests, formatters, pre-commit.
-- `etl`: TA/TA-Lib data feature tooling.
-- `llm-local`: in-process local LLM bindings and Hugging Face tooling.
-- `research`: heavier analysis/backtesting/data validation packages not required for core training smoke tests.
-
-The current proposer path for Qwen via llama.cpp uses HTTP through `itrader.proposers.openai_compat`, so `llama-cpp-python` is not required for normal task-pool generation. Keep it optional unless you need in-process GGUF inference.
-
-## Conda Fallback
-
-For machines where native dependencies are easier through Conda:
-
-```powershell
-conda env create -f itrader/environment.yml
-conda activate itrader
-python itrader/tools/healthcheck.py
-python -m pytest -q itrader/tests
+```text
+./itrader/tools/run_repo_python.sh itrader/tools/healthcheck.py
+./itrader/tools/run_repo_python.sh -m pytest -q itrader/tests
+./itrader/tools/run_repo_python.sh -m pre_commit run --all-files
 ```
 
-After a validated Conda install, refresh:
+A command that resolves a Windows executable from WSL and fails before test
+collection is a blocked validation, not a test pass. Record the exact command
+and error in the dated audit.
 
-```powershell
-conda env export --from-history > env.lock.yml
-```
+## Recurrent implementation prerequisite
 
-## Before Task-Family Expansion
+Before using RLlib recurrent APIs, verify them against the locked Ray 2.9.0
+runtime in a compatible environment. Do not copy flags or state behavior from the
+historical 2.47.1 plan. The recurrent contract must cover sequence lengths,
+padding masks, last valid h/c, terminal/truncated bootstrap, fragment detach,
+vector-worker state ownership, training/inference parity, and checkpoint/replay
+state.
 
-Before family `01` or `02` implementation starts:
+## Current validation boundary
 
-1. Generate and commit `uv.lock`.
-2. Reconcile `itrader/environment.yml` with the locked Python dependency set.
-3. Run healthcheck, full tests, pre-commit, and one `train_solo_V2` smoke from a PBT checkpoint.
+The earlier WSL `Exec format error` remains a historical observation. The current
+Windows-native `.venv\Scripts\python.exe` executes the repository suite and Ray
+2.9 training stack. The optional Ray dashboard package is absent, so the trainer
+retries without the dashboard; this does not affect training.
+
+Ray 2.9 on this Windows installation can truncate Tune-owned manifests and PBT
+text logs to zero bytes. Repository-owned run manifests/status are therefore
+written atomically under `~/ray_results/_stable_runs`, and per-trial config
+history/status/checkpoint indices/metrics live under `_stable_metrics`. Treat
+those stable paths as provenance authority while keeping Tune directories for
+checkpoints and diagnostic inspection.
+
+The current pre-commit command is still launched through Bash/WSL and selects the
+Windows `.venv`, producing `Exec format error` before its healthcheck/test hooks.
+Direct Windows healthcheck and pytest pass. Until the launcher becomes shell-
+aware, record pre-commit as an environment-integration failure rather than
+claiming the code checks ran inside that hook.

@@ -1,194 +1,117 @@
 # Sharpe-Aware Reward Design
 
-Last updated: 2026-09-03
-Status: **Two experimental challengers implemented; `pnl_linear` remains the only proven default**
+Last updated: 2026-09-12
+Status: **experimental challengers; `pnl_linear` remains the only proven/default reward**
 
-## Decision Summary
+## Decision summary
 
-Sharpe-aware reward shaping is a strong candidate for iTrader, especially when
-task horizons become long enough for return dispersion to be meaningful. It is
-not yet evidence that every longer-horizon family should use a Sharpe-dominant
-objective, and it is not a reason to redefine the task-family registry.
+The reward seam is independent of recurrent architecture. Keep `pnl_linear` as
+the family `00` default. `sharpe_only` and `pnl_sharpe` are challengers that
+require matched held-out evidence. A recurrence implementation does not require
+changing reward, and a longer horizon is not automatically better.
 
-The implementation therefore keeps `pnl_linear` as the sole family `00` default
-and adds two selectable challengers. `sharpe_only` uses only the change in a
-rolling Sharpe score. `pnl_sharpe` combines the same change with the existing
-normalized PnL, drawdown, and turnover components:
+The reward seam is environment-owned by `RewardEngine`. These challenger formulas
+are reward calculations, not learned reward heads, and recurrence/head selection
+must remain an independent decision.
+
 
 ```text
 score_t = tanh((mean(strategy_returns) / std(strategy_returns)) / target)
-sharpe_only_t = w_sharpe * (score_t - score_(t-1))
-pnl_sharpe_t = pnl_linear_t + sharpe_only_t
+sharpe_delta_t = w_sharpe * (score_t - score_(t-1))
+pnl_sharpe_t = pnl_linear_t + sharpe_delta_t
 ```
 
-The score is unannualized, uses a configurable rolling window, and remains zero
-during warmup or when variance is effectively zero.
+Warmup and effectively zero variance produce a finite zero contribution. The
+exact staged source change in `itrader/rl_lib/tasks/rewards.py` is pre-existing,
+staged, and outside this docs-only pass; do not infer that its current behavior
+has been reimplemented or revalidated here.
 
-## Source-Grounded Family Map
+## Source-grounded family map
 
-The canonical names and ownership come from
-`itrader/rl_lib/tasks/families.py`:
-
-| ID | Canonical family | Current state | Reward position |
+| ID | Roadmap family label | Current state | Reward position |
 |---|---|---|---|
-| `00` | `directional_predictor` | Enabled baseline | `pnl_linear` sole default; both Sharpe challengers are experimental |
-| `01` | `breakout_expansion` | Bootstrap contract, disabled | Keep reward choice open until family behavior exists |
-| `02` | `mean_reversion` | Bootstrap contract, disabled | Keep reward choice open until family behavior exists |
-| `03` | `trade_management` | Future contract, disabled | Requires position-aware state and a distinct action contract review |
-| `04` | `abstain_unsuitable_regime` | Future contract, disabled | Online `WAIT`/abstention semantics, not a Sharpe family |
+| `00` | `directional_predictor` | Enabled | `pnl_linear` sole proven/default; challengers experimental |
+| `01` | `breakout_expansion` | Disabled bootstrap contract | Defer assignment |
+| `02` | `mean_reversion` | Disabled bootstrap contract | Defer assignment |
+| `03` | `trade_management` | Future/disabled | Needs explicit position/action contract |
+| `04` | `abstain_unsuitable_regime` | Future/disabled | WAIT semantics, not a Sharpe family |
 
-Earlier versions of this research artifact swapped families `01` and `02` and
-treated family `03` as trend following. Those labels were propositions, not the
-implemented registry, and are no longer used here.
+Families `00`–`04` are roadmap labels, not a settled shared-head architecture.
+Even if `00`–`02` use `Discrete(3)`, their inputs, task semantics, reward
+assignments, and state ownership may differ and must be recorded explicitly.
 
-## Why Sharpe Is Compelling
 
-Pure cumulative PnL can reward volatile trajectories, repeated exposure, and
-longer episodes simply because they contain more opportunities. A
-risk-adjusted statistic can distinguish a smoother return path from an equally
-profitable but unstable one.
-
-The argument is strongest as a hypothesis:
-
-- medium and long episodes provide more observations for dispersion estimates;
-- a bounded score prevents near-zero volatility from exploding the reward;
-- blending with dense PnL preserves an early learning signal;
-- reporting Sharpe separately improves evaluation even if it does not improve
-  optimization.
-
-Sharpe is not automatically horizon-invariant in this environment. Sampling
-error, serial correlation, market-regime duration, and the episode boundary all
-change the estimate. It must be evaluated by fixed horizon and held-out regime,
-not inferred from aggregate training return.
-
-## Why Incremental Sharpe
-
-Adding the full rolling Sharpe level at every step repeatedly pays the solver
-for an already-achieved trajectory and makes reward magnitude depend on episode
-length. The incremental form telescopes over an episode:
+Before clipping and with an undiscounted sum, deltas telescope:
 
 ```text
-sum(score_t - score_(t-1)) = score_T - score_0
+sum_t(score_t - score_(t-1)) = score_T - score_0
 ```
 
-This leaves dense PnL as the step-level signal while rewarding improvement in
-the path-level statistic. It also makes the `sharpe_delta` component directly
-inspectable in existing reward-component telemetry.
+That algebra does not make the shaped reward policy-invariant under discounted
+PPO (`gamma < 1`), clipping, finite warmup, changing episode boundaries, or
+other implementation details. Report exactly which sequence, discount, clipping,
+and terminal conventions were used. Do not call incremental Sharpe a guaranteed
+policy-preserving potential term.
 
-No annualization is used during optimization. At one-minute resolution,
-annualization can produce very large intermediate values that immediately
-saturate `tanh`, erasing useful differences between candidates. Annualized
-Sharpe may still be reported as an evaluation metric with an explicitly stated
-sampling convention.
+No annualization is needed for optimization by default; minute-scale annualizing
+can saturate a bounded signal. Annualized values may be reported separately with
+the sampling convention stated. Sharpe remains sensitive to serial correlation,
+regime duration, overlap, estimator warmup, and episode boundaries. It is not
+automatically horizon-invariant.
 
-## Implemented Contract
+Phase B includes both offline/curriculum work and online replay/shadow validation;
+Phase C is later operationalization. Proposer and solver/reward studies remain
+separate until the user's grill-me review resolves open architecture choices.
 
-`ITraderEnv` now owns the episode return history and passes
-`strategy_returns` into `RewardEngine`, preserving the existing ownership
-boundary. A strategy return is the current mark-to-market return after applying
-the chosen position:
 
-```text
-strategy_return_t = position_t * market_return_t
-```
+The local AZR v2 paper is not evidence that Sharpe shaping is required. Its Eq. 4
+proposer reward is `0` at observed solve rate `p=0` or `p=1`, otherwise `1-p`.
+That is asymmetric and not a symmetric 50% peak or a measured learning-progress
+uplift. The paper's coding/math ablations are not iTrader returns.
 
-Both challengers share the following Sharpe parameters. The `pnl_sharpe` blend
-also reuses all normalized `pnl_linear` parameters; `sharpe_only` deliberately
-does not include PnL, drawdown, or turnover components.
+iTrader uses historical OHLCV, a language-model proposer, and a numerical PPO
+solver. `train_AZR.py` currently performs task-pool/bootstrap handoff rather than
+a co-adaptive AZR loop. Proposer reference-buffer and frozen/adaptive studies
+belong in a separate experiment matrix, with validation feedback and an untouched
+final chronological test. Use a cost-aware verifier and report rejected tasks,
+generation calls, tokens/latency, compute, costs, turnover, and drawdown.
 
-| Parameter | Default | Bound / meaning |
-|---|---:|---|
-| `w_sharpe` | `0.5` | `[0, 2]`, incremental score weight |
-| `sharpe_window` | `32` | `[2, 512]` strategy returns |
-| `sharpe_min_samples` | `8` | Warmup floor, capped by window |
-| `sharpe_target` | `1.0` | Positive scale before `tanh` |
+## Matched reward study
 
-The implementation is finite for missing history, short history, non-finite
-inputs, and zero variance. Unit tests cover warmup, boundedness, component
-accounting, and environment plumbing.
+Hold data eligibility, task identity, window, horizon, seeds, solver head, PPO
+budget, and evaluation split constant. Compare:
 
-## Reward Assignment Hypotheses
+- `pnl_linear`;
+- `sharpe_only`;
+- `pnl_sharpe`.
 
-These assignments must be tested rather than wired as defaults:
+Start with R0. Recurrent comparisons follow the same reward cell rather than
+combining reward and architecture changes in the first pass. Track held-out
+return, Sharpe under a stated convention, max drawdown, turnover, costs, action
+entropy, reward-component saturation, finite losses, throughput, and confidence
+intervals across seeds. Family/regime claims require emitted task metadata; an
+aggregate episode-return metric is insufficient.
 
-| Family | First comparison | Rationale |
-|---|---|---|
-| `00` directional | `pnl_linear` vs `sharpe_only` vs `pnl_sharpe` | Separate pure risk-adjusted shaping from a dense PnL blend |
-| `01` breakout | Same three-way comparison | Breakouts may have sparse asymmetric returns; Sharpe could either stabilize or suppress them |
-| `02` mean reversion | Same three-way comparison | Frequent smaller returns may benefit from consistency shaping |
-| `03` trade management | Defer | Needs explicit position age, entry state, and action semantics before reward design |
+Keep the input window, episode horizon, BPTT/unroll (`max_seq_len`), and
+reward-statistics window distinct; Sharpe history is the last of these, not the
+episode horizon itself.
 
-Do not introduce additional volatility or trend-persistence bonuses until one
-of the Sharpe challengers demonstrates incremental value.
-Those additions create new objectives and environment state, so they belong in
-separate TDD slices.
 
-## Evaluation Matrix
+Recurrence asks whether a solver benefits from temporal input encoding and carried
+state. Sharpe shaping asks whether optimization values a bounded path statistic.
+Neither proves the other is necessary. Keep reward controls and R-series controls
+orthogonal until each has evidence.
 
-Run matched experiments with identical dataset slices, task pools, seeds, PPO
-budget, and solver head:
+Do not claim that a recurrent hidden state automatically tracks PnL, position,
+action history, or episode progress from OHLCV alone. If those are causal inputs,
+add them as explicit, normalized fields to both feed-forward and recurrent cells.
+Do not call logits/value outputs calibrated confidence or expected net utility
+without separate calibration and cost-aware economic evaluation.
 
-The executable first pair is
-`itrader/scripts/experiments/configs/sharpe_reward_ablation.json`. Reward
-parameter sampling is isolated from task identity sampling so switching the
-reward does not alter the horizon or task-seed sequence.
+## Promotion gate
 
-| Axis | Required cells |
-|---|---|
-| Reward | `pnl_linear`, `sharpe_only`, `pnl_sharpe` |
-| Horizon | `96`, `128`, `160`, `200` or explicitly paired subsets |
-| Sampling | random episode, contiguous stream |
-| Solver | Start with `SolverMLPFiLM`; recurrent comparisons come later |
-
-Primary measurements:
-
-- held-out strategy Sharpe and episode return;
-- max drawdown and turnover;
-- `sharpe_delta` magnitude and saturation rate;
-- action collapse and entropy;
-- bootstrap confidence intervals across seeds;
-- capability slices by family, regime, and horizon once metadata reaches the
-  metrics records.
-
-The reward is promoted only if it improves held-out risk-adjusted behavior
-without unacceptable loss of absolute return, action diversity, or stability.
-
-## Relationship To Recurrence
-
-Sharpe-aware optimization and recurrent FiLM are complementary but independent
-variables. A recurrent policy may represent path-dependent context, while a
-Sharpe-aware reward may value smoother paths. Neither proves the other is
-necessary.
-
-The staged design is:
-
-1. validate `sharpe_only` and `pnl_sharpe` against `pnl_linear` on `SolverMLPFiLM`;
-2. establish the best episode/horizon sampling mode;
-3. compare MLP-FiLM, corrected window-LSTM-FiLM, and true recurrent FiLM under
-   the same reward;
-4. test family-specific defaults only after families `01` and `02` have real
-   samplers and evaluation slices;
-5. leave family `03` reward work behind its position-aware task contract.
-
-## Open Questions
-
-1. Should `sharpe_window` scale with task horizon or remain fixed?
-2. Is differential Sharpe less learnable than a terminal-only Sharpe bonus?
-3. Does zero-variance handling create a flat-policy loophole? The base PnL term
-   should discourage it, but the ablation must verify this.
-4. Should downside deviation or Sortino replace standard deviation for
-   asymmetric breakout returns?
-5. How should serial correlation and overlapping windows affect reported,
-   annualized evaluation Sharpe?
-
-## Promotion Gate
-
-Both Sharpe challengers remain experimental until:
-
-- focused and full tests pass in the pinned environment;
-- at least three matched seeds complete without NaN or action collapse;
-- held-out evaluation beats or matches `pnl_linear` on predefined return,
-  drawdown, turnover, and Sharpe criteria;
-- results are sliced by horizon and market regime;
-- the winning parameters are recorded in experiment artifacts rather than
-  silently becoming family defaults.
+A challenger is promoted only when compatible-environment tests, at least three
+matched seeds, held-out chronological evaluation, finite behavior, action
+diversity, drawdown/turnover/cost criteria, and horizon/regime slices support it.
+Record the selected parameters in experiment artifacts; do not silently change a
+family default. No reward conclusion is reported by this documentation pass.

@@ -1,5 +1,59 @@
 # Decisions
 
+## 2026-09-12 — Separate optimization reward from promotion evidence
+
+- Decision: `ITraderEnv` emits terminal `EpisodeEvidence` schema v1 with
+  independent gross/cost/net arithmetic return, liquidation-inclusive turnover,
+  drawdown, activity/exposure, and Sharpe. `RewardEngine` continues to own only
+  optimization reward and finite components.
+- Why: historical `episode_return` fields were shaped/normalized reward and could
+  not support economic performance claims.
+- Consequences: PBT selects `evaluation/net_return_mean` on a purged validation
+  partition; annualized Sharpe requires an explicit convention; the final test is
+  post-selection only.
+- Revisit when: an evaluation-run aggregator adds baseline deltas, block-aware
+  uncertainty, and checkpoint/dataset fingerprints to the promotion record.
+
+## 2026-09-12 — Use fair, bounded Ray 2.9 PBT with independent provenance
+
+- Decision: independently sample training seeds/hyperparameters, share the
+  validation seed, keep train batch fixed under an iteration clock, align
+  checkpoint and perturbation cadence, constrain every mutation, and rewind
+  active metrics on checkpoint restore while retaining append-only config history.
+- Why: the historical population admitted invalid gamma, and the first smoke
+  population performed no search. Function-trainable restores also repeated a
+  full local loop and retained superseded metric rows.
+- Consequences: the final smoke members each contain exactly iterations 1–12 and
+  13,520 timesteps. Tune-owned Windows logs are non-authoritative; atomic stable
+  run/trial artifacts outside Tune are required.
+- Revisit when: Ray is upgraded and a timestep-based PBT clock or PB2 search is
+  evaluated through a matched study.
+
+## 2026-09-12 — Version task semantics without breaking checkpoint replay
+
+- Decision: historical restores use `legacy_v1`; new runs use `semantic_v2`,
+  which represents solver-relevant canonical task semantics without episode
+  seed/start shortcuts.
+- Why: hidden reward/regime fields aliased tasks while the seed exposed a market-
+  location proxy.
+- Consequences: encoding version is a resolved-config/checkpoint compatibility
+  field. Overrides normalize before encoding and reset seeds control task/start
+  streams reproducibly.
+- Revisit when: the TaskSpec schema changes or learned task representations are
+  proposed.
+
+## 2026-09-12 — User clarification and open review boundaries
+
+**Confirmed by the user in this review:** Windows is the working project; Phase B covers both offline/curriculum and online/replay work. Families `00`–`04` are the intended decomposition, with `00`–`02` sharing `Discrete(3)` while inputs and task/reward semantics may differ. Source currently enables only `00`; roadmap scope is not implementation evidence.
+
+**Still open in the ongoing `grill-me` workflow:** whether to use a shared recurrent trunk selected through future ablations, family-specific policy/value heads, the input adapter/schema, recurrent state ownership, FiLM placement, and reward-specific components. This documentation pass does not accept these choices, authorize solver implementation, or stage/commit the working tree. `RewardEngine` remains distinct from learned policy/value heads.
+
+**Proposed correction to earlier R-series naming:** commit `4732a98` used R2a concat, R2b init-only, R2c per-step FiLM, and R2d value-focused conditioning. `bec5c77` relabeled per-step FiLM R2b and used R4 for matched observation features. Earlier init-oriented R4 belongs to the older design, not `bec5c77`. The reviewed draft restores original labels for discussion and proposes `R4-v1` to disambiguate the observation study; those draft labels are not executable flags or approved experiment registrations.
+
+The older claim that R1→newest-bar R2 isolates recurrence is superseded: it changes input history and conditioning as well as state lifetime. The draft adds same-input/same-conditioning carry/reset controls. It also separates readout FiLM from task conditioning of the recurrent transition. Full details and limitations are in `../research/recurrent-solver-ablation.md`.
+
+Historical entries below remain provenance, not fresh test results or authority over this clarification.
+
 ## 2026-09-03 - Isolate Reward RNG From Task Identity
 
 - Decision: task samplers and the rule-based proposer use a dedicated RNG for

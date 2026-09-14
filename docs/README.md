@@ -1,53 +1,46 @@
 # Documentation Index
 
-This docs surface is intentionally split between active contracts, active plans,
-generated knowledge, and research artifacts.
+Markdown is the source of truth for active documents. HTML companions accompany the four review surfaces that require them; their synchronization and verification status is recorded in the dated revision audit. Current architecture claims are source-grounded against branch `agent/Watson-dev` at `bec5c77`; dated reports preserve evidence and line references from their audit snapshots. Solver/trunk/head choices remain subject to the ongoing user grill-me review.
 
-## Active Architecture
+## Active architecture
 
-- `architecture.md` - compact compatibility entrypoint for the current system.
-- `architecture/itrader_system_architecture.md` (+ `.html`) - richer Phase B/C
-  architecture view for solver, proposer, task contracts, and online seams.
-- `environment_strategy.md` - environment and dependency strategy.
-- `ops_runbook.md` - operational runbook for training, metrics, and recovery.
+- `architecture.md` — compact current baseline, R-series status, and control rules.
+- `architecture/itrader_system_architecture.md` (+ `.html`) — detailed solver, recurrence, task, proposer, and online-shell architecture.
+- `environment_strategy.md` — dependency authority and Windows/WSL execution boundary.
+- `ops_runbook.md` — operational runbook for compatible environments.
 
-## Active Plans
+## Active plans
 
-- `plans/itrader_masterplan.md` (+ `.html`) - canonical cross-phase plan.
-- `phase_b_plan.md` - original concrete Phase B execution plan.
-- `iTRADER_Codex_Implementation_Spec.md` - detailed Codex implementation spec
-  for coupled offline/online architecture.
+- `plans/itrader_masterplan.md` (+ `.html`) — active cross-phase order and promotion gates; Phase B/C boundaries are being reconciled.
+- `phase_b_plan.md` — historical concrete Phase B ordering, reconciled with the locked 2.9 stack and the current offline+replay/shadow scope.
+- `iTRADER_Codex_Implementation_Spec.md` — working interface/workstream draft; solver/trunk/head order is proposed, not settled by this index.
 
-## Project State
+## Project state
 
-- `project-state/current-state.md` - current state and architecture notes.
-- `project-state/handoff.md` - continuation handoff for future agents.
-- `project-state/decisions.md` - accepted decisions and rationale.
-- `project-state/session-log.md` - session-level implementation log.
+- `project-state/current-state.md` — branch and implementation snapshot.
+- `project-state/handoff.md` — continuation handoff.
+- `project-state/next-actions.md` — ordered implementation and evidence queue.
+- `project-state/decisions.md` — accepted decisions and supersessions.
+- `project-state/session-log.md` — dated engineering log.
+- `project-state/solver-recurrence-assessment.md` — historical assessment rewritten as non-executable evidence and constraints.
 
-## Knowledge Layer
+## Research
 
-- `knowledge/README.md` - GitNexus tracked docs and workflow entrypoint.
-- `knowledge/WORKFLOWS.md` - graph-guided exploration, debugging, and refresh.
-- `knowledge/wiki/` - generated GitNexus wiki snapshots.
+- `research/recurrent-solver-ablation.md` (+ `.html`) — R0–R4 provenance, R2a–R2d placement matrix, same-input carry/reset controls, and RLlib lifecycle questions; not an accepted architecture contract.
+- `research/sharpe-reward-design.md` (+ `.html`) — reward evidence boundary, telescoping limitation, and proposer/solver separation.
 
-Generated knowledge is advisory. If it disagrees with source, tests, or active
-architecture docs, trust the code and call out the mismatch.
+## Dated artifacts and audit
 
-## Artifacts And Research
+- `artifacts/research/phase-a-performance-validity-audit-2026-09-12.md` (+ `.html`) — critical Phase A audit, restored-winner replay, implemented seam repairs, final full-stack acceptance probe, and remaining promotion run.
+- `artifacts/research/azr-stack-review-2026-09-12.md` — local AZR v2 synthesis and source-grounded adaptation recommendations.
+- `artifacts/research/recurrence-code-audit-2026-09-12.md` — independent read-only source audit; do not treat its attempted WSL test as a pass.
+- `artifacts/research/recurrence-docs-revision-audit-2026-09-12.md` — this docs coverage inventory, edit rationale, and validation results.
+- `daily_logs/2026-09-12.md` — dated docs-only work log.
 
-- `research/sharpe-reward-design.md` (+ `.html`) - implemented incremental
-  Sharpe seam, family mapping, and promotion experiment.
-- `research/recurrent-solver-ablation.md` (+ `.html`) - factorized R0-R4 solver
-  study and RLlib state-lifecycle requirements.
-- `artifacts/research/` - imported or exploratory HTML references, including
-  Neural Workbench, AB-object theory, LoRA/PPO/GAE/RLVR notes, and Market-JEPA.
-- `daily_logs/` - ongoing engineering logs.
-- dated handoffs and historical plans remain in place until folded into the
-  active masterplan or archived more aggressively.
+## Historical/advisory surfaces intentionally excluded from rewrite
 
-## Notion Status
+- `knowledge/wiki/` is generated GitNexus material and remains advisory.
+- Imported HTML under `artifacts/research/`, including `Neural_Workbench_Formal_Masterplan_Extended.html`, remains historical/reference material.
+- Dated handoffs and older research snapshots remain provenance unless an active document explicitly promotes their conclusion.
 
-No local `notion` or `notion-cli` executable was available on PATH during the
-2026-06-17 docs cleanup. Treat Notion publishing as a future connector/plugin
-workflow rather than a shell-CLI step for this repo.
+When documents disagree, use this precedence: current source/tests/config and `AGENTS.md`; active architecture/masterplan; project-state continuity docs; independent/dated research artifacts; generated/imported material.

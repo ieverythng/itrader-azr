@@ -5,7 +5,7 @@ truth and maintain an HTML companion for plans intended for high-level review.
 
 ## Active Plans
 
-- `itrader_masterplan.md` (+ `.html`) - canonical cross-phase iTrader roadmap.
+- `itrader_masterplan.md` (+ `.html`) - active cross-phase iTrader roadmap; unresolved Phase B/C and solver-order choices remain proposals pending review.
 
 ## Related Root-Level Plans
 

@@ -3,8 +3,37 @@
 Autonomous trading research platform inspired by the Absolute Zero Reasoner (AZR) paradigm, adapted to a proposer-solver setting for Reinforcement Learning with Verifiable Rewards (RLVR).
 
 This repository is currently focused on:
-- Phase A: stable solver learning with verifiable reward shaping in a controllable trading environment.
-- Phase B: integrating an LLM-based proposer and validating AZR-style loop behavior at scale.
+- Phase A: repaired measurement/PBT seams under performance revalidation; solver
+  learnability is provisional and trading performance is not validated.
+- Phase B: integrating an LLM-based proposer and validating the offline plus online/replay/shadow loop; this scope is still under user review.
+
+## Current source-grounded status (2026-09-12)
+
+- `SolverMLPFiLM` is the implemented/default solver. Its observation is
+  `[price_window_flat | task_embedding]`; its implemented FiLM path is
+  `tanh(gamma(task)) * hidden + beta(task)`, with training-time task dropout.
+  Non-`film` conditioning currently leaves the hidden representation
+  unconditioned; it is not a concat implementation.
+- The checked-in `SolverLSTMModel` is a legacy reset-every-forward window encoder
+  with an observation-shape incompatibility when the task embedding is appended;
+  it is not evidence of stateful recurrence.
+- R1, R2a, R2b, R2c, R2d, R3, and `R4-v1` are design cells, not implemented
+  variants on this branch. Historical IDs from `4732a98` are preserved; the
+  simplified `bec5c77` labels are mapped explicitly in the active docs.
+- Families `00`–`04` are the roadmap. Families `00`–`02` currently share a
+  possible `Discrete(3)` action width, but that does not settle their input
+  schemas, task semantics, reward assignments, or state ownership.
+- A shared recurrent trunk with family-specific policy/value heads is a proposed
+  architecture under the ongoing grill-me review, not an accepted decision.
+  `RewardEngine` remains the environment-owned reward seam; it does not imply a
+  learned reward head.
+- Phase B includes both offline/curriculum work and online replay/shadow work.
+  Phase C is later operationalization, not the first point at which replay or
+  shadow is allowed.
+- Phase A now emits versioned terminal economic evidence, uses symbol-safe
+  purged train/validation/test partitions, and selects PBT members on held-out
+  net return. Historical iteration-200 winners remain quarantined pending a
+  baseline-controlled multi-seed rerun and untouched final test.
 
 ## Core Idea
 
@@ -58,7 +87,7 @@ Training follows RLVR principles:
 ## Planning and Operations Docs
 
 - `docs/architecture.md`
-  - Current baseline architecture and Phase B target architecture.
+  - Current baseline architecture and Phase B offline/replay/shadow scope.
 - `docs/phase_b_plan.md`
   - Concrete milestone plan, acceptance criteria, and risk controls.
 - `docs/ops_runbook.md`
@@ -68,17 +97,30 @@ Training follows RLVR principles:
 
 ## Current Phase Status
 
-### Phase A (mostly complete)
-- Learnable reward setup is in place.
-- Solver training loop has practical stability guards (sanitization, finite reward handling, callback metrics).
-- PBT flow exists with documented operational practices.
+### Phase A (engineering gate complete; performance gate open)
+- `EpisodeEvidence` separates optimization reward from gross/cost/net return,
+  turnover, drawdown, exposure, and Sharpe.
+- Symbol-safe purged partitions and `semantic_v2` task encoding are active for
+  new runs.
+- Ray 2.9 PBT uses diverse starts, bounded mutations, matched held-out
+  evaluation, equal exposure, aligned checkpoints, and restore-aware lineage.
+- Multi-seed baseline-controlled overnight training and untouched final-test
+  evaluation remain required before any performance claim.
 
-### Phase B (active)
-- Integrate proposer LLM into the actual training/runtime loop.
+### Phase B (active; offline + online/replay/shadow)
+- Integrate proposer LLM into the actual offline training/curriculum loop.
 - Validate and benchmark `stream_worker` stepping/reset strategy.
-- Expand `train_AZR.py` from bootstrap handoff into full proposer-solver co-adaptation loop.
+- Expand `train_AZR.py` from bootstrap handoff into a fuller proposer-solver loop.
+- Exercise replay/shadow through MarketFramer and deterministic gating; Phase C is
+  later operationalization, not the first replay/shadow boundary.
 
 ## How To Run (Reference)
+
+The source lock is authoritative. In this session, WSL could not execute the
+Windows `.venv/Scripts/python.exe` and returned `Exec format error`; this is not a
+universal limitation claim about every WSL setup. Use a compatible Windows or POSIX
+interpreter for the commands below.
+
 
 Main training script:
 - `python -m itrader.rl_lib.train.train_solo_V2 --iters 200 --workers 6 --window 30 --seed 1234 --experiment_name Phase_A`
@@ -93,8 +135,11 @@ Useful start-index/repro flags:
 
 Training outputs (Phase A):
 - Ray trial artifacts: `~/ray_results/<experiment_name>/training_fn_*/`
+- Stable run provenance: `~/ray_results/_stable_runs/<experiment_name>/`
 - Stable metrics mirror: `~/ray_results/_stable_metrics/<trial_dir_name>/`
 - Stable files:
+  - `resolved_config.json`, `config_history.jsonl`, `trial_status.json`, and
+    `checkpoint_index.jsonl`
   - `metrics_full.jsonl` (flattened scalar metrics for robust plotting)
   - `report_rows.csv` (session.report rows for quick comparison scripts)
   - `plots/` (auto-generated plot outputs)
@@ -133,7 +178,8 @@ Task generation smoke commands (Phase B):
   - `./itrader/tools/run_repo_python.sh -m itrader.scripts.gen_task_pool --backend sglang --api_base_url http://localhost:8000/v1 --api_model Qwen/Qwen3.5-9B --out /tmp/itrader_task_pool_sglang.jsonl --n_tasks 8 --batch_size 4`
 
 Run metadata:
-- Each run writes `run_manifest_*.json` under `~/ray_results/<experiment_name>/`.
+- Each run writes `run_manifest_*.json` and `run_status_*.json` under
+  `~/ray_results/_stable_runs/<experiment_name>/` so Tune cannot truncate them.
 - Manifest includes git commit, config hash, dataset fingerprint, seed, and runtime mode.
 
 Daily session logging:

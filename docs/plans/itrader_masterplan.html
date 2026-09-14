@@ -5,146 +5,285 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>iTrader Masterplan</title>
   <style>
-    :root { --ink:#18201c; --muted:#58645d; --line:#cbd2cc; --paper:#f4f6f3; --panel:#fff; --green:#176b49; --blue:#225f91; --amber:#a96113; --red:#963e36; }
+    :root { --ink:#172019; --muted:#536058; --line:#ccd4ce; --paper:#f3f6f3; --panel:#fff; --green:#176b49; --blue:#1f5d8c; --amber:#a96113; --red:#963e36; }
     * { box-sizing:border-box; }
-    body { margin:0; color:var(--ink); background:var(--paper); font-family:"Segoe UI",Arial,sans-serif; line-height:1.5; }
-    header { background:#eaf0ea; border-bottom:1px solid var(--line); }
-    header>div, main { width:min(1180px, calc(100% - 40px)); margin:auto; }
-    header>div { padding:42px 0 34px; }
-    .eyebrow { color:var(--green); font-size:13px; font-weight:700; text-transform:uppercase; }
-    h1 { max-width:920px; margin:8px 0 10px; font:700 46px/1.06 Georgia,serif; }
-    .subtitle { max-width:850px; color:var(--muted); font-size:18px; }
-    .meta { display:flex; flex-wrap:wrap; gap:16px; margin-top:20px; color:var(--muted); font-size:14px; }
-    .meta span { padding-left:9px; border-left:3px solid var(--blue); }
-    main { padding:30px 0 60px; }
-    section { padding:25px 0; border-bottom:1px solid var(--line); }
-    h2 { margin:0 0 14px; font:700 26px/1.2 Georgia,serif; }
-    h3 { margin:0 0 8px; font-size:17px; }
-    p, li { color:var(--muted); }
-    code, pre { font-family:Consolas,monospace; }
-    code { color:#174d75; }
-    pre { overflow:auto; padding:16px; color:#eff5f1; background:#1b2720; border-left:4px solid var(--green); }
-    .phases { display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--line); background:var(--panel); }
-    .phase { min-height:180px; padding:18px; border-right:1px solid var(--line); }
-    .phase:last-child { border-right:0; }
-    .phase b { display:block; margin-bottom:10px; color:var(--green); font-size:13px; text-transform:uppercase; }
-    .phase:nth-child(2) b { color:var(--blue); }
-    .phase:nth-child(3) b { color:var(--amber); }
-    .phase:nth-child(4) b { color:var(--red); }
-    .grid { display:grid; grid-template-columns:1fr 1fr; gap:24px; }
-    table { width:100%; border-collapse:collapse; background:var(--panel); font-size:14px; }
-    th, td { padding:10px; border:1px solid var(--line); text-align:left; vertical-align:top; }
-    th { background:#e7ece8; }
-    .tag { display:inline-block; min-width:82px; padding:3px 7px; border:1px solid currentColor; border-radius:4px; font-size:12px; font-weight:700; text-align:center; }
-    .done { color:var(--green); } .active { color:var(--blue); } .planned { color:var(--amber); } .future { color:var(--red); }
-    .gate { padding:14px 16px; border-left:4px solid var(--amber); background:#fff8ea; color:#654616; }
-    ol, ul { padding-left:22px; }
-    @media (max-width:850px) { h1{font-size:36px}.phases{grid-template-columns:1fr 1fr}.phase:nth-child(2){border-right:0}.phase{border-bottom:1px solid var(--line)}.grid{grid-template-columns:1fr} }
-    @media (max-width:520px) { .phases{grid-template-columns:1fr}.phase{border-right:0}table{display:block;overflow:auto} }
-  </style>
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:var(--paper); font-family:"Segoe UI",Arial,sans-serif; line-height:1.58; }
+    header { color:#eef6f0; background:linear-gradient(135deg,#17271e,#204b36); border-bottom:5px solid var(--green); }
+    header>div, main { width:min(1120px,calc(100% - 36px)); margin:auto; }
+    header>div { padding:48px 0 40px; }
+    .eyebrow { margin:0 0 8px; color:#9ed1b4; font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+    header h1 { max-width:920px; margin:0; color:#fff; font:700 clamp(2.2rem,5vw,3.6rem)/1.05 Georgia,serif; }
+    header p { max-width:850px; margin:14px 0 0; color:#d5e4da; font-size:1.05rem; }
+    main { padding:34px 0 72px; }
+    .source-note { margin:0 0 18px; color:var(--muted); font-size:.88rem; }
+    .source-note a { color:var(--blue); }
+    article { padding:clamp(26px,5vw,58px); background:var(--panel); border:1px solid var(--line); border-radius:12px; box-shadow:0 14px 34px rgba(23,32,25,.08); }
+    h1,h2,h3,h4 { color:var(--ink); font-family:Georgia,serif; line-height:1.2; }
+    article>h1 { display:none; }
+    h2 { margin:2.1em 0 .65em; padding-top:.2em; font-size:clamp(1.55rem,3vw,2.1rem); border-top:1px solid var(--line); }
+    h2:first-of-type { border-top:0; margin-top:.4em; }
+    h3 { margin:1.65em 0 .45em; font-size:1.28rem; }
+    h4 { margin:1.3em 0 .35em; font-size:1.05rem; }
+    p,li,td,th { color:var(--muted); }
+    strong { color:var(--ink); }
+    a { color:var(--blue); }
+    code { padding:.08em .3em; color:#164d74; background:#edf3f6; border-radius:3px; font-family:Consolas,monospace; font-size:.92em; }
+    pre { overflow:auto; padding:17px; color:#eef5f0; background:#1b2720; border-left:4px solid var(--green); border-radius:5px; }
+    pre code { padding:0; color:inherit; background:transparent; }
+    blockquote { margin:1.2em 0; padding:12px 18px; background:#fff8e9; border-left:4px solid var(--amber); }
+    blockquote p { margin:0; color:#63491f; }
+    table { width:100%; margin:1.2em 0 1.55em; border-collapse:collapse; font-size:.91rem; }
+    th,td { padding:9px 10px; border:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { color:#fff; background:#244d68; }
+    tbody tr:nth-child(even) { background:#f4f6f4; }
+    ul,ol { padding-left:1.45em; }
+    li+li { margin-top:.35em; }
+    hr { border:0; border-top:1px solid var(--line); }
+    @media(max-width:650px) { header>div,main{width:min(100% - 22px,1120px)} article{padding:22px 18px} table{display:block;overflow-x:auto} }
+    @media print { body{background:#fff} header{color:#000;background:#fff;border-bottom:2px solid #000} header h1{color:#000} header p,.eyebrow{color:#444} main{width:100%;padding:0} article{border:0;box-shadow:none;padding:0} a{color:inherit;text-decoration:none} }
+</style>
 </head>
 <body>
   <header><div>
-    <div class="eyebrow">iTrader / canonical roadmap</div>
-    <h1>Measure the solver first. Couple intelligence only through governed seams.</h1>
-    <p class="subtitle">The route from stable PPO and task-conditioned FiLM to recurrent memory, adversarial curriculum, shadow decisions, and an optional JEPA market representation.</p>
-    <div class="meta"><span>Updated 2026-09-03</span><span>Branch: feat/codex-adversarialproposer</span><span>Baseline: SolverMLPFiLM</span></div>
+    <p class="eyebrow">iTrader research and architecture</p>
+    <h1>iTrader Masterplan</h1>
+    <p>Active cross-phase architecture, evidence, and promotion plan</p>
   </div></header>
   <main>
-    <section>
-      <h2>System Shape</h2>
-      <pre>offline: market data -> CurriculumProposer -> TaskSpec -> ITraderEnv -> solver -> capability
-online: market window -> MarketFramer -> CandidateTask -> solver score -> DecisionGate -> RiskEngine -> Executor</pre>
-    </section>
-    <section>
-      <h2>Phase Rail</h2>
-      <div class="phases">
-        <article class="phase"><b>Phase A / stable</b><h3>Solver Baseline</h3><p>PPO/GAE, family 00, MLP-FiLM, finite decomposed rewards, metrics and manifests.</p></article>
-        <article class="phase"><b>Phase B / active</b><h3>Quality + Curriculum</h3><p>Matched sampling/reward tests, truthful capability slices, recurrent ablation, proposer loop.</p></article>
-        <article class="phase"><b>Phase C / planned</b><h3>Shadow Decisions</h3><p>MarketFramer, WAIT, deterministic gate/risk/execution, complete DecisionRecord.</p></article>
-        <article class="phase"><b>Phase D / frontier</b><h3>Market-JEPA</h3><p>Optional latent representation and framing prior behind stable candidate contracts.</p></article>
-      </div>
-    </section>
-    <section class="grid">
-      <div>
-        <h2>Implemented</h2>
-        <ul>
-          <li><code>train_solo_V2</code> is the independent PPO entrypoint.</li>
-          <li><code>TaskSpec</code> and <code>ITraderEnv</code> own task and observation contracts.</li>
-          <li><code>SolverMLPFiLM</code> is the only validated task-conditioned head.</li>
-          <li><code>pnl_linear</code> is the only proven/default reward; <code>sharpe_only</code> and the <code>pnl_sharpe</code> blend are challengers.</li>
-          <li>OpenAI-compatible proposer backends can use llama.cpp.</li>
-        </ul>
-      </div>
-      <div>
-        <h2>Not Yet Implemented</h2>
-        <ul>
-          <li>Corrected window-LSTM-FiLM and stateful recurrent FiLM.</li>
-          <li>Operational families 01 and 02 or routed family heads.</li>
-          <li>Calibrated family/regime capability records.</li>
-          <li>DecisionGate, deterministic RiskEngine, and Executor flow.</li>
-          <li>Market-JEPA training or inference integration.</li>
-        </ul>
-      </div>
-    </section>
-    <section>
-      <h2>Phase B Evidence Ladder</h2>
-      <table>
-        <thead><tr><th>Order</th><th>Experiment / seam</th><th>Decision unlocked</th><th>Status</th></tr></thead>
-        <tbody>
-          <tr><td>1</td><td>Restore pinned environment and full validation</td><td>Trust the branch</td><td><span class="tag active">DONE</span></td></tr>
-          <tr><td>2</td><td>Five-cell sampling alignment, including random-128 vs stream-128</td><td>Lock episode sampling</td><td><span class="tag active">READY</span></td></tr>
-          <tr><td>3</td><td>PnL vs Sharpe-only vs PnL+Sharpe on R0; fixed horizon and isolated reward RNG</td><td>Test reward challengers</td><td><span class="tag active">READY</span></td></tr>
-          <tr><td>4</td><td>Metrics metadata into family/regime/horizon reports</td><td>Trust capability estimates</td><td><span class="tag planned">NEXT</span></td></tr>
-          <tr><td>5</td><td>R0 MLP-FiLM vs R1 window-LSTM-FiLM</td><td>Value of temporal window bias</td><td><span class="tag planned">TDD</span></td></tr>
-          <tr><td>6</td><td>R1 vs R2a recurrent concat vs R2b recurrent FiLM</td><td>Value of memory and FiLM separately</td><td><span class="tag planned">TDD</span></td></tr>
-          <tr><td>7</td><td>Matched explicit position/progress features</td><td>Trade-state observability</td><td><span class="tag future">LATER</span></td></tr>
-          <tr><td>8</td><td>Implement and lock families 01/02</td><td>Shared trunk + routed heads</td><td><span class="tag future">GATED</span></td></tr>
-        </tbody>
-      </table>
-    </section>
-    <section>
-      <h2>Canonical Families</h2>
-      <table>
-        <thead><tr><th>ID</th><th>Name</th><th>Actions</th><th>State</th></tr></thead>
-        <tbody>
-          <tr><td>00</td><td>directional_predictor</td><td>short / flat / long</td><td>Enabled baseline</td></tr>
-          <tr><td>01</td><td>breakout_expansion</td><td>short / flat / long</td><td>Disabled bootstrap</td></tr>
-          <tr><td>02</td><td>mean_reversion</td><td>short / flat / long</td><td>Disabled bootstrap</td></tr>
-          <tr><td>03</td><td>trade_management</td><td>Contract review required</td><td>Future</td></tr>
-          <tr><td>04</td><td>abstain_unsuitable_regime</td><td>WAIT / no action</td><td>Future online seam</td></tr>
-        </tbody>
-      </table>
-    </section>
-    <section class="grid">
-      <div>
-        <h2>Solver Destination</h2>
-        <pre>shared market trunk
-  -> route by TaskSpec.family_id
-  -> policy head[family]
-  -> value head[family]</pre>
-        <p>One task routes to one family head. Mixed PPO batches can contain several routes. Build this only after at least two families are real.</p>
-      </div>
-      <div>
-        <h2>Proposer Destination</h2>
-        <pre>train_AZR
-  -> proposer candidate pool
-  -> validation + dedupe
-  -> solver rollout/evaluation
-  -> r_prop + golden artifacts
-  -> next curriculum</pre>
-        <p><code>train_AZR</code> grows around the coupled loop; it does not replace or dilute <code>train_solo_V2</code>.</p>
-      </div>
-    </section>
-    <section>
-      <h2>Online And JEPA Gate</h2>
-      <p>Phase C starts in replay/shadow mode. LLM framing cannot bypass solver scoring, WAIT, deterministic thresholds, risk, or execution. Market-JEPA may later provide latent context, regime-transition predictions, or uncertainty to MarketFramer, but must preserve the same CandidateTask and downstream decision contracts.</p>
-      <p class="gate">No online influence before capability calibration. PnL remains the sole reward default until a Sharpe challenger wins held-out evaluation. No recurrent default before R1/R2 matched tests and throughput accounting.</p>
-    </section>
-    <section>
-      <h2>Source Of Truth</h2>
-      <p>This view summarizes <code>docs/plans/itrader_masterplan.md</code>. Detailed experiment decisions live in <code>docs/research/</code> and immediate execution order lives in <code>docs/project-state/next-actions.md</code>.</p>
-    </section>
+    <p class="source-note">Source of truth: <a href="itrader_masterplan.md">itrader_masterplan.md</a></p>
+    <article class="markdown-content"><h1>iTrader Masterplan</h1>
+<p>Last updated: 2026-09-14
+Status: <strong>Phase A checkpoint/evaluation parity repaired and corrected 200-iteration PBT completed negative; deterministic baseline-controlled revalidation is the next P0</strong>
+Branch snapshot: <code>agent/Watson-dev</code> at <code>bec5c77</code></p>
+<h2>North star</h2>
+<p>iTrader is a governed proposer/curriculum plus numerical solver system. Keep
+learning, framing, deterministic gating, and execution separate.</p>
+<pre><code class="language-text">offline: historical OHLCV -&gt; proposer/curriculum -&gt; validated TaskSpec pool
+-&gt; ITraderEnv -&gt; numerical PPO solver -&gt; held-out capability evidence
+online: market window -&gt; MarketFramer -&gt; CandidateTask + WAIT -&gt; solver score
+-&gt; DecisionGate -&gt; RiskEngine -&gt; Executor -&gt; DecisionRecord
+</code></pre>
+<p>This is AZR-inspired adaptive curriculum learning, not literal zero-data AZR:
+historical OHLCV is external data, the proposer and numerical PPO solver are
+intentionally separate, and <code>train_AZR.py</code> is currently a bootstrap handoff.</p>
+<h2>Phase A — implemented solver baseline under performance revalidation</h2>
+<p><strong>Status: measurement and PBT seams repaired; optimizer health is provisional and trading performance is not validated.</strong></p>
+<ul>
+<li><code>train_solo_V2.py</code> selects <code>SolverMLPFiLM</code>.</li>
+<li><code>ITraderEnv</code> emits chronological <code>price_window_flat + task_embedding</code>.</li>
+<li><code>TaskSpec</code> is canonical; <code>RewardEngine</code> owns finite reward computation.</li>
+<li><code>pnl_linear</code> remains the default optimization reward. It is learnable in the
+limited sense that PPO produced finite training signals and restorable policies;
+it is not yet proven to rank economic performance. Sharpe variants remain
+challengers and are not a recurrence prerequisite.</li>
+<li>Family <code>00</code> is the only enabled learned family. <code>01</code>/<code>02</code> are bootstrap
+contracts; <code>03</code> is trade management; <code>04</code> is abstention/WAIT semantics.</li>
+</ul>
+<p>The 2026-09-12 performance-validity audit restored both historical iteration-200
+PBT checkpoints and replayed each on 288 symbol-safe diagnostic episodes. The
+final-score target averaged +0.0163% gross but -0.0728% net at 1 bp per turnover
+unit; the peak-score target averaged -0.0112% gross and -0.0950% net. Both were
+overwhelmingly flat. These are in-sample diagnostics because the historical run
+used the full Parquet file, but they disprove the interpretation that the shaped
+PBT score was itself profitable return.</p>
+<p>The different historical gammas confirm that the long PBT run did mutate
+configurations after checkpoints became available. Ray's default numeric
+perturbation multiplied categorical gamma values by 0.8/1.2 without domain
+validation: one target ended at <code>gamma=0.6272</code>, while the other ended at the
+invalid <code>gamma=1.188</code>.</p>
+<h3>Mandatory Phase A revalidation gate</h3>
+<p>The engineering portion of this gate is now implemented and smoke-validated on
+the official random/generated ablation path. <code>EpisodeEvidence</code>, symbol-safe
+purged partitions, <code>semantic_v2</code> task encoding, held-out net-return selection,
+bounded/diverse PBT, aligned checkpoints, equal exposure, restore-aware lineage,
+atomic stable provenance, all-member summaries, and the flat-schema capability
+report are present. The bounded two-member run ended at exactly 12 unique
+iterations and 13,520 timesteps per member and recorded real exploit/restore
+events. This establishes seam correctness, not trading performance.</p>
+<p>Before Phase B may rely on R0 behavior as a performance baseline:</p>
+<ol>
+<li><strong>Implemented:</strong> emit a public versioned <code>EpisodeEvidence</code> record with independent optimization
+reward, raw gross return, explicit costs/net return, turnover including terminal
+liquidation, drawdown, action counts, task identity, symbol/split, and provenance.</li>
+<li><strong>Implemented:</strong> make reset/evaluation symbol-safe and use per-symbol chronological
+train/validation/final-test ranges with lookback/outcome purge. The final test
+remains unavailable to PBT and proposer updates.</li>
+<li><strong>Implemented:</strong> constrain PBT domains, diversify member seeds and initial configurations,
+align checkpoint cadence with perturbation cadence, and persist lineage.</li>
+<li><strong>Implemented:</strong> replace zero-byte Tune manifests/trial records with atomic non-empty evidence
+outside Tune-owned paths; summarize every population member.</li>
+<li><strong>Partly implemented:</strong> the capability-report schema now consumes live flat
+trainer records; matched flat/long/short/random/untrained baselines under
+multiple cost assumptions and training seeds remain required.</li>
+<li><strong>Completed but not promoted:</strong> the four-member, 200-iteration Phase A parity PBT run <code>pbtA26_parity200_20260914_000736_pbt200</code> selected on held-out net return, never shaped reward. Every final net-return and Sharpe observation was negative. A follow-up proved that Ray 2.9 restore silently re-enabled evaluation exploration. PBT now forces deterministic post-restore evaluation, limits smoothing to the frozen panel, uses checkpoint-free <code>market_relative_v1</code> observations with <code>NoFilter</code>, and writes durable checkpoints outside Tune ownership. The corrected run <code>pbtA26_parity200_checkpoint_valid_20260914_041907_pbt200_checkpoint_valid</code> completed all four members at iteration 200 and approximately 990k retained steps each. Every terminal held-out net return and Sharpe was negative; the best was -0.0556% net with Sharpe -0.00060 and 91.3% flat actions. Its durable checkpoint reproduced net return, Sharpe, and turnover exactly in a fresh process. Promotion remains blocked on baselines, uncertainty, costs, and the untouched final test.</li>
+<li><strong>Next platform seam:</strong> preserve Ray 2.9 as the locked reproduction baseline, then migrate in a separate environment to Ray 2.58.0. First prove old-API parity, then port <code>ModelV2</code>/workers/callbacks to <code>RLModule</code>/EnvRunner/Learner/ConnectorV2. Reconcile the current dependency declaration drift: 2.9.0 in <code>pyproject.toml</code>/Conda versus 2.47.x in the constraints and cluster setup.</li>
+</ol>
+<p>The detailed findings and TDD slices are in
+<code>docs/artifacts/research/phase-a-performance-validity-audit-2026-09-12.md</code>.</p>
+<h2>Phase B — offline + replay/shadow work</h2>
+<p><strong>Status: active scope; implementation and ordering remain under review.</strong></p>
+<p>Phase B includes both offline/curriculum work and online replay/shadow validation.
+It is not limited to proposer integration, and replay/shadow is not deferred until
+Phase C. Live broker execution remains outside this Phase B scope.</p>
+<p>The solver/trunk/head structure is still an open design question. A shared
+recurrent trunk with family-specific policy/value heads is a proposal for the
+ongoing grill-me review, not an accepted architecture. Families <code>00</code>–<code>04</code> remain
+the roadmap; <code>00</code>–<code>02</code> may share <code>Discrete(3)</code> output width without settling
+input schemas, task semantics, reward assignments, or state ownership.</p>
+<h3>Solver standard (proposed, not settled)</h3>
+<p>Keep R0 as the control. Do not describe model registration as model selection.
+R1–R3 are unimplemented, and R4 is versioned as <code>R4-v1</code>. The shared-trunk and
+family-head arrangement remains open pending user review.</p>
+<p>Historical provenance is authoritative:</p>
+<table>
+<thead>
+<tr>
+<th>Cell</th>
+<th>Identity</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R0</td>
+<td>MLP + implemented FiLM (<code>tanh(gamma)*hidden + beta</code>)</td>
+<td>Implemented/default</td>
+</tr>
+<tr>
+<td>R1</td>
+<td>Reset-every-step window LSTM + FiLM; explicit market/task split</td>
+<td>Unimplemented; must be correct/measurable</td>
+</tr>
+<tr>
+<td>R2a</td>
+<td>Stateful LSTM + task concat</td>
+<td>Unimplemented recurrence baseline</td>
+</tr>
+<tr>
+<td>R2b</td>
+<td>Stateful LSTM + init-only FiLM</td>
+<td>Deferred: task unavailable to current initial-state hook</td>
+</tr>
+<tr>
+<td>R2c</td>
+<td>Stateful LSTM + per-step FiLM</td>
+<td>Active candidate; readout placement first</td>
+</tr>
+<tr>
+<td>R2d</td>
+<td>Init + per-step FiLM on value head only</td>
+<td>Deferred; matched placements required</td>
+</tr>
+<tr>
+<td>R3</td>
+<td>Stateful GRU + per-step FiLM</td>
+<td>Later cell-type comparison</td>
+</tr>
+<tr>
+<td>R4-v1</td>
+<td>Matched explicit solver-state features on FF + recurrent controls</td>
+<td>Separate observability study</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>bec5c77</code> “R2b per-step” label maps to original R2c. The older
+init-oriented R4 maps conceptually to R2b; <code>bec5c77</code> instead used R4 for
+matched observation features. IDs are not executable flags, and this
+proposed reconciliation has not been silently promoted to a new canonical schema.</p>
+<h3>Conditioning placement (open proposal)</h3>
+<p>Use explicit placement names: R2a input concat, <code>R2c-precell</code> input/gate FiLM,
+R2c post-cell/readout FiLM, R2b initial-state FiLM, and R2d value-only placement.
+A post-cell/readout FiLM claim is readout-only only when no other task path (such
+as concat) reaches the cell; with concat, the transition is already task-
+conditioned and FiLM is an additional factor. Readout-first is a proposed order,
+not a settled memory-conditioning decision.</p>
+<h3>Attribution controls</h3>
+<p>R1 versus newest-bar R2 changes input history, cold-start/warmup, conditioning,
+and state lifetime; it is an engineering progression, not an isolated memory
+proof. Add train-from-scratch same-input/same-conditioning <code>R2c-CARRY</code> versus
+<code>R2c-RESET</code> before attributing gains to carry state. A zero-state evaluation probe
+is an OOD diagnostic, not a causal estimate.</p>
+<h3>Lifecycle contract</h3>
+<p>Keep input-window, BPTT/unroll (<code>max_seq_len</code>), episode horizon, and
+reward-statistics window distinct. Define cold start versus causal initial-window
+warmup. Do not count overlapping bars as new steps. Reset state when the
+environment actually resets at real termination; a truncated bootstrap difference
+is not itself a reset, and rollout-chunk detach is not an episode reset. Specify
+vector-worker ownership, training/inference parity, checkpoint/replay state, and
+reset semantics before training.</p>
+<h3>Task and feature controls</h3>
+<p>The default encoder omits reward parameters, bar resolution, regime tags,
+difficulty, metadata, and start index while exposing a bounded seed feature.
+Freeze omitted fields initially or create a separately versioned semantic encoder;
+report observability. R4-v1 adds explicit position/progress/PnL fields identically
+to feed-forward and recurrent controls. OHLCV-only recurrence cannot know sampled
+actions, fills, or position exactly.</p>
+<h3>Phase B implementation/evidence order</h3>
+<ol>
+<li>Complete the mandatory Phase A revalidation gate and preserve R0 as a
+compatibility control, not a validated performance winner.</li>
+<li>Produce truthful task/family/regime metadata through the shared episode-evidence
+contract.</li>
+<li>Complete alignment/reward controls on R0; keep reward changes independent of
+recurrence. Treat the staged reward file as existing/unreviewed here.</li>
+<li>Implement and test R1 shape splitting, chronological newest-bar convention,
+FiLM readout, finite forward/backward, and smoke configuration.</li>
+<li>Implement R2a native recurrent LSTM with state lifecycle tests.</li>
+<li>Implement R2c readout FiLM and the named <code>R2c-CARRY</code>/<code>R2c-RESET</code> pair.</li>
+<li>Only then consider the named pre-cell factor, R2b init-only, R2d value-only,
+and R3 GRU according to evidence.</li>
+<li>Run <code>R4-v1</code> with identical explicit state features on R0 and the winning
+recurrent control.</li>
+<li>Promote only after held-out chronological evaluation, multi-seed results,
+state norms, sequence-mask checks, compute/memory, and checkpoint/replay tests.</li>
+</ol>
+<p>R1 need not win before R2 is tested. It must be correct and measurable.</p>
+<h2>Phase B — AZR-inspired curriculum boundary</h2>
+<p><strong>Status: bootstrap handoff implemented; co-adaptive loop planned.</strong></p>
+<p>The local AZR v2 source's Eq. 4 proposer reward is zero at <code>p=0</code> or <code>p=1</code>,
+otherwise <code>1-p</code>; it is not a symmetric 50% peak and not measured learning
+progress. iTrader should retain deterministic validation, reference/task buffers,
+and role-specific evidence without claiming reproduction.</p>
+<p>Proposer study is separate from R-series solver study:</p>
+<ol>
+<li>fixed rule/random validated curriculum;</li>
+<li>frozen LLM proposer;</li>
+<li>frozen LLM with solver-feedback/reference-conditioned selection;</li>
+<li>adaptive proposer only after repeatable utility/uplift evidence.</li>
+</ol>
+<p>Use frozen-versus-adaptive reference-buffer updates as a named factor. Adaptation
+uses validation; reserve an untouched final chronological test. Keep a cost-aware
+verifier and report generation calls, rejected tasks, tokens/latency, accepted
+solver timesteps, cost, turnover, and drawdown.</p>
+<h2>Phase C — operational coupled shell</h2>
+<p><strong>Status: future operationalization; not the first replay/shadow phase.</strong></p>
+<p>Phase B already includes offline/curriculum work and online replay/shadow
+validation. Phase C means hardening the coupled stack for broader operational use:</p>
+<ul>
+<li><code>CurriculumProposer</code> and <code>MarketFramer</code> are operational;</li>
+<li>online <code>DecisionGate</code>/<code>RiskEngine</code>/<code>Executor</code> shell is hardened;</li>
+<li><code>WatsonOW</code> can consume iTRADER as a skill;</li>
+<li>proposer fine-tuning can use an accumulated, audited corpus later.</li>
+</ul>
+<p>Phase C does NOT require immediate replacement of the solver with an LLM.</p>
+<h2>Phase D — optional Market-JEPA</h2>
+<p><strong>Status: future/advisory.</strong></p>
+<p>Keep representation learning behind the stable market-window and candidate-task
+contracts. Do not expand to JEPA/MoE as a substitute for causal recurrence
+controls or truthful metrics.</p>
+<h2>Promotion rules</h2>
+<p>No reward, solver, proposer, or online claim is promoted from training curves
+alone. Use matched data/task identities, chronological validation/test separation,
+explicit costs, drawdown, turnover, state lifecycle evidence, and a written
+attribution statement for every comparison.</p>
+<p><code>custom_metrics/episode_return_mean</code> is currently accumulated shaped optimization
+reward and must not be interpreted as economic return. Historical checkpoints
+<code>00002</code> and <code>00004</code> are quarantined as compatibility/negative-test fixtures until
+the Phase A gate passes. Phase B architecture work may continue independently,
+but no Phase B capability or uplift claim may use their old PBT scores as a
+validated performance baseline.</p>
+</article>
   </main>
 </body>
 </html>
