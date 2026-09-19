@@ -124,6 +124,24 @@ def _normalize_sharpe_params(params: dict[str, Any]) -> dict[str, Any]:
     return normalized
 
 
+def _normalize_net_return_params(params: dict[str, Any]) -> dict[str, Any]:
+    """Normalize an economically explicit return objective.
+
+    ``reward_scale`` changes PPO's numerical scale without changing which
+    policy maximizes the episode objective. Unlike the legacy adaptive return
+    normalization, it preserves the exact ratio between return and costs.
+    """
+    return {
+        "cost_bps": _bounded_float(params.get("cost_bps"), 1.0, lo=0.0, hi=100.0),
+        "reward_scale": _bounded_float(
+            params.get("reward_scale"),
+            1000.0,
+            lo=1.0,
+            hi=1_000_000.0,
+        ),
+    }
+
+
 def _normalize_pnl_sharpe_params(params: dict[str, Any]) -> dict[str, Any]:
     normalized = _normalize_pnl_linear_params(params)
     normalized.update(_normalize_sharpe_params(params))
@@ -171,6 +189,11 @@ def _sample_sharpe_params(rng: Any) -> dict[str, Any]:
         "sharpe_min_samples": 8,
         "sharpe_target": 1.0,
     }
+
+
+def _sample_net_return_params(rng: Any) -> dict[str, Any]:
+    del rng
+    return {"cost_bps": 1.0, "reward_scale": 1000.0}
 
 
 def _sample_pnl_sharpe_params(rng: Any) -> dict[str, Any]:
@@ -238,6 +261,36 @@ class RewardEngine:
     @staticmethod
     def registered_ids() -> tuple[str, ...]:
         return tuple(sorted(_REGISTRY.keys()))
+
+
+@register(
+    "net_return",
+    normalize_params=_normalize_net_return_params,
+    sample_params=_sample_net_return_params,
+)
+def reward_net_return(params: dict, ctx: dict) -> tuple[float, dict]:
+    """Cost-adjusted return with exact episode-level economic arithmetic.
+
+    The reward charges each position change and the terminal liquidation used
+    by :class:`EpisodeEvidence`. A constant scale keeps PPO gradients practical
+    while preserving the objective's economic ordering.
+    """
+    normalized = _normalize_net_return_params(params)
+    scale = normalized["reward_scale"]
+    cost_per_turnover = normalized["cost_bps"] * 1e-4
+    pnl_term = _finite_float(ctx.get("pnl_delta", 0.0)) * scale
+    turnover = max(0.0, _finite_float(ctx.get("turnover_t", 0.0)))
+    liquidation = (
+        abs(_finite_float(ctx.get("position_t", 0.0)))
+        if bool(ctx.get("terminal", False))
+        else 0.0
+    )
+    components = {
+        "pnl_delta": pnl_term,
+        "turnover_cost": -(turnover * cost_per_turnover * scale),
+        "liquidation_cost": -(liquidation * cost_per_turnover * scale),
+    }
+    return sum(components.values()), components
 
 
 @register(
@@ -317,7 +370,6 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
 
     return r, comps
 
-
 def _bounded_sharpe_score(
     strategy_returns: Any,
     *,
@@ -375,6 +427,7 @@ def reward_sharpe_only(params: Dict[str, Any], ctx: Dict[str, Any]):
     sharpe_delta = _incremental_sharpe(params, ctx)
     return sharpe_delta, {"sharpe_delta": sharpe_delta}
 
+
 @register(
     "pnl_sharpe",
     normalize_params=_normalize_pnl_sharpe_params,
@@ -385,7 +438,6 @@ def reward_pnl_sharpe(params: Dict[str, Any], ctx: Dict[str, Any]):
     sharpe_delta = _incremental_sharpe(params, ctx)
     components["sharpe_delta"] = sharpe_delta
     return base_reward + sharpe_delta, components
-
 
 @register(
     "composed_linear",
