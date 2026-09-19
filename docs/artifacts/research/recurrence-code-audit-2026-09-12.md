@@ -1,6 +1,6 @@
 # iTrader recurrence / FiLM / PPO code audit
 
-Date: 2026-09-12  
+Date: 2026-09-12
 Scope: Windows repository `C:\Users\Admin\PROJECTS\iTRADER\itrader-azr`, branch `agent/Watson-dev`, HEAD `bec5c775d3adaafe758202c7175791f6e8b323a`. This is a read-only source/config/test audit. The pre-existing staged `itrader/rl_lib/tasks/rewards.py` change was not touched. No recurrent training result is reported here.
 
 ## Findings first

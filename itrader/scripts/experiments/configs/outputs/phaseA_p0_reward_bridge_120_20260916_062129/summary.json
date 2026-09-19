@@ -1,0 +1,85 @@
+{
+  "run_tag": "phaseA_p0_reward_bridge_120_20260916_062129",
+  "config": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\phase_a_p0_net_return_pbt_bridge_120_20260916.json",
+  "results": [
+    {
+      "variant_id": "net_return_1bp_pbt_120",
+      "series_id": "net_return_1bp_pbt_120:training_fn_ITraderEnv_1b345_00000_0_seed=20388672_2026-09-16_06-21-36",
+      "experiment_name": "phaseA_p0_reward_bridge_120_20260916_062129_net_return_1bp_pbt_120",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\phaseA_p0_reward_bridge_120_20260916_062129_net_return_1bp_pbt_120\\training_fn_ITraderEnv_1b345_00000_0_seed=20388672_2026-09-16_06-21-36",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\_stable_metrics\\training_fn_ITraderEnv_1b345_00000_0_seed=20388672_2026-09-16_06-21-36\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\_stable_metrics\\training_fn_ITraderEnv_1b345_00000_0_seed=20388672_2026-09-16_06-21-36\\plots",
+      "final_metric": -0.0004715935070762
+    },
+    {
+      "variant_id": "net_return_1bp_pbt_120",
+      "series_id": "net_return_1bp_pbt_120:training_fn_ITraderEnv_1b345_00001_1_seed=20475355_2026-09-16_06-21-36",
+      "experiment_name": "phaseA_p0_reward_bridge_120_20260916_062129_net_return_1bp_pbt_120",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\phaseA_p0_reward_bridge_120_20260916_062129_net_return_1bp_pbt_120\\training_fn_ITraderEnv_1b345_00001_1_seed=20475355_2026-09-16_06-21-36",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\_stable_metrics\\training_fn_ITraderEnv_1b345_00001_1_seed=20475355_2026-09-16_06-21-36\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\_stable_metrics\\training_fn_ITraderEnv_1b345_00001_1_seed=20475355_2026-09-16_06-21-36\\plots",
+      "final_metric": -0.0078256816497534
+    },
+    {
+      "variant_id": "net_return_1bp_pbt_120",
+      "series_id": "net_return_1bp_pbt_120:training_fn_ITraderEnv_1b345_00002_2_seed=20403070_2026-09-16_06-21-36",
+      "experiment_name": "phaseA_p0_reward_bridge_120_20260916_062129_net_return_1bp_pbt_120",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\phaseA_p0_reward_bridge_120_20260916_062129_net_return_1bp_pbt_120\\training_fn_ITraderEnv_1b345_00002_2_seed=20403070_2026-09-16_06-21-36",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\_stable_metrics\\training_fn_ITraderEnv_1b345_00002_2_seed=20403070_2026-09-16_06-21-36\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\_stable_metrics\\training_fn_ITraderEnv_1b345_00002_2_seed=20403070_2026-09-16_06-21-36\\plots",
+      "final_metric": 0.0
+    },
+    {
+      "variant_id": "net_return_1bp_pbt_120",
+      "series_id": "net_return_1bp_pbt_120:training_fn_ITraderEnv_1b345_00003_3_seed=20614210_2026-09-16_06-21-36",
+      "experiment_name": "phaseA_p0_reward_bridge_120_20260916_062129_net_return_1bp_pbt_120",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\phaseA_p0_reward_bridge_120_20260916_062129_net_return_1bp_pbt_120\\training_fn_ITraderEnv_1b345_00003_3_seed=20614210_2026-09-16_06-21-36",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\_stable_metrics\\training_fn_ITraderEnv_1b345_00003_3_seed=20614210_2026-09-16_06-21-36\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\_stable_metrics\\training_fn_ITraderEnv_1b345_00003_3_seed=20614210_2026-09-16_06-21-36\\plots",
+      "final_metric": -0.0049391725643805
+    },
+    {
+      "variant_id": "pnl_linear_pbt_120",
+      "series_id": "pnl_linear_pbt_120:training_fn_ITraderEnv_a24fb_00000_0_seed=20388672_2026-09-16_07-01-10",
+      "experiment_name": "phaseA_p0_reward_bridge_120_20260916_062129_pnl_linear_pbt_120",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\phaseA_p0_reward_bridge_120_20260916_062129_pnl_linear_pbt_120\\training_fn_ITraderEnv_a24fb_00000_0_seed=20388672_2026-09-16_07-01-10",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\_stable_metrics\\training_fn_ITraderEnv_a24fb_00000_0_seed=20388672_2026-09-16_07-01-10\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\_stable_metrics\\training_fn_ITraderEnv_a24fb_00000_0_seed=20388672_2026-09-16_07-01-10\\plots",
+      "final_metric": -0.0080755974675148
+    },
+    {
+      "variant_id": "pnl_linear_pbt_120",
+      "series_id": "pnl_linear_pbt_120:training_fn_ITraderEnv_a24fb_00001_1_seed=20475355_2026-09-16_07-01-10",
+      "experiment_name": "phaseA_p0_reward_bridge_120_20260916_062129_pnl_linear_pbt_120",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\phaseA_p0_reward_bridge_120_20260916_062129_pnl_linear_pbt_120\\training_fn_ITraderEnv_a24fb_00001_1_seed=20475355_2026-09-16_07-01-10",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\_stable_metrics\\training_fn_ITraderEnv_a24fb_00001_1_seed=20475355_2026-09-16_07-01-10\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\_stable_metrics\\training_fn_ITraderEnv_a24fb_00001_1_seed=20475355_2026-09-16_07-01-10\\plots",
+      "final_metric": -0.0103202139524377
+    },
+    {
+      "variant_id": "pnl_linear_pbt_120",
+      "series_id": "pnl_linear_pbt_120:training_fn_ITraderEnv_a24fb_00002_2_seed=20403070_2026-09-16_07-01-10",
+      "experiment_name": "phaseA_p0_reward_bridge_120_20260916_062129_pnl_linear_pbt_120",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\phaseA_p0_reward_bridge_120_20260916_062129_pnl_linear_pbt_120\\training_fn_ITraderEnv_a24fb_00002_2_seed=20403070_2026-09-16_07-01-10",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\_stable_metrics\\training_fn_ITraderEnv_a24fb_00002_2_seed=20403070_2026-09-16_07-01-10\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\_stable_metrics\\training_fn_ITraderEnv_a24fb_00002_2_seed=20403070_2026-09-16_07-01-10\\plots",
+      "final_metric": -0.0085498771019723
+    },
+    {
+      "variant_id": "pnl_linear_pbt_120",
+      "series_id": "pnl_linear_pbt_120:training_fn_ITraderEnv_a24fb_00003_3_seed=20614210_2026-09-16_07-01-10",
+      "experiment_name": "phaseA_p0_reward_bridge_120_20260916_062129_pnl_linear_pbt_120",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\phaseA_p0_reward_bridge_120_20260916_062129_pnl_linear_pbt_120\\training_fn_ITraderEnv_a24fb_00003_3_seed=20614210_2026-09-16_07-01-10",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\_stable_metrics\\training_fn_ITraderEnv_a24fb_00003_3_seed=20614210_2026-09-16_07-01-10\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_120_20260916\\ray\\_stable_metrics\\training_fn_ITraderEnv_a24fb_00003_3_seed=20614210_2026-09-16_07-01-10\\plots",
+      "final_metric": -0.0084526763966286
+    }
+  ],
+  "primary_metric": "evaluation/net_return_mean",
+  "compare_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_reward_bridge_120_20260916_062129\\ablation_compare.csv",
+  "compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_reward_bridge_120_20260916_062129\\ablation_compare.png",
+  "sharpe_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_reward_bridge_120_20260916_062129\\ablation_compare_validation_sharpe.png",
+  "entropy_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_reward_bridge_120_20260916_062129\\ablation_compare_entropy.png",
+  "episode_len_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_reward_bridge_120_20260916_062129\\ablation_compare_episode_len.png",
+  "diagnostics_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_reward_bridge_120_20260916_062129\\ablation_compare_diagnostics.png"
+}

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "trial": "training_fn_ITraderEnv_8490f_00000_0_seed=20388672_2026-09-17_00-18-17",
+  "checkpoint": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_reward_bridge_sync_120_20260917\\ray\\_stable_metrics\\training_fn_ITraderEnv_8490f_00000_0_seed=20388672_2026-09-17_00-18-17\\checkpoints\\iter_000048_223436657398",
+  "selection_metric": "evaluation/net_return_mean",
+  "selected_score": -0.0004259988953549563,
+  "replayed_score": -0.0004259988953549564,
+  "replay_delta": -5.421010862427522e-20,
+  "checkpoint_parity": true,
+  "episode_count": 32,
+  "summary": {
+    "training_iteration": 0,
+    "pbt_progress_steps": 0,
+    "episode_len_mean": 146.0,
+    "evaluation/optimization_reward_mean": -0.4259988953549563,
+    "evaluation/gross_return_mean": 0.00021775110464504368,
+    "evaluation/net_return_mean": -0.0004259988953549564,
+    "evaluation/net_sharpe_per_sqrt_bar_mean": -0.004910862278346223,
+    "evaluation/turnover_mean": 6.4375,
+    "custom_metrics/act_0_frac_mean": 0.25,
+    "custom_metrics/act_short_frac_mean": 0.25,
+    "evaluation/custom_metrics/act_0_frac_mean": 0.25,
+    "evaluation/custom_metrics/act_short_frac_mean": 0.25,
+    "custom_metrics/act_1_frac_mean": 0.6332682291666667,
+    "custom_metrics/act_flat_frac_mean": 0.6332682291666667,
+    "evaluation/custom_metrics/act_1_frac_mean": 0.6332682291666667,
+    "evaluation/custom_metrics/act_flat_frac_mean": 0.6332682291666667,
+    "custom_metrics/act_2_frac_mean": 0.11673177083333333,
+    "custom_metrics/act_long_frac_mean": 0.11673177083333333,
+    "evaluation/custom_metrics/act_2_frac_mean": 0.11673177083333333,
+    "evaluation/custom_metrics/act_long_frac_mean": 0.11673177083333333
+  }
+}

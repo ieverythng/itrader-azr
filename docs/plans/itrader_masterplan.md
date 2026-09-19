@@ -1,8 +1,8 @@
 # iTrader Masterplan
 
-Last updated: 2026-09-14
-Status: **Phase A checkpoint/evaluation parity repaired and corrected 200-iteration PBT completed negative; deterministic baseline-controlled revalidation is the next P0**
-Branch snapshot: `agent/Watson-dev` at `bec5c77`
+Last updated: 2026-09-17
+Status: **Phase A synchronous matched 120-update bridge completed; PPO/PBT are active, but neither reward arm passes economic promotion**
+Branch snapshot: `agent/Watson-dev` at `42d1b3a`
 
 ## North star
 
@@ -27,10 +27,16 @@ intentionally separate, and `train_AZR.py` is currently a bootstrap handoff.
 - `train_solo_V2.py` selects `SolverMLPFiLM`.
 - `ITraderEnv` emits chronological `price_window_flat + task_embedding`.
 - `TaskSpec` is canonical; `RewardEngine` owns finite reward computation.
-- `pnl_linear` remains the default optimization reward. It is learnable in the
+- `pnl_linear` remains the historical/default optimization reward. It is learnable in the
   limited sense that PPO produced finite training signals and restorable policies;
   it is not yet proven to rank economic performance. Sharpe variants remain
   challengers and are not a recurrence prerequisite.
+- `net_return` is now an explicit challenger objective: gross arithmetic return
+  minus configured turnover and terminal-liquidation costs, multiplied by one
+  constant PPO scale. At the default 1 bp its episode sum divided by the scale
+  exactly matches `EpisodeEvidence.net_return`; it does not alter broker or live
+  execution semantics. PPO discounting with `gamma < 1` remains an explicit
+  difference from the undiscounted episode sum.
 - Family `00` is the only enabled learned family. `01`/`02` are bootstrap
   contracts; `03` is trade management; `04` is abstention/WAIT semantics.
 
@@ -68,12 +74,18 @@ Before Phase B may rely on R0 behavior as a performance baseline:
    train/validation/final-test ranges with lookback/outcome purge. The final test
    remains unavailable to PBT and proposer updates.
 3. **Implemented:** constrain PBT domains, diversify member seeds and initial configurations,
-   align checkpoint cadence with perturbation cadence, and persist lineage.
+   align checkpoint cadence with perturbation cadence, and persist lineage. The
+   PBT time attribute is now trial-owned cumulative sampled environment steps,
+   so restoring a donor checkpoint cannot rewind the target's burn-in, cadence,
+   or total exposure as restored `training_iteration` did near iteration 130.
 4. **Implemented:** replace zero-byte Tune manifests/trial records with atomic non-empty evidence
    outside Tune-owned paths; summarize every population member.
-5. **Partly implemented:** the capability-report schema now consumes live flat
-   trainer records; matched flat/long/short/random/untrained baselines under
-   multiple cost assumptions and training seeds remain required.
+5. **Implemented and run:** the capability-report schema consumes live flat
+   trainer records. The official frozen-panel harness evaluates matched
+   flat/long/short/random/untrained controls. On the 32 starts used by the latest
+   bridge, long-only scored +0.03034% net with Sharpe +0.01077, flat scored zero,
+   and the seeded untrained MLP-FiLM policy scored -0.31137% net. Multiple costs,
+   independent training seeds, and block-aware uncertainty remain required.
 6. **Completed but not promoted:** the four-member, 200-iteration Phase A parity
    PBT run `pbtA26_parity200_20260914_000736_pbt200` selected on held-out net
    return, never shaped reward. Every final net-return and Sharpe observation was
@@ -91,12 +103,68 @@ Before Phase B may rely on R0 behavior as a performance baseline:
    actions. Its durable checkpoint reproduced net return, Sharpe, and turnover
    exactly in a fresh process. Promotion remains blocked on frozen baselines,
    uncertainty, costs, and final test.
-7. **Next platform seam:** preserve Ray 2.9 as the locked reproduction baseline,
+7. **Implemented for the next probe:** fixed validation tasks are balanced over
+   configured horizons; Ray 2.9 KL, value explained variance, total loss,
+   gradient norm, learning rate, and KL coefficient are first-class report
+   columns. Clip fraction remains explicitly unavailable on this legacy learner.
+   Cadence checkpoints write a best-held-out pointer for mandatory fresh-process
+   replay, and the ablation harness supports explicit baseline-relative terminal
+   promotion gates.
+8. **Next platform seam:** preserve Ray 2.9 as the locked reproduction baseline,
    then migrate in a separate environment to Ray 2.58.0. First prove old-API
    parity, then port `ModelV2`/workers/callbacks to
    `RLModule`/EnvRunner/Learner/ConnectorV2. Reconcile the current dependency
    declaration drift: 2.9.0 in `pyproject.toml`/Conda versus 2.47.x in the
    constraints and cluster setup.
+9. **Completed but not promoted:** the matched four-member-per-arm 120-update
+   bridge compared exact 1 bp `net_return` with historical `pnl_linear` under
+   identical seeds, starts, data, exposure, and MLP-FiLM architecture. Mean
+   terminal net return was -0.3309% for `net_return` and -0.8850% for
+   `pnl_linear`. The former reduced damage primarily by moving toward inactivity;
+   one member became exactly flat. The latter preserved action diversity but paid
+   away gross edge through 66.6--94.6 turnover. Its best cadence checkpoint
+   reached +0.04948% net but had negative Sharpe and 42.94 turnover, so it did
+   not pass the matched long-only gate. PPO is active and reward-sensitive;
+   economic reward learnability remains unproven.
+10. **Ray 2.9 promotion-mode correction:** asynchronous PBT remains the legacy
+    reproduction default, but promotion-oriented loadouts should set
+    `pbt_synch: true`. Synchronous scheduling orders donor checkpoint creation
+    before exploitation. Checkpoint indices are persisted before
+    `session.report`, because a synchronous pause may not return through the
+    reporting call. The final 12-update integration probe produced three durable
+    checkpoint/index records per member, monotonic progress, real mutations, and
+    no missing-donor warning.
+11. **Completed but not promoted — synchronous bridge:** the 2026-09-17
+    four-member-per-arm 120-update comparison used the same initial seeds,
+    frozen 32-task validation identities, `stream_worker`, dataset, and 1 bp
+    reporting cost. The first 1 bp arm completed; a user-requested pause left
+    one PnL-linear member without a first model checkpoint, so only that arm
+    was restarted from zero under a separate experiment name. The final
+    all-member report includes the completed restart, not the interrupted
+    prefix. Each member reached 576k–580k trial-owned steps and 12 durable
+    checkpoints. Actual configuration changes numbered 10 and 8 across the
+    respective arms; gamma stayed in 0.98–0.995. Terminal mean net returns
+    were -0.14219% and -1.00048%, with all terminal Sharpes negative. Fresh
+    replay exactly reproduced each arm's best checkpoint. PnL-linear member
+    00001 briefly scored +0.06718% net at 1 bp, but Sharpe was -0.02301,
+    turnover 26.1875, and its paired 14-block exploratory interval against
+    long-only crossed zero. It turned negative at 2 bp. This is real episodic
+    evidence, not a stable economic winner. Keep the final test sealed.
+
+The next bounded Phase A study should separate discovery from the final 1 bp
+gate: retain 1 bp net return as evaluation truth, but compare a no-cost learning
+control and a staged cost curriculum against the exact net-return objective.
+Require gross-edge improvement over long-only before increasing cost pressure,
+and report turnover/action composition, positive Sharpe, independent seeds, and
+block-aware uncertainty. Define P1 after a P0 candidate clears the gross/net/
+Sharpe/turnover baseline gate: independent seeds, new chronological blocks,
+selection-aware uncertainty, and 0.5/1/2 bp per-step replay. Do not open the
+sealed final test until selection is complete. Before another overnight run,
+add a coordinated checkpoint/pause-and-resume protocol for every PBT member or
+budget a fresh-arm restart; a saved Ray experiment state alone is insufficient
+when trial-owned progress outlives its last model checkpoint. A short, matched
+NVMe versus current-storage A/B is deferred until this evidence pass is closed;
+no storage path changed in the synchronous run.
 
 The detailed findings and TDD slices are in
 `docs/artifacts/research/phase-a-performance-validity-audit-2026-09-12.md`.
@@ -169,10 +237,11 @@ reset semantics before training.
 
 ### Task and feature controls
 
-The default encoder omits reward parameters, bar resolution, regime tags,
-difficulty, metadata, and start index while exposing a bounded seed feature.
-Freeze omitted fields initially or create a separately versioned semantic encoder;
-report observability. R4-v1 adds explicit position/progress/PnL fields identically
+The historical `legacy_v1` encoder omits reward parameters, bar resolution,
+regime tags, difficulty, and metadata while exposing a seed feature. New runs
+use versioned `semantic_v2`, which represents normalized solver-relevant task
+fields while excluding episode seed/start location shortcuts; checkpoint
+compatibility remains explicit. R4-v1 adds position/progress/PnL fields identically
 to feed-forward and recurrent controls. OHLCV-only recurrence cannot know sampled
 actions, fills, or position exactly.
 

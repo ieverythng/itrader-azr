@@ -14,7 +14,8 @@ Outputs are written under:
 - `itrader/scripts/experiments/configs/outputs/<run_tag>/`
   - `ablation_compare.csv`
   - `ablation_compare.png`
-  - `ablation_compare_validation_sharpe.png`
+- `ablation_compare_validation_sharpe.png`
+- `ablation_compare_action_fractions.png`
   - `ablation_compare_entropy.png`
   - `ablation_compare_episode_len.png`
   - `ablation_compare_diagnostics.png`
@@ -39,7 +40,9 @@ explicit in the loadout; Phase A performance studies use
 - `~/ray_results/_stable_metrics/<trial_dir_name>/resolved_config.json`
 - `~/ray_results/_stable_metrics/<trial_dir_name>/config_history.jsonl`
 - `~/ray_results/_stable_metrics/<trial_dir_name>/trial_status.json`
+- `~/ray_results/_stable_metrics/<trial_dir_name>/pbt_progress.json`
 - `~/ray_results/_stable_metrics/<trial_dir_name>/checkpoint_index.jsonl`
+- `~/ray_results/_stable_metrics/<trial_dir_name>/best_checkpoint.json`
 - `~/ray_results/_stable_metrics/<trial_dir_name>/checkpoints/`
 
 Run-wide manifests and status live under
@@ -56,17 +59,27 @@ You can pass most train knobs directly in `common_args` or per-variant `args`, e
 - `train_batch_size`, `sgd_minibatch_size`, `num_sgd_iter`
 - `clip_param`, `vf_clip_param`, `vf_loss_coeff`
 - `pbt_interval`, `pbt_burn_in`, `checkpoint_interval`
+- `pbt_synch` to checkpoint upper-quantile donors before lower-quantile exploit
 - `evaluation_interval`, `evaluation_num_episodes`
-- `evidence_cost_bps`, `evidence_periods_per_year`
+- `evidence_cost_bps`, `optimization_cost_bps`, `net_return_reward_scale`,
+  `evidence_periods_per_year`
 - `split_fractions`, `split_purge_rows`
 - `observation_transform`, `observation_filter`
 - `results_root` for Ray, stable metrics, and run-manifest colocation
 - `cpu_only` for resources, or `pbt`/`cpu_pbt` to activate population search
 
 For PBT, checkpoint and perturbation intervals must match. Training batch stays
-fixed while `training_iteration` is the search clock; validation tasks are
-matched across members. The random/generated no-LLM seam is configured by an
+fixed while trial-owned cumulative sampled environment steps are the search
+clock; restoring donor RLlib state cannot move this clock backwards. Validation
+tasks are matched across members and balanced across configured horizons. The
+random/generated no-LLM seam is configured by an
 empty `task_pool_path` and `p_pool: 0.0`.
+
+Promotion loadouts on Ray 2.9 should set `pbt_synch: true`. Asynchronous PBT can
+rank a lower trial before the selected upper donor has a PBT-owned checkpoint,
+which skips that exploit even when repository-owned cadence checkpoints exist.
+Synchronous PBT orders upper-donor saves before lower-trial exploitation while
+the trial-owned environment-step clock preserves equal target exposure.
 
 On Ray 2.9, Phase A PBT additionally fails closed unless both training and
 evaluation use `observation_transform: market_relative_v1` with
@@ -78,6 +91,59 @@ training policy's stochastic exploration setting into evaluation. At every
 checkpoint boundary, the trainer copies a complete RLlib checkpoint into the
 stable path before reporting a separate checkpoint to Tune; AIR may consume the
 reported source directory on Windows. Promotion runs must fresh-process replay
-the stable copy before treating its metric as a PBT selection score.
+the stable copy referenced by `best_checkpoint.json` before treating its metric
+as a PBT selection score. Ray 2.9 exposes approximate KL and explained variance;
+clip fraction stays `NaN` until the separate RLlib migration or a custom learner
+statistic makes it observable.
+
+The next Phase A P0 loadouts are:
+
+- `configs/phase_a_p0_frozen_policy_baselines_20260914.json` for the identical-
+  start flat, long-only, short-only, random, and seeded untrained-FiLM controls;
+- `configs/phase_a_p0_net_return_pbt_probe_20260914.json` for a bounded historical
+  `pnl_linear` reference versus the explicit 1 bp `net_return` objective.
+
+`net_return` is a TaskSpec reward, not broker semantics. It charges action
+turnover plus terminal liquidation at the configured basis-point rate and uses
+one constant numerical scale. Dividing episode optimization reward by that scale
+recovers the same net-return arithmetic emitted independently by EpisodeEvidence.
+PPO still discounts step rewards when `gamma < 1`; the exact equality applies to
+the undiscounted episode sum.
 
 See `schemas/ablation.schema.json` for the supported shape and defaults.
+
+## Collect a completed paused-arm restart without retraining
+
+If an interrupted arm cannot be resumed at a mutually consistent model,
+trial-owned step/report, and scheduler checkpoint, preserve the interrupted
+experiment and restart only that arm under a distinct experiment name. Once
+every required member of both selected arms has completed, generate one
+comparison from those specific experiments without modifying their trials:
+
+```bash
+python -m itrader.scripts.experiments.run_ablation \
+  itrader/scripts/experiments/configs/phase_a_p0_reward_bridge_sync_120_20260917.json \
+  --collect-only \
+  --run-tag phaseA_p0_reward_bridge_sync_120_20260917_001810 \
+  --variant-experiment pnl_linear_pbt_sync_120=phaseA_p0_reward_bridge_sync_120_20260917_001810_pnl_linear_pbt_sync_120_restart
+```
+
+The collector fails closed on incomplete status or missing population members.
+It aligns metric series on the monotonic trial-owned environment-step clock,
+not Ray's checkpoint-restored `training_iteration`. Preserve the original
+interrupted experiment as provenance and identify the restart in the report.
+
+For a selected stable best-checkpoint pointer, run deterministic fresh-process
+replay before interpreting a held-out score:
+
+```bash
+python -m itrader.rl_lib.evaluation.run_checkpoint_replay \
+  --stable-trial-dir <results_root>/_stable_metrics/<trial_dir_name> \
+  --out-dir <ablation_output>/replays
+```
+
+Replay verifies the dataset hash and frozen validation split, writes episode
+receipts, and fails if mean net return diverges from the selected score. A
+selection-panel block bootstrap or repricing of the same actions is only a
+diagnostic; neither establishes selection-adjusted generalization or a
+different-cost Sharpe without fresh per-step replay.

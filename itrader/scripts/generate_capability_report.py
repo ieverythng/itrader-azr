@@ -49,36 +49,49 @@ def _load_records(metrics_dir: str) -> List[Dict[str, Any]]:
                 rec = json.loads(line)
             except json.JSONDecodeError:
                 continue
-            if isinstance(rec, dict) and "iteration" in rec:
+            if not isinstance(rec, dict):
+                continue
+            if "training_iteration" in rec:
                 records.append(rec)
+            elif "iteration" in rec:
+                records.append({**rec, "training_iteration": rec["iteration"]})
     return records
 
 
 def _extract_metrics(rec: Dict[str, Any]) -> Dict[str, float]:
-    """Pull the metrics we care about out of one iteration record."""
-    m = rec.get("metrics", {}) or {}
+    """Pull held-out economic metrics from flat or legacy nested records."""
+    nested = rec.get("metrics", {}) or {}
+    m = {**nested, **rec}
     out: Dict[str, float] = {}
-    # Episode reward (mean over last eval window)
-    for key in ("episode_return/mean", "ep_rew_mean", "reward"):
-        if key in m:
+
+    key_map = {
+        "net_return": (
+            "evaluation/custom_metrics/economic_net_return_mean",
+            "evaluation/net_return_mean",
+        ),
+        "gross_return": (
+            "evaluation/custom_metrics/economic_gross_return_mean",
+            "evaluation/gross_return_mean",
+        ),
+        "net_sharpe_per_sqrt_bar": (
+            "evaluation/custom_metrics/economic_net_sharpe_per_sqrt_bar_mean",
+            "evaluation/net_sharpe_per_sqrt_bar_mean",
+        ),
+        "max_drawdown": ("evaluation/custom_metrics/economic_max_drawdown_mean",),
+        "turnover": ("evaluation/custom_metrics/economic_turnover_mean",),
+        "success_rate": ("evaluation/custom_metrics/success_mean",),
+        "episode_len": ("evaluation/episode_len_mean", "episode_len/mean", "ep_len_mean"),
+        "optimization_reward": (
+            "evaluation/custom_metrics/optimization_reward_mean",
+            "evaluation/optimization_reward_mean",
+        ),
+    }
+    for output_key, candidates in key_map.items():
+        for key in candidates:
+            if key not in m:
+                continue
             try:
-                out["episode_return"] = float(m[key])
-            except (TypeError, ValueError):
-                pass
-            break
-    # Success rate
-    for key in ("success_rate", "success/mean", "ep_success_rate"):
-        if key in m:
-            try:
-                out["success_rate"] = float(m[key])
-            except (TypeError, ValueError):
-                pass
-            break
-    # Episode length
-    for key in ("episode_len/mean", "ep_len_mean"):
-        if key in m:
-            try:
-                out["episode_len"] = float(m[key])
+                out[output_key] = float(m[key])
             except (TypeError, ValueError):
                 pass
             break
@@ -105,66 +118,55 @@ def generate_capability_report(metrics_dir: str, warmup_iters: int = 5) -> Dict[
     if not records:
         raise ValueError(f"No iteration records found in {metrics_dir}")
 
-    records.sort(key=lambda r: int(r.get("iteration", 0)))
+    records.sort(key=lambda r: int(r.get("training_iteration", 0)))
     total_iters = len(records)
-    tail = records[max(0, total_iters - warmup_iters):] if warmup_iters > 0 else records
+    tail = records[max(0, int(warmup_iters)) :]
+    if not tail:
+        raise ValueError("warmup_iters removes every available iteration")
 
     per_iter: List[Dict[str, Any]] = []
-    returns: List[float] = []
-    success_rates: List[float] = []
-    episode_lens: List[float] = []
+    collected: Dict[str, List[float]] = defaultdict(list)
     for rec in tail:
         metrics = _extract_metrics(rec)
-        entry = {"iteration": int(rec.get("iteration", 0)), **metrics}
+        entry = {"iteration": int(rec.get("training_iteration", 0)), **metrics}
         per_iter.append(entry)
-        if "episode_return" in metrics:
-            returns.append(metrics["episode_return"])
-        if "success_rate" in metrics:
-            success_rates.append(metrics["success_rate"])
-        if "episode_len" in metrics:
-            episode_lens.append(metrics["episode_len"])
+        for key, value in metrics.items():
+            collected[key].append(value)
 
     report: Dict[str, Any] = {
         "metrics_dir": str(metrics_dir),
         "total_iterations": total_iters,
         "report_window_iterations": len(tail),
-        "final_performance": {
-            "episode_return": _group_stats(returns),
-            "success_rate": _group_stats(success_rates),
-            "episode_len": _group_stats(episode_lens),
-        },
+        "metric_semantics": "held-out validation economic evidence; optimization_reward is separate",
+        "final_performance": {key: _group_stats(values) for key, values in sorted(collected.items())},
         "per_iteration_tail": per_iter,
     }
 
-    # Per-family / regime breakdown: only possible if the metrics JSONL carries
-    # task metadata (e.g. from a custom callback). If absent, record that the
-    # breakdown is unavailable and flag it for the next training run.
     family_returns: Dict[str, List[float]] = defaultdict(list)
     regime_returns: Dict[str, List[float]] = defaultdict(list)
     horizon_returns: Dict[str, List[float]] = defaultdict(list)
     has_task_breakdown = False
     for rec in tail:
-        task_meta = rec.get("task_metadata") or {}
-        if not task_meta:
-            continue
-        has_task_breakdown = True
-        ret_val = None
-        for key in ("episode_return/mean", "ep_rew_mean"):
-            if key in (rec.get("metrics", {}) or {}):
-                try:
-                    ret_val = float(rec["metrics"][key])
-                except (TypeError, ValueError):
-                    pass
-                break
-        if ret_val is None:
-            continue
-        fam = str(task_meta.get("family", "unknown"))
-        family_returns[fam].append(ret_val)
-        for tag in task_meta.get("regime_tags", []) or []:
-            regime_returns[str(tag)].append(ret_val)
-        horizon = task_meta.get("horizon")
-        if horizon is not None:
-            horizon_returns[str(int(horizon))].append(ret_val)
+        flattened = {**(rec.get("metrics", {}) or {}), **rec}
+        prefix = "evaluation/custom_metrics/"
+        suffix = "_net_return_mean"
+        for key, value in flattened.items():
+            if not key.startswith(prefix) or not key.endswith(suffix):
+                continue
+            metric = key[len(prefix) : -len(suffix)]
+            try:
+                numeric = float(value)
+            except (TypeError, ValueError):
+                continue
+            if metric.startswith("family_"):
+                family_returns[metric[len("family_") :]].append(numeric)
+                has_task_breakdown = True
+            elif metric.startswith("regime_"):
+                regime_returns[metric[len("regime_") :]].append(numeric)
+                has_task_breakdown = True
+            elif metric.startswith("horizon_"):
+                horizon_returns[metric[len("horizon_") :]].append(numeric)
+                has_task_breakdown = True
 
     report["by_family"] = {k: _group_stats(v) for k, v in sorted(family_returns.items())}
     report["by_regime_tag"] = {k: _group_stats(v) for k, v in sorted(regime_returns.items())}

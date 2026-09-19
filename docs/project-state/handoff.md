@@ -1,8 +1,129 @@
 # Handoff
 
-Last updated: 2026-09-14
+Last updated: 2026-09-17
 Branch: `agent/Watson-dev`
-Base HEAD before this evidence commit: `bec5c77`
+HEAD before the current staged implementation round: `42d1b3a`
+
+## 2026-09-17 synchronous bridge — pause and completed recovery
+
+The following interruption snapshot is retained as chronology; the completed
+restart and current decision are recorded immediately below it.
+
+The official matched synchronous 120-update bridge was launched with
+`itrader/scripts/experiments/configs/phase_a_p0_reward_bridge_sync_120_20260917.json`
+and run tag `phaseA_p0_reward_bridge_sync_120_20260917_001810`. The four-member
+`net_return_1bp` arm completed. The subsequent `pnl_linear` arm was interrupted
+at the user's request to release the PC. At interruption, members 00000, 00001,
+and 00003 had durable first checkpoints; member 00002 had nine updates of
+metrics but no first checkpoint. Ray wrote an experiment-state snapshot at
+01:00:42 local time. The run's processes are gone (9.55 GiB physical RAM free
+after stopping), and the outer ablation comparison is incomplete. Do not
+describe this as a completed matched comparison or promise exact four-member
+continuation: Ray Tune resume and the uncheckpointed member must be verified
+before restarting. Preserve the output tree and do not rerun the completed
+arm inadvertently. At that pause point, full sync analysis, paired checkpoint
+replay, block-aware uncertainty, and cost scenarios were pending; all were
+subsequently completed as described in the recovery section below.
+
+### Restart decision and completed run
+
+The saved Ray experiment state did not make an exact continuation defensible:
+member 00002 had no model checkpoint, while the other members' durable progress
+sidecars and report rows ran beyond their last checkpoint. Restoring them
+without rewinding both model and evidence would overstate trained exposure.
+The interrupted arm is preserved unchanged. After healthcheck, 41 focused
+tests, loadout-schema validation, and dataset SHA-256
+`5F2E449548532FF71F419431DF86962A2AEDF7275D7BFF5592729BBB8A900F73`,
+only `pnl_linear` was restarted from update zero through the official trainer.
+Its experiment name is
+`phaseA_p0_reward_bridge_sync_120_20260917_001810_pnl_linear_pbt_sync_120_restart`;
+the completed 1 bp arm remains untouched. Both arms use the checked loadout,
+identical dataset and frozen evaluation task identities, training seed list,
+split, 1 bp reporting cost, stream-worker sampling, and sync-PBT cadence. Their
+task reward IDs/parameters intentionally differ. The 2026-09-17 restart
+finished successfully with four completed statuses,
+116–117 reports and 12 indexed checkpoints per member, and 576,408–579,632
+trial-owned steps. Across the combined eight members, PBT produced 18 genuine
+configuration changes (10 in `net_return`, 8 in `pnl_linear`), distinguished
+from unchanged synchronous self-resumes. All observed gammas remained
+0.98–0.995. The completed 1 bp arm averaged -0.14219% terminal held-out net
+return; the restarted PnL-linear arm averaged -1.00048%. All eight terminal
+Sharpes were negative.
+
+The ablation CLI now has a tested `--collect-only --run-tag ...` path and
+`--variant-experiment ID=EXPERIMENT` override. It requires completed stable
+run status and expected member count, then creates the comparison plots,
+including held-out action fractions, without training again. After all four
+restart members completed, the comparison was collected with run tag
+`phaseA_p0_reward_bridge_sync_120_20260917_001810`, overriding
+`pnl_linear_pbt_sync_120` to the `_restart` experiment above. Exclude the
+incomplete original `pnl_linear` arm from scoring. The comparison summary and
+net-return, Sharpe, and held-out action-fraction plots are under
+`itrader/scripts/experiments/configs/outputs/phaseA_p0_reward_bridge_sync_120_20260917_001810/`.
+
+Fresh-process deterministic replay of the best checkpoint in each arm reproduced
+its selected 32-episode mean net return to machine precision. The early
+`pnl_linear` member-00001 checkpoint reached +0.06718% at 1 bp, but Sharpe was
+-0.02301 and turnover 26.1875; later terminals were all negative. The best
+1 bp checkpoint scored -0.04260%, Sharpe -0.00491, turnover 6.4375. Exploratory
+paired 5,000-row symbol-stratified block resampling against long-only gave
+`pnl_linear` checkpoint uplift +0.03684 percentage points with an interval
+[-0.20893, +0.33746] points over 14 effective blocks; it crosses zero and is
+not selection-adjusted. Repricing its same actions at 0.5/1/2 bp gave
++0.19811%/+0.06718%/-0.19470% mean net return. No fresh independent
+training seed or untouched final-test evaluation was run; the Phase A promotion
+gate remains closed. The audit and masterplan hold the full decision.
+
+## 2026-09-16 P0 execution update
+
+The official control panel
+`phaseA_p0_frozen_policy_baselines_20260916_043314` completed over 64 identical
+validation tasks. Mean 1 bp net return / per-square-root-bar Sharpe was: flat
+0/0; long-only +0.04329%/+0.01475; short-only -0.08329%/-0.01950; random
+-1.33475%/-0.17783; seeded untrained FiLM -0.28988%/-0.02282. The 32-task prefix
+used by the bounded PBT probe is identity-matched; its long-only bar is
++0.03034% net and +0.01077 Sharpe.
+
+The official bounded probe
+`phaseA_p0_net_return_pbt_probe_20260916_043423` then completed. The historical
+`pnl_linear` reference reached 98,640 sampled environment steps; the four 1 bp
+`net_return` members reached 192,896-193,248 trial-owned steps, except member
+`00001`, which correctly ran 44 RLlib iterations and 217,736 local sampled steps
+to reach 193,128 target-owned steps after restores. PBT recorded two exploits,
+both from member `00003` into `00001`; the target progress clock remained
+monotonic and the second mutation did not reproduce the old iteration-130
+scheduling defect.
+
+All terminal PBT rows were negative. Member `00001` retained the best cadence
+checkpoint at progress 168,256: net return -0.16643%, Sharpe -0.06043, turnover
+13.875, and action fractions 7.76% short / 91.05% flat / 1.18% long. Gross
+return was -0.02768% and explicit 1 bp costs were 0.13875%, so both weak gross
+edge and trading costs contributed. A fresh Ray process reproduced every listed
+metric exactly. The bounded seam acceptance is green; economic promotion is
+red. No 200-update or multi-seed overnight run was started because the bounded
+challenger failed flat and long-only.
+
+The requested matched 120-update bridge subsequently completed. Both arms used
+`stream_worker`, random/generated tasks with no LLM backend, four members, two
+workers per member, identical seeds and validation starts, and approximately
+578--579k trial-owned steps per member. Terminal member-level action fractions
+are recorded in the performance audit. The exact 1 bp `net_return` arm averaged
+-0.3309% terminal net and included one exactly-flat member. The `pnl_linear` arm
+averaged -0.8850% terminal net and finished with 66.6--94.6 turnover. The best
+retained PnL-linear checkpoint briefly reached +0.04948% net, but its Sharpe was
+-0.01032 and turnover was 42.94; it therefore failed the matched long-only gate
+despite showing a real transient gross edge. No candidate warranted sealed-test
+evaluation or promotion replay.
+
+The bridge had only one true asynchronous exploit per arm and reproduced Ray
+2.9's missing-donor-checkpoint ordering warning. The application-owned
+checkpoints were present. An explicit `pbt_synch` flag now enables synchronous
+PBT for promotion studies, while false remains the historical default. A TDD
+integration round also persists checkpoint indices before `session.report`,
+because synchronous Tune may pause the function trainable inside that call. The
+final 12-update sync probe completed four members with three indexed/stable
+checkpoints each, two pause/resume boundaries each, monotonic exposure, true
+configuration changes in two members, and no missing-donor warning.
 
 ## Resume point
 
@@ -43,10 +164,16 @@ about -0.00003. PnL dominates the shaped reward, drawdown is material, and the
 task-level turnover penalty is negligible relative to both; separate 1 bp
 economic costs still make high-turnover policies unattractive.
 
-The aggregate outputs, plots, replay receipt, final loadout, and documentation
-are committed as evidence. The raw Ray trial/checkpoint tree remains local. Code,
-scripts, tests, and the new stack-iteration skill remain staged for user review;
-no recurrent-solver implementation or dependency upgrade was included.
+The aggregate outputs, plots, replay receipt, final loadout, and earlier
+documentation are committed as evidence. The raw Ray trial/checkpoint tree
+remains local. A new implementation round is staged for user review: a monotonic
+sampled-environment-step PBT clock, exact scaled `net_return` task reward at 1 bp,
+balanced fixed panels, PPO diagnostics, best cadence-checkpoint indexing,
+baseline-relative promotion gates, a fixed-policy/untrained-policy evaluator,
+and two next-P0 JSON loadouts. No recurrent-solver implementation, Ray upgrade,
+or dependency migration is included. The later 120-update matched bridge and
+synchronous PBT probes are local experiment evidence plus staged loadouts; the
+large raw Ray trial/checkpoint trees remain ignored.
 
 Validation passed: repository healthcheck, 97-test full suite, focused reporting
 tests, JSON-schema validation, `git diff --check`, and the complete pre-commit
@@ -90,20 +217,25 @@ separate from solver recurrence.
 ## Remaining Phase A performance sequence
 
 1. Preserve R0 and the repaired evidence/PBT contracts.
-2. Add flat/long/short/random/untrained baselines on identical validation starts,
-   multiple costs, and block-aware uncertainty.
-3. Run the multi-seed overnight PBT study; select on validation net return and
-   evaluate once on the untouched final test.
-4. Run matched alignment/reward controls; do not call reward necessary for
-   recurrence or claim longer horizons automatically win.
-5. Resolve the user's open placement/memory-conditioning decision before choosing
+2. Treat the frozen controls, bounded probe, and matched 120-update bridge as
+   completed negative gates. Neither exact 1 bp `net_return` nor historical
+   `pnl_linear` is promoted.
+3. Run the next bounded reward study with synchronous PBT: no-cost learning,
+   staged-cost curriculum, and exact 1 bp objective on identical tasks/seeds,
+   with every candidate evaluated at 1 bp.
+4. Require gross edge over long-only, positive net return and Sharpe, controlled
+   turnover, independent seeds, and block-aware uncertainty before spending the
+   multi-seed overnight budget or opening the untouched final test.
+5. Keep alignment/reward controls independent; do not call reward changes
+   necessary for recurrence or claim longer horizons automatically win.
+6. Resolve the user's open placement/memory-conditioning decision before choosing
    or implementing R2a/R2c.
-6. Implement the selected recurrent control using the native state lifecycle and
+7. Implement the selected recurrent control using the native state lifecycle and
    sequence contract.
-7. Run `R2c-CARRY` versus `R2c-RESET` only if R2c remains selected; preserve the
+8. Run `R2c-CARRY` versus `R2c-RESET` only if R2c remains selected; preserve the
    same-input/same-conditioning attribution control.
-8. Run R4-v1 with identical explicit state fields on FF/recurrent controls.
-9. Treat R3 as a later cell-type comparison. Proposer and online/replay/shadow
+9. Run R4-v1 with identical explicit state fields on FF/recurrent controls.
+10. Treat R3 as a later cell-type comparison. Proposer and online/replay/shadow
    work remain within Phase B and can proceed alongside the offline track;
    recurrence experiments do not impose a blanket gate on that work.
 

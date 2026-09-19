@@ -1,8 +1,8 @@
 # Current State
 
-Last updated: 2026-09-14
+Last updated: 2026-09-17
 Branch: `agent/Watson-dev`
-HEAD: `bec5c77`
+HEAD: `42d1b3a`
 
 ## Working-tree boundary
 
@@ -36,6 +36,34 @@ reward head.
   `03` is trade management; `04` is abstention/WAIT semantics.
 
 ## Phase A performance evidence
+
+The 2026-09-17 synchronous matched bridge is now the latest Phase A evidence.
+Its completed 1 bp net-return arm and restarted-from-zero PnL-linear arm each
+have four completed members, 576k–580k trial-owned environment steps per member,
+and 12 durable checkpoint indices per member. The interrupted PnL-linear prefix
+was preserved but excluded: one member had no model checkpoint, and the other
+trial-owned progress/report records were ahead of their model checkpoints, so
+exact Ray experiment resume could not guarantee comparable exposure. Only that
+arm was rerun. Ten and eight genuine configuration changes occurred in the
+respective synchronous arms; gamma stayed in the valid 0.98–0.995 range.
+
+Mean terminal 1 bp net return was -0.14219% (`net_return`) and -1.00048%
+(`pnl_linear`); all eight terminal Sharpes were negative. The best retained
+PnL-linear member-01 cadence checkpoint replayed at +0.06718% net, but its
+Sharpe was -0.02301, turnover 26.1875, and its exploratory paired 14-block
+uplift interval over long-only crossed zero. The same actions lost -0.19470%
+when repriced at 2 bp. Both best checkpoints reproduced their selection scores
+in a fresh process. PPO and synchronous PBT are active; neither objective has
+established robust economic reward learnability. The sealed final test remains
+untouched. See the dated Phase A performance-validity audit for per-member
+actions, plots, replay receipts, and bootstrap caveats. Next P0 compares no-cost
+training, staged cost, and exact 1 bp training on matched starts while scoring
+all at 1 bp. P1 requires independent seeds, new blocks, selection-aware
+uncertainty, and 0.5/1/2 bp per-step replay after a P0 candidate passes the
+gross-edge, net, Sharpe, and turnover gates.
+
+The following paragraphs preserve earlier chronology rather than superseding
+the latest synchronous-bridge decision.
 
 The current R0 implementation is a compatibility baseline, not a validated
 performance winner. The 2026-09-12 audit restored both historical iteration-200
@@ -103,12 +131,54 @@ reproduced net return, Sharpe, and turnover exactly in a fresh process. This is
 valid candidate-generation evidence, not performance promotion.
 
 The aggregate reporter initially aligned PBT histories by row position, which
-misplaced terminal points after lineage rewinds. A red/green regression now
-joins on the recorded `training_iteration`; regenerated CSVs and plots contain
-all four iteration-200 observations. The next P0 is the deterministic
-flat/long/short/random/untrained baseline panel on identical starts, followed by
-multi-seed uncertainty and cost scenarios. Phase B must not consume R0 as a
-performance winner yet.
+misplaced terminal points after lineage rewinds. The completed evidence was
+repaired against recorded `training_iteration`. New runs instead report and
+plot a trial-owned cumulative `pbt_progress_steps` clock. It survives donor
+checkpoint restore, drives perturbation/checkpoint cadence in sampled environment
+steps, and fixes the repeated late-schedule mutation seen around member `00001`'s
+iteration-130 restore.
+
+The next-P0 implementation is staged for review. It adds a separate `net_return`
+reward whose scaled episode sum matches 1 bp `EpisodeEvidence` arithmetic,
+horizon-balanced frozen validation tasks, available Ray 2.9 PPO diagnostics, a
+best cadence-checkpoint replay pointer, explicit baseline-relative promotion
+gates, and an official flat/long/short/random/untrained baseline runner.
+
+The official 64-episode control panel and bounded 40-update/192k-step PBT probe
+completed on 2026-09-16. On the 32-task subset used by PBT, flat scored 0 while
+long-only scored +0.03034% net with Sharpe +0.01077. All PBT terminal rows were
+negative. Member `00001` retained the best cadence checkpoint at -0.16643% net,
+Sharpe -0.06043, turnover 13.875, and 91.05% flat. Its checkpoint reproduced
+those values exactly in a fresh Ray process. Two donor-to-`00001` exploits were
+recorded, and its trial-owned progress remained monotonic through both restores;
+the member required 44 RLlib iterations to reach its own 193k-step budget. The
+measurement/PBT seams therefore pass the bounded acceptance check, but the
+economic promotion gate fails. Do not launch the multi-seed overnight study or
+let Phase B consume R0 as a performance winner until a bounded challenger beats
+flat and the matched long-only control.
+
+The follow-up matched 120-update bridge also completed on 2026-09-16. It used
+`stream_worker`, random/generated tasks, no LLM backend, four population members
+per arm, two rollout workers per member, identical seeds, and roughly 578--579k
+trial-owned environment steps per member. Exact 1 bp `net_return` ended at a
+mean -0.3309% net; one member converged to exactly flat. Historical `pnl_linear`
+ended at a mean -0.8850% net while retaining substantially more trading. Its best
+cadence checkpoint reached +0.04948% net, but Sharpe was -0.01032 and turnover
+42.94 versus the matched long-only control's +0.03034% net, +0.01077 Sharpe, and
+2.0 turnover. PPO is active and reward-sensitive, but neither arm passes
+economic promotion or establishes repeatable reward learnability.
+
+The bridge exposed underpowered asynchronous exploitation on Ray 2.9: each arm
+recorded only one true donor exploit, and Ray could attempt to exploit from an
+upper trial before its scheduler-owned checkpoint was ready. Promotion loadouts
+now opt into `pbt_synch`; the legacy asynchronous default remains available for
+reproduction. A synchronous A/B probe removed the missing-donor warning, and a
+second TDD slice moved stable checkpoint-index persistence before
+`session.report` so a synchronous pause cannot lose the index row. The final
+12-update integration probe produced three indexed/stable checkpoints per member,
+monotonic progress, real mutations in two of four members, and no missing-donor
+warning. Raw synchronous restore counts include self-resume and are not exploit
+counts; stable configuration histories are authoritative.
 
 Ray migration is now an explicit platform follow-up, not an in-place edit to the
 active experiment. The repository currently pins 2.9.0 in `pyproject.toml` and
