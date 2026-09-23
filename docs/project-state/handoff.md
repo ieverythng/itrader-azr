@@ -216,13 +216,60 @@ separate from solver recurrence.
 
 ## Remaining Phase A performance sequence
 
+### 2026-09-19 P0 autoresearch update
+
+The no-cost discovery arm produced two exact-replay shared-lineage candidates:
+`00001` at +0.33846% net / +0.02608 Sharpe and `00003` at +0.35476% /
++0.02561 on the frozen 32-task 1 bp panel. Both remained positive at 2 bp and
+changed action mix between ex-post bullish and bearish episodes. The staged and
+exact-1-bp objectives failed. A broad independent population and a second
+population initialized from the winning recipe also failed; no independent
+member sustained the matched short-only net-plus-Sharpe margin.
+
+An opt-in `economic_selection_score` now makes positive net return, positive
+Sharpe, and less than 98% flat exposure eligibility constraints for PBT donors,
+then ranks eligible
+members by net return. Direction is not scored. Its 40-update probe found two
+eligible reports in one member but missed them at the 48k-step synchronization
+boundary and ended negative. Next compare 24k and 48k cadence under matched
+raw-net and eligibility-aware selection. Keep the final test sealed.
+
+That cadence comparison is now complete. Eligibility-aware 24k search produced
+no exploit; raw-net 24k search produced two exploits and a replay-exact
+member-02 transient at 372,216 steps (+0.39258% 1 bp net, +0.02959 Sharpe,
++0.30008% at 2 bp). It cleared short-only for two consecutive reports and was
+positive in bullish and bearish episode groups, but its paired block interval
+against short-only crossed zero and it later regressed. Retain it as the P1
+challenger, not a promoted winner.
+
+The long diagnostic also isolated Windows memory pressure: four concurrent Ray
+trials with two rollout workers each exhausted the 16 GB host; storage and WSL
+did not fail. The validated topology is `workers=1`, `ray_num_cpus=4`, two
+concurrent trials. Ray-2.9 synchronous PBT now recovers an empty scheduled donor
+save from the durable index, reattaches a paused upper donor's own checkpoint,
+unstages orphaned trials, and skips mutation at terminal exposure. The final
+four-member proof completed all members with exactly one legitimate exploit,
+no terminal exploit, and no errored trial. C remained above 76 GB free and the
+watchdog recorded zero Ubuntu/WSL crash files.
+
+The zero-crash result applies to training. The subsequent GitNexus refresh
+crashed its WSL Node analyzer, emitted an 82.46 GB dump that briefly filled C,
+and was aborted. The dump was preserved on E after its writer released it; C
+recovered to 76.84 GB. Ubuntu and the completed run evidence remained intact.
+Do not retry GitNexus until a coordinated WSL restart activates the configured
+E-drive dump route; the graph is stale.
+
+P1 is now defined as independent training on genuinely new chronological
+validation blocks, selection-aware block uncertainty, regime/action
+attribution, and fresh per-step 0.5/1/2 bp return plus Sharpe replay. Keep the
+sealed final test closed until a sustained independent challenger passes.
+
 1. Preserve R0 and the repaired evidence/PBT contracts.
 2. Treat the frozen controls, bounded probe, and matched 120-update bridge as
    completed negative gates. Neither exact 1 bp `net_return` nor historical
    `pnl_linear` is promoted.
-3. Run the next bounded reward study with synchronous PBT: no-cost learning,
-   staged-cost curriculum, and exact 1 bp objective on identical tasks/seeds,
-   with every candidate evaluated at 1 bp.
+3. Preserve the completed no-cost/staged/exact-1-bp and 24k/48k P0 studies as
+   the selection record; do not rerun them merely to search the same panel.
 4. Require gross edge over long-only, positive net return and Sharpe, controlled
    turnover, independent seeds, and block-aware uncertainty before spending the
    multi-seed overnight budget or opening the untouched final test.
@@ -254,3 +301,15 @@ git diff --check
 
 Use `uv.lock`/`pyproject.toml` as authority; do not use the historical Ray 2.47.1
 plan line to choose a recurrent API.
+
+## Storage remediation, 2026-09-19
+
+The apparent PBT storage block was dominated by one 77.94 GB WSL Node crash
+dump. It is preserved on E for now. `ray_results` and 37 experiment run
+directories are verified NTFS junctions to D; original paths and report plots
+remain valid. C/D/E free space is 78.25/163.85/259.79 GB respectively. A new
+user-level `.wslconfig` redirects future dumps to E and retains one; it becomes
+active on the next normal WSL restart. Do not force that restart or move the
+Ubuntu VHDX until Hermes, OpenClaw, ZeroTier, and the browser harness can be
+stopped in a coordinated window. See
+`docs/artifacts/research/phase-a-storage-incident-audit-2026-09-19.md`.

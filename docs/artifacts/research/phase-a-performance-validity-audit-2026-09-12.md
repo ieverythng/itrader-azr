@@ -1,7 +1,15 @@
 # Phase A Performance Validity Audit
 
-**Date:** 2026-09-12; updated 2026-09-16
-**Repository state:** `agent/Watson-dev` at `bec5c775d3adaafe758202c7175791f6e8b323a8`
+> **2026-09-19 continuation:** the repaired stack has now produced two
+> shared-lineage 1--2 bp-positive MLP-FiLM candidates with exact replay and
+> regime-varying actions, but two independent PBT populations and an
+> eligibility-aware probe failed promotion. The current decision and full
+> evidence are in
+> [`phase-a-mlp-film-autoresearch-2026-09-19.md`](phase-a-mlp-film-autoresearch-2026-09-19.md).
+
+**Date:** 2026-09-12; updated 2026-09-20
+**Repository state:** `agent/Watson-dev` at `88361f05` plus the uncommitted,
+separately reviewable P0 evidence loop described below
 **Decision:** the Phase A results support optimizer activity, reward sensitivity,
 and pipeline learnability, but they do **not** support a claim of validated
 trading performance or baseline-relative economic uplift.
@@ -811,28 +819,58 @@ Completion plots: [net return](../../../itrader/scripts/experiments/configs/outp
 [Sharpe](../../../itrader/scripts/experiments/configs/outputs/phaseA_p0_reward_bridge_sync_120_20260917_001810/ablation_compare_validation_sharpe.png),
 and [held-out action fractions](../../../itrader/scripts/experiments/configs/outputs/phaseA_p0_reward_bridge_sync_120_20260917_001810/ablation_compare_action_fractions.png).
 
+## 2026-09-20 P0 cadence and scheduler closure
+
+The later raw-net 24k cadence study adds bounded positive evidence without
+changing the bridge's negative promotion decision. Immutable-checkpoint
+recovery found member `00002` at 372,216 steps with +0.39258% 1 bp net return,
++0.02959 Sharpe, exact replay, +0.30008% same-action return at 2 bp, and
+positive returns in both ex-post bullish and bearish episode groups. It beat
+short-only for two successive reports, not the required five; the paired
+selection-panel block interval versus short-only crossed zero, independent
+replication remained absent, and the policy later regressed. The reward is
+economically learnable in this bounded selection-panel sense, but stable
+generalization is not proven.
+
+The run also separated platform failures. Four concurrent trials with two
+rollout workers each exhausted the 16 GB Windows host. A `workers=1`,
+`ray_num_cpus=4` topology kept two trials active at a time and retained about
+6 GB free RAM. The Ray-2.9 adapter now retries an empty scheduled donor save
+from the durable checkpoint index, reattaches paused upper donors to their own
+checkpoint, and suppresses mutation after target exposure. The final
+four-member proof terminated every trial with one legitimate 24k-boundary
+exploit, no terminal exploit, no errored trial, and exit code 0. C stayed above
+76 GB free and the watchdog observed no Ubuntu/WSL crash.
+
+P0 measurement, frozen controls, replay, cadence diagnosis, and PBT mechanics
+are complete enough to define P1, not to promote Phase A. P1 is independent
+training on genuinely new, non-overlapping chronological validation blocks,
+selection-aware block uncertainty, regime/action attribution, and fresh
+per-step 0.5/1/2 bp return plus Sharpe replay. The final test stays sealed.
+
 ## Final judgment
 
 The historical work was not meaningless: it established that the Phase A
 machinery can train a policy against a finite shaped reward. The mistake is in
 the strength and naming of the conclusion. The recorded “episode return” is not
 a portfolio return, the selected configurations were not constrained correctly,
-and the historical dataset was not held out. The corrected 200-update run and
-the matched 120-update reward bridge now score R0 against explicit controls; both
-fail economic promotion. The solver is active and reward-sensitive, but neither
-reward proves repeatable uplift over long-only with positive Sharpe.
+and the historical dataset was not held out. The corrected 200-update run,
+matched 120-update bridge, and raw-net 24k cadence study now score R0 against
+explicit controls. None passes economic promotion. The solver is active and
+reward-sensitive, and the raw-net challenger proves bounded positive economics
+can be learned on the selection panel; repeatable independent uplift over
+directional controls remains unproven.
 
 The correct current status is:
 
 > **Phase A economic measurement, checkpoint/evaluation parity, exposure-aligned
-> reporting, frozen controls, and synchronous Ray 2.9 donor/checkpoint ordering
-> are repaired and full-run validated. The matched synchronous bridge confirms active
-> PPO but exposes an inactivity attractor under exact 1 bp net reward and
-> cost-blind turnover under PnL-linear reward. An early PnL-linear checkpoint
-> replayed at a positive mean net return, but its Sharpe was negative, its
-> block-aware selection-panel interval crossed zero, and all terminal policies
-> lost money. Neither arm passes the matched long-only plus Sharpe gate.
-> Historical winners remain quarantined;
-> do not claim economic reward learnability, solver uplift, or Phase A promotion
-> until a bounded challenger passes the controls, independent seeds, block-aware
-> uncertainty, multiple costs, replay, and the untouched final test.**
+> reporting, frozen controls, and synchronous Ray-2.9 checkpoint/exploit/resume
+> behavior are repaired and live-validated. PPO is active. The raw-net 24k run
+> produced a replay-exact, 1--2 bp-positive transient with positive Sharpe and
+> regime-varying actions, so economic learnability is supported on the frozen
+> selection panel. It persisted for only two reports, its paired block interval
+> versus short-only crossed zero, and no independent lineage reproduced it.
+> Historical and current candidates remain unpromoted. P1 must establish
+> independent new-block stability, selection-aware uncertainty, and per-step
+> cost/Sharpe sensitivity before the sealed final test or any Phase B dependency
+> on proven economic performance.**

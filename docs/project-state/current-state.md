@@ -1,8 +1,8 @@
 # Current State
 
-Last updated: 2026-09-17
+Last updated: 2026-09-20
 Branch: `agent/Watson-dev`
-HEAD: `42d1b3a`
+HEAD: `88361f0` plus uncommitted 2026-09-19 autoresearch changes
 
 ## Working-tree boundary
 
@@ -37,7 +37,54 @@ reward head.
 
 ## Phase A performance evidence
 
-The 2026-09-17 synchronous matched bridge is now the latest Phase A evidence.
+The 2026-09-19 P0 autoresearch is now the latest evidence. A matched no-cost
+discovery arm produced two positive 1 bp checkpoints (`00001` +0.33846%,
+Sharpe +0.02608; `00003` +0.35476%, Sharpe +0.02561). Exact replay, every
+horizon, 2 bp repricing, and bullish/bearish action attribution passed, but the
+two checkpoints share ancestry. A broad independent population and an
+independent four-member winner-recipe population failed to reproduce the
+matched short-only net-plus-Sharpe margin. An opt-in eligibility-aware PBT
+score was then implemented test-first and exercised for 40 updates; it observed
+two eligible reports but no boundary-time or terminal winner. Phase A therefore
+has credible selection-panel candidates and active PPO/PBT, not validated
+economic promotion. The sealed final test remains untouched. See the dated
+2026-09-19 MLP-FiLM autoresearch report for controls, lineage, blocks, costs,
+regimes, plots, and the next cadence experiment.
+
+The follow-up raw-net 24k cadence run recorded two genuine PBT exploits before
+the original four-trial/two-worker topology exhausted the 16 GB Windows host.
+Immutable-checkpoint recovery completed every lineage. Member `00002` produced
+the strongest new transient at 372,216 steps: +0.39258% 1 bp net return,
++0.02959 Sharpe, exact fresh-process replay, +0.30008% at 2 bp, and positive
+returns in both ex-post bullish and bearish episode groups. It beat short-only
+for only two consecutive reports, its paired block interval against short-only
+crossed zero, and it later regressed. This is bounded evidence of economic
+learnability on the selection panel, not independent promotion.
+
+Ray-2.9 PBT is now live-validated in a memory-safe topology: one rollout worker
+per trial, four declared Ray CPUs, and two concurrent trials on this 16 GB host.
+The adapter retries an empty scheduled donor save from the stable checkpoint
+index, reattaches paused upper donors to their own durable checkpoint, releases
+orphaned staged trials, and suppresses mutations at terminal exposure. The
+post-fix four-member proof terminated all members with one legitimate boundary
+exploit, no terminal exploit, and no errored trial. The watchdog observed no
+Ubuntu/WSL crash and C stayed above 76 GB free.
+
+That statement is specific to the PBT probes. A later required GitNexus refresh
+crashed its WSL Node analyzer and created an 82.46 GB dump that briefly drove C
+to 0 GB. The analyzer was stopped and the dump was moved to E after the writer
+released it, restoring C to 76.84 GB; Ubuntu and the completed PBT evidence
+remained intact. Do not retry indexing before a coordinated WSL restart
+activates the already configured E-drive crash-dump route. GitNexus remains
+explicitly stale.
+
+P0 measurement, controls, candidate discovery, replay, and PBT mechanics are
+therefore closed enough to define P1, while economic promotion remains blocked.
+P1 is independent training on genuinely new chronological validation blocks,
+selection-aware block uncertainty, regime/action attribution, and fresh
+per-step 0.5/1/2 bp return plus Sharpe replay before the sealed final test.
+
+The 2026-09-17 synchronous matched bridge is the preceding negative bridge.
 Its completed 1 bp net-return arm and restarted-from-zero PnL-linear arm each
 have four completed members, 576k–580k trial-owned environment steps per member,
 and 12 durable checkpoint indices per member. The interrupted PnL-linear prefix
@@ -258,3 +305,15 @@ generation, then add deterministic flat/long/short/random/untrained baselines,
 block-aware uncertainty, cost scenarios, and the untouched final-test evaluation.
 Preserve R0 while this happens; recurrence work may continue in its separate
 thread but must use the repaired evidence contract.
+
+## 2026-09-19 storage incident
+
+The abrupt C-drive exhaustion was caused by a 77,937,594,360-byte WSL crash
+dump for `/usr/bin/node`, not by Ray checkpoints alone. Phase experiment outputs
+and user-level `ray_results` contributed about 5.82 GB. The dump archive is now
+on E, active Ray results and 37 experiment directories are junctioned to the D
+NVMe, and C has 78.25 GB free. Future WSL dumps are configured for E with a
+one-dump retention cap, effective after the next normal WSL restart. Moving the
+76.95 GB Ubuntu VHDX to D is deferred because the distro currently hosts live
+Hermes, OpenClaw, ZeroTier, and browser-harness services. Full evidence is in
+`docs/artifacts/research/phase-a-storage-incident-audit-2026-09-19.md`.

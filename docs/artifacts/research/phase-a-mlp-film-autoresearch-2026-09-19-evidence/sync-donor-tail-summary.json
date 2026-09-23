@@ -1,0 +1,51 @@
+{
+  "run_tag": "phaseA_p0_sync_donor_tail_6_20260920_001655",
+  "collected_only": false,
+  "config": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\phase_a_p0_sync_donor_tail_6_20260920.json",
+  "results": [
+    {
+      "variant_id": "p314159",
+      "series_id": "p314159:training_fn_ITraderEnv_d66ce_00000_0_seed=1166608_2026-09-20_00-17-01",
+      "experiment_name": "phaseA_p0_sync_donor_tail_6_20260920_001655_p314159",
+      "trial_dir": "D:\\iTRADER-offload\\active\\phaseA_p0_sync_donor_tail_6\\ray\\phaseA_p0_sync_donor_tail_6_20260920_001655_p314159\\training_fn_ITraderEnv_d66ce_00000_0_seed=1166608_2026-09-20_00-17-01",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\phaseA_p0_sync_donor_tail_6\\ray\\_stable_metrics\\training_fn_ITraderEnv_d66ce_00000_0_seed=1166608_2026-09-20_00-17-01\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\phaseA_p0_sync_donor_tail_6\\ray\\_stable_metrics\\training_fn_ITraderEnv_d66ce_00000_0_seed=1166608_2026-09-20_00-17-01\\plots",
+      "final_metric": -0.0086754205520035
+    },
+    {
+      "variant_id": "p314159",
+      "series_id": "p314159:training_fn_ITraderEnv_d66ce_00001_1_seed=1225711_2026-09-20_00-17-01",
+      "experiment_name": "phaseA_p0_sync_donor_tail_6_20260920_001655_p314159",
+      "trial_dir": "D:\\iTRADER-offload\\active\\phaseA_p0_sync_donor_tail_6\\ray\\phaseA_p0_sync_donor_tail_6_20260920_001655_p314159\\training_fn_ITraderEnv_d66ce_00001_1_seed=1225711_2026-09-20_00-17-01",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\phaseA_p0_sync_donor_tail_6\\ray\\_stable_metrics\\training_fn_ITraderEnv_d66ce_00001_1_seed=1225711_2026-09-20_00-17-01\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\phaseA_p0_sync_donor_tail_6\\ray\\_stable_metrics\\training_fn_ITraderEnv_d66ce_00001_1_seed=1225711_2026-09-20_00-17-01\\plots",
+      "final_metric": -0.0080839760335505
+    },
+    {
+      "variant_id": "p314159",
+      "series_id": "p314159:training_fn_ITraderEnv_d66ce_00002_2_seed=1215584_2026-09-20_00-17-01",
+      "experiment_name": "phaseA_p0_sync_donor_tail_6_20260920_001655_p314159",
+      "trial_dir": "D:\\iTRADER-offload\\active\\phaseA_p0_sync_donor_tail_6\\ray\\phaseA_p0_sync_donor_tail_6_20260920_001655_p314159\\training_fn_ITraderEnv_d66ce_00002_2_seed=1215584_2026-09-20_00-17-01",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\phaseA_p0_sync_donor_tail_6\\ray\\_stable_metrics\\training_fn_ITraderEnv_d66ce_00002_2_seed=1215584_2026-09-20_00-17-01\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\phaseA_p0_sync_donor_tail_6\\ray\\_stable_metrics\\training_fn_ITraderEnv_d66ce_00002_2_seed=1215584_2026-09-20_00-17-01\\plots",
+      "final_metric": -0.0078090645744911
+    },
+    {
+      "variant_id": "p314159",
+      "series_id": "p314159:training_fn_ITraderEnv_d66ce_00003_3_seed=627927_2026-09-20_00-17-01",
+      "experiment_name": "phaseA_p0_sync_donor_tail_6_20260920_001655_p314159",
+      "trial_dir": "D:\\iTRADER-offload\\active\\phaseA_p0_sync_donor_tail_6\\ray\\phaseA_p0_sync_donor_tail_6_20260920_001655_p314159\\training_fn_ITraderEnv_d66ce_00003_3_seed=627927_2026-09-20_00-17-01",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\phaseA_p0_sync_donor_tail_6\\ray\\_stable_metrics\\training_fn_ITraderEnv_d66ce_00003_3_seed=627927_2026-09-20_00-17-01\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\phaseA_p0_sync_donor_tail_6\\ray\\_stable_metrics\\training_fn_ITraderEnv_d66ce_00003_3_seed=627927_2026-09-20_00-17-01\\plots",
+      "final_metric": -0.0068960932937549
+    }
+  ],
+  "primary_metric": "evaluation/net_return_mean",
+  "compare_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_sync_donor_tail_6_20260920_001655\\ablation_compare.csv",
+  "compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_sync_donor_tail_6_20260920_001655\\ablation_compare.png",
+  "sharpe_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_sync_donor_tail_6_20260920_001655\\ablation_compare_validation_sharpe.png",
+  "entropy_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_sync_donor_tail_6_20260920_001655\\ablation_compare_entropy.png",
+  "episode_len_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_sync_donor_tail_6_20260920_001655\\ablation_compare_episode_len.png",
+  "diagnostics_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_sync_donor_tail_6_20260920_001655\\ablation_compare_diagnostics.png",
+  "action_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_sync_donor_tail_6_20260920_001655\\ablation_compare_action_fractions.png"
+}

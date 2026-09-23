@@ -31,7 +31,9 @@ Markdown is the source of truth for active documents. HTML companions accompany 
 
 ## Dated artifacts and audit
 
-- `artifacts/research/phase-a-performance-validity-audit-2026-09-12.md` (+ `.html`) — Phase A audit, corrected parity runs, frozen controls, completed synchronous reward bridge, best-checkpoint replay, exploratory block/cost diagnostics, and remaining promotion gates.
+- `artifacts/research/phase-a-performance-validity-audit-2026-09-12.md` (+ `.html`) — Phase A audit, corrected parity runs, frozen controls, synchronous reward bridge, raw-24k closure, replay/block/cost evidence, and P1 gates.
+- `artifacts/research/phase-a-mlp-film-autoresearch-2026-09-19.md` (+ `.html`) — matched P0 cost/cadence study, shared-lineage and transient challengers, exact replay, cost/block/regime evidence, failed independent replication, and live-validated Ray-2.9 PBT tails.
+- `artifacts/research/phase-a-storage-incident-audit-2026-09-19.md` (+ `.html`) — WSL crash-dump root cause, verified C/D/E offload layout, live watchdog/RAM attribution, junction receipts, and deferred coordinated WSL-distro move.
 - `artifacts/research/azr-stack-review-2026-09-12.md` — local AZR v2 synthesis and source-grounded adaptation recommendations.
 - `artifacts/research/recurrence-code-audit-2026-09-12.md` — independent read-only source audit; do not treat its attempted WSL test as a pass.
 - `artifacts/research/recurrence-docs-revision-audit-2026-09-12.md` — this docs coverage inventory, edit rationale, and validation results.

@@ -1,0 +1,56 @@
+{
+  "name": "phaseA_p0_fc_m03_recovery_matched",
+  "python_exe": ".venv/Scripts/python.exe",
+  "train_module": "itrader.rl_lib.train.train_solo_V2",
+  "primary_metric": "evaluation/net_return_mean",
+  "common_args": {
+    "cpu_only": true,
+    "workers": 2,
+    "timeout_hours": 1,
+    "window": 60,
+    "seed": 627927,
+    "evaluation_seed": 30260938,
+    "train_batch_size": 4800,
+    "sgd_minibatch_size": 512,
+    "num_sgd_iter": 30,
+    "data_path": "itrader/data/ohlcv.parquet",
+    "results_root": "D:/iTRADER-offload/active/phaseA_p0_fc_m03_recovery_matched/ray",
+    "task_pool_path": "",
+    "p_pool": 0.0,
+    "task_horizons": "96,128,160,200",
+    "task_reward_ids": "net_return",
+    "start_idx_mode": "stream_worker",
+    "ret_norm_reset": "stream",
+    "observation_transform": "market_relative_v1",
+    "observation_filter": "NoFilter",
+    "stream_stride": 0,
+    "stream_jump_every_episodes": 5,
+    "stream_jump_on_wrap": true,
+    "evaluation_interval": 1,
+    "evaluation_num_episodes": 32,
+    "checkpoint_consistent_evaluation": true,
+    "evidence_cost_bps": 1.0,
+    "optimization_cost_bps": 0.0,
+    "net_return_reward_scale": 1000.0,
+    "split_fractions": "0.7,0.15,0.15",
+    "split_purge_rows": 200,
+    "pbt_promotion_eligible": true,
+    "pbt_selection_min_sharpe": 0.0,
+    "pbt_selection_max_flat_action_fraction": 0.98,
+    "restore_ckpt": "D:/iTRADER-offload/active/phaseA_p0_fc24k80/ray/_stable_metrics/training_fn_ITraderEnv_262ef_00003_3_seed=627927_2026-09-19_21-13-08/checkpoints/iter_000061_193843166489",
+    "restore_progress_steps": 361272,
+    "restore_progress_updates": 73,
+    "auto_plot_on_end": false
+  },
+  "variants": [
+    {
+      "id": "member03_tail",
+      "args": {
+        "best_params_json": "itrader/scripts/experiments/configs/phase_a_p0_no_cost_candidate_00001_params_20260919.json",
+        "iters": 80,
+        "checkpoint_interval": 5,
+        "pbt_interval": 5
+      }
+    }
+  ]
+}

@@ -66,7 +66,8 @@ You can pass most train knobs directly in `common_args` or per-variant `args`, e
 - `split_fractions`, `split_purge_rows`
 - `observation_transform`, `observation_filter`
 - `results_root` for Ray, stable metrics, and run-manifest colocation
-- `cpu_only` for resources, or `pbt`/`cpu_pbt` to activate population search
+- `cpu_only` for resources and `ray_num_cpus` for an explicit local-cluster cap,
+  or `pbt`/`cpu_pbt` to activate population search
 
 For PBT, checkpoint and perturbation intervals must match. Training batch stays
 fixed while trial-owned cumulative sampled environment steps are the search
@@ -80,6 +81,14 @@ rank a lower trial before the selected upper donor has a PBT-owned checkpoint,
 which skips that exploit even when repository-owned cadence checkpoints exist.
 Synchronous PBT orders upper-donor saves before lower-trial exploitation while
 the trial-owned environment-step clock preserves equal target exposure.
+On Ray 2.9/Windows, a scheduled save can still resolve without a checkpoint
+after the donor is paused. The iTrader scheduler retries from the latest
+repository-owned checkpoint at or before the donor clock, reattaches a paused
+upper donor to its own stable checkpoint before resuming it, and does not mutate
+after `pbt_target_steps`. Durable event receipts distinguish exploits,
+fallbacks, and fail-closed skips. On a 16 GB host, use `workers: 1` and
+`ray_num_cpus: 4` for a four-member population unless a capacity test proves a
+higher setting safe.
 
 On Ray 2.9, Phase A PBT additionally fails closed unless both training and
 evaluation use `observation_transform: market_relative_v1` with
@@ -96,7 +105,7 @@ as a PBT selection score. Ray 2.9 exposes approximate KL and explained variance;
 clip fraction stays `NaN` until the separate RLlib migration or a custom learner
 statistic makes it observable.
 
-The next Phase A P0 loadouts are:
+The original Phase A P0 entry loadouts were:
 
 - `configs/phase_a_p0_frozen_policy_baselines_20260914.json` for the identical-
   start flat, long-only, short-only, random, and seeded untrained-FiLM controls;
@@ -109,6 +118,13 @@ one constant numerical scale. Dividing episode optimization reward by that scale
 recovers the same net-return arithmetic emitted independently by EpisodeEvidence.
 PPO still discounts step rewards when `gamma < 1`; the exact equality applies to
 the undiscounted episode sum.
+
+P0 measurement and PBT mechanics are now closed enough to define P1. New
+promotion experiments should use independent training lineages and genuinely
+new chronological validation blocks, then apply selection-aware block
+uncertainty, regime/action attribution, and fresh per-step 0.5/1/2 bp return and
+Sharpe replay. The final chronological test remains sealed until selection is
+frozen.
 
 See `schemas/ablation.schema.json` for the supported shape and defaults.
 

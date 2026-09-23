@@ -1,8 +1,8 @@
 # iTrader Masterplan
 
-Last updated: 2026-09-17
-Status: **Phase A synchronous matched 120-update bridge completed; PPO/PBT are active, but neither reward arm passes economic promotion**
-Branch snapshot: `agent/Watson-dev` at `42d1b3a`
+Last updated: 2026-09-20
+Status: **Phase A P0 measurement/PBT seams are live-validated; one new transient challenger passed exact replay and cost checks, but independent replication and promotion did not**
+Branch snapshot: `agent/Watson-dev` at `88361f0` plus the uncommitted 2026-09-19 autoresearch surface
 
 ## North star
 
@@ -150,23 +150,49 @@ Before Phase B may rely on R0 behavior as a performance baseline:
     turnover 26.1875, and its paired 14-block exploratory interval against
     long-only crossed zero. It turned negative at 2 bp. This is real episodic
     evidence, not a stable economic winner. Keep the final test sealed.
+12. **Completed candidate discovery; independent promotion failed:** the
+    2026-09-19 matched P0 compared 0 bp discovery, staged cost, and exact 1 bp
+    optimization while evaluating every policy at 1 bp. Discovery members
+    `00001` and `00003` ended at +0.33846% and +0.35476% net with positive
+    Sharpe, positive results at every horizon, exact fresh replay, positive
+    2 bp repricing, and regime-varying actions. They share ancestry. A broad
+    independent population and a four-member independent winner-recipe
+    population produced no qualifying checkpoint; the closest independent
+    point barely beat short-only net but not Sharpe and did not persist. A
+    subsequent eligibility-aware 40-update probe proved the opt-in PBT donor
+    gate works but also failed. Keep both candidates as research checkpoints,
+    not promoted winners, and keep the final test sealed.
+13. **Completed 24k raw-net diagnostic and Ray-2.9 tail hardening:** a
+    memory-safe four-member run produced two genuine exploits before the prior
+    eight-actor topology exhausted the 16 GB Windows host. Sequential immutable-
+    checkpoint recovery identified member `00002` at 372,216 steps as a strong
+    transient challenger: +0.39258% 1 bp net, +0.02959 Sharpe, exact replay,
+    +0.30008% at 2 bp, positive bullish/bearish regime returns, and two
+    consecutive reports above short-only. Its paired block interval against
+    short-only crossed zero and it later regressed, so it is not promoted.
+    Ray now respects one rollout worker, accepts a declared local CPU cap,
+    retries an empty scheduled donor save from the durable checkpoint index,
+    reattaches paused upper donors to their own checkpoint, and suppresses
+    mutation at terminal exposure. A final four-member live proof terminated
+    every member with one legitimate boundary exploit, zero terminal exploits,
+    and zero errored trials.
 
-The next bounded Phase A study should separate discovery from the final 1 bp
-gate: retain 1 bp net return as evaluation truth, but compare a no-cost learning
-control and a staged cost curriculum against the exact net-return objective.
-Require gross-edge improvement over long-only before increasing cost pressure,
-and report turnover/action composition, positive Sharpe, independent seeds, and
-block-aware uncertainty. Define P1 after a P0 candidate clears the gross/net/
-Sharpe/turnover baseline gate: independent seeds, new chronological blocks,
-selection-aware uncertainty, and 0.5/1/2 bp per-step replay. Do not open the
-sealed final test until selection is complete. Before another overnight run,
-add a coordinated checkpoint/pause-and-resume protocol for every PBT member or
-budget a fresh-arm restart; a saved Ray experiment state alone is insufficient
-when trial-owned progress outlives its last model checkpoint. A short, matched
-NVMe versus current-storage A/B is deferred until this evidence pass is closed;
-no storage path changed in the synchronous run.
+P0 candidate discovery and the repaired PBT mechanics are now sufficiently
+measured to define P1, but not to claim promotion. P1 retains 1 bp evaluation
+truth and tests independent lineages on genuinely new, non-overlapping
+chronological validation blocks, with selection-aware block uncertainty,
+regime-conditioned action attribution, and fresh per-step 0.5/1/2 bp replay.
+Direction remains diagnostic rather than punitive; only effectively all-flat
+behavior is an automatic action gate. Require sustained independent net and
+Sharpe before freezing a candidate and opening the sealed final test. For any
+externally paused overnight run, still use coordinated all-member checkpoints
+or budget a fresh-arm restart; a saved Ray experiment state alone is not exact
+recovery. The matched NVMe/current-storage A/B remains deferred and must not
+relocate an active run.
 
-The detailed findings and TDD slices are in
+The detailed findings are in
+`docs/artifacts/research/phase-a-mlp-film-autoresearch-2026-09-19.md`, with the
+earlier repair chronology in
 `docs/artifacts/research/phase-a-performance-validity-audit-2026-09-12.md`.
 
 ## Phase B — offline + replay/shadow work

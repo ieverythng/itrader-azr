@@ -1,55 +1,18 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Phase A Performance Validity Audit</title>
-  <style>
-    :root { --ink:#172019; --muted:#536058; --line:#ccd4ce; --paper:#f3f6f3; --panel:#fff; --green:#176b49; --blue:#1f5d8c; --amber:#a96113; --red:#963e36; }
-    * { box-sizing:border-box; }
-    html { scroll-behavior:smooth; }
-    body { margin:0; color:var(--ink); background:var(--paper); font-family:"Segoe UI",Arial,sans-serif; line-height:1.58; }
-    header { color:#eef6f0; background:linear-gradient(135deg,#17271e,#204b36); border-bottom:5px solid var(--green); }
-    header>div, main { width:min(1120px,calc(100% - 36px)); margin:auto; }
-    header>div { padding:48px 0 40px; }
-    .eyebrow { margin:0 0 8px; color:#9ed1b4; font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
-    header h1 { max-width:920px; margin:0; color:#fff; font:700 clamp(2.2rem,5vw,3.6rem)/1.05 Georgia,serif; }
-    header p { max-width:850px; margin:14px 0 0; color:#d5e4da; font-size:1.05rem; }
-    main { padding:34px 0 72px; }
-    .source-note { margin:0 0 18px; color:var(--muted); font-size:.88rem; }
-    .source-note a { color:var(--blue); }
-    article { padding:clamp(26px,5vw,58px); background:var(--panel); border:1px solid var(--line); border-radius:12px; box-shadow:0 14px 34px rgba(23,32,25,.08); }
-    h1,h2,h3,h4 { color:var(--ink); font-family:Georgia,serif; line-height:1.2; }
-    article>h1 { display:none; }
-    h2 { margin:2.1em 0 .65em; padding-top:.2em; font-size:clamp(1.55rem,3vw,2.1rem); border-top:1px solid var(--line); }
-    h2:first-of-type { border-top:0; margin-top:.4em; }
-    h3 { margin:1.65em 0 .45em; font-size:1.28rem; }
-    h4 { margin:1.3em 0 .35em; font-size:1.05rem; }
-    p,li,td,th { color:var(--muted); }
-    strong { color:var(--ink); }
-    a { color:var(--blue); }
-    code { padding:.08em .3em; color:#164d74; background:#edf3f6; border-radius:3px; font-family:Consolas,monospace; font-size:.92em; }
-    pre { overflow:auto; padding:17px; color:#eef5f0; background:#1b2720; border-left:4px solid var(--green); border-radius:5px; }
-    pre code { padding:0; color:inherit; background:transparent; }
-    blockquote { margin:1.2em 0; padding:12px 18px; background:#fff8e9; border-left:4px solid var(--amber); }
-    blockquote p { margin:0; color:#63491f; }
-    table { width:100%; margin:1.2em 0 1.55em; border-collapse:collapse; font-size:.91rem; }
-    th,td { padding:9px 10px; border:1px solid var(--line); text-align:left; vertical-align:top; }
-    th { color:#fff; background:#244d68; }
-    tbody tr:nth-child(even) { background:#f4f6f4; }
-    ul,ol { padding-left:1.45em; }
-    li+li { margin-top:.35em; }
-    hr { border:0; border-top:1px solid var(--line); }
-    @media(max-width:650px) { header>div,main{width:min(100% - 22px,1120px)} article{padding:22px 18px} table{display:block;overflow-x:auto} }
-    @media print { body{background:#fff} header{color:#000;background:#fff;border-bottom:2px solid #000} header h1{color:#000} header p,.eyebrow{color:#444} main{width:100%;padding:0} article{border:0;box-shadow:none;padding:0} a{color:inherit;text-decoration:none} }
-</style>
-</head>
-<body>
-<header><div><p class="eyebrow">Research audit</p><h1>Phase A Performance Validity Audit</h1><p>Source-of-truth Markdown with implementation and experiment evidence.</p></div></header>
-<main><p class="source-note">Generated from <a href="phase-a-performance-validity-audit-2026-09-12.md">phase-a-performance-validity-audit-2026-09-12.md</a>.</p><article>
-<h1>Phase A Performance Validity Audit</h1>
-<p><strong>Date:</strong> 2026-09-12; updated 2026-09-16
-<strong>Repository state:</strong> <code>agent/Watson-dev</code> at <code>bec5c775d3adaafe758202c7175791f6e8b323a8</code>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Phase A Performance Validity Audit</title><style>
+:root{--ink:#172019;--muted:#536058;--line:#ccd4ce;--paper:#f3f6f3;--panel:#fff;--green:#176b49;--blue:#1f5d8c;--amber:#a96113}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--paper);font-family:"Segoe UI",Arial,sans-serif;line-height:1.58}header{color:#eef6f0;background:linear-gradient(135deg,#17271e,#204b36);border-bottom:5px solid var(--green)}header>div,main{width:min(1120px,calc(100% - 36px));margin:auto}header>div{padding:48px 0 40px}.eyebrow{margin:0 0 8px;color:#9ed1b4;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}header h1{max-width:920px;margin:0;color:#fff;font:700 clamp(2.2rem,5vw,3.6rem)/1.05 Georgia,serif}header p{max-width:850px;margin:14px 0 0;color:#d5e4da;font-size:1.05rem}main{padding:34px 0 72px}.source-note{margin:0 0 18px;color:var(--muted);font-size:.88rem}.source-note a{color:var(--blue)}article{padding:clamp(26px,5vw,58px);background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(23,32,25,.08)}h1,h2,h3,h4{color:var(--ink);font-family:Georgia,serif;line-height:1.2}article>h1{display:none}h2{margin:2.1em 0 .65em;padding-top:.2em;font-size:clamp(1.55rem,3vw,2.1rem);border-top:1px solid var(--line)}h2:first-of-type{border-top:0;margin-top:.4em}h3{margin:1.65em 0 .45em;font-size:1.28rem}p,li,td,th{color:var(--muted)}strong{color:var(--ink)}a{color:var(--blue)}code{padding:.08em .3em;color:#164d74;background:#edf3f6;border-radius:3px;font-family:Consolas,monospace;font-size:.92em}pre{overflow:auto;padding:17px;color:#eef5f0;background:#1b2720;border-left:4px solid var(--green);border-radius:5px}pre code{padding:0;color:inherit;background:transparent}blockquote{margin:1.2em 0;padding:12px 18px;background:#fff8e9;border-left:4px solid var(--amber)}blockquote p{margin:0;color:#63491f}table{width:100%;margin:1.2em 0 1.55em;border-collapse:collapse;font-size:.91rem}th,td{padding:9px 10px;border:1px solid var(--line);text-align:left;vertical-align:top}th{color:#fff;background:#244d68}tbody tr:nth-child(even){background:#f4f6f4}ul,ol{padding-left:1.45em}li+li{margin-top:.35em}@media(max-width:650px){header>div,main{width:min(100% - 22px,1120px)}article{padding:22px 18px}table{display:block;overflow-x:auto}}@media print{body{background:#fff}header{color:#000;background:#fff;border-bottom:2px solid #000}header h1{color:#000}header p,.eyebrow{color:#444}main{width:100%;padding:0}article{border:0;box-shadow:none;padding:0}}
+</style></head><body><header><div><p class="eyebrow">Research audit</p><h1>Phase A Performance Validity Audit</h1><p>Source-of-truth Markdown with implementation and experiment evidence.</p></div></header><main><p class="source-note">Generated from <a href="phase-a-performance-validity-audit-2026-09-12.md">phase-a-performance-validity-audit-2026-09-12.md</a>.</p><article><h1>Phase A Performance Validity Audit</h1>
+<blockquote>
+<p><strong>2026-09-19 continuation:</strong> the repaired stack has now produced two
+shared-lineage 1--2 bp-positive MLP-FiLM candidates with exact replay and
+regime-varying actions, but two independent PBT populations and an
+eligibility-aware probe failed promotion. The current decision and full
+evidence are in
+<a href="phase-a-mlp-film-autoresearch-2026-09-19.md"><code>phase-a-mlp-film-autoresearch-2026-09-19.md</code></a>.</p>
+</blockquote>
+<p><strong>Date:</strong> 2026-09-12; updated 2026-09-20
+<strong>Repository state:</strong> <code>agent/Watson-dev</code> at <code>88361f05</code> plus the uncommitted,
+separately reviewable P0 evidence loop described below
 <strong>Decision:</strong> the Phase A results support optimizer activity, reward sensitivity,
 and pipeline learnability, but they do <strong>not</strong> support a claim of validated
 trading performance or baseline-relative economic uplift.</p>
@@ -1224,30 +1187,54 @@ was made during this study.</p>
 <p>Completion plots: <a href="../../../itrader/scripts/experiments/configs/outputs/phaseA_p0_reward_bridge_sync_120_20260917_001810/ablation_compare.png">net return</a>,
 <a href="../../../itrader/scripts/experiments/configs/outputs/phaseA_p0_reward_bridge_sync_120_20260917_001810/ablation_compare_validation_sharpe.png">Sharpe</a>,
 and <a href="../../../itrader/scripts/experiments/configs/outputs/phaseA_p0_reward_bridge_sync_120_20260917_001810/ablation_compare_action_fractions.png">held-out action fractions</a>.</p>
+<h2>2026-09-20 P0 cadence and scheduler closure</h2>
+<p>The later raw-net 24k cadence study adds bounded positive evidence without
+changing the bridge's negative promotion decision. Immutable-checkpoint
+recovery found member <code>00002</code> at 372,216 steps with +0.39258% 1 bp net return,
++0.02959 Sharpe, exact replay, +0.30008% same-action return at 2 bp, and
+positive returns in both ex-post bullish and bearish episode groups. It beat
+short-only for two successive reports, not the required five; the paired
+selection-panel block interval versus short-only crossed zero, independent
+replication remained absent, and the policy later regressed. The reward is
+economically learnable in this bounded selection-panel sense, but stable
+generalization is not proven.</p>
+<p>The run also separated platform failures. Four concurrent trials with two
+rollout workers each exhausted the 16 GB Windows host. A <code>workers=1</code>,
+<code>ray_num_cpus=4</code> topology kept two trials active at a time and retained about
+6 GB free RAM. The Ray-2.9 adapter now retries an empty scheduled donor save
+from the durable checkpoint index, reattaches paused upper donors to their own
+checkpoint, and suppresses mutation after target exposure. The final
+four-member proof terminated every trial with one legitimate 24k-boundary
+exploit, no terminal exploit, no errored trial, and exit code 0. C stayed above
+76 GB free and the watchdog observed no Ubuntu/WSL crash.</p>
+<p>P0 measurement, frozen controls, replay, cadence diagnosis, and PBT mechanics
+are complete enough to define P1, not to promote Phase A. P1 is independent
+training on genuinely new, non-overlapping chronological validation blocks,
+selection-aware block uncertainty, regime/action attribution, and fresh
+per-step 0.5/1/2 bp return plus Sharpe replay. The final test stays sealed.</p>
 <h2>Final judgment</h2>
 <p>The historical work was not meaningless: it established that the Phase A
 machinery can train a policy against a finite shaped reward. The mistake is in
 the strength and naming of the conclusion. The recorded “episode return” is not
 a portfolio return, the selected configurations were not constrained correctly,
-and the historical dataset was not held out. The corrected 200-update run and
-the matched 120-update reward bridge now score R0 against explicit controls; both
-fail economic promotion. The solver is active and reward-sensitive, but neither
-reward proves repeatable uplift over long-only with positive Sharpe.</p>
+and the historical dataset was not held out. The corrected 200-update run,
+matched 120-update bridge, and raw-net 24k cadence study now score R0 against
+explicit controls. None passes economic promotion. The solver is active and
+reward-sensitive, and the raw-net challenger proves bounded positive economics
+can be learned on the selection panel; repeatable independent uplift over
+directional controls remains unproven.</p>
 <p>The correct current status is:</p>
 <blockquote>
 <p><strong>Phase A economic measurement, checkpoint/evaluation parity, exposure-aligned
-reporting, frozen controls, and synchronous Ray 2.9 donor/checkpoint ordering
-are repaired and full-run validated. The matched synchronous bridge confirms active
-PPO but exposes an inactivity attractor under exact 1 bp net reward and
-cost-blind turnover under PnL-linear reward. An early PnL-linear checkpoint
-replayed at a positive mean net return, but its Sharpe was negative, its
-block-aware selection-panel interval crossed zero, and all terminal policies
-lost money. Neither arm passes the matched long-only plus Sharpe gate.
-Historical winners remain quarantined;
-do not claim economic reward learnability, solver uplift, or Phase A promotion
-until a bounded challenger passes the controls, independent seeds, block-aware
-uncertainty, multiple costs, replay, and the untouched final test.</strong></p>
+reporting, frozen controls, and synchronous Ray-2.9 checkpoint/exploit/resume
+behavior are repaired and live-validated. PPO is active. The raw-net 24k run
+produced a replay-exact, 1--2 bp-positive transient with positive Sharpe and
+regime-varying actions, so economic learnability is supported on the frozen
+selection panel. It persisted for only two reports, its paired block interval
+versus short-only crossed zero, and no independent lineage reproduced it.
+Historical and current candidates remain unpromoted. P1 must establish
+independent new-block stability, selection-aware uncertainty, and per-step
+cost/Sharpe sensitivity before the sealed final test or any Phase B dependency
+on proven economic performance.</strong></p>
 </blockquote>
-</article></main>
-</body>
-</html>
+</article></main></body></html>

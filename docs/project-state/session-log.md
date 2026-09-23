@@ -1,5 +1,65 @@
 # Session Log
 
+# 2026-09-20 — Phase A raw-24k recovery and Ray-2.9 tail closure
+
+- Recovered all four raw-net 24k lineages from immutable checkpoints after the
+  original eight-actor topology exhausted 16 GB Windows RAM. The watchdog found
+  no Ubuntu/WSL crash and no storage threshold breach.
+- Retained member `00002` at 372,216 steps as a replay-exact transient challenger:
+  +0.39258% 1 bp net, +0.02959 Sharpe, positive 2 bp repricing, and positive
+  bullish/bearish regime returns. It failed the five-report, paired-block, and
+  independent-lineage promotion gates.
+- Added a declared Ray CPU cap, respected one rollout worker, durable
+  fallback/exploit/skip receipts, retry from stable checkpoints when a scheduled
+  save resolves empty, paused-upper-donor checkpoint reattachment, and a hard
+  no-mutation guard at terminal exposure through red/green tests.
+- Completed the final four-member synchronized live proof with all trials
+  `TERMINATED`, one legitimate exploit at the 24k boundary, no terminal exploit,
+  no errored trial, and exit code 0. Defined P1 as independent new-block
+  replication plus selection-aware block/cost/regime evidence.
+- Closed validation with 158 repository tests passing, a green healthcheck, and
+  a clean second all-files pre-commit pass. The first hook pass only added
+  missing final newlines to three historical generated summary JSON files.
+- Aborted the required GitNexus refresh after the watchdog caught its WSL Node
+  process creating an 82.46 GB crash dump that briefly filled C. The writer
+  eventually released it and the verified move to E restored C to 76.84 GB.
+  Ubuntu and all completed PBT evidence remained intact; GitNexus stays stale
+  until the coordinated WSL restart activates dump routing to E.
+- Preserved this work as an uncommitted review surface; the earlier requested
+  commits remain `f045fde6` and `88361f05`.
+
+# 2026-09-19 — Storage incident and NVMe offload
+
+- Diagnosed the C-drive block with a deterministic 5 GB free-space check. The
+  immediate cause was a 77.94 GB WSL crash dump for `/usr/bin/node`; Phase
+  experiment outputs and `ray_results` contributed about 5.82 GB.
+- Preserved the three dumps on E, moved `ray_results` and 37 experiment run
+  directories to the D NVMe, and restored every active path through verified
+  NTFS junctions. C/D/E ended with 78.25/163.85/259.79 GB free.
+- Added a user-level `.wslconfig` that sends future dumps to E and retains one,
+  effective on the next normal WSL restart. The live 76.95 GB Ubuntu VHDX was
+  not moved because Hermes, OpenClaw, ZeroTier, and the browser harness are
+  active inside that distro.
+- Recorded byte counts, verification receipts, prevention settings, and the
+  coordinated WSL move procedure in
+  `docs/artifacts/research/phase-a-storage-incident-audit-2026-09-19.md`.
+
+# 2026-09-19 — Phase A MLP-FiLM P0 autoresearch
+
+- Added environment-step cost scheduling, independent PBT population seeds,
+  training-only reward overrides, promotion streak/Sharpe/flat diagnostics,
+  checkpoint cost/block/regime analysis, and an opt-in eligibility-aware donor
+  metric through TDD.
+- Completed the matched 0 bp/staged/exact-1-bp PBT study, exact checkpoint
+  replay, matched deterministic controls, block/cost/regime diagnostics, two
+  independent 70-update populations, and one eligibility-aware 40-update probe.
+- Retained two shared-lineage discovery candidates with positive 1--2 bp
+  economics, but independent replication failed. The sealed final test remains
+  untouched; Phase A promotion is still blocked.
+- Preserved the requested commit boundary: prior work was pushed as `f045fde6`
+  and `88361f05`; this dated autoresearch remains uncommitted for separate
+  review.
+
 ## 2026-09-12 — Phase A measurement and PBT implementation loop
 
 - Used the iTrader architecture guardrails, TDD, deep-module design vocabulary,
