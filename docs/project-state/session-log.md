@@ -1,5 +1,26 @@
 # Session Log
 
+## 2026-09-14 — Ray 2.58 dependency migration and PBT acceptance
+
+- Used the iTrader architecture guardrails and kept `TaskSpec`, `ITraderEnv`,
+  `RewardEngine`, proposer validation, R0, and the future deterministic online
+  shell boundaries unchanged.
+- Resolved Ray/RLlib 2.58.0 first in an isolated uv project. PyArrow 13 failed
+  resolution; PyArrow 17.0.0 plus Gymnasium 1.2.2 resolved and passed.
+- Promoted the tested versions into the root uv lock, Conda declarations,
+  constraints, and cluster setup. Added Ray 2.58 bridges for Tune context,
+  storage, reporting/checkpoints, trial paths, worker/EnvRunner properties,
+  evaluation metric nesting, and removed UnifiedLogger.
+- Ran a one-iteration control and a two-member, six-iteration PBT acceptance.
+  The PBT run recorded a real exploit/restore at iteration 5 from an iteration-4
+  donor. A fresh process replayed the post-exploit iteration-6 checkpoint with
+  zero delta for optimization reward, gross/net return, and net Sharpe.
+- Native Windows emitted Ray child-process access-violation teardown messages
+  while all drivers and acceptance checks still exited successfully. WSL2/Linux
+  long-run validation remains required.
+- No RLModule, recurrent/LSTM, proposer, risk, or execution architecture was
+  introduced. The native RLlib stack remains separately parity-gated.
+
 ## 2026-09-12 — Phase A measurement and PBT implementation loop
 
 - Used the iTrader architecture guardrails, TDD, deep-module design vocabulary,

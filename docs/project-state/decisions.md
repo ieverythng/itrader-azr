@@ -1,5 +1,24 @@
 # Decisions
 
+## 2026-09-14 — Promote Ray 2.58 build without silently changing the solver stack
+
+- Decision: Ray/RLlib 2.58.0, Gymnasium 1.2.2, and PyArrow 17.0.0 are the
+  authoritative runtime across uv, Conda, constraints, and cluster declarations.
+  R0 explicitly selects the legacy ModelV2/RolloutWorker stack until the native
+  RLModule/EnvRunner/Learner/ConnectorV2 port passes its own parity gates.
+- Why: the package migration exposed concrete Tune, checkpoint, storage,
+  evaluation, and dependency incompatibilities that could be repaired and
+  replay-tested without simultaneously changing policy architecture.
+- Consequences: the Ray 2.9 lock is historical rather than active. New Phase A
+  runs use Ray 2.58 compatibility helpers and stable evidence. PyArrow 13 is no
+  longer permitted because it cannot resolve the accepted RLlib build.
+- Evidence: a root-environment control and six-iteration PBT run completed; PBT
+  performed a real non-terminal restore and fresh-process replay matched four
+  held-out metrics exactly. Native Windows teardown faults remain a reason for
+  Linux/WSL2 long-run validation.
+- Revisit when: the native new-stack port reproduces R0 logits/values, PPO
+  updates, EpisodeEvidence metrics, deterministic replay, and PBT restore.
+
 ## 2026-09-12 — Separate optimization reward from promotion evidence
 
 - Decision: `ITraderEnv` emits terminal `EpisodeEvidence` schema v1 with

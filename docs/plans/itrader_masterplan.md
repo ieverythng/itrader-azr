@@ -91,12 +91,14 @@ Before Phase B may rely on R0 behavior as a performance baseline:
    actions. Its durable checkpoint reproduced net return, Sharpe, and turnover
    exactly in a fresh process. Promotion remains blocked on frozen baselines,
    uncertainty, costs, and final test.
-7. **Next platform seam:** preserve Ray 2.9 as the locked reproduction baseline,
-   then migrate in a separate environment to Ray 2.58.0. First prove old-API
-   parity, then port `ModelV2`/workers/callbacks to
-   `RLModule`/EnvRunner/Learner/ConnectorV2. Reconcile the current dependency
-   declaration drift: 2.9.0 in `pyproject.toml`/Conda versus 2.47.x in the
-   constraints and cluster setup.
+7. **Dependency migration completed; native stack still gated:** Ray/RLlib
+   2.58.0, Gymnasium 1.2.2, and PyArrow 17.0.0 are aligned across the root lock,
+   Conda files, constraints, and cluster setup. A control plus six-iteration PBT
+   run exercised a real exploit/restore, and a fresh process reproduced the
+   post-exploit checkpoint's held-out metrics exactly. R0 remains explicitly on
+   the legacy ModelV2/RolloutWorker stack until the
+   `RLModule`/EnvRunner/Learner/ConnectorV2 port passes tensor/update, metrics,
+   evaluation, checkpoint, and PBT parity.
 
 The detailed findings and TDD slices are in
 `docs/artifacts/research/phase-a-performance-validity-audit-2026-09-12.md`.

@@ -1,0 +1,25 @@
+[project]
+name = "itrader-ray258-compat"
+version = "0.1.0"
+description = "Isolated Ray 2.58 compatibility environment for iTrader migration acceptance."
+requires-python = ">=3.11,<3.12"
+dependencies = [
+  "numpy==1.26.4",
+  "pandas==2.1.4",
+  "pyarrow==17.0.0",
+  "duckdb==0.10.2",
+  "ray[rllib]==2.58.0",
+  "torch>=2.3,<2.4",
+  "requests>=2.31",
+  "websockets>=12.0",
+  "fire",
+  "matplotlib",
+  "pydantic>=2,<3",
+  "psutil",
+  "setuptools==69.5.1",
+  "setproctitle",
+  "pytest",
+]
+
+[tool.uv]
+package = false

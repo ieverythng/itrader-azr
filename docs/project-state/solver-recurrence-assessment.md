@@ -48,8 +48,9 @@ registration is not model selection; `train_solo_V2.py` still selects R0.
 - The default task encoder omits reward parameters, bar resolution, regime tags,
   difficulty, metadata, and start index while exposing a bounded seed feature.
   Freeze omitted fields initially or version a semantic encoder.
-- Current lock authority is Ray/RLlib 2.9.0 and Gymnasium 0.28.1 from
-  `pyproject.toml`/`uv.lock`; the old Ray 2.47.1 plan line is historical.
+- Current lock authority is Ray/RLlib 2.58.0 and Gymnasium 1.2.2 from
+  `pyproject.toml`/`uv.lock`; the old Ray 2.9/2.47 plan lines are historical.
+  R0 still selects the legacy API stack until the native new-stack parity gate.
 - Candidate-specific state/replay is required for online multi-task scoring; do
   not mutate one shared recurrent state repeatedly.
 

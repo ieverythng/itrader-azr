@@ -7,7 +7,7 @@ from ray.rllib.algorithms.callbacks import DefaultCallbacks
 class PSMetrics(DefaultCallbacks):
     """
     Logs:
-      - episode_return_mean (our primary)
+      - optimization reward, explicitly distinct from economic returns
       - action fractions per episode, both legacy family-00 names and generic act_{i}_frac
       - reward components per step avg as rc_<component>
       - success flag mean
@@ -72,6 +72,58 @@ class PSMetrics(DefaultCallbacks):
         return info if isinstance(info, dict) else {}
 
     @staticmethod
+    def _episode_last_info(episode) -> Dict[str, Any]:
+        getter = getattr(episode, "last_info_for", None)
+        if not callable(getter):
+            return {}
+        for args in ((None,), ()):
+            try:
+                info = getter(*args)
+            except (TypeError, KeyError):
+                continue
+            if isinstance(info, dict):
+                return info
+        return {}
+
+    @staticmethod
+    def _safe_metric_token(value: Any) -> str:
+        token = "".join(ch if ch.isalnum() else "_" for ch in str(value))
+        return token.strip("_") or "unknown"
+
+    @classmethod
+    def _record_episode_evidence(cls, episode, evidence: Dict[str, Any]) -> None:
+        scalar_map = {
+            "optimization_reward": "optimization_reward",
+            "gross_return": "economic_gross_return",
+            "cost_return": "economic_cost_return",
+            "net_return": "economic_net_return",
+            "turnover": "economic_turnover",
+            "liquidation_turnover": "economic_liquidation_turnover",
+            "max_drawdown": "economic_max_drawdown",
+            "gross_sharpe_per_sqrt_bar": "economic_gross_sharpe_per_sqrt_bar",
+            "net_sharpe_per_sqrt_bar": "economic_net_sharpe_per_sqrt_bar",
+            "annualized_net_sharpe": "economic_annualized_net_sharpe",
+            "positive_net_bar_fraction": "economic_positive_net_bar_fraction",
+            "gross_exposure_fraction": "economic_gross_exposure_fraction",
+            "position_changes": "economic_position_changes",
+            "success": "success",
+        }
+        for source, metric in scalar_map.items():
+            if source in evidence and evidence[source] is not None:
+                episode.custom_metrics[metric] = float(evidence[source])
+
+        net_return = evidence.get("net_return")
+        if net_return is None:
+            return
+        net_return = float(net_return)
+        family = cls._safe_metric_token(evidence.get("family_id", "unknown"))
+        horizon = cls._safe_metric_token(evidence.get("horizon", "unknown"))
+        episode.custom_metrics[f"family_{family}_net_return"] = net_return
+        episode.custom_metrics[f"horizon_{horizon}_net_return"] = net_return
+        for tag in evidence.get("regime_tags", []) or []:
+            episode.custom_metrics[f"regime_{cls._safe_metric_token(tag)}_net_return"] = net_return
+
+    @staticmethod
     def _normalized_action_counts(act_counts) -> list[float]:
         if act_counts is None:
             act_counts = []
@@ -109,12 +161,18 @@ class PSMetrics(DefaultCallbacks):
     def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
         env = self._resolve_env(base_env)
 
-        # 1) Primary scalar: episode total reward (RLlib computes this)
+        # 1) Optimization objective (RLlib computes this). This is not return.
         total_r = self._episode_total_reward(episode)
-        episode.custom_metrics["episode_return_mean"] = total_r
+        episode.custom_metrics["optimization_reward"] = total_r
 
-        # 2) Pull last info dict if available
-        info: Dict[str, Any] = self._last_info(env) if env is not None else {}
+        # 2) Prefer episode-correlated terminal info; private env state is only a
+        # compatibility fallback for old EpisodeV2 fixtures.
+        info = self._episode_last_info(episode)
+        if not info and env is not None:
+            info = self._last_info(env)
+        evidence = info.get("episode_evidence")
+        if isinstance(evidence, dict):
+            self._record_episode_evidence(episode, evidence)
 
         # 3) Action fractions + reward components (from env.ep_sums)
         if isinstance(info.get("ep_sums"), dict):
@@ -137,9 +195,6 @@ class PSMetrics(DefaultCallbacks):
             succ = float(info.get("reward_comps", {}).get("success", 0.0))
             episode.custom_metrics["success_mean"] = succ
 
-            # Keep the legacy scale-invariant pnl metric when available, otherwise fall back to total reward.
-            episode.custom_metrics["episode_return"] = float(rc_sums.get("pnl_delta", total_r))
-
         # 5) TaskPool stats update (if task pool is available)
         task_dict = info.get("task")
         if task_dict and env is not None:
@@ -150,8 +205,8 @@ class PSMetrics(DefaultCallbacks):
 
                     task_uid_val = task_uid(task_dict)
                     success = bool(info.get("success", False))
-                    episode_return = float(total_r)
-                    pool.update_stats(task_uid_val, episode_return, success)
+                    score = float(evidence.get("net_return", total_r)) if isinstance(evidence, dict) else total_r
+                    pool.update_stats(task_uid_val, score, success)
             except Exception as exc:
                 self._warn_once("task_pool_update", f"task pool update failed (continuing): {exc}")
 

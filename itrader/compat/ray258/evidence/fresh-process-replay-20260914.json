@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "fresh_process": true,
+  "stable_trial_dir": "C:\\Users\\Admin\\.codex\\worktrees\\3054\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\r258_accept_20260914\\ray\\_stable_metrics\\training_fn_ITraderEnv_cf895_00000_0_seed=20909948_2026-09-14_19-22-07",
+  "checkpoint_path": "C:\\Users\\Admin\\.codex\\worktrees\\3054\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\r258_accept_20260914\\ray\\_stable_metrics\\training_fn_ITraderEnv_cf895_00000_0_seed=20909948_2026-09-14_19-22-07\\checkpoints\\iter_000006_172305784877",
+  "training_iteration": 6,
+  "tolerance": 1e-12,
+  "comparisons": {
+    "evaluation/optimization_reward_mean": {
+      "expected": 0.6012352270648316,
+      "observed": 0.6012352270648316,
+      "absolute_delta": 0.0,
+      "within_tolerance": true
+    },
+    "evaluation/gross_return_mean": {
+      "expected": 0.0006917010290720352,
+      "observed": 0.0006917010290720352,
+      "absolute_delta": 0.0,
+      "within_tolerance": true
+    },
+    "evaluation/net_return_mean": {
+      "expected": 0.0006417010290720352,
+      "observed": 0.0006417010290720352,
+      "absolute_delta": 0.0,
+      "within_tolerance": true
+    },
+    "evaluation/net_sharpe_per_sqrt_bar_mean": {
+      "expected": 0.008831690751245336,
+      "observed": 0.008831690751245336,
+      "absolute_delta": 0.0,
+      "within_tolerance": true
+    }
+  }
+}

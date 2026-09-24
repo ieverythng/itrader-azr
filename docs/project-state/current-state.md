@@ -1,8 +1,8 @@
 # Current State
 
 Last updated: 2026-09-14
-Branch: `agent/Watson-dev`
-HEAD: `bec5c77`
+Branch: `feat(R)/Ray_upgrade`
+Base HEAD: `42d1b3a`
 
 ## Working-tree boundary
 
@@ -11,6 +11,11 @@ The previously staged Sharpe challenger is preserved as an experimental reward;
 `pnl_linear` remains the sole default. The supplied AZR and recurrence audits are
 source-grounded evidence, not executable instructions. Recurrent/LSTM solver work
 remains out of scope for this implementation.
+
+The same working tree now includes the Ray 2.58 dependency migration and its
+acceptance evidence. The package/build migration is complete. R0 deliberately
+keeps the legacy ModelV2/RolloutWorker stack selected until the native
+RLModule/EnvRunner/Learner/ConnectorV2 port clears a separate parity gate.
 
 ## Current decision boundary
 
@@ -110,13 +115,12 @@ flat/long/short/random/untrained baseline panel on identical starts, followed by
 multi-seed uncertainty and cost scenarios. Phase B must not consume R0 as a
 performance winner yet.
 
-Ray migration is now an explicit platform follow-up, not an in-place edit to the
-active experiment. The repository currently pins 2.9.0 in `pyproject.toml` and
-`itrader/environment.yml`, but 2.47.x in `itrader/constraints.txt` and
-`itrader/infra/cluster.yaml`. Preserve one authoritative 2.9 reproduction lock,
-then test Ray 2.58.0 in a separate environment before migrating the legacy
-`ModelV2` path to the new RLlib API stack. Unsloth is relevant only to a future
-LLM proposer fine-tune, not the numerical PPO/PBT solver.
+Ray 2.58.0 is now the authoritative build across the root uv lock, Conda files,
+constraints, and cluster setup; Gymnasium 1.2.2 and PyArrow 17.0.0 are aligned
+with it. The isolated compatibility environment first proved the dependency
+set, then the root environment passed control training, a real six-iteration PBT
+exploit/restore, and zero-delta fresh-process replay. Unsloth remains relevant
+only to a future LLM proposer fine-tune, not the numerical PPO/PBT solver.
 
 ## Solver truth
 
@@ -170,15 +174,17 @@ overrides are covered by regression tests.
 
 ## Dependency and validation status
 
-`pyproject.toml`/`uv.lock` are authoritative: Python 3.11, Ray/RLlib 2.9.0,
-Gymnasium 0.28.1, and setuptools 69.5.1. The old Phase B 2.47.1 line is
-historical. No dependency files were changed.
+`pyproject.toml`/`uv.lock` are authoritative: Python 3.11, Ray/RLlib 2.58.0,
+Gymnasium 1.2.2, PyArrow 17.0.0, and setuptools 69.5.1. The old 2.9/2.47 lines are
+historical reproduction references.
 
-The working Windows `.venv` runs the current suite and Ray 2.9 stack. No recurrent
+The working Windows `.venv` runs the current suite and Ray 2.58 legacy stack. No recurrent
 training result is reported here. The bounded Phase A probe validates effective
 PBT search and evidence wiring, not reward learnability or trading performance.
-Ray-owned PBT text files still truncate to zero bytes on this platform; stable
-repository-owned provenance is authoritative.
+The accepted migration smoke recorded a real PBT policy log and restore, while
+stable repository-owned provenance remains authoritative. Ray child processes
+also emitted Windows teardown access-violation messages despite a successful
+driver; long runs still require Linux/WSL2 validation.
 
 ## Next priority
 

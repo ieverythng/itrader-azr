@@ -977,7 +977,7 @@ distinctly but share a deterministic validation stream and fixed rollout batch;
 mutations are bounded and checkpoint/perturbation cadence is aligned. Active
 metrics rewind on exploit restore while append-only config history retains
 lineage. Atomic manifests/status/config/checkpoint/metric artifacts outside Tune
-are authoritative on Ray 2.9/Windows.
+are authoritative on the accepted Ray 2.58 legacy-stack path on Windows.
 
 This closes the engineering seam, not the performance gate. Baseline-controlled
 multi-seed overnight training, cost scenarios, block-aware uncertainty, and one

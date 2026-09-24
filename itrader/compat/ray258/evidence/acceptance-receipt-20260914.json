@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "status": "passed",
+  "runtime": {
+    "python": "3.11.13",
+    "ray": "2.58.0",
+    "gymnasium": "1.2.2",
+    "pyarrow": "17.0.0",
+    "torch": "2.3.1+cpu",
+    "pandas": "2.1.4",
+    "platform": "Windows-10-10.0.19045-SP0"
+  },
+  "config": "itrader/scripts/experiments/configs/ray258_legacy_acceptance_20260914.json",
+  "run_tag": "r258_accept_20260914_192129",
+  "control": {
+    "members": 1,
+    "iterations": 1,
+    "final_evaluation_net_return_mean": -0.0054156978751124
+  },
+  "pbt": {
+    "members": 2,
+    "iterations_per_member": 6,
+    "checkpoint_interval": 2,
+    "perturbation_interval": 2,
+    "real_exploit_restore": true,
+    "exploit_event_iteration": 5,
+    "restored_checkpoint_iteration": 4,
+    "final_evaluation_net_return_mean": [
+      0.000641701029072,
+      0.0002671196465008
+    ]
+  },
+  "fresh_process_replay": "fresh-process-replay-20260914.json",
+  "final_staged_smoke": {
+    "status": "passed",
+    "iterations": 1,
+    "evaluation_runner_key": "evaluation_num_env_runners",
+    "final_evaluation_net_return_mean": 0.00553165021955399
+  },
+  "notes": [
+    "The current R0 acceptance path explicitly uses Ray's legacy ModelV2/RolloutWorker API stack on the Ray 2.58 build.",
+    "Native Windows emitted Ray child-process access-violation teardown logs without failing training, checkpoint restore, or replay.",
+    "This is migration/parity evidence, not a solver performance claim."
+  ]
+}

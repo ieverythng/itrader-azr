@@ -1,10 +1,24 @@
 # Handoff
 
 Last updated: 2026-09-14
-Branch: `agent/Watson-dev`
-Base HEAD before this evidence commit: `bec5c77`
+Branch: `feat(R)/Ray_upgrade`
+Base HEAD before the staged migration: `42d1b3a`
 
 ## Resume point
+
+Ray/RLlib 2.58.0 is now promoted into every primary dependency surface together
+with Gymnasium 1.2.2 and PyArrow 17.0.0. The root Windows environment passes the
+healthcheck, focused tests, a one-iteration control, and a two-member,
+six-iteration PBT run. That run performed a real non-terminal exploit/restore;
+fresh-process replay of the post-exploit iteration-6 checkpoint reproduced four
+held-out metrics at zero delta. See
+`docs/artifacts/research/ray-2.58-migration-2026-09-14.md` and
+`itrader/compat/ray258/evidence/`.
+
+This completes the newer Ray build migration, not the native RLlib architecture
+port. R0 explicitly remains ModelV2/RolloutWorker on Ray 2.58. The next platform
+gate is an R0-parity RLModule plus EnvRunner/Learner/ConnectorV2 callback,
+evaluation, checkpoint, and real-PBT evidence. Do not mix recurrence into it.
 
 The Phase A measurement, PBT checkpoint/evaluation, and iteration-aligned
 reporting seams are implemented in the dirty working tree. The corrected
@@ -43,10 +57,11 @@ about -0.00003. PnL dominates the shaped reward, drawdown is material, and the
 task-level turnover penalty is negligible relative to both; separate 1 bp
 economic costs still make high-turnover policies unattractive.
 
-The aggregate outputs, plots, replay receipt, final loadout, and documentation
-are committed as evidence. The raw Ray trial/checkpoint tree remains local. Code,
-scripts, tests, and the new stack-iteration skill remain staged for user review;
-no recurrent-solver implementation or dependency upgrade was included.
+The historical aggregate outputs, plots, replay receipt, and final loadout remain
+Phase A evidence. The new Ray migration keeps only compact acceptance receipts in
+Git; its raw Ray trial/checkpoint tree remains local. Code, dependency locks,
+configs, scripts, tests, skills, and docs are staged for review. No recurrent
+solver was added.
 
 Validation passed: repository healthcheck, 97-test full suite, focused reporting
 tests, JSON-schema validation, `git diff --check`, and the complete pre-commit
@@ -107,9 +122,10 @@ separate from solver recurrence.
    work remain within Phase B and can proceed alongside the offline track;
    recurrence experiments do not impose a blanket gate on that work.
 
-Ray/RLlib 2.9.0 is validated in the Windows-native environment for the Phase A
-path. Recurrent APIs still require their own pinned-runtime lifecycle tests; the
-earlier WSL executable mismatch is not the current validation environment.
+Ray/RLlib 2.58.0 is validated on the explicit legacy API stack in the
+Windows-native environment for the Phase A path. Native RLModule and recurrent
+APIs still require their own pinned-runtime lifecycle tests; the earlier WSL
+executable mismatch is not the current validation environment.
 
 ## Validation commands for a compatible environment
 
@@ -120,5 +136,5 @@ earlier WSL executable mismatch is not the current validation environment.
 git diff --check
 ```
 
-Use `uv.lock`/`pyproject.toml` as authority; do not use the historical Ray 2.47.1
-plan line to choose a recurrent API.
+Use `uv.lock`/`pyproject.toml` as authority; do not use historical Ray 2.9/2.47
+lines to choose an API.

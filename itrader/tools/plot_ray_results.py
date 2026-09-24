@@ -195,32 +195,52 @@ def _hide_axis_if_empty(plotted: bool, ax, title: str):
 
 
 def plot_original_metrics(df: pd.DataFrame, out: Path, xcol: str | None):
-    fig, axes = plt.subplots(4, 1, figsize=(10, 12))
+    fig, axes = plt.subplots(5, 1, figsize=(10, 15))
     col_list = list(df.columns)
     col_set = set(col_list)
 
-    # Episode return (custom) or built-in reward
-    y = "custom_metrics/episode_return_mean" if "custom_metrics/episode_return_mean" in col_set else None
-    if not y:
-        y = "custom_metrics/episode_return_mean_mean" if "custom_metrics/episode_return_mean_mean" in col_set else None
-    if not y:
-        y = "episode_reward_mean" if "episode_reward_mean" in col_set else None
-    _hide_axis_if_empty(_plot_series(df, axes[0], y, xcol, "Episode Return / Reward"), axes[0], "Episode Return / Reward")
+    reward_cols = [
+        key
+        for key in (
+            "custom_metrics/optimization_reward_mean",
+            "episode_reward_mean",
+        )
+        if key in col_set
+    ]
+    _hide_axis_if_empty(
+        _plot_series(df, axes[0], reward_cols, xcol, "Training Optimization Reward"),
+        axes[0],
+        "Training Optimization Reward",
+    )
+
+    economic_cols = [
+        key
+        for key in (
+            "evaluation/custom_metrics/economic_gross_return_mean",
+            "evaluation/custom_metrics/economic_net_return_mean",
+        )
+        if key in col_set
+    ]
+    _hide_axis_if_empty(
+        _plot_series(df, axes[1], economic_cols, xcol, "Held-out Economic Return"),
+        axes[1],
+        "Held-out Economic Return",
+    )
 
     # Entropy (or episode length)
     ent_cols = [c for c in col_list if c.lower().endswith("entropy")]
     if ent_cols:
-        _hide_axis_if_empty(_plot_series(df, axes[1], ent_cols[0], xcol, "Policy Entropy"), axes[1], "Policy Entropy")
+        _hide_axis_if_empty(_plot_series(df, axes[2], ent_cols[0], xcol, "Policy Entropy"), axes[2], "Policy Entropy")
     else:
-        _hide_axis_if_empty(_plot_series(df, axes[1], "episode_len_mean", xcol, "Episode Length Mean"), axes[1], "Episode Length Mean")
+        _hide_axis_if_empty(_plot_series(df, axes[2], "episode_len_mean", xcol, "Episode Length Mean"), axes[2], "Episode Length Mean")
 
     # Losses
     loss_cols = [c for c in col_list if any(t in c.lower() for t in ["policy_loss", "vf_loss", "total_loss", "loss"])]
-    _hide_axis_if_empty(_plot_series(df, axes[2], loss_cols[:2] or loss_cols, xcol, "Losses"), axes[2], "Losses")
+    _hide_axis_if_empty(_plot_series(df, axes[3], loss_cols[:2] or loss_cols, xcol, "Losses"), axes[3], "Losses")
 
     # Action fractions
     act_cols = [c for c in col_list if c.startswith("custom_metrics/act_") and "_mean" in c]
-    _hide_axis_if_empty(_plot_series(df, axes[3], act_cols, xcol, "Action Fractions"), axes[3], "Action Fractions")
+    _hide_axis_if_empty(_plot_series(df, axes[4], act_cols, xcol, "Action Fractions"), axes[4], "Action Fractions")
 
     plt.tight_layout()
     out.mkdir(parents=True, exist_ok=True)
@@ -231,30 +251,38 @@ def plot_original_metrics(df: pd.DataFrame, out: Path, xcol: str | None):
 
 
 def plot_enhanced_metrics(df: pd.DataFrame, out: Path, xcol: str | None):
-    fig, axes = plt.subplots(5, 1, figsize=(12, 15))
+    fig, axes = plt.subplots(6, 1, figsize=(12, 18))
     col_list = list(df.columns)
 
     _hide_axis_if_empty(_plot_series(df, axes[0], [
-        "custom_metrics/episode_return_mean",
-        "custom_metrics/episode_return_mean_mean",
+        "custom_metrics/optimization_reward_mean",
         "episode_reward_mean",
-    ], xcol, "Episode Return / Reward"), axes[0], "Episode Return / Reward")
+    ], xcol, "Training Optimization Reward"), axes[0], "Training Optimization Reward")
 
-    _hide_axis_if_empty(_plot_series(df, axes[1], "episode_len_mean", xcol, "Episode Length Mean"), axes[1], "Episode Length Mean")
+    _hide_axis_if_empty(_plot_series(df, axes[1], [
+        "evaluation/custom_metrics/economic_gross_return_mean",
+        "evaluation/custom_metrics/economic_net_return_mean",
+    ], xcol, "Held-out Gross / Net Return"), axes[1], "Held-out Gross / Net Return")
+
+    _hide_axis_if_empty(_plot_series(df, axes[2], [
+        "evaluation/custom_metrics/economic_net_sharpe_per_sqrt_bar_mean",
+        "evaluation/custom_metrics/economic_max_drawdown_mean",
+        "evaluation/custom_metrics/economic_turnover_mean",
+    ], xcol, "Held-out Risk / Activity"), axes[2], "Held-out Risk / Activity")
 
     act_cols = [c for c in col_list if c.startswith("custom_metrics/act_") and "_mean" in c]
-    _hide_axis_if_empty(_plot_series(df, axes[3], act_cols, xcol, "Action Fractions"), axes[3], "Action Fractions")
+    _hide_axis_if_empty(_plot_series(df, axes[4], act_cols, xcol, "Action Fractions"), axes[4], "Action Fractions")
 
     rc_cols = [c for c in col_list if c.startswith("custom_metrics/rc_") and "_mean" in c]
     _hide_axis_if_empty(
-        _plot_series(df, axes[4], rc_cols, xcol, "Reward Components"),
-        axes[4],
+        _plot_series(df, axes[5], rc_cols, xcol, "Reward Components"),
+        axes[5],
         "Reward Components",
     )
 
     # Entropy moved to a dedicated pane for readability
     ent_cols = [c for c in col_list if c.lower().endswith("entropy")]
-    _hide_axis_if_empty(_plot_series(df, axes[2], ent_cols[:1], xcol, "Policy Entropy"), axes[2], "Policy Entropy")
+    _hide_axis_if_empty(_plot_series(df, axes[3], ent_cols[:1], xcol, "Policy Entropy"), axes[3], "Policy Entropy")
 
     plt.tight_layout()
     out.mkdir(parents=True, exist_ok=True)

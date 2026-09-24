@@ -1,7 +1,7 @@
 # Phase A Performance Validity Audit
 
-**Date:** 2026-09-12  
-**Repository state:** `agent/Watson-dev` at `bec5c775d3adaafe758202c7175791f6e8b323a8`  
+**Date:** 2026-09-12
+**Repository state:** `agent/Watson-dev` at `bec5c775d3adaafe758202c7175791f6e8b323a8`
 **Decision:** the Phase A results support optimizer and pipeline learnability, but they do **not** support a claim of validated trading performance.
 
 ## Executive conclusion

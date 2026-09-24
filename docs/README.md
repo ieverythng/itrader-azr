@@ -1,6 +1,6 @@
 # Documentation Index
 
-Markdown is the source of truth for active documents. HTML companions accompany the four review surfaces that require them; their synchronization and verification status is recorded in the dated revision audit. Current architecture claims are source-grounded against branch `agent/Watson-dev` at `bec5c77`; dated reports preserve evidence and line references from their audit snapshots. Solver/trunk/head choices remain subject to the ongoing user grill-me review.
+Markdown is the source of truth for active documents. HTML companions accompany the four review surfaces that require them; their synchronization and verification status is recorded in the dated revision audit. Current architecture claims remain source-grounded; the Ray 2.58 migration is staged on `feat(R)/Ray_upgrade` from base `42d1b3a`. Dated reports preserve evidence and line references from their audit snapshots. Solver/trunk/head choices remain subject to the ongoing user grill-me review.
 
 ## Active architecture
 
@@ -32,6 +32,7 @@ Markdown is the source of truth for active documents. HTML companions accompany 
 ## Dated artifacts and audit
 
 - `artifacts/research/phase-a-performance-validity-audit-2026-09-12.md` (+ `.html`) — critical Phase A audit, restored-winner replay, implemented seam repairs, final full-stack acceptance probe, and remaining promotion run.
+- `artifacts/research/ray-2.58-migration-2026-09-14.md` — authoritative dependency/API seam map, Ray 2.58 acceptance evidence, Windows caveat, and native new-stack gate.
 - `artifacts/research/azr-stack-review-2026-09-12.md` — local AZR v2 synthesis and source-grounded adaptation recommendations.
 - `artifacts/research/recurrence-code-audit-2026-09-12.md` — independent read-only source audit; do not treat its attempted WSL test as a pass.
 - `artifacts/research/recurrence-docs-revision-audit-2026-09-12.md` — this docs coverage inventory, edit rationale, and validation results.

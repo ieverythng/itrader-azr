@@ -317,7 +317,6 @@ def reward_pnl_linear(params: dict, ctx: dict) -> tuple[float, dict]:
 
     return r, comps
 
-
 def _bounded_sharpe_score(
     strategy_returns: Any,
     *,
@@ -375,6 +374,7 @@ def reward_sharpe_only(params: Dict[str, Any], ctx: Dict[str, Any]):
     sharpe_delta = _incremental_sharpe(params, ctx)
     return sharpe_delta, {"sharpe_delta": sharpe_delta}
 
+
 @register(
     "pnl_sharpe",
     normalize_params=_normalize_pnl_sharpe_params,
@@ -385,7 +385,6 @@ def reward_pnl_sharpe(params: Dict[str, Any], ctx: Dict[str, Any]):
     sharpe_delta = _incremental_sharpe(params, ctx)
     components["sharpe_delta"] = sharpe_delta
     return base_reward + sharpe_delta, components
-
 
 @register(
     "composed_linear",

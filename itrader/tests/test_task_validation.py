@@ -164,6 +164,26 @@ def test_task_sampler_uses_reward_specific_params_for_sampled_reward():
     assert task.reward_params["sharpe_window"] >= task.reward_params["sharpe_min_samples"]
 
 
+def test_task_sampler_honors_declared_drawdown_range():
+    sampler = TaskSampler00(
+        {
+            "seed": 17,
+            "window_size": 30,
+            "n_features": 5,
+            "t_embed_dim": 32,
+            "action_dim": 3,
+            "reward_ids": ["pnl_linear"],
+            "dd_w_range": [0.01, 0.04],
+        }
+    )
+
+    values = [sampler.sample().reward_params["dd_w"] for _ in range(200)]
+
+    assert min(values) >= 0.01
+    assert max(values) <= 0.04
+    assert len(set(values)) > 1
+
+
 def test_reward_choice_does_not_change_sampled_task_seed_sequence():
     common = {
         "seed": 91,

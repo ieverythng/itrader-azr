@@ -1,8 +1,12 @@
 from itrader.rl_lib.tasks.candidate_task import CandidateTask
 from itrader.rl_lib.tasks.capability_profile import CapabilityProfile
 from itrader.rl_lib.tasks.decision_record import DecisionRecord
+import numpy as np
+
+from itrader.rl_lib.tasks.encoder import TaskEncoder
 from itrader.rl_lib.tasks.execution_intent import ExecutionIntent
 from itrader.rl_lib.tasks.families import get_family_spec, known_family_ids
+from itrader.rl_lib.tasks.samplers import TaskSampler00
 from itrader.rl_lib.tasks.spec import TaskSpec
 from itrader.rl_lib.tasks.validation import (
     validate_and_clamp_execution_intent,
@@ -57,6 +61,69 @@ def test_task_spec_from_dict_drops_duplicate_alias_fields():
     )
     assert spec.family_id == "00"
     assert spec.horizon == 96
+
+
+def test_semantic_task_encoding_excludes_sampling_identity_but_includes_reward_contract():
+    base = {
+        "family_id": "00",
+        "price_id": "SIM",
+        "horizon": 96,
+        "reward_id": "pnl_linear",
+        "reward_params": {"pnl_w": 1.0, "dd_w": 0.02},
+        "seed": 7,
+        "start_idx": 100,
+        "obs_dim": 182,
+        "action_dim": 3,
+        "bar_resolution": "1m",
+        "regime_tags": ["trend"],
+    }
+    first = TaskSpec.from_dict(base)
+    different_sample = TaskSpec.from_dict({**base, "seed": 999, "start_idx": 400})
+    different_reward = TaskSpec.from_dict(
+        {**base, "reward_params": {"pnl_w": 1.0, "dd_w": 0.04}}
+    )
+
+    first_vec = TaskEncoder.embed(first, version="semantic_v2")
+    sample_vec = TaskEncoder.embed(different_sample, version="semantic_v2")
+    reward_vec = TaskEncoder.embed(different_reward, version="semantic_v2")
+
+    assert np.array_equal(first_vec, sample_vec)
+    assert not np.array_equal(first_vec, reward_vec)
+
+
+def test_fixed_task_panel_cycles_exact_tasks_and_survives_external_reseed():
+    fixed_tasks = [
+        {
+            "family_id": "00",
+            "price_id": "SIM",
+            "horizon": horizon,
+            "reward_id": "pnl_linear",
+            "reward_params": {"pnl_w": 1.0, "turnover_w": 0.001},
+            "seed": seed,
+            "obs_dim": 182,
+            "action_dim": 3,
+            "bar_resolution": "1m",
+        }
+        for horizon, seed in ((64, 101), (96, 202))
+    ]
+    sampler = TaskSampler00(
+        {
+            "seed": 7,
+            "window_size": 30,
+            "n_features": 5,
+            "t_embed_dim": 32,
+            "action_dim": 3,
+            "fixed_tasks": fixed_tasks,
+        }
+    )
+
+    expected = [TaskSpec.from_dict(task).to_dict() for task in fixed_tasks]
+    first_cycle = [sampler.sample().to_dict() for _ in range(2)]
+    assert first_cycle == expected
+    assert [sampler.sample().to_dict() for _ in range(2)] == expected
+
+    sampler.reseed(999_999)
+    assert [sampler.sample().to_dict() for _ in range(2)] == expected
 
 
 def test_execution_intent_validation_clamps_bounds():

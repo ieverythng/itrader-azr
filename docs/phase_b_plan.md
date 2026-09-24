@@ -71,7 +71,7 @@ The old target line below is retained as history only:
 historical proposal: Ray/RLlib 2.47.1, Gymnasium >=0.29
 ```
 
-The current source-of-truth lock is `pyproject.toml` plus `uv.lock`:
+The pre-migration lock captured by this plan was:
 
 ```text
 Python >=3.11,<3.12
@@ -80,10 +80,11 @@ gymnasium == 0.28.1
 setuptools == 69.5.1
 ```
 
-`docs/environment_strategy.md` records the Windows workstation/WSL boundary and
-reconciliation. Do not implement a recurrent API against 2.47.1 until the lock
-is deliberately changed and revalidated. No environment or lock changes are
-part of this documentation pass.
+That block is the pre-migration reproduction baseline. The active source lock is
+now Ray/RLlib 2.58.0, Gymnasium 1.2.2, and PyArrow 17.0.0. See
+`docs/environment_strategy.md` and the dated Ray migration audit. R0 remains on
+the explicit legacy API stack until the native RLModule/EnvRunner port passes its
+separate parity gate.
 
 ## Execution order
 

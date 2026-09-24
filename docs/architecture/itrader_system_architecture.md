@@ -177,12 +177,12 @@ before scoring the first action). The warmup is input processing, not extra
 future information. Repeating overlapping observation bars as separate
 chronological steps is invalid.
 
-The pinned source stack is Ray/RLlib 2.9.0 with Gymnasium 0.28.1 from
-`pyproject.toml`/`uv.lock`. Future recurrent implementation must verify the exact
-API in that environment; the old `phase_b_plan.md` Ray 2.47.1 line is historical
-ordering, not the active lock. Do not invent `recurrent_policy=True` or other
-flags. Use the native recurrent model/state contract available in the pinned
-version.
+The pinned source stack is Ray/RLlib 2.58.0 with Gymnasium 1.2.2 from
+`pyproject.toml`/`uv.lock`. R0 explicitly uses the legacy ModelV2/RolloutWorker
+stack while the native RLModule/EnvRunner/Learner/ConnectorV2 path is parity
+gated. Future recurrent implementation must use the native contract only after
+that gate; the old Ray 2.9/2.47 lines are historical. Do not invent
+`recurrent_policy=True` or other flags.
 
 Required lifecycle semantics:
 

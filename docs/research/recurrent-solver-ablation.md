@@ -159,10 +159,12 @@ A newest-bar model may use:
 Do not present warmup as extra prediction data, and do not count repeated
 overlapping observation bars as new environment timesteps.
 
-The current source lock is Ray/RLlib 2.9.0, Gymnasium 0.28.1, Python 3.11.
-The former Phase B Ray 2.47.1 line is historical and not the active API
-authority. Do not invent `recurrent_policy=True`, `shuffle_sequences=False`, or
-other flags without verifying the pinned version's native API.
+The current source lock is Ray/RLlib 2.58.0, Gymnasium 1.2.2, Python 3.11.
+The former Ray 2.9 and Phase B Ray 2.47.1 lines are historical and not the active
+API authority. R0 explicitly remains on the legacy API stack. Do not invent
+`recurrent_policy=True`, `shuffle_sequences=False`, or other flags without
+verifying the pinned version's native API after the RLModule/EnvRunner parity
+gate.
 
 Before any recurrent result, specify and test:
 

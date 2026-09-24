@@ -498,10 +498,11 @@ just because an initial state exists.</p>
 </ul>
 <p>Do not present warmup as extra prediction data, and do not count repeated
 overlapping observation bars as new environment timesteps.</p>
-<p>The current source lock is Ray/RLlib 2.9.0, Gymnasium 0.28.1, Python 3.11.
-The former Phase B Ray 2.47.1 line is historical and not the active API
-authority. Do not invent <code>recurrent_policy=True</code>, <code>shuffle_sequences=False</code>, or
-other flags without verifying the pinned version's native API.</p>
+<p>The current source lock is Ray/RLlib 2.58.0, Gymnasium 1.2.2, Python 3.11.
+The former Ray 2.9 and Phase B Ray 2.47.1 lines are historical and not the active
+API authority. R0 explicitly remains on the legacy API stack. Do not invent
+<code>recurrent_policy=True</code>, <code>shuffle_sequences=False</code>, or other flags without
+verifying the pinned version's native API after the RLModule/EnvRunner parity gate.</p>
 <p>Before any recurrent result, specify and test:</p>
 <ul>
 <li>native initial-state and recurrent-forward hooks;</li>
