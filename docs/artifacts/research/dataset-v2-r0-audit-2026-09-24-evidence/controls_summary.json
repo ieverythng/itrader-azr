@@ -1,0 +1,60 @@
+{
+  "run_tag": "phaseA_r0_dataset_v2_controls_32_20260924_010734",
+  "collected_only": false,
+  "config": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\phase_a_r0_dataset_v2_controls_32_20260924.json",
+  "results": [
+    {
+      "variant_id": "flat",
+      "series_id": "flat",
+      "experiment_name": "phaseA_r0_dataset_v2_controls_32_20260924_010734_flat",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_controls_32_20260924\\ray\\phaseA_r0_dataset_v2_controls_32_20260924_010734_flat\\training_fn_baseline_flat_00000",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_controls_32_20260924\\ray\\_stable_metrics\\training_fn_baseline_flat_00000\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_controls_32_20260924\\ray\\_stable_metrics\\training_fn_baseline_flat_00000\\plots",
+      "final_metric": 0.0
+    },
+    {
+      "variant_id": "long_only",
+      "series_id": "long_only",
+      "experiment_name": "phaseA_r0_dataset_v2_controls_32_20260924_010734_long_only",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_controls_32_20260924\\ray\\phaseA_r0_dataset_v2_controls_32_20260924_010734_long_only\\training_fn_baseline_long_00000",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_controls_32_20260924\\ray\\_stable_metrics\\training_fn_baseline_long_00000\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_controls_32_20260924\\ray\\_stable_metrics\\training_fn_baseline_long_00000\\plots",
+      "final_metric": 0.0005970439525288
+    },
+    {
+      "variant_id": "short_only",
+      "series_id": "short_only",
+      "experiment_name": "phaseA_r0_dataset_v2_controls_32_20260924_010734_short_only",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_controls_32_20260924\\ray\\phaseA_r0_dataset_v2_controls_32_20260924_010734_short_only\\training_fn_baseline_short_00000",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_controls_32_20260924\\ray\\_stable_metrics\\training_fn_baseline_short_00000\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_controls_32_20260924\\ray\\_stable_metrics\\training_fn_baseline_short_00000\\plots",
+      "final_metric": -0.0009970439525288
+    },
+    {
+      "variant_id": "random",
+      "series_id": "random",
+      "experiment_name": "phaseA_r0_dataset_v2_controls_32_20260924_010734_random",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_controls_32_20260924\\ray\\phaseA_r0_dataset_v2_controls_32_20260924_010734_random\\training_fn_baseline_random_00000",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_controls_32_20260924\\ray\\_stable_metrics\\training_fn_baseline_random_00000\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_controls_32_20260924\\ray\\_stable_metrics\\training_fn_baseline_random_00000\\plots",
+      "final_metric": -0.0125595586405518
+    },
+    {
+      "variant_id": "untrained_mlp_film",
+      "series_id": "untrained_mlp_film",
+      "experiment_name": "phaseA_r0_dataset_v2_controls_32_20260924_010734_untrained_mlp_film",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_controls_32_20260924\\ray\\phaseA_r0_dataset_v2_controls_32_20260924_010734_untrained_mlp_film\\training_fn_baseline_untrained_00000",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_controls_32_20260924\\ray\\_stable_metrics\\training_fn_baseline_untrained_00000\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_controls_32_20260924\\ray\\_stable_metrics\\training_fn_baseline_untrained_00000\\plots",
+      "final_metric": -0.0019186085139535
+    }
+  ],
+  "primary_metric": "evaluation/net_return_mean",
+  "compare_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_controls_32_20260924_010734\\ablation_compare.csv",
+  "compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_controls_32_20260924_010734\\ablation_compare.png",
+  "sharpe_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_controls_32_20260924_010734\\ablation_compare_validation_sharpe.png",
+  "entropy_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_controls_32_20260924_010734\\ablation_compare_entropy.png",
+  "episode_len_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_controls_32_20260924_010734\\ablation_compare_episode_len.png",
+  "diagnostics_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_controls_32_20260924_010734\\ablation_compare_diagnostics.png",
+  "action_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_controls_32_20260924_010734\\ablation_compare_action_fractions.png"
+}

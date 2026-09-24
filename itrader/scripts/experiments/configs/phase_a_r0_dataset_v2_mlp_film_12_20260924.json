@@ -1,0 +1,54 @@
+{
+  "name": "phaseA_r0_dataset_v2_mlp_film_12",
+  "python_exe": ".venv/Scripts/python.exe",
+  "train_module": "itrader.rl_lib.train.train_solo_V2",
+  "primary_metric": "evaluation/net_return_mean",
+  "common_args": {
+    "cpu_only": true,
+    "workers": 1,
+    "ray_num_cpus": 4,
+    "timeout_hours": 2,
+    "window": 60,
+    "seed": 20260924,
+    "evaluation_seed": 30260943,
+    "train_batch_size": 4800,
+    "sgd_minibatch_size": 512,
+    "num_sgd_iter": 30,
+    "data_path": "itrader/data/datasets/dataset_v2_20220103_20260922_alpaca_sip_split/bars",
+    "data_sessions": "regular",
+    "data_symbols": "AAPL,MSFT,AMZN,NVDA,AMD,AVGO,GOOGL,META,SPY,QQQ,IWM,TLT",
+    "episode_boundary_cols": "session_id",
+    "expected_bar_interval": "1min",
+    "results_root": "itrader/scripts/experiments/configs/outputs/phase_a_r0_dataset_v2_mlp_film_12_20260924/ray",
+    "task_pool_path": "",
+    "p_pool": 0.0,
+    "task_horizons": "96,128,160,200",
+    "task_reward_ids": "net_return",
+    "start_idx_mode": "stream_worker",
+    "ret_norm_reset": "stream",
+    "observation_transform": "market_relative_v1",
+    "observation_filter": "NoFilter",
+    "stream_stride": 0,
+    "stream_jump_every_episodes": 5,
+    "stream_jump_on_wrap": true,
+    "evaluation_interval": 1,
+    "evaluation_num_episodes": 32,
+    "evidence_cost_bps": 1.0,
+    "optimization_cost_bps": 0.0,
+    "net_return_reward_scale": 1000.0,
+    "split_fractions": "0.7,0.15,0.15",
+    "split_purge_rows": 200,
+    "auto_plot_on_end": false
+  },
+  "variants": [
+    {
+      "id": "fresh_winner_recipe",
+      "args": {
+        "iters": 12,
+        "best_params_json": "itrader/scripts/experiments/configs/phase_a_p0_no_cost_candidate_00001_params_20260919.json",
+        "checkpoint_interval": 12,
+        "pbt_interval": 12
+      }
+    }
+  ]
+}

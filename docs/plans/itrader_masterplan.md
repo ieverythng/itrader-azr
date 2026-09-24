@@ -1,8 +1,8 @@
 # iTrader Masterplan
 
-Last updated: 2026-09-20
-Status: **Phase A P0 measurement/PBT seams are live-validated; one new transient challenger passed exact replay and cost checks, but independent replication and promotion did not**
-Branch snapshot: `agent/Watson-dev` at `88361f0` plus the uncommitted 2026-09-19 autoresearch surface
+Last updated: 2026-09-24
+Status: **dataset v2, crossed RTH controls, and strict synchronous-PBT provenance are validated; the next matched P0 is paused launch-ready, and no v2 R0 candidate passes the Phase A economic gate**
+Branch snapshot: `agent/Watson-dev` plus the uncommitted dataset-v2 implementation/evidence round
 
 ## North star
 
@@ -39,6 +39,39 @@ intentionally separate, and `train_AZR.py` is currently a bootstrap handoff.
   difference from the undiscounted episode sum.
 - Family `00` is the only enabled learned family. `01`/`02` are bootstrap
   contracts; `03` is trade management; `04` is abstention/WAIT semantics.
+
+### Dataset-v2 baseline reset
+
+Dataset v1 is now characterized rather than assumed. In an authenticated Alpaca
+SIP overlap, over 99.7% of audited closes matched after timestamp correction,
+but every v1 OHLC row was flat, volumes commonly appeared as exact multiples,
+and naive local timestamps shifted summer data by one hour. Old close-to-close
+PnL was therefore based on a genuine close path, not synthetic prices, while the
+input representation, volume, provenance, and earlier evidence seams were not
+sufficient for an economic promotion claim.
+
+The immutable v2 snapshot contains 10,370,064 unique one-minute Alpaca SIP bars
+for AAPL, MSFT, AMZN, NVDA, AMD, AVGO, GOOGL, META, SPY, QQQ, IWM, and TLT from
+2022-01-03 through 2026-09-22. It is split-adjusted, not dividend-adjusted, and
+partitioned by session/symbol/year. Phase A selects 5,515,061 RTH rows; extended
+hours are retained for Phase B. The snapshot hash is
+`fac41f6d42f8c5b1eac739755667bb38407461f82c168d7955de26bb2e5fb79c`.
+
+The original fixed 32-episode v2 panel scores long-only at +0.05970% net and +0.00757
+Sharpe/sqrt(bar), flat at zero, and short-only at -0.09970% net. A fresh 12-update
+no-cost R0 bridge remained active but ended at -0.80750% net. Its matched 1 bp
+optimization arm cut terminal turnover from 80.69 to 18.06, but did so by moving
+to 95.23% short and still lost -0.29511% net. This validates reward
+responsiveness, not economic edge. See the dated dataset-v2 R0 audit.
+
+That original panel is retained for bridge comparability, not current selection:
+each horizon used different starts while `semantic_v2` exposes horizon. The
+canonical P0 panel instead crosses eight explicit RTH starts with all four
+horizons. Its 1 bp controls are flat 0.00000% net/0 Sharpe, long-only -0.09785%/
++0.00827, short-only +0.05785%/-0.01558, random -1.31143%/-0.25857, and a
+seeded untrained FiLM policy exactly equal to short-only. This removes the
+horizon/start identity shortcut but remains a selection-informed development
+panel, so P1 still requires new chronological blocks.
 
 The 2026-09-12 performance-validity audit restored both historical iteration-200
 PBT checkpoints and replayed each on 288 symbol-safe diagnostic episodes. The
@@ -194,6 +227,52 @@ The detailed findings are in
 `docs/artifacts/research/phase-a-mlp-film-autoresearch-2026-09-19.md`, with the
 earlier repair chronology in
 `docs/artifacts/research/phase-a-performance-validity-audit-2026-09-12.md`.
+
+Dataset-v2 supersedes dataset-v1 for new performance selection. The next P0 is
+a matched RTH search over no-cost, staged-cost, and exact-cost schedules on an
+environment-step clock, with tighter best-evaluation checkpoint retention and
+an explicit crossed task panel. P1
+then uses independent, non-overlapping chronological blocks, paired block-aware
+uncertainty, regime-conditioned actions, and 0.5/1/2 bp replay. R-series
+engineering can proceed in parallel, but frozen proposer/family uplift cannot be
+claimed until the R0 data/evidence baseline is frozen. A frozen Qwen3.8 proposer
+then compares against random/generated tasks at equal R0 checkpoint and solver
+compute; adaptive proposer reward remains later Phase B work.
+
+The first dataset-v2 P0 launch stopped safely during the no-cost arm after four
+genuine exploits: Ray 2.9 scheduled a save on an exploited actor before its
+first post-restore result. A verification gate showed that the initial guard
+covered exploit-target restoration but not stable self-reattachment. A second
+fresh gate proved both restore paths through ~97k steps for all members, then
+exposed a final Ray 2.9 ordering: a redundant actor save was scheduled while an
+exact same-step durable donor fallback was available. Synchronous upper donors
+now use that immutable sidecar checkpoint directly and fail closed when it is
+missing. Gate C then showed that Ray can deliver one in-flight update after a
+synchronous pause, leaving the selection row one update beyond a cadence-only
+snapshot. Synchronous PBT therefore retains an immutable snapshot at every
+report while exposing only cadence/terminal checkpoints to Tune. Gate D then
+completed all four members at 170,152--170,416 trial-owned steps with 140
+reports/checkpoints, five genuine exploits, five exact same-step donor receipts,
+and zero trial errors, skips, or receipt lag. It crossed the former 102,080 and
+120k failure regions and closes the Ray 2.9 checkpoint/search seam. A later
+forensic pass matched every retained Gate D restore copy to the selected donor
+tree hash. New arms make the proof generation-bound: scheduler selection,
+exactly one target restore receipt, a target report, and a target retained
+checkpoint must all agree. Its strongest
+point (`00000`, 29,232 steps) reached +0.08116% 1 bp net and +0.01576 Sharpe for
+three consecutive positive-net/positive-Sharpe reports, then regressed; every
+terminal row was negative. Gate D is not a matched economic result. The next P0
+is the fresh no-cost/staged/exact-cost comparison on the crossed v2 RTH panel.
+The canonical 60-update/four-member loadout is frozen with `stream_worker`,
+family 00, random/generated tasks, a `5e-6..3e-4` learning-rate range, and
+bounded decaying entropy schedules. Run its arms individually and enforce a hard
+20-update continuation gate for population health, genuine exact-receipt
+exploitation, finite/non-empty evidence, and storage headroom before spending
+the next arm's budget. The goal is currently paused immediately before the
+`no_cost` launch; no PBT arm is running.
+
+The dataset reset and first v2 R0 evidence are in
+`docs/artifacts/research/dataset-v2-r0-audit-2026-09-24.md`.
 
 ## Phase B — offline + replay/shadow work
 

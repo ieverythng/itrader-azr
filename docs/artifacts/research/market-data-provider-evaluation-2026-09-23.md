@@ -1,9 +1,23 @@
 # Market-data provider evaluation for `dataset_v2`
 
-**Status:** provisional acquisition decision record  
-**Date:** 2026-09-23  
-**Scope:** Tradier, Databento, Cboe DataShop/Cboe One, Alpaca Basic, and the existing Polygon/Massive path  
+**Status:** provisional acquisition decision record
+**Date:** 2026-09-23
+**Scope:** Tradier, Databento, Cboe DataShop/Cboe One, Alpaca Basic, and the existing Polygon/Massive path
 **Evidence policy:** official provider documentation, product pages, specifications, and first-party downloadable samples only
+
+## 2026-09-24 authenticated outcome
+
+The Alpaca gate passed for this account. Explicit historical `feed=sip` requests
+returned old one-minute consolidated bars, and the completed immutable snapshot
+contains 10,370,064 split-adjusted bars for the predeclared twelve-symbol universe
+from 2022-01-03 through 2026-09-22. The snapshot content hash is
+`fac41f6d42f8c5b1eac739755667bb38407461f82c168d7955de26bb2e5fb79c`.
+
+Alpaca SIP is therefore the selected dataset-v2 source for the current Phase A
+research baseline. This does not yet certify it as an operational/live source:
+retain the proposed Databento/Cboe overlap audit, licensing review, and
+forward-stream correction/upsert tests. Full acquisition and R0 evidence are in
+`dataset-v2-r0-audit-2026-09-24.md`.
 
 ## Executive decision
 

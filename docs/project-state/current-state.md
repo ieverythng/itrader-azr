@@ -1,8 +1,73 @@
 # Current State
 
-Last updated: 2026-09-20
+Last updated: 2026-09-24
 Branch: `agent/Watson-dev`
-HEAD: `88361f0` plus uncommitted 2026-09-19 autoresearch changes
+HEAD: `891fcaa` plus the uncommitted dataset-v2 implementation/evidence round
+
+## Dataset-v2 and first R0 bridge
+
+An authenticated, immutable Alpaca SIP dataset-v2 snapshot now covers twelve
+symbols from 2022-01-03 through 2026-09-22. It contains 10,370,064 unique bars,
+including 5,515,061 RTH rows, with zero duplicate keys, OHLC invariant failures,
+or negative volumes. Parquet partitions are authoritative; DuckDB performs
+filtered discovery/query; Ray loads configured sessions and symbols. Phase A is
+RTH-only and session-safe. Dataset v1 is retained solely as historical evidence:
+its close path was real, but sampled OHLC was entirely flat, volume was often
+duplicated/summed, and timestamps were not DST-safe.
+
+The original fixed 32-episode v2 controls make long-only the strongest directional
+baseline at +0.05970% net and +0.00757 Sharpe/sqrt(bar). Two matched fresh
+12-update bridges show active PPO but no economic winner. No-cost ended at
+-0.80750% net. Exact-1-bp training reduced turnover to 18.06 but converged to
+95.23% short and -0.29511% net. The sealed final test remains untouched. The next
+P0 searches cost schedules and PPO settings on v2. It no longer selects on that
+panel because each horizon used different starts while `semantic_v2` exposes
+horizon, creating a start/horizon shortcut. The replacement development panel
+crosses eight explicit starts with all four horizons. Its controls are flat
+0.00000%, long-only -0.09785% net/+0.00827 Sharpe, short-only +0.05785% net/
+-0.01558 Sharpe, random -1.31143% net/-0.25857 Sharpe, and a seeded untrained
+FiLM that exactly matches short-only. This crossed panel is selection-informed,
+not an independent or final test. P1 moves to new chronological blocks and
+independent populations.
+
+The first 60-update, four-member synchronous v2 P0 attempt was stopped during
+the no-cost arm after four real exploits. Member exposure ranged from 121,648 to
+141,176 sampled environment steps. Ray 2.9 attempted `Trainable.save()` on an
+exploited actor before that fresh actor had emitted its first post-restore
+result, raising its `_last_result` assertion and invalidating the four-member
+synchronous comparison. Stable metrics, 22 checkpoint-index records, and the
+four exploit receipts were preserved; staged-cost and exact-cost arms were not
+started. A subsequent 35-update verification gate completed three exploits but
+showed that the first repair protected exploit-target restores only: member
+`00002` failed at ~97k when its own stable checkpoint was reattached before
+resume. A second fresh gate then proved both restore paths through new reports
+and brought all four members to ~97k with three exploits. It stopped when Ray
+attempted a redundant actor save while an exact same-step durable donor fallback
+was being resolved. Synchronous upper donors now select that exact immutable
+sidecar checkpoint directly; missing exact evidence fails closed. Gate C reached
+~97k for all four members with two clean exploits and two exact selections, then
+the guard exposed Ray's one-update in-flight overshoot: member `00002` reported
+102,080 steps while its last cadence snapshot was 97,248. Synchronous PBT now
+retains an immutable snapshot at every report but reports only cadence/terminal
+checkpoints to Tune, preserving exact metric/model identity without changing the
+search cadence. Gate D completed all four members at 170,152--170,416
+trial-owned steps. Its 140 reports map one-to-one to 140 non-empty stable
+checkpoints; five genuine exploits map to five exact-step donor receipts with
+zero lag, including the former 102,080-step Gate C failure. A direct forensic
+audit matched all five retained restore copies to their selected donor full-tree
+hashes. New-arm lineage is stricter and generation-bound: selection -> one target
+restore receipt -> target report -> retained target checkpoint. No exploit skip,
+trial error, missing evidence, required-metric nonfinite, or storage stop
+occurred. The 35-update gate therefore closes the Ray 2.9 synchronous checkpoint
+seam. It does not close economic promotion: all terminal 1 bp net returns and
+Sharpes were negative.
+
+The canonical no-cost/staged/exact-cost P0 is now fully preflighted with the
+crossed panel, `stream_worker`, synchronous four-member PBT, family 00,
+random/generated tasks, 60 updates per arm, a narrower `5e-6..3e-4` learning-rate
+range, and bounded decaying entropy schedules. No arm has been launched. The
+goal is paused immediately before `--variant no_cost` at the user's request.
+All earlier interrupted arms remain diagnostic evidence, not cost-arm results.
 
 ## Working-tree boundary
 
@@ -299,12 +364,14 @@ repository-owned provenance is authoritative.
 
 ## Next priority
 
-Pause all performance claims that depend on either historical PBT scores or the
-completed negative parity run. Run the corrected PBT only as candidate
-generation, then add deterministic flat/long/short/random/untrained baselines,
-block-aware uncertainty, cost scenarios, and the untouched final-test evaluation.
-Preserve R0 while this happens; recurrence work may continue in its separate
-thread but must use the repaired evidence contract.
+Resume the prepared `no_cost` arm only when the user reactivates the goal. At
+the 20-update/~96k-step boundary, apply the strict lineage/population/evidence/
+storage gate before allowing the arm to continue. Then return for authorization
+before staged-cost or exact-cost; never chain arms automatically. Any candidate
+must be replayed at 0.5/1/2 bp and compared by chronological/regime blocks before
+independent P1 lineages. Keep the final test sealed. Preserve R0 while this
+happens; recurrence work may continue separately but must use the repaired data,
+panel, and evidence contracts.
 
 ## 2026-09-19 storage incident
 

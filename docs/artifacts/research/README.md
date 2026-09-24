@@ -13,6 +13,7 @@ Current references:
 - `recurrence-code-audit-2026-09-12.md` — independent read-only source audit.
 - `recurrence-docs-revision-audit-2026-09-12.md` — this Markdown coverage and validation audit.
 - `phase-a-performance-validity-audit-2026-09-12.md` (+ `.html`) — authoritative investigation of Phase A reward semantics, restored PBT targets, repaired measurement/search seams, final acceptance probe, and the remaining performance-promotion gate.
+- `dataset-v2-r0-audit-2026-09-24.md` (+ `.html`) — authenticated dataset-v2 construction and v1 diagnosis, original/crossed RTH controls and bridges, strict synchronous-PBT evidence, and the launch-ready matched P0/P1 promotion contract.
 
 These documents inform iTrader architecture, especially the AB design language,
 adapter/proposer framing, and future Market-JEPA frontier. Dated reports are

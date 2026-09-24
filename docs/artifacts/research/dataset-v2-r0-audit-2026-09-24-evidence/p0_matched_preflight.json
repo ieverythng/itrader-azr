@@ -1,0 +1,93 @@
+{
+  "schema_version": 2,
+  "recorded_at_utc": "2026-09-24T11:00:53.9974067Z",
+  "launch_state": "paused_by_user_ready_to_launch",
+  "git_commit": "891fcaa2ba2200d0affe2c97a6d9ada592dbcfaa",
+  "working_tree_dirty": true,
+  "pbt_process_running": false,
+  "resume_command": ".venv/Scripts/python.exe -m itrader.scripts.experiments.run_ablation itrader/scripts/experiments/configs/phase_a_r0_dataset_v2_p0_cost_search_sync_60_20260924.json --variant no_cost",
+  "source_tree_fingerprint": {
+    "algorithm": "sha256(sorted relative-path TAB file-sha256 LF)",
+    "python_file_count": 87,
+    "source_tree_sha256": "b05244d2271a29ca6b495acbdd883012c1f4b1dbcd5035503efc86052d57a1d0"
+  },
+  "dataset": {
+    "id": "dataset_v2_20220103_20260922_alpaca_sip_split",
+    "path": "itrader/data/datasets/dataset_v2_20220103_20260922_alpaca_sip_split/bars",
+    "sha256": "20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9",
+    "sessions": ["regular"],
+    "symbols": ["AAPL", "MSFT", "AMZN", "NVDA", "AMD", "AVGO", "GOOGL", "META", "SPY", "QQQ", "IWM", "TLT"]
+  },
+  "evaluation_panel": {
+    "path": "itrader/scripts/experiments/configs/evaluation_panels/dataset_v2_r0_crossed_8x4_20260924.json",
+    "file_sha256": "fcebe56d878a80c905488301ee880ebf782f4bc9c802b238fd9d2c1ce1284155",
+    "task_content_sha256": "2314a55ceac6aceed575203d91daa0d1468fcd88158ff4d0839751c3b8b36b9f",
+    "episode_count": 32,
+    "anchor_count": 8,
+    "horizons": [96, 128, 160, 200],
+    "scope": "selection_informed_development_panel_not_final_test"
+  },
+  "crossed_controls_at_1bp": {
+    "flat": {"net_return_mean": 0.0, "net_sharpe_per_sqrt_bar_mean": 0.0},
+    "long_only": {"net_return_mean": -0.0009785450278411774, "net_sharpe_per_sqrt_bar_mean": 0.008271140634209743},
+    "short_only": {"net_return_mean": 0.0005785450278411773, "net_sharpe_per_sqrt_bar_mean": -0.015578861677502165},
+    "random": {"net_return_mean": -0.013114293910782534, "net_sharpe_per_sqrt_bar_mean": -0.2585737813638464},
+    "untrained_mlp_film": {"net_return_mean": 0.0005785450278411773, "net_sharpe_per_sqrt_bar_mean": -0.015578861677502165}
+  },
+  "loadout": {
+    "path": "itrader/scripts/experiments/configs/phase_a_r0_dataset_v2_p0_cost_search_sync_60_20260924.json",
+    "sha256": "9b9ef58b68b10c79df7a31bdf42f80d2338c7890b49b6330fb7ed31f7a33796a",
+    "schema_validation": "passed",
+    "variants": ["no_cost", "staged_cost", "exact_1bp"],
+    "staged_cost_schedule": "0:0,96000:0.25,168000:0.5,240000:1",
+    "pbt_synch": true,
+    "pbt_interval_updates": 5,
+    "checkpoint_interval_updates": 5,
+    "pbt_burn_in_updates": 10,
+    "population": 4,
+    "updates_per_arm": 60,
+    "evaluation_episodes": 32,
+    "evidence_cost_bps": 1.0,
+    "learning_rate_search": "loguniform(5e-6,3e-4)",
+    "entropy_schedules": [
+      [[0, 0.0], [96000, 0.0], [240000, 0.0]],
+      [[0, 0.001], [96000, 0.0005], [240000, 0.0]],
+      [[0, 0.005], [96000, 0.002], [240000, 0.0005]],
+      [[0, 0.01], [96000, 0.005], [240000, 0.001]]
+    ],
+    "start_idx_mode": "stream_worker",
+    "proposer_mode": "random/generated",
+    "task_family": "00",
+    "solver": "SolverMLPFiLM"
+  },
+  "continuation_gate": {
+    "review_update": 20,
+    "approximate_steps_per_member": 96000,
+    "minimum_live_members": 4,
+    "minimum_genuine_exploits": 2,
+    "require_generation_bound_lineage": true,
+    "require_exactly_one_target_restore_receipt": true,
+    "require_checkpoint_digest_match": true,
+    "require_same_generation_target_report_and_checkpoint": true,
+    "require_finite_nonempty_evidence": true,
+    "minimum_c_drive_free_gb": 20,
+    "sealed_final_test_must_remain_closed": true,
+    "launch_next_arm_automatically": false,
+    "inspector_module": "itrader.scripts.experiments.inspect_pbt_gate",
+    "inspector_exit_codes": {"pass": 0, "stop": 1, "pending": 2}
+  },
+  "validation": {
+    "full_tests": "209 passed, 1 third-party deprecation warning",
+    "healthcheck": "passed on Python 3.11.13, Ray 2.9.0, Gymnasium 0.28.1, DuckDB 0.10.2",
+    "pre_commit": "passed all configured hooks",
+    "git_diff_check": "passed",
+    "loadout_schema_errors": 0,
+    "panel_loader": "passed: 32 tasks, 8 starts, horizons 96/128/160/200",
+    "html_local_links": "passed for audit, masterplan, and architecture companions",
+    "strict_lineage_chain": "covered by focused unit regressions; first live proof is the 20-update gate",
+    "gate_d_forensic_restore_audit": "passed: 5/5 retained restore copies match selected donor full-tree hashes",
+    "refactor_branch_reconciliation": "selective only: provenance, promotion, async donor, market-data validation, and atomic raw-manifest writes; no wholesale cherry-pick"
+  },
+  "preflight_c_drive_free_gb": 64.61,
+  "pause_boundary": "No PBT arm launched. Resume only on explicit user request, beginning with no_cost and stopping again at the 20-update continuation gate."
+}

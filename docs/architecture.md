@@ -1,7 +1,7 @@
 # iTrader Architecture Entry Point
 
-Last updated: 2026-09-12
-Branch snapshot: `agent/Watson-dev` at `bec5c77`
+Last updated: 2026-09-24
+Branch snapshot: `agent/Watson-dev` with the uncommitted dataset-v2 implementation round
 Status: **active working architecture; recurrence and trunk/head design pending grill-me review**
 
 This is the compact compatibility entrypoint. Detailed architecture is in
@@ -42,6 +42,42 @@ net return, turnover including liquidation, drawdown, exposure, and Sharpe. A
 symbol-safe `DataPartition` owns per-symbol chronological train/validation/test
 intervals and purge. PBT selects only held-out validation net return; the final
 test remains outside tuning.
+
+Synchronous Ray 2.9 PBT schedules on trial-owned cumulative sampled environment
+steps. Every evaluation report has an immutable stable sidecar checkpoint, while
+Tune receives only cadence/terminal checkpoints. A donor is valid only when its
+scored `pbt_progress_steps` exactly matches the selected sidecar; absence is a
+fail-closed contract error. RLlib iteration and actor-local `timesteps_total`
+remain lineage-local diagnostics, not population exposure clocks.
+
+Promotion loadouts may bind an explicit content-hashed evaluation `TaskSpec`
+panel. Every task must declare `start_idx`, the panel count must equal the
+evaluation episode count, and reset uses those task-owned starts. The current P0
+crosses each anchor with every horizon to prevent horizon from identifying a
+different start. Restore provenance is generation-bound: scheduler selection,
+one target receipt with the same full-tree checkpoint digest, a target report,
+and a retained target checkpoint must agree before an exploit counts.
+
+## Market-data authority
+
+```text
+provider adapter -> retained raw pages -> immutable Parquet snapshot
+-> DuckDB query/catalog -> filtered Ray environment load
+```
+
+The implemented dataset-v2 acquisition adapter is read-only and separate from
+future Alpaca brokerage/execution support. The immutable Parquet snapshot, not a
+mutable DuckDB table, is the data authority. Physical partitions are
+`session/symbol/year`; `ITraderEnv` requests only configured sessions, symbols,
+and columns. `DataPartition` additionally prevents episodes from crossing
+session or one-minute-continuity boundaries. Phase A uses RTH only. Pre-market
+and after-hours are retained for named Phase B factors. Split-adjusted prices are
+accepted; dividend cashflows remain unimplemented and must not be inferred from
+silently dividend-adjusted prices.
+
+Snapshot manifests retain retrieval time, usage classification, missing-bar
+policy, and hashes for raw provider pages. Raw and manifest writes are atomic;
+licensed data and credentials remain ignored while aggregate evidence is tracked.
 
 ## R-series implementation/status matrix
 

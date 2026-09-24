@@ -9,13 +9,51 @@ python -m itrader.scripts.experiments.run_ablation \
   itrader/scripts/experiments/configs/ablation_start_idx.example.json
 ```
 
+For an evidence-gated multi-arm study, run one arm from the same canonical
+loadout and inspect its stable evidence before authorizing the next arm:
+
+```bash
+python -m itrader.scripts.experiments.run_ablation \
+  itrader/scripts/experiments/configs/phase_a_r0_dataset_v2_p0_cost_search_sync_60_20260924.json \
+  --variant no_cost
+```
+
+Repeat `--variant` to select more than one declared arm. Selection preserves the
+loadout's declared order and rejects duplicate or unknown identifiers. This
+avoids copied temporary configs while retaining a hard stop between expensive
+PBT arms. Use `--collect-only` with `--variant-experiment` after the accepted
+arms complete to build their matched comparison.
+
+Inspect the live 20-update continuation gate from repository-owned evidence:
+
+```bash
+python -m itrader.scripts.experiments.inspect_pbt_gate \
+  --results-root <results-root> \
+  --experiment-name <experiment-name> \
+  --review-steps 96000 \
+  --expected-members 4 \
+  --minimum-exploits 2 \
+  --minimum-free-gb 20
+```
+
+The inspector is read-only. It returns exit code `0` for `pass`, `1` for
+`stop`, and `2` for `pending`, with a JSON receipt containing member exposure,
+latest return/Sharpe, exact checkpoint coverage, exploit/receipt parity,
+post-restore progress, required-metric health, and disk headroom. A monitor may
+terminate a running arm on `stop`; it must re-poll `pending` and may not launch
+the next arm automatically. New experiments use strict lineage inspection by
+default: each scheduler donor selection must resolve to exactly one target
+restore receipt with the same checkpoint tree digest, then a same-generation
+target report and retained checkpoint. `--allow-legacy-lineage` is only for
+forensic inspection of older runs such as Gate D.
+
 Outputs are written under:
 
 - `itrader/scripts/experiments/configs/outputs/<run_tag>/`
   - `ablation_compare.csv`
   - `ablation_compare.png`
-- `ablation_compare_validation_sharpe.png`
-- `ablation_compare_action_fractions.png`
+  - `ablation_compare_validation_sharpe.png`
+  - `ablation_compare_action_fractions.png`
   - `ablation_compare_entropy.png`
   - `ablation_compare_episode_len.png`
   - `ablation_compare_diagnostics.png`
@@ -61,6 +99,9 @@ You can pass most train knobs directly in `common_args` or per-variant `args`, e
 - `pbt_interval`, `pbt_burn_in`, `checkpoint_interval`
 - `pbt_synch` to checkpoint upper-quantile donors before lower-quantile exploit
 - `evaluation_interval`, `evaluation_num_episodes`
+- `evaluation_task_panel_path` for a content-hashed explicit `TaskSpec` panel;
+  every task must declare `start_idx`, and its count must match
+  `evaluation_num_episodes`
 - `evidence_cost_bps`, `optimization_cost_bps`, `net_return_reward_scale`,
   `evidence_periods_per_year`
 - `split_fractions`, `split_purge_rows`
@@ -72,8 +113,10 @@ You can pass most train knobs directly in `common_args` or per-variant `args`, e
 For PBT, checkpoint and perturbation intervals must match. Training batch stays
 fixed while trial-owned cumulative sampled environment steps are the search
 clock; restoring donor RLlib state cannot move this clock backwards. Validation
-tasks are matched across members and balanced across configured horizons. The
-random/generated no-LLM seam is configured by an
+tasks are matched across members. The current dataset-v2 P0 uses an explicit
+8-start x 4-horizon crossed panel so horizon cannot identify a different start;
+it remains a development panel, not a final test. The random/generated no-LLM
+seam is configured by an
 empty `task_pool_path` and `p_pool: 0.0`.
 
 Promotion loadouts on Ray 2.9 should set `pbt_synch: true`. Asynchronous PBT can
@@ -119,7 +162,8 @@ recovers the same net-return arithmetic emitted independently by EpisodeEvidence
 PPO still discounts step rewards when `gamma < 1`; the exact equality applies to
 the undiscounted episode sum.
 
-P0 measurement and PBT mechanics are now closed enough to define P1. New
+P0 measurement and PBT mechanics are now closed enough to run the prepared
+matched dataset-v2 search and then define P1. New
 promotion experiments should use independent training lineages and genuinely
 new chronological validation blocks, then apply selection-aware block
 uncertainty, regime/action attribution, and fresh per-step 0.5/1/2 bp return and

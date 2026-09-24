@@ -1,5 +1,80 @@
 # Decisions
 
+## 2026-09-24 — Cross starts and horizons in the P0 development panel
+
+- Decision: evaluate the next matched P0 on eight explicit RTH starts crossed
+  with all four horizons, with every task carrying `start_idx` and the panel
+  bound by content hash.
+- Why: the original 32-task panel used different starts for each horizon while
+  `semantic_v2` exposes horizon, so a policy could route on horizon as a proxy
+  for a different market path.
+- Consequences: the old panel remains historical bridge evidence. The crossed
+  panel is selection-informed development evidence, not an independent or final
+  test; P1 still requires predeclared new chronological blocks.
+- Revisit when: a P0 candidate is frozen and the independent P1 panel is declared.
+
+## 2026-09-24 — Require generation-bound PBT restore provenance
+
+- Decision: a new-arm exploit counts only when scheduler selection, exactly one
+  target restore receipt, a later same-generation target report, and a retained
+  same-generation target checkpoint agree on exploit identity and full-tree
+  checkpoint digest.
+- Why: step/path-only inspection could falsely accept a lagged target after a
+  restore even when the donor selection itself was exact.
+- Consequences: strict inspection is the default. Older Gate D evidence remains
+  forensically valid through direct retained-copy hashing, but requires an
+  explicit legacy-inspection flag because it predates restore generations.
+- Revisit when: the Ray migration provides native immutable lineage receipts
+  with an equally strong or stronger contract.
+
+## 2026-09-24 — Use exact per-report sidecars for synchronous Ray 2.9 PBT
+
+- Decision: synchronous PBT writes an immutable stable checkpoint for every
+  evaluation report, while Tune receives only cadence/terminal checkpoints.
+  Donor selection must resolve the checkpoint at exactly the scored
+  `pbt_progress_steps`; missing exact evidence fails closed.
+- Why: Ray 2.9 can admit an in-flight update after a synchronous pause and can
+  request actor saves before a recreated actor has a local result. Cadence-only
+  snapshots therefore allowed score/model lag or actor-save assertions.
+- Evidence: Gate D terminated four members at 170,152--170,416 steps with 140
+  report/checkpoint pairs and five exploit receipts, all with zero donor lag,
+  including the former 102,080-step failure.
+- Consequences: `pbt_progress_steps`, not RLlib `training_iteration` or local
+  `timesteps_total`, is the authoritative exposure/scheduling clock. Stable
+  sidecars are donor/model evidence; Tune-owned zero-byte moved artifacts remain
+  non-authoritative on Windows.
+- Revisit when: the Ray migration reproduces exact selection/model identity on
+  the new API stack and can replace this compatibility adapter.
+
+## 2026-09-24 — Make immutable Parquet the dataset-v2 authority
+
+- Decision: acquire provider data through a read-only adapter, retain raw pages,
+  write content-addressed Parquet partitions by session/symbol/year, and use
+  DuckDB only for catalog/query. Ray loads selected partitions and projected
+  columns; it never owns or mutates the canonical dataset.
+- Why: dataset v1 collapsed OHLC, duplicated/summed volume, and lost DST-safe
+  provenance. A mutable database authority would make exact experiment replay
+  and provider-regime attribution harder.
+- Consequences: manifests record feed, adjustment, timezone, dates, symbols,
+  counts, schema, and content hash. Raw/licensed bars and credentials remain
+  ignored; tracked artifacts contain only reproducibility metadata and aggregate
+  evidence.
+- Revisit when: a second provider is certified or a forward collector requires
+  snapshot compaction. New snapshots must remain immutable.
+
+## 2026-09-24 — Keep Phase A RTH-only and dividends explicit
+
+- Decision: retain pre-market/RTH/after-hours in dataset v2, but train and
+  evaluate Phase A only on RTH. Use split-adjusted, non-dividend-adjusted prices.
+  Model dividends later as explicit signed cashflows in environment evidence and
+  reward accounting.
+- Why: extended hours change liquidity, spread, volatility, and annualization;
+  silently adjusted prices obscure ownership and short-side dividend effects.
+- Consequences: `DataPartition` prevents cross-session episodes. Extended hours
+  and dividend cashflows are named Phase B factors, not hidden changes to R0.
+- Revisit when: R0 passes the RTH data/evidence gate and ex-date lifecycle tests
+  are specified.
+
 ## 2026-09-12 — Separate optimization reward from promotion evidence
 
 - Decision: `ITraderEnv` emits terminal `EpisodeEvidence` schema v1 with

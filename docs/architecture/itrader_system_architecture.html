@@ -465,11 +465,11 @@
 <body>
   <main class="markdown-companion">
     <p class="source-note">Source: <a href="itrader_system_architecture.md">itrader_system_architecture.md</a></p>
-    <article class="markdown-content"><h1>iTrader System Architecture</h1>
-<p>Last updated: 2026-09-12
-Branch snapshot: <code>agent/Watson-dev</code> at <code>bec5c77</code>
+    <article class="markdown-content"><h1 id="itrader-system-architecture">iTrader System Architecture</h1>
+<p>Last updated: 2026-09-24
+Branch snapshot: <code>agent/Watson-dev</code> with the uncommitted dataset-v2 implementation round
 Status: <strong>active working architecture; recurrence and trunk/head design pending grill-me review</strong></p>
-<h2>1. Source-grounded runtime</h2>
+<h2 id="1-source-grounded-runtime">1. Source-grounded runtime</h2>
 <p>The implemented offline path is:</p>
 <pre><code class="language-text">historical OHLCV parquet
 -&gt; ITraderEnv
@@ -490,7 +490,7 @@ reset, episode state, and reward context.</li>
 <li><code>itrader/rl_lib/train/train_AZR.py</code> generates a task pool then launches the
 solver: this is bootstrap handoff, not co-adaptive AZR training.</li>
 </ul>
-<h2>2. Observation and conditioning contract</h2>
+<h2 id="2-observation-and-conditioning-contract">2. Observation and conditioning contract</h2>
 <p>The current observation is:</p>
 <pre><code class="language-text">obs_t = [price_window_flat(T * F) | task_embedding(D)]
 price_window = reshape(price_window_flat, T, F)
@@ -510,7 +510,7 @@ readout = gamma * hidden + beta
 <code>conditioning</code> is not <code>film</code>, <code>_condition_hidden</code> returns <code>hidden</code>; this is not
 concat. An identity-centred <code>(1 + scale) * hidden + shift</code> parameterization would
 be a new factor and must retain R0 as a control.</p>
-<h3>Task embedding observability</h3>
+<h3 id="task-embedding-observability">Task embedding observability</h3>
 <p><code>TaskEncoder</code> exposes an explicit compatibility boundary. <code>legacy_v1</code> retains
 the historical family/price/reward/horizon/dimension/seed representation for
 checkpoint replay. New training uses <code>semantic_v2</code>, which hashes canonical
@@ -518,7 +518,7 @@ solver-relevant fields including normalized reward parameters, bar resolution,
 regime, difficulty, and metadata while excluding episode seed/start. Reward
 overrides normalize before encoding. An encoding version is part of the resolved
 configuration and must not change silently across checkpoint restore.</p>
-<h3>Phase A evidence and partition contract</h3>
+<h3 id="phase-a-evidence-and-partition-contract">Phase A evidence and partition contract</h3>
 <p><code>ITraderEnv</code> owns the public terminal <code>EpisodeEvidence</code> record because it already
 owns action-to-position transitions and episode accounting. <code>RewardEngine</code> emits
 optimization reward; it does not define economic return. The evidence record
@@ -531,7 +531,50 @@ Training samples only <code>train</code>; PBT evaluates with <code>explore=False
 validation seed. The final <code>test</code> partition is reserved for post-selection.
 Annualized Sharpe is optional and requires an explicit periods-per-year contract;
 the invariant metric is the unannualized per-square-root-bar value.</p>
-<h2>Phase B architecture decision status</h2>
+<p>An evaluation run may load one explicit, content-hashed <code>TaskSpec</code> panel. Its
+task count must equal <code>evaluation_num_episodes</code>, each task must own <code>start_idx</code>,
+and reset uses those starts instead of sampler-generated identities. The current
+P0 crosses eight starts with all four horizons so task horizon cannot identify a
+different market path. This is a development-panel correction, not a substitute
+for independent chronological validation.</p>
+<p>Promotion-oriented Ray 2.9 PBT uses synchronous scheduling and a target-owned
+cumulative sampled-environment-step clock. Every report writes an immutable
+stable sidecar checkpoint before <code>session.report</code>; Tune receives only
+cadence/terminal checkpoints. Donor selection must resolve an exact
+<code>pbt_progress_steps</code> match or fail closed. RLlib iteration and actor-local
+<code>timesteps_total</code> can change with lineage restoration and are not authoritative
+population-exposure clocks.</p>
+<p>An exploit is accepted only through a generation-bound chain: the scheduler's
+selected donor path/digest, exactly one target restore receipt with that digest,
+a later target report carrying the same restore generation/exploit ID, and a
+same-generation retained target checkpoint. Historical event schemas require an
+explicit legacy inspection mode and cannot satisfy a new-arm gate.</p>
+<h3 id="dataset-v2-authority-and-session-contract">Dataset-v2 authority and session contract</h3>
+<p>The historical-data path is a deep module with one public outcome—an immutable,
+content-addressed snapshot—and provider-specific pagination/retry details hidden
+behind an adapter:</p>
+<pre><code class="language-text">AlpacaHistoricalDataClient
+  -&gt; retained raw gzip response pages + build_request.json
+  -&gt; split-adjusted Parquet partitions (session/symbol/year) + manifest.json
+  -&gt; in-memory DuckDB catalog/query
+  -&gt; projected, predicate-filtered pandas frame
+  -&gt; ITraderEnv / DataPartition
+</code></pre>
+<p>Parquet is authoritative. DuckDB is a catalog/query engine, not a mutable source
+of truth. The current v2 snapshot records provider, feed, adjustment, time zone,
+symbols, bounds, session counts, schema version, retrieval time, usage
+classification, missing-bar policy, raw-page hashes, and a content hash. Raw
+pages and manifests are written atomically. Credentials
+are read from ignored environment variables and must never enter manifests or
+experiment artifacts.</p>
+<p><code>ITraderEnv</code> owns only the requested market slice and observation assembly. It
+does not fetch network data. <code>DataPartition</code> respects configured boundary
+columns and exact one-minute continuity so an episode cannot bridge an overnight
+gap, session transition, missing interval, or early close. Phase A selects
+<code>regular</code>; pre-market and after-hours are retained for a predeclared Phase B
+ablation. Dividend accounting remains a future explicit cashflow seam in
+environment evidence/reward, not an implicit price rewrite.</p>
+<h2 id="phase-b-architecture-decision-status">Phase B architecture decision status</h2>
 <p>Phase B covers both offline/curriculum work and online replay/shadow work. A
 shared recurrent trunk with family-specific policy/value heads is a proposed
 option under review, not a settled architecture. Families <code>00</code>–<code>04</code> remain the
@@ -607,8 +650,8 @@ They are design names, not current CLI flags, and do not settle the architecture
 label maps to original R2c. The former init-oriented R4 maps to original R2b.
 The current R4 label is retained only as <code>R4-v1</code> for the matched state-feature
 study. Historical IDs are not silently repurposed.</p>
-<h2>4. Causal attribution design</h2>
-<h3>4.1 What R1 versus newest-bar R2 does and does not prove</h3>
+<h2 id="4-causal-attribution-design">4. Causal attribution design</h2>
+<h3 id="41-what-r1-versus-newest-bar-r2-does-and-does-not-prove">4.1 What R1 versus newest-bar R2 does and does not prove</h3>
 <p>R1 consumes a full window at every decision and resets its window encoder. A
 newest-bar recurrent cell consumes one bar and carries state. The comparison
 therefore changes accessible input history, cold-start warmup, conditioning path,
@@ -629,7 +672,7 @@ path and <code>R2c-CARRY</code> to <code>R2c-RESET</code> as the carry/reset con
 trained carry model and is out of distribution relative to training; a return
 drop is not a causal estimate by itself. Report state permutation, carry/reset,
 and zero-state results with that distinction.</p>
-<h3>4.2 FiLM placement vocabulary</h3>
+<h3 id="42-film-placement-vocabulary">4.2 FiLM placement vocabulary</h3>
 <table>
 <thead>
 <tr>
@@ -678,7 +721,7 @@ post-cell/readout FiLM path is only a readout-only claim when no other task path
 transition is already task-conditioned and the FiLM placement is an additional
 factor. Readout-first is a proposed comparison order, not a settled user
 decision; a memory-conditioning path remains open.</p>
-<h2>5. Time, state, and sequence lifecycle</h2>
+<h2 id="5-time-state-and-sequence-lifecycle">5. Time, state, and sequence lifecycle</h2>
 <p>Keep these windows distinct:</p>
 <ol>
 <li><strong>Input window</strong>: the market bars visible in one observation.</li>
@@ -716,14 +759,14 @@ proof that hidden rollout state was restored.</li>
 </ul>
 <p><code>batch_mode=&quot;complete_episodes&quot;</code> describes collection boundaries. It does not
 imply recurrent state handling or full-episode backpropagation.</p>
-<h2>6. Solver-state observability</h2>
+<h2 id="6-solver-state-observability">6. Solver-state observability</h2>
 <p>The current policy observation does not include position, previous action,
 realized reward, unrealized PnL, or episode progress. OHLCV-only recurrence cannot
 reconstruct sampled actions, fills, or position exactly. For <code>R4-v1</code>, define the
 field order, normalization, timing, and terminal semantics, then append identical
 explicit fields to a feed-forward R0 control and the recurrent comparison. Never
 add them only to recurrence and call the result a memory gain.</p>
-<h2>7. AZR-inspired proposer/solver boundary</h2>
+<h2 id="7-azr-inspired-proposersolver-boundary">7. AZR-inspired proposer/solver boundary</h2>
 <p>The local AZR v2 source supports a useful but bounded analogy: proposal and
 solving, deterministic validation, task/reference buffers, and role-specific
 feedback. Eq. 4 is <code>0</code> when observed solve rate <code>p</code> is <code>0</code> or <code>1</code>, otherwise
@@ -748,7 +791,7 @@ and head selection. Record accepted task counts, rejected tasks, generation
 calls, tokens/latency, compute, costs, turnover, and drawdown. A cost-aware
 verifier must not allow proposer-controlled reward parameters to redefine the
 metric.</p>
-<h2>8. Online state ownership</h2>
+<h2 id="8-online-state-ownership">8. Online state ownership</h2>
 <p>For multiple candidate tasks on one market window, do not mutate one shared
 recurrent state once per candidate. Either maintain task-independent market state
 and candidate-specific readouts, or own separate candidate state/replay streams.
@@ -760,7 +803,7 @@ The online shell remains:</p>
 <p>PPO logits/value outputs are not automatically calibrated confidence or expected
 net utility. Capability profiles require held-out evaluation slices and explicit
 calibration evidence.</p>
-<h2>9. Promotion gates</h2>
+<h2 id="9-promotion-gates">9. Promotion gates</h2>
 <ul>
 <li>R0 remains the default.</li>
 <li>R1 needs correct shape semantics, finite forward/backward behavior, and

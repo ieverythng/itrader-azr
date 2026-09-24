@@ -1,0 +1,51 @@
+{
+  "run_tag": "phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231",
+  "collected_only": false,
+  "config": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\phase_a_r0_dataset_v2_p0_post_restore_gate_35d_20260924.json",
+  "results": [
+    {
+      "variant_id": "no_cost_post_restore_gate_d",
+      "series_id": "no_cost_post_restore_gate_d:training_fn_ITraderEnv_35bc1_00000_0_seed=1237143_2026-09-24_04-32-38",
+      "experiment_name": "phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231_no_cost_post_restore_gate_d",
+      "trial_dir": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231_no_cost_post_restore_gate_d\\training_fn_ITraderEnv_35bc1_00000_0_seed=1237143_2026-09-24_04-32-38",
+      "stable_report_csv": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\_stable_metrics\\training_fn_ITraderEnv_35bc1_00000_0_seed=1237143_2026-09-24_04-32-38\\report_rows.csv",
+      "stable_plot_dir": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\_stable_metrics\\training_fn_ITraderEnv_35bc1_00000_0_seed=1237143_2026-09-24_04-32-38\\plots",
+      "final_metric": -0.0017602373718527
+    },
+    {
+      "variant_id": "no_cost_post_restore_gate_d",
+      "series_id": "no_cost_post_restore_gate_d:training_fn_ITraderEnv_35bc1_00001_1_seed=927203_2026-09-24_04-32-38",
+      "experiment_name": "phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231_no_cost_post_restore_gate_d",
+      "trial_dir": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231_no_cost_post_restore_gate_d\\training_fn_ITraderEnv_35bc1_00001_1_seed=927203_2026-09-24_04-32-38",
+      "stable_report_csv": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\_stable_metrics\\training_fn_ITraderEnv_35bc1_00001_1_seed=927203_2026-09-24_04-32-38\\report_rows.csv",
+      "stable_plot_dir": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\_stable_metrics\\training_fn_ITraderEnv_35bc1_00001_1_seed=927203_2026-09-24_04-32-38\\plots",
+      "final_metric": -0.0022432545395178
+    },
+    {
+      "variant_id": "no_cost_post_restore_gate_d",
+      "series_id": "no_cost_post_restore_gate_d:training_fn_ITraderEnv_35bc1_00002_2_seed=1128044_2026-09-24_04-32-38",
+      "experiment_name": "phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231_no_cost_post_restore_gate_d",
+      "trial_dir": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231_no_cost_post_restore_gate_d\\training_fn_ITraderEnv_35bc1_00002_2_seed=1128044_2026-09-24_04-32-38",
+      "stable_report_csv": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\_stable_metrics\\training_fn_ITraderEnv_35bc1_00002_2_seed=1128044_2026-09-24_04-32-38\\report_rows.csv",
+      "stable_plot_dir": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\_stable_metrics\\training_fn_ITraderEnv_35bc1_00002_2_seed=1128044_2026-09-24_04-32-38\\plots",
+      "final_metric": -0.0018539888395794
+    },
+    {
+      "variant_id": "no_cost_post_restore_gate_d",
+      "series_id": "no_cost_post_restore_gate_d:training_fn_ITraderEnv_35bc1_00003_3_seed=959228_2026-09-24_04-32-38",
+      "experiment_name": "phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231_no_cost_post_restore_gate_d",
+      "trial_dir": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231_no_cost_post_restore_gate_d\\training_fn_ITraderEnv_35bc1_00003_3_seed=959228_2026-09-24_04-32-38",
+      "stable_report_csv": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\_stable_metrics\\training_fn_ITraderEnv_35bc1_00003_3_seed=959228_2026-09-24_04-32-38\\report_rows.csv",
+      "stable_plot_dir": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\_stable_metrics\\training_fn_ITraderEnv_35bc1_00003_3_seed=959228_2026-09-24_04-32-38\\plots",
+      "final_metric": -0.0019077741099173
+    }
+  ],
+  "primary_metric": "evaluation/net_return_mean",
+  "compare_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231\\ablation_compare.csv",
+  "compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231\\ablation_compare.png",
+  "sharpe_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231\\ablation_compare_validation_sharpe.png",
+  "entropy_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231\\ablation_compare_entropy.png",
+  "episode_len_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231\\ablation_compare_episode_len.png",
+  "diagnostics_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231\\ablation_compare_diagnostics.png",
+  "action_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231\\ablation_compare_action_fractions.png"
+}

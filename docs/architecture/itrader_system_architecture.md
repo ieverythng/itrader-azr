@@ -1,7 +1,7 @@
 # iTrader System Architecture
 
-Last updated: 2026-09-12
-Branch snapshot: `agent/Watson-dev` at `bec5c77`
+Last updated: 2026-09-24
+Branch snapshot: `agent/Watson-dev` with the uncommitted dataset-v2 implementation round
 Status: **active working architecture; recurrence and trunk/head design pending grill-me review**
 
 ## 1. Source-grounded runtime
@@ -83,6 +83,58 @@ Training samples only `train`; PBT evaluates with `explore=False` on a matched
 validation seed. The final `test` partition is reserved for post-selection.
 Annualized Sharpe is optional and requires an explicit periods-per-year contract;
 the invariant metric is the unannualized per-square-root-bar value.
+
+An evaluation run may load one explicit, content-hashed `TaskSpec` panel. Its
+task count must equal `evaluation_num_episodes`, each task must own `start_idx`,
+and reset uses those starts instead of sampler-generated identities. The current
+P0 crosses eight starts with all four horizons so task horizon cannot identify a
+different market path. This is a development-panel correction, not a substitute
+for independent chronological validation.
+
+Promotion-oriented Ray 2.9 PBT uses synchronous scheduling and a target-owned
+cumulative sampled-environment-step clock. Every report writes an immutable
+stable sidecar checkpoint before `session.report`; Tune receives only
+cadence/terminal checkpoints. Donor selection must resolve an exact
+`pbt_progress_steps` match or fail closed. RLlib iteration and actor-local
+`timesteps_total` can change with lineage restoration and are not authoritative
+population-exposure clocks.
+
+An exploit is accepted only through a generation-bound chain: the scheduler's
+selected donor path/digest, exactly one target restore receipt with that digest,
+a later target report carrying the same restore generation/exploit ID, and a
+same-generation retained target checkpoint. Historical event schemas require an
+explicit legacy inspection mode and cannot satisfy a new-arm gate.
+
+### Dataset-v2 authority and session contract
+
+The historical-data path is a deep module with one public outcome—an immutable,
+content-addressed snapshot—and provider-specific pagination/retry details hidden
+behind an adapter:
+
+```text
+AlpacaHistoricalDataClient
+  -> retained raw gzip response pages + build_request.json
+  -> split-adjusted Parquet partitions (session/symbol/year) + manifest.json
+  -> in-memory DuckDB catalog/query
+  -> projected, predicate-filtered pandas frame
+  -> ITraderEnv / DataPartition
+```
+
+Parquet is authoritative. DuckDB is a catalog/query engine, not a mutable source
+of truth. The current v2 snapshot records provider, feed, adjustment, time zone,
+symbols, bounds, session counts, schema version, retrieval time, usage
+classification, missing-bar policy, raw-page hashes, and a content hash. Raw
+pages and manifests are written atomically. Credentials
+are read from ignored environment variables and must never enter manifests or
+experiment artifacts.
+
+`ITraderEnv` owns only the requested market slice and observation assembly. It
+does not fetch network data. `DataPartition` respects configured boundary
+columns and exact one-minute continuity so an episode cannot bridge an overnight
+gap, session transition, missing interval, or early close. Phase A selects
+`regular`; pre-market and after-hours are retained for a predeclared Phase B
+ablation. Dividend accounting remains a future explicit cashflow seam in
+environment evidence/reward, not an implicit price rewrite.
 
 ## Phase B architecture decision status
 

@@ -1,6 +1,56 @@
 # Next Actions
 
-Last updated: 2026-09-20
+Last updated: 2026-09-24
+
+## Dataset-v2 Phase A reset
+
+1. **Done:** authenticate Alpaca SIP historical access and build the immutable,
+   split-adjusted 12-symbol snapshot through 2026-09-22. Preserve all sessions
+   physically, but select RTH only for Phase A.
+2. **Done:** make Parquet the authority, DuckDB the filtered catalog/query layer,
+   and Ray the consumer of only requested symbols/sessions/columns. Enforce
+   session and exact one-minute episode boundaries.
+3. **Done:** run the 32-start flat/long/short/random/untrained RTH controls and
+   matched fresh 12-update no-cost/1-bp R0 bridges. PPO is active, but both arms
+   fail the economic gate; the 1 bp arm reduces turnover by becoming 95.2% short.
+4. **Ready and paused before launch — matched three-arm P0:** Gate D completed
+   all four members at 170,152--170,416 steps with 140 report/checkpoint pairs,
+   five genuine exploits, and no trial error or score/checkpoint lag. A direct
+   forensic pass also matched every retained restore copy to its selected donor
+   tree hash. New arms go further: every scheduler selection must bind to exactly
+   one target restore receipt, a same-generation target report, and a
+   same-generation retained checkpoint. Legacy Gate D inspection requires an
+   explicit compatibility flag.
+
+   The original 32-task panel is historical because its horizons used different
+   starts. The canonical P0 now uses eight explicit RTH starts crossed with all
+   four horizons (32 tasks). Its 1 bp controls are flat 0.00000%, long-only
+   -0.09785%/+0.00827 Sharpe, short-only +0.05785%/-0.01558 Sharpe, random
+   -1.31143%/-0.25857 Sharpe, and untrained FiLM exactly equal to short-only.
+   This removes the horizon/start shortcut without pretending that a
+   selection-informed development panel is an independent test.
+
+   Launch only `--variant no_cost` from the frozen canonical JSON when the user
+   resumes the goal. Keep `stream_worker`, family 00, random/generated tasks,
+   four members, 60 updates, the explicit crossed panel, and 1 bp evidence fixed.
+   Jointly search lower learning rates, bounded decaying entropy schedules, and
+   the existing PPO/GAE parameters. At 20 updates/~96k steps, require four live
+   members, at least two genuine exploits, strict generation-bound lineage,
+   finite/non-empty evidence, and at least 20 GB free on C. Stop between arms;
+   no gate result launches staged-cost or exact-cost automatically. **Do not
+   launch PBT while the current goal is paused.**
+5. **Next P1 after P0 selection:** move selection to predeclared non-overlapping chronological
+   blocks. Require positive 1 bp net and Sharpe, aggregate uplift over flat and
+   the strongest matched directional control, paired block evidence, exact
+   replay, 2 bp survival, and an independent population seed before final test.
+   Also report dominant action and logit margin by start/horizon. If crossed-panel
+   candidates remain horizon-static with weak value fit, run named market-only,
+   horizon/task-only, and matched explicit-state diagnostics rather than spending
+   another blind PBT budget.
+6. **Parallel only:** R-series lifecycle implementation may proceed without a
+   performance claim. Frozen Qwen3.8 and families 01/02 begin only after the R0
+   data/evidence baseline is frozen; adaptive proposer reward, dividends, and
+   extended-hours training remain later named factors.
 
 ## Now — evidence and controls
 
@@ -56,7 +106,11 @@ Last updated: 2026-09-20
    because synchronous pauses resume every member. The adapter now recovers an
    empty scheduled save from the durable checkpoint index, reattaches an upper
    donor's own checkpoint before resume, and suppresses terminal-exposure
-   mutations. Keep asynchronous mode only for explicit legacy reproduction.
+   mutations. Synchronous upper donors use the exact same-step immutable
+   sidecar checkpoint as the donor authority; a missing exact checkpoint is a
+   contract failure. An actor awaiting its first post-restore report reuses its
+   attached checkpoint rather than accepting a concurrent Tune save request.
+   Keep asynchronous mode only for explicit legacy reproduction.
 9. Use the working Windows `.venv` for current validation. The earlier WSL
    `Exec format error` is historical and does not describe this session.
 10. **Before another overnight PBT:** keep `workers: 1`, declare a memory-safe

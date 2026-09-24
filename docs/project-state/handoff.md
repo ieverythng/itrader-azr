@@ -1,8 +1,51 @@
 # Handoff
 
-Last updated: 2026-09-17
+Last updated: 2026-09-24
 Branch: `agent/Watson-dev`
-HEAD before the current staged implementation round: `42d1b3a`
+HEAD: `891fcaa` plus the uncommitted dataset-v2 implementation/evidence round
+
+## 2026-09-24 dataset-v2 reset and R0 bridge
+
+Dataset v1 is now understood: authenticated Alpaca SIP overlap confirms the
+close path was real, but OHLC was collapsed to the close, volume was sometimes
+summed across duplicate inserts, and local timestamps were DST-ambiguous. Do not
+use v1 for new promotion work.
+
+The local ignored snapshot
+`itrader/data/datasets/dataset_v2_20220103_20260922_alpaca_sip_split` contains
+10,370,064 split-adjusted SIP minute bars for twelve symbols, all three sessions,
+and content hash
+`fac41f6d42f8c5b1eac739755667bb38407461f82c168d7955de26bb2e5fb79c`.
+Phase A selects RTH only. Credentials remain in ignored `.env`; licensed raw and
+Parquet data remain ignored. The tracked manifest, configs, aggregate evidence,
+plots, conclusions, and exact next gate are in
+`docs/artifacts/research/dataset-v2-r0-audit-2026-09-24.md`.
+
+The original 32-task controls and two matched 12-update fresh R0 bridges are complete.
+Long-only is +0.05970% net. No-cost and exact-1-bp terminal net are -0.80750% and
+-0.29511%. The cost-aware arm cut turnover but became 95.23% short. This proves
+PPO/reward responsiveness on full OHLCV, not positive economic performance.
+The follow-up Gate D completed four synchronous-PBT members at
+170,152--170,416 trial-owned steps with 140 reports/checkpoints, five genuine
+exploits, five exact-step donor receipts, and no errors or skips. Its strongest
+transient (`00000`) reached +0.08116% 1 bp net and +0.01576 Sharpe for three
+consecutive positive-net/positive-Sharpe reports, then regressed; all terminal
+rows were negative. The Ray 2.9 checkpoint/search seam passes, but no checkpoint
+is promoted. A forensic audit matched all five Gate D restore copies to their
+selected donor full-tree hashes; new arms additionally require a generation-bound
+selection/receipt/report/checkpoint chain.
+
+The next P0 is prepared but deliberately not running. Its explicit development
+panel crosses eight fixed RTH starts with horizons 96/128/160/200, removing the
+old horizon/start shortcut. Crossed controls at 1 bp are: flat 0.00000%,
+long-only -0.09785% net/+0.00827 Sharpe, short-only +0.05785% net/-0.01558
+Sharpe, random -1.31143% net/-0.25857 Sharpe, and untrained FiLM exactly equal
+to short-only. The canonical 60-update loadout retains `stream_worker`, family
+00, random/generated tasks, four synchronous members, narrower learning rates,
+and bounded entropy schedules across matched no-cost/staged/exact-cost arms.
+The goal is paused immediately before `--variant no_cost`; do not launch until
+the user resumes it. Then advance any candidate to block uncertainty, 0.5/1/2 bp,
+new chronological blocks, and independent seeds. Keep the final test sealed.
 
 ## 2026-09-17 synchronous bridge — pause and completed recovery
 

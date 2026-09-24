@@ -1,5 +1,80 @@
 # Session Log
 
+# 2026-09-24 — Dataset-v2 acquisition and R0 bridge
+
+- Authenticated old Alpaca SIP access and built an immutable, split-adjusted,
+  12-symbol one-minute snapshot for 2022-01-03 through 2026-09-22.
+- Retained pre-market/RTH/after-hours raw and Parquet partitions; made Phase A
+  loads RTH-only and session/interval-safe.
+- Verified 10,370,064 unique bars, zero duplicate keys/OHLC failures/negative
+  volumes, and a 14.97% naturally flat OHLC rate versus 100% in audited v1.
+- Added filtered Parquet/DuckDB loading, data selectors, directory hashing,
+  acquisition/build contracts, and focused TDD coverage.
+- Completed 32-start deterministic controls plus matched fresh 12-update no-cost
+  and exact-1-bp R0 arms. PPO remained active; neither arm cleared flat/long-only.
+- Published the Markdown/HTML audit, evidence plots, exact snapshot manifest,
+  and updated Phase A/Phase B roadmap.
+- Started the matched v2 synchronous P0 and observed four genuine no-cost-arm
+  exploits, two durable-checkpoint fallbacks, and no exploit skips before a
+  Ray 2.9 save-after-restore race errored member `00001`. Enforced the declared
+  stop gate before either cost arm began and preserved 107 report rows plus 22
+  stable checkpoint-index records.
+- Reproduced the exact actor-save ordering in a focused test and repaired the
+  adapter: an exploited actor awaiting its first post-restore report reuses the
+  attached donor checkpoint, then returns to ordinary checkpointing. The
+  scheduler file passes 10 tests; the combined PBT/training/ablation slice
+  passes 80 tests; healthcheck is green.
+- The first verification gate reached ~97k steps per member with three genuine
+  exploits before the same Ray assertion exposed a second restore path: stable
+  self-reattachment did not mark the fresh actor as awaiting its first result.
+  The stop gate fired, preserving all evidence. A second red/green regression
+  moved the guard to checkpoint attachment itself; the 10 scheduler tests and
+  80-test focused slice remain green. Another fresh gate is required.
+- The next fresh gate reached ~97k for all four members with three genuine
+  exploits and proved both restore paths could emit new results. It then stopped
+  on the declared trial-failure gate: an upper donor's scheduled Ray save
+  resolved empty, the exact same-step durable checkpoint was recovered, and Ray
+  nevertheless scheduled a redundant save on the recreated actor before its
+  first result. The scheduler now treats the exact immutable sidecar checkpoint
+  as authoritative for synchronous upper donors and fails closed if it is
+  absent. Two new red/green regressions bring the scheduler file to 12 tests;
+  the focused 82-test slice, full 173-test suite, and healthcheck are green.
+- Gate C proved the exact-sidecar selection path twice and completed two clean
+  exploits before all four members reached ~97k. The fail-closed guard then
+  caught a one-update in-flight overshoot: member `00002` had a 102,080-step
+  selection row but only the preceding 97,248-step cadence snapshot. The
+  training contract now retains an immutable snapshot for every synchronous-PBT
+  report while reporting only cadence/terminal checkpoints to Tune. This keeps
+  donor score and model state exact without changing PBT cadence or using actor
+  saves. The 83-test focused slice, full 174-test suite, healthcheck, and diff
+  check pass; Gate D is required before the matched three-arm search.
+- Gate D completed the official 35-update four-member no-cost ablation with all
+  trials `TERMINATED` at 170,152--170,416 trial-owned steps. It produced 140
+  reports, 140 non-empty stable checkpoints, five genuine exploits, five exact
+  `stable_checkpoint_selected` receipts, and zero donor lag, exploit skips,
+  trial errors, required-metric nonfinites, or storage stops. The run crossed the
+  former 97k, 102,080, and 120k failure regions and both exploited targets emitted
+  fresh post-restore results. Member `00000` briefly reached +0.08116% 1 bp net
+  and +0.01576 Sharpe for a three-report positive streak, but every terminal row
+  was negative. Gate D passes checkpoint/search integrity and fails economic
+  promotion; the matched three-arm P0 was not launched automatically.
+- Audited Gate D restore provenance directly: all five retained restore copies
+  match their selected donor checkpoint tree hashes. Hardened future inspection
+  to require a generation-bound scheduler selection, exactly one target restore
+  receipt, a same-generation target report, and a same-generation target
+  checkpoint. Historical Gate D now requires an explicit legacy-inspection flag.
+- Diagnosed a development-panel confound: horizon groups used different starts
+  while `semantic_v2` exposes horizon. Added an explicit 8-start x 4-horizon
+  crossed panel and made both controls and training consume it by content hash.
+- Ran the final crossed 1 bp controls: flat 0.00000% net/0 Sharpe; long-only
+  -0.09785%/+0.00827; short-only +0.05785%/-0.01558; random
+  -1.31143%/-0.25857; seeded untrained FiLM exactly matched short-only. The panel
+  removes the horizon/start shortcut but remains selection-informed.
+- Prepared the matched 60-update synchronous P0 with `stream_worker`, family 00,
+  random/generated tasks, four members, a narrower learning-rate range, and
+  bounded entropy schedules. Focused tests and schema/CLI validation pass. No PBT
+  arm was launched; the goal stops paused immediately before `--variant no_cost`.
+
 # 2026-09-20 — Phase A raw-24k recovery and Ray-2.9 tail closure
 
 - Recovered all four raw-net 24k lineages from immutable checkpoints after the

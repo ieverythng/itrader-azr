@@ -1,6 +1,6 @@
 # Documentation Index
 
-Markdown is the source of truth for active documents. HTML companions accompany the four review surfaces that require them; their synchronization and verification status is recorded in the dated revision audit. Current architecture claims are source-grounded against branch `agent/Watson-dev` at `bec5c77`; dated reports preserve evidence and line references from their audit snapshots. Solver/trunk/head choices remain subject to the ongoing user grill-me review.
+Markdown is the source of truth for active documents. HTML companions accompany review surfaces that require them; their synchronization and verification status is recorded in the dated audit. Current architecture claims are source-grounded against branch `agent/Watson-dev`; dated reports preserve evidence and line references from their audit snapshots. Solver/trunk/head choices remain subject to explicit implementation and evidence gates.
 
 ## Active architecture
 
@@ -34,6 +34,8 @@ Markdown is the source of truth for active documents. HTML companions accompany 
 - `artifacts/research/phase-a-performance-validity-audit-2026-09-12.md` (+ `.html`) — Phase A audit, corrected parity runs, frozen controls, synchronous reward bridge, raw-24k closure, replay/block/cost evidence, and P1 gates.
 - `artifacts/research/phase-a-mlp-film-autoresearch-2026-09-19.md` (+ `.html`) — matched P0 cost/cadence study, shared-lineage and transient challengers, exact replay, cost/block/regime evidence, failed independent replication, and live-validated Ray-2.9 PBT tails.
 - `artifacts/research/phase-a-storage-incident-audit-2026-09-19.md` (+ `.html`) — WSL crash-dump root cause, verified C/D/E offload layout, live watchdog/RAM attribution, junction receipts, and deferred coordinated WSL-distro move.
+- `artifacts/research/market-data-provider-evaluation-2026-09-23.md` — primary-source comparison of Alpaca, Databento, Cboe, Tradier, and Polygon/Massive for dataset v2.
+- `artifacts/research/dataset-v2-r0-audit-2026-09-24.md` (+ `.html`) — authenticated Alpaca SIP snapshot, dataset-v1 diagnosis, immutable Parquet/DuckDB/Ray contract, original and crossed RTH controls, matched R0 bridges, strict synchronous-PBT provenance, launch-ready matched P0, plots, and the Phase A-to-Phase B gate.
 - `artifacts/research/azr-stack-review-2026-09-12.md` — local AZR v2 synthesis and source-grounded adaptation recommendations.
 - `artifacts/research/recurrence-code-audit-2026-09-12.md` — independent read-only source audit; do not treat its attempted WSL test as a pass.
 - `artifacts/research/recurrence-docs-revision-audit-2026-09-12.md` — this docs coverage inventory, edit rationale, and validation results.
