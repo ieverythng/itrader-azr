@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "exploit_id": "149e158471a3562e66f8a1b7960bbe5650644f98f722c2c2ca87ca609f88a179",
+  "observed_checkpoint_path": "C:\\Users\\Admin\\AppData\\Local\\Temp\\checkpoint_tmp_fb1e99f5bb694d29b4f9e4cc574034d4",
+  "observed_checkpoint_sha256": "d41d8c47425ccb6ac8270ffcb7398b0dfc5ecf31226af59cf2042246086f1e44",
+  "expected_checkpoint_sha256": "d41d8c47425ccb6ac8270ffcb7398b0dfc5ecf31226af59cf2042246086f1e44",
+  "digest_match": true,
+  "receipt_kind": "pbt_exploit",
+  "lineage_verified": true,
+  "recorded_at_utc": "2026-09-24T15:47:49.198947+00:00",
+  "target_trial_id": "9cc5b_00001",
+  "target_trial_name": "training_fn_ITraderEnv_9cc5b_00001",
+  "restore_generation": 1,
+  "parent_exploit_id": "149e158471a3562e66f8a1b7960bbe5650644f98f722c2c2ca87ca609f88a179",
+  "target_clock_at_restore": 48768,
+  "target_updates_at_restore": 10,
+  "donor_checkpoint_path": "C:\\itrader-ray\\v2p0-nonflat-search-sync30-20260924\\_stable_metrics\\training_fn_ITraderEnv_9cc5b_00000_0_seed=958639_2026-09-24_17-35-46\\checkpoints\\iter_000010_154030659239",
+  "donor_trial_id": "9cc5b_00000",
+  "donor_progress_steps": 48960,
+  "source_tree_sha256": "58ddeba2f7492463e033a002191c7abf4a386150d42808b2fd8d928ef18ee06c",
+  "dataset_sha256": "20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9",
+  "evaluation_panel_sha256": "2314a55ceac6aceed575203d91daa0d1468fcd88158ff4d0839751c3b8b36b9f"
+}

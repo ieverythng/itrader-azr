@@ -1,6 +1,6 @@
 # iTrader System Architecture
 
-Last updated: 2026-09-24
+Last updated: 2026-09-25
 Branch snapshot: `agent/Watson-dev` with the uncommitted dataset-v2 implementation round
 Status: **active working architecture; recurrence and trunk/head design pending grill-me review**
 
@@ -34,15 +34,16 @@ Source anchors:
 The current observation is:
 
 ```text
-obs_t = [price_window_flat(T * F) | task_embedding(D)]
+obs_t = [price_window_flat(T * F) | task_embedding(D) | optional solver_state(S)]
 price_window = reshape(price_window_flat, T, F)
 newest_bar = price_window[-1]
 ```
 
-The environment fills the window chronologically. A candidate model must split
-these dimensions explicitly; inferring `F` from the full observation width is
-invalid once `D` is appended. The legacy `SolverLSTMModel` does exactly that and
-is both shape-incompatible for the usual `T=30,F=5,D=32` layout and non-stateful.
+The environment fills the window chronologically. R0 uses `S=0`; R4-v1 uses the
+fixed `S=2` block. A candidate model must split these dimensions explicitly;
+inferring `F` from the full observation width is invalid once conditioning or
+solver state is appended. The legacy `SolverLSTMModel` does exactly that and is
+both shape-incompatible for the usual `T=30,F=5,D=32` layout and non-stateful.
 
 The active `SolverMLPFiLM` implementation is source-defined as:
 
@@ -91,7 +92,7 @@ P0 crosses eight starts with all four horizons so task horizon cannot identify a
 different market path. This is a development-panel correction, not a substitute
 for independent chronological validation.
 
-Promotion-oriented Ray 2.9 PBT uses synchronous scheduling and a target-owned
+Promotion-oriented PBT uses synchronous scheduling and a target-owned
 cumulative sampled-environment-step clock. Every report writes an immutable
 stable sidecar checkpoint before `session.report`; Tune receives only
 cadence/terminal checkpoints. Donor selection must resolve an exact
@@ -136,6 +137,16 @@ gap, session transition, missing interval, or early close. Phase A selects
 ablation. Dividend accounting remains a future explicit cashflow seam in
 environment evidence/reward, not an implicit price rewrite.
 
+### Platform migration gate
+
+Ray 2.58 is the accepted forward R-series runtime; Ray 2.9 is a frozen historical
+reproduction profile. Both full suites, deterministic initialization/control,
+synchronous exploit/restore lineage, and exact fresh replay pass. The first
+stochastic rollout differs under the same seed, so results stay runtime-labelled
+instead of requiring bit-identical PPO paths. R1 must run beside a Ray-2.58 R0
+control; the native RLModule/EnvRunner modernization remains a later independent
+factor.
+
 ## Phase B architecture decision status
 
 Phase B covers both offline/curriculum work and online replay/shadow work. A
@@ -149,20 +160,26 @@ these choices until the ongoing grill-me review confirms them.
 mandatory learned reward head, and reward computation must not be silently
 conflated with policy/value-head design.
 
+Ordering is explicit: platform parity first; R1/R2 representation and lifecycle
+controls second; causal C0/C1/shuffled-C1 only after a stable R-series contract;
+and System-One/CLM/Jev S-series work only after the solver interface, platform,
+and evidence contract are frozen. C and S are named independent factors, not
+ways to rescue an R-series result.
+
 
 The historical identities below preserve the original file at commit `4732a98`.
 They are design names, not current CLI flags, and do not settle the architecture.
 
 | ID | Head and conditioning | State | Status and purpose |
 |---|---|---|---|
-| R0 | `SolverMLPFiLM` | None | **Implemented/default control** |
+| R0 | `SolverMLPFiLM` | None | **Implemented; immutable parity control** |
 | R1 | Corrected reset-every-step window LSTM + FiLM | None | Unimplemented; test temporal inductive bias inside the supplied window |
 | R2a | Stateful LSTM + task concat at recurrent input | `(h,c)` across steps | Unimplemented; original recurrence baseline |
 | R2b | Stateful LSTM + FiLM initial state only | `(h,c)` across steps | Deferred; `get_initial_state()` lacks task input under current RLlib contract |
 | R2c | Stateful LSTM + per-step FiLM | `(h,c)` across steps | **Active candidate; unimplemented**; placement remains open pending grill-me review |
 | R2d | Init + per-step FiLM on value head only | `(h,c)` across steps | Deferred; needs matched policy/value placement controls |
 | R3 | Stateful GRU + per-step FiLM | `h` across steps | Planned after LSTM lifecycle controls |
-| R4-v1 | Explicit solver-state features on matched FF + recurrent cells | Cell-dependent | Planned; versioned observability study, not historical R4 |
+| R4-v1 | Explicit position + remaining-horizon state on matched cells | Cell-dependent | Architecture-qualified with R0 as the forward FF baseline; 4x3x40 replication complete, economic promotion failed |
 
 Migration note: the simplified `bec5c77` docs called per-step FiLM R2b; that
 label maps to original R2c. The former init-oriented R4 maps to original R2b.
@@ -229,12 +246,11 @@ before scoring the first action). The warmup is input processing, not extra
 future information. Repeating overlapping observation bars as separate
 chronological steps is invalid.
 
-The pinned source stack is Ray/RLlib 2.9.0 with Gymnasium 0.28.1 from
-`pyproject.toml`/`uv.lock`. Future recurrent implementation must verify the exact
-API in that environment; the old `phase_b_plan.md` Ray 2.47.1 line is historical
-ordering, not the active lock. Do not invent `recurrent_policy=True` or other
-flags. Use the native recurrent model/state contract available in the pinned
-version.
+The current forward stack is Ray/RLlib 2.58.0 with Gymnasium 1.2.2 from
+`pyproject.toml`/`uv.lock`; `itrader/compat/ray29/` preserves the historical
+reproduction profile. The old `phase_b_plan.md` Ray 2.47.1 line is historical
+ordering, not an active lock. Do not invent `recurrent_policy=True` or other
+flags. Use the native recurrent model/state contract of the accepted platform.
 
 Required lifecycle semantics:
 
@@ -256,12 +272,30 @@ imply recurrent state handling or full-episode backpropagation.
 
 ## 6. Solver-state observability
 
-The current policy observation does not include position, previous action,
-realized reward, unrealized PnL, or episode progress. OHLCV-only recurrence cannot
-reconstruct sampled actions, fills, or position exactly. For `R4-v1`, define the
-field order, normalization, timing, and terminal semantics, then append identical
-explicit fields to a feed-forward R0 control and the recurrent comparison. Never
-add them only to recurrence and call the result a memory gain.
+State-free R0 does not include position, prior actions, episode accounting, or
+progress. OHLCV-only recurrence cannot reconstruct sampled actions, fills, or
+position exactly. `R4-v1-min` fixes the auxiliary order as
+`[position, remaining_horizon_fraction]`, including reset and terminal semantics,
+and appends it through a separate bias-free residual branch. The blocking
+three-seed 4x3 FF gate is replay-valid. Time-only passed the relative net-return
+factor gate, but no arm passed the absolute economic gate.
+
+The complete connector is nevertheless architecture-qualified with R0 as the
+forward `R0 + R4-v1` feed-forward baseline because it removes the known
+endogenous action-cost and finite-horizon alias. R0 remains the immutable parity
+control, and this does not constitute economic promotion or full observability of
+the market. New replication uses zero-initialized final residual heads to preserve
+the update-zero R0 policy/value. The completed 4x3x40 replication found a
+seed-consistent positive terminal net delta for combined state and a positive
+pooled seed-then-anchor interval, but not control superiority or seed-consistent
+Sharpe; one seed collapsed near-flat. R1 must retain both state-free and
+explicitly named `R1 + R4-v1` cells.
+
+Episode PnL, cost basis, unrealized/realized PnL, position age, accumulated
+turnover, drawdown, and market-session time are registered future causal factors.
+They enter only with explicit accounting, reset, reward/transition dependency,
+and inference-availability contracts. Market/task × state nonlinear late fusion
+is reserved for separately named R4-v2.
 
 ## 7. AZR-inspired proposer/solver boundary
 
@@ -318,6 +352,8 @@ calibration evidence.
   held-out chronological slices, with stable state norms, valid sequence masks,
   and recorded compute/memory cost.
 - R3 waits for a meaningful LSTM result.
-- R4-v1 requires identical explicit state features in FF and recurrent cells.
+- R4-v1-min is implemented and replay-valid on FF. Its fresh 4x3x40 replication
+  found a relative combined-state net effect but failed absolute promotion;
+  next work targets actor robustness on the qualified baseline, not R4-v2.
 - No recurrent cell becomes operational guidance from an unimplemented design,
   a zero-state probe, PPO logits/value scores, or a training-only curve.

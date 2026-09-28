@@ -1,7 +1,7 @@
 # iTrader Masterplan
 
-Last updated: 2026-09-24
-Status: **dataset v2, crossed RTH controls, and strict synchronous-PBT provenance are validated; the next matched P0 is paused launch-ready, and no v2 R0 candidate passes the Phase A economic gate**
+Last updated: 2026-09-25
+Status: **dataset-v2 R0 is the immutable negative/parity control; R0 + R4-v1 is architecture-qualified by the completed fresh 4x3x40 replication, but remains economically unpromoted**
 Branch snapshot: `agent/Watson-dev` plus the uncommitted dataset-v2 implementation/evidence round
 
 ## North star
@@ -143,12 +143,14 @@ Before Phase B may rely on R0 behavior as a performance baseline:
    Cadence checkpoints write a best-held-out pointer for mandatory fresh-process
    replay, and the ablation harness supports explicit baseline-relative terminal
    promotion gates.
-8. **Next platform seam:** preserve Ray 2.9 as the locked reproduction baseline,
-   then migrate in a separate environment to Ray 2.58.0. First prove old-API
-   parity, then port `ModelV2`/workers/callbacks to
-   `RLModule`/EnvRunner/Learner/ConnectorV2. Reconcile the current dependency
-   declaration drift: 2.9.0 in `pyproject.toml`/Conda versus 2.47.x in the
-   constraints and cluster setup.
+8. **Platform seam accepted:** Ray 2.58.0 is the forward R-series authority and
+   Ray 2.9 is a frozen historical reproduction profile. Both runtime suites,
+   deterministic initialization/control, synchronous exploit/restore lineage,
+   and exact fresh replay pass. A three-seed smoke bridge confirms that both
+   short runs remain economically negative and that same-seed PPO endpoints are
+   not a valid cross-version parity requirement. R1 must use a Ray-2.58 R0
+   control; a later `RLModule`/EnvRunner/Learner/ConnectorV2 modernization remains
+   a separate factor.
 9. **Completed but not promoted:** the matched four-member-per-arm 120-update
    bridge compared exact 1 bp `net_return` with historical `pnl_linear` under
    identical seeds, starts, data, exposure, and MLP-FiLM architecture. Mean
@@ -228,16 +230,15 @@ The detailed findings are in
 earlier repair chronology in
 `docs/artifacts/research/phase-a-performance-validity-audit-2026-09-12.md`.
 
-Dataset-v2 supersedes dataset-v1 for new performance selection. The next P0 is
-a matched RTH search over no-cost, staged-cost, and exact-cost schedules on an
-environment-step clock, with tighter best-evaluation checkpoint retention and
-an explicit crossed task panel. P1
-then uses independent, non-overlapping chronological blocks, paired block-aware
-uncertainty, regime-conditioned actions, and 0.5/1/2 bp replay. R-series
-engineering can proceed in parallel, but frozen proposer/family uplift cannot be
-claimed until the R0 data/evidence baseline is frozen. A frozen Qwen3.8 proposer
-then compares against random/generated tasks at equal R0 checkpoint and solver
-compute; adaptive proposer reward remains later Phase B work.
+Dataset-v2 supersedes dataset-v1 for new performance selection. The matched RTH
+no-cost/staged/exact-cost P0 is complete and not promoted. The Ray-2.58 R0
+platform gate is accepted; after review, run R1 beside a matched Ray-2.58 R0
+control. P1 uses independent, non-overlapping chronological
+blocks, paired block-aware uncertainty, regime-conditioned actions, and 0.5/1/2
+bp replay. Frozen proposer/family uplift cannot be claimed until the R-series
+solver/evidence contract is frozen. A frozen Qwen3.8 proposer then compares
+against random/generated tasks at equal checkpoint and solver compute; adaptive
+proposer reward remains later Phase B work.
 
 The first dataset-v2 P0 launch stopped safely during the no-cost arm after four
 genuine exploits: Ray 2.9 scheduled a save on an exploited actor before its
@@ -254,22 +255,35 @@ report while exposing only cadence/terminal checkpoints to Tune. Gate D then
 completed all four members at 170,152--170,416 trial-owned steps with 140
 reports/checkpoints, five genuine exploits, five exact same-step donor receipts,
 and zero trial errors, skips, or receipt lag. It crossed the former 102,080 and
-120k failure regions and closes the Ray 2.9 checkpoint/search seam. A later
+120k failure regions and closes the first Ray 2.9 checkpoint/search seam. A later
 forensic pass matched every retained Gate D restore copy to the selected donor
 tree hash. New arms make the proof generation-bound: scheduler selection,
 exactly one target restore receipt, a target report, and a target retained
 checkpoint must all agree. Its strongest
 point (`00000`, 29,232 steps) reached +0.08116% 1 bp net and +0.01576 Sharpe for
 three consecutive positive-net/positive-Sharpe reports, then regressed; every
-terminal row was negative. Gate D is not a matched economic result. The next P0
-is the fresh no-cost/staged/exact-cost comparison on the crossed v2 RTH panel.
-The canonical 60-update/four-member loadout is frozen with `stream_worker`,
-family 00, random/generated tasks, a `5e-6..3e-4` learning-rate range, and
-bounded decaying entropy schedules. Run its arms individually and enforce a hard
-20-update continuation gate for population health, genuine exact-receipt
-exploitation, finite/non-empty evidence, and storage headroom before spending
-the next arm's budget. The goal is currently paused immediately before the
-`no_cost` launch; no PBT arm is running.
+terminal row was negative. Gate D is not a matched economic result.
+
+The crossed-panel staged-cost and exact-1-bp follow-ups are now complete through
+their predeclared approximately-96k-step review gates. Several early probes were
+invalidated when a synchronous target was pre-staged before the population
+barrier and later restored target-local state despite a donor exploit. The
+scheduler now vetoes early boundary resume, removes orphan target staging after
+exploit, and fails closed if a paused exploit target already owns an actor. The
+final exact-cost arm passed strict inspection with four members, three exploits,
+three verified generation-bound restore lineages, and no stale or pending
+evidence.
+
+Economically, staged cost converged all four members to the matched short-only
+control (+0.05785% net, -0.01558 Sharpe, turnover 2). Exact 1 bp ended with a
+population mean -0.05317% net, -0.03815 Sharpe/sqrt(bar), 67.33% flat, 32.67%
+short, 0% long, and turnover 6.609. Across 84 exact-cost reports only three had
+positive net return, three had positive Sharpe, and none had both. PBT mutations
+and weight transfers were valid; the result is a mechanically credible R0 basin,
+not absent search. Further exact-cost R0 selection against the same panel is
+stopped. R0 remains the compatibility/economic control for a matched R-series
+challenger. The accepted Ray-2.58 platform gate now permits a Ray-2.58 R0/R1
+comparison without confounding framework and representation.
 
 The dataset reset and first v2 R0 evidence are in
 `docs/artifacts/research/dataset-v2-r0-audit-2026-09-24.md`.
@@ -291,22 +305,30 @@ input schemas, task semantics, reward assignments, or state ownership.
 
 ### Solver standard (proposed, not settled)
 
-Keep R0 as the control. Do not describe model registration as model selection.
-R1–R3 are unimplemented, and R4 is versioned as `R4-v1`. The shared-trunk and
+Keep R0 as the immutable parity control. Do not describe model registration as
+model selection. R1–R3 remain unimplemented. `R4-v1-min` has a
+backwards-compatible position/remaining-horizon seam, a completed blocking 4x3
+gate, and a completed fresh 4x3x40 replication. On the fresh block, combined
+state improved terminal net over masked in all seeds and passed the pooled
+relative net gate, but every arm failed the absolute economic gate because of
+control inferiority, Sharpe inconsistency, and near-flat collapse. The complete
+connector is nevertheless architecture-qualified: `R0 + R4-v1` is the forward
+feed-forward training baseline because it removes the known endogenous
+control-state alias. Economic promotion remains blocked. The shared-trunk and
 family-head arrangement remains open pending user review.
 
 Historical provenance is authoritative:
 
 | Cell | Identity | Status |
 |---|---|---|
-| R0 | MLP + implemented FiLM (`tanh(gamma)*hidden + beta`) | Implemented/default |
+| R0 | MLP + implemented FiLM (`tanh(gamma)*hidden + beta`) | Implemented; immutable parity control |
 | R1 | Reset-every-step window LSTM + FiLM; explicit market/task split | Unimplemented; must be correct/measurable |
 | R2a | Stateful LSTM + task concat | Unimplemented recurrence baseline |
 | R2b | Stateful LSTM + init-only FiLM | Deferred: task unavailable to current initial-state hook |
 | R2c | Stateful LSTM + per-step FiLM | Active candidate; readout placement first |
 | R2d | Init + per-step FiLM on value head only | Deferred; matched placements required |
 | R3 | Stateful GRU + per-step FiLM | Later cell-type comparison |
-| R4-v1 | Matched explicit solver-state features on FF + recurrent controls | Separate observability study |
+| R4-v1 | Position + remaining-horizon state on matched controls | Architecture-qualified with R0; fresh 4x3x40 replication passed paired net attribution but failed absolute promotion |
 
 The `bec5c77` “R2b per-step” label maps to original R2c. The older
 init-oriented R4 maps conceptually to R2b; `bec5c77` instead used R4 for
@@ -346,27 +368,55 @@ The historical `legacy_v1` encoder omits reward parameters, bar resolution,
 regime tags, difficulty, and metadata while exposing a seed feature. New runs
 use versioned `semantic_v2`, which represents normalized solver-relevant task
 fields while excluding episode seed/start location shortcuts; checkpoint
-compatibility remains explicit. R4-v1 adds position/progress/PnL fields identically
-to feed-forward and recurrent controls. OHLCV-only recurrence cannot know sampled
-actions, fills, or position exactly.
+compatibility remains explicit. R4-v1-min adds position and normalized remaining
+horizon through a fixed two-value block on the FF control. New replication uses
+the named `zero_v1` residual initialization so the update-zero policy/value
+matches R0; historical checkpoints retain `random_v1`. R1 must preserve a clean
+state-free cell and an explicitly named `R1 + R4-v1` cross. Episode PnL, cost
+basis, unrealized/realized PnL, holding duration, drawdown, accumulated turnover,
+and market-session time are registered future factors with explicit ownership
+and reset semantics, not current inputs. OHLCV-only recurrence cannot know
+sampled actions, fills, or position exactly.
 
 ### Phase B implementation/evidence order
 
-1. Complete the mandatory Phase A revalidation gate and preserve R0 as a
-   compatibility control, not a validated performance winner.
-2. Produce truthful task/family/regime metadata through the shared episode-evidence
+1. Preserve the completed dataset-v2 R0 cost study as a compatibility/economic
+   control, not a validated performance winner. Do not continue selecting on
+   the same crossed 32-episode panel.
+2. Preserve the accepted Ray-2.58 gate. The local-worker two-member run closed a
+   genuine exploit, exact donor digest, generation-bound target receipt,
+   monotonic target clock, post-restore report, and exact fresh replay. The
+   three-seed smoke bridge ended negative on both versions. Keep Ray 2.9 only for
+   historical reproduction, run R1 beside a Ray-2.58 R0 control, and never change
+   solver representation plus native RLlib stack in the same attribution cell.
+3. Produce truthful task/family/regime metadata through the shared episode-evidence
    contract.
-3. Complete alignment/reward controls on R0; keep reward changes independent of
-   recurrence. Treat the staged reward file as existing/unreviewed here.
-4. Implement and test R1 shape splitting, chronological newest-bar convention,
+4. Keep reward, dataset, tasks, seeds, PBT cadence, and economic gates fixed while
+   changing solver representation; do not attribute a cost-objective change to
+   recurrence.
+5. Implement and test R1 shape splitting, chronological newest-bar convention,
    FiLM readout, finite forward/backward, and smoke configuration.
-5. Implement R2a native recurrent LSTM with state lifecycle tests.
-6. Implement R2c readout FiLM and the named `R2c-CARRY`/`R2c-RESET` pair.
-7. Only then consider the named pre-cell factor, R2b init-only, R2d value-only,
+6. Implement R2a native recurrent LSTM with state lifecycle tests.
+7. Implement R2c readout FiLM and the named `R2c-CARRY`/`R2c-RESET` pair.
+8. Only then consider the named pre-cell factor, R2b init-only, R2d value-only,
    and R3 GRU according to evidence.
-8. Run `R4-v1` with identical explicit state features on R0 and the winning
-   recurrent control.
-9. Promote only after held-out chronological evaluation, multi-seed results,
+9. Preserve both R4-v1 economic failures while using `R0 + R4-v1` as the
+   architecture-qualified forward FF baseline. The fresh December-2025 4x3x40
+   replication is complete with zero-init parity, exact replay, block-aware
+   uncertainty, and counterfactual diagnostics. Combined state improved net over
+   masked in all seeds and passed the pooled relative net gate, but failed
+   long-only superiority, Sharpe consistency, and the near-flat ceiling. Next run
+   a bounded actor-robustness search over learning rate, entropy pressure, and
+   causal cost staging with retained-best replay. Keep state-free R1 and the
+   named `R1 + R4-v1` cross separate. R4-v2 nonlinear late fusion remains a
+   later independent factor.
+10. Run causal conditioning only as a separate C-series factor: C0 current
+   features, C1 trailing train-fitted regime summaries, and shuffled-C1. Never
+   train on the current future-derived `regime_tags`.
+11. Keep the System-One/CLM/Jev S-series research-only until the R-series solver
+   interface, platform, and evidence contract are frozen. Then run it as a named
+   independent factor rather than mixing it into an R or C comparison.
+12. Promote only after held-out chronological evaluation, multi-seed results,
    state norms, sequence-mask checks, compute/memory, and checkpoint/replay tests.
 
 R1 need not win before R2 is tested. It must be correct and measurable.

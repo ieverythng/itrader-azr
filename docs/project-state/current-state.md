@@ -1,8 +1,52 @@
 # Current State
 
-Last updated: 2026-09-24
+Last updated: 2026-09-25
 Branch: `agent/Watson-dev`
-HEAD: `891fcaa` plus the uncommitted dataset-v2 implementation/evidence round
+Baseline HEAD: `0894116`; this dataset-v2 implementation/evidence round is the
+next reviewable delivery on `agent/Watson-dev`
+
+## R0 + R4-v1 architecture gate closed
+
+The fresh December-2025 4x3x40 replication is complete on the zero-initialized
+R4-v1 evidence profile. All 12 terminal checkpoints replay exactly. Combined
+position-plus-time state improved terminal net return over masked in every seed,
+and the pooled seed-then-anchor interval excluded zero. The actor/critic
+counterfactuals confirm real state use, with remaining horizon affecting the
+critic most strongly.
+
+No arm is economically promoted: all mean returns and Sharpes remain below the
+long-only control, Sharpe uplift is not seed-consistent, and seed 20260926
+collapsed above the 98% flat ceiling. R0 remains the immutable parity control;
+`R0 + R4-v1` is the architecture-qualified forward FF baseline. The next P0 is
+a bounded actor-robustness search over learning rate, entropy pressure, and
+causal cost staging with retained-best replay. R4-v2 remains deferred.
+
+## Ray 2.58 platform gate accepted
+
+The separately committed migration was reviewed but not cherry-picked because it
+carried a dataset-v1, asynchronous-PBT experiment boundary. Runtime-capability
+adapters were applied to current dataset-v2 source instead. The full 254-test
+suite and healthcheck pass on Ray 2.9 and isolated Ray 2.58; both runtimes produce
+the exact same initial MLP-FiLM weights and deterministic crossed-panel control.
+Their stochastic PPO trajectories differ under the same seed, so results must
+remain runtime-labelled.
+
+The fresh Ray-2.58 local-worker two-member/12-update gate completed at about
+58.6k steps per member with one genuine synchronous exploit, one verified
+generation-bound restore lineage, and exact fresh replay. The matched Ray-2.9
+mechanical gate also passed. A three-seed/fixed-hyperparameter smoke bridge ended
+negative for every runtime/seed terminal and for every best-checkpoint Sharpe;
+it validates execution breadth, not economic equivalence or uplift.
+
+During the gate, fresh replay exposed and fixed evaluation-time task-embedding
+dropout: `SolverMLPFiLM` now honors RLlib's `is_training` signal. Older in-loop
+evaluation with `t_keep_p < 1` is stochastic unless its selected checkpoint has
+an exact fresh replay. The corrected acceptance runs replay at zero delta.
+
+The coordinated root pins now target Ray 2.58/Gymnasium 1.2.2/PyArrow 17. Ray
+2.9 remains a frozen profile in `itrader/compat/ray29/`. R1 must eventually run
+beside a matched Ray-2.58 R0 control on the validated `workers=0` topology, after
+the bounded R4-v1 actor-robustness P0. See the dated Ray-2.58 R0 parity-gate audit.
 
 ## Dataset-v2 and first R0 bridge
 
@@ -62,12 +106,24 @@ occurred. The 35-update gate therefore closes the Ray 2.9 synchronous checkpoint
 seam. It does not close economic promotion: all terminal 1 bp net returns and
 Sharpes were negative.
 
-The canonical no-cost/staged/exact-cost P0 is now fully preflighted with the
-crossed panel, `stream_worker`, synchronous four-member PBT, family 00,
-random/generated tasks, 60 updates per arm, a narrower `5e-6..3e-4` learning-rate
-range, and bounded decaying entropy schedules. No arm has been launched. The
-goal is paused immediately before `--variant no_cost` at the user's request.
-All earlier interrupted arms remain diagnostic evidence, not cost-arm results.
+The canonical crossed-panel P0 has now completed its bounded staged-cost and
+exact-1-bp reviews with `stream_worker`, synchronous four-member PBT, family 00,
+random/generated tasks, lower learning rates, and bounded entropy schedules.
+The final exact-cost arm passed its 96k mechanical gate with four members, three
+verified generation-bound exploits, and no pending/stale lineage. It failed the
+economic gate: population mean net return was -0.05317%, Sharpe/sqrt(bar)
+-0.03815, actions were 67.33% flat/32.67% short/0% long, and turnover was 6.609.
+Only 3/84 reports had positive net return, 3/84 had positive Sharpe, and none had
+both. Positive gross return was erased by costs; mean turnover plus liquidation
+penalties were approximately 3.55 times the positive PnL component.
+
+The staged-cost arm instead converged all four members to the matched short-only
+control: +0.05785% net, -0.01558 Sharpe, and turnover 2. This confirms that cost
+curriculum changes policy persistence, but neither arm demonstrates risk-adjusted
+edge. R0 is now frozen as the compatibility/economic control. More selection on
+the same crossed panel is stopped; the next high-information step is a bounded
+R1 representation challenger under identical data, tasks, seeds, costs, PBT
+cadence, compute, and gates. Earlier contaminated probes remain diagnostic only.
 
 ## Working-tree boundary
 
@@ -250,7 +306,7 @@ checkpoint restore, drives perturbation/checkpoint cadence in sampled environmen
 steps, and fixes the repeated late-schedule mutation seen around member `00001`'s
 iteration-130 restore.
 
-The next-P0 implementation is staged for review. It adds a separate `net_return`
+The completed next-P0 implementation added a separate `net_return`
 reward whose scaled episode sum matches 1 bp `EpisodeEvidence` arithmetic,
 horizon-balanced frozen validation tasks, available Ray 2.9 PPO diagnostics, a
 best cadence-checkpoint replay pointer, explicit baseline-relative promotion
@@ -292,13 +348,11 @@ monotonic progress, real mutations in two of four members, and no missing-donor
 warning. Raw synchronous restore counts include self-resume and are not exploit
 counts; stable configuration histories are authoritative.
 
-Ray migration is now an explicit platform follow-up, not an in-place edit to the
-active experiment. The repository currently pins 2.9.0 in `pyproject.toml` and
-`itrader/environment.yml`, but 2.47.x in `itrader/constraints.txt` and
-`itrader/infra/cluster.yaml`. Preserve one authoritative 2.9 reproduction lock,
-then test Ray 2.58.0 in a separate environment before migrating the legacy
-`ModelV2` path to the new RLlib API stack. Unsloth is relevant only to a future
-LLM proposer fine-tune, not the numerical PPO/PBT solver.
+Ray 2.58 is now the coordinated root dependency authority; Ray 2.9 remains an
+explicit historical reproduction profile. The accepted bridge retains the
+legacy `ModelV2`/RolloutWorker stack through narrow compatibility adapters. Port
+to RLModule/EnvRunner only as a later named factor. Unsloth remains relevant only
+to a future LLM proposer fine-tune, not the numerical PPO/PBT solver.
 
 ## Solver truth
 
@@ -318,7 +372,11 @@ R-series design identities are preserved from commit `4732a98`:
 - R2c per-step FiLM — active candidate, unimplemented;
 - R2d init+per-step value-head-only — deferred;
 - R3 GRU per-step — later;
-- R4-v1 matched explicit solver-state feature study — planned and versioned.
+- R4-v1-min position/remaining-horizon FF seam — implemented; blocking 4x3 and
+  fresh 4x3x40 three-seed gates plus exact terminal replay are complete. Combined
+  state passed paired net attribution on the fresh block, but all arms failed
+  absolute promotion and one seed collapsed near-flat. No recurrent cross is
+  economically authorized from this result.
 
 The old `bec5c77` per-step label R2b maps to original R2c; the old init R4 maps
 to original R2b. `R2c-CARRY`/`R2c-RESET` are named same-input controls, not new
@@ -334,7 +392,11 @@ IDs.
 - real termination versus truncation bootstrap and fragment detach semantics;
 - train/inference state parity, vector-worker ownership, checkpoint/replay state;
 - same-input/same-conditioning train-from-scratch carry/reset control;
-- R4-v1 fields added identically to FF and recurrent controls;
+- preserve the failed R4-v1 economic promotion decision while using
+  `R0 + R4-v1` as the architecture-qualified forward FF baseline. R0 remains the
+  immutable parity control. The December-2025 `zero_v1` replication is complete;
+  next work is a bounded actor-robustness search on the qualified baseline and
+  remains separate from recurrent representation controls;
 - chronological held-out validation/final test and cost-aware metrics.
 
 A zero-state probe is an OOD diagnostic, not a causal memory proof. Any
@@ -352,26 +414,41 @@ overrides are covered by regression tests.
 
 ## Dependency and validation status
 
-`pyproject.toml`/`uv.lock` are authoritative: Python 3.11, Ray/RLlib 2.9.0,
-Gymnasium 0.28.1, and setuptools 69.5.1. The old Phase B 2.47.1 line is
-historical. No dependency files were changed.
+`pyproject.toml`/`uv.lock` are authoritative: Python 3.11, Ray/RLlib 2.58.0,
+Gymnasium 1.2.2, PyArrow 17.0.0, and setuptools 69.5.1. The old Phase B 2.47.1
+line is historical; `itrader/compat/ray29/` records the reproduction profile.
 
-The working Windows `.venv` runs the current suite and Ray 2.9 stack. No recurrent
+The existing repository `.venv` remains the live Ray-2.9 reproduction surface;
+the accepted Ray-2.58 environment passes the same 254-test suite. No recurrent
 training result is reported here. The bounded Phase A probe validates effective
 PBT search and evidence wiring, not reward learnability or trading performance.
 Ray-owned PBT text files still truncate to zero bytes on this platform; stable
 repository-owned provenance is authoritative.
 
+A final read-only architecture/deslop pass found and closed three future-run
+provenance gaps without altering completed run artifacts: snapshot content hashes
+ignore interrupted atomic-write `.tmp` files, run manifests serialize the
+resolved per-study PBT learning-rate bounds rather than the global/domain object,
+and `best_checkpoint.json` records economic eligibility from the explicit
+net/Sharpe/flat promotion score instead of inferring it from the active ranking
+metric. The healthcheck and complete 236-test suite pass after these changes.
+
 ## Next priority
 
-Resume the prepared `no_cost` arm only when the user reactivates the goal. At
-the 20-update/~96k-step boundary, apply the strict lineage/population/evidence/
-storage gate before allowing the arm to continue. Then return for authorization
-before staged-cost or exact-cost; never chain arms automatically. Any candidate
-must be replayed at 0.5/1/2 bp and compared by chronological/regime blocks before
-independent P1 lineages. Keep the final test sealed. Preserve R0 while this
-happens; recurrence work may continue separately but must use the repaired data,
-panel, and evidence contracts.
+Freeze the completed R0 staged/exact-cost evidence and stop selecting against
+the same crossed 32-task panel. The Ray-2.58 R0-only platform gate is accepted;
+keep Ray 2.9 as a historical reproduction profile and never change native RLlib
+stack plus solver in one attribution cell. After user review, the next controlled
+cell is R1: a bounded,
+reset-every-step chronological window encoder with the same dataset, task panel,
+seeds, cost schedules, PBT cadence, compute, and economic gates. R1 is a
+representation/shape control, not persistent-memory evidence. Native R2 work
+requires lifecycle, mask, reset, checkpoint/replay, and carry-versus-reset tests.
+Move economic selection to predeclared chronological blocks, 0.5/1/2 bp replay,
+block uncertainty, and independent lineages. Keep the final test sealed.
+After core R-series representation/lifecycle closure, run causal C0/C1/shuffled-
+C1 as a separate factor. Keep System-One/CLM/Jev S-series work research-only
+until the solver interface, platform, and evidence contract are frozen.
 
 ## 2026-09-19 storage incident
 

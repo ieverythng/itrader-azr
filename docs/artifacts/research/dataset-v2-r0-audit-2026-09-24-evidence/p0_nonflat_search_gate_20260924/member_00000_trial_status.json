@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "trial_id": "b5ac0_00000",
+  "trial_name": "training_fn_ITraderEnv_b5ac0_00000",
+  "trial_dir": "C:\\itrader-ray\\v2p0-nonflat-search-sync30-20260924\\v2p0_nonflat_search_sync30_20260924_154148_early_staged_cost\\training_fn_ITraderEnv_b5ac0_00000_0_seed=958639_2026-09-24_15-41-56",
+  "stable_trial_dir": "C:\\itrader-ray\\v2p0-nonflat-search-sync30-20260924\\_stable_metrics\\training_fn_ITraderEnv_b5ac0_00000_0_seed=958639_2026-09-24_15-41-56",
+  "git_commit": "089411666e7105b79d891f2edefcd7c5fa9792de",
+  "source_tree_fingerprint": {
+    "git_commit": "089411666e7105b79d891f2edefcd7c5fa9792de",
+    "algorithm": "sha256(sorted relative-path TAB file-sha256 LF)",
+    "python_file_count": 87,
+    "source_tree_sha256": "b984951c2d390d91653f8e41ef37dc4fc79936d8f489fc9f78ef108c1a13bade"
+  },
+  "config_hash": "a170a3a62ba6ef1042f0f8785f396ffedb96e829f7541a524119c2cd32962a7d",
+  "comparison_config_hash": "6d251029157b9f9fc0761fb2e8a676679b04bb201a05498aad27f965fb921836",
+  "evaluation_panel_sha256": "2314a55ceac6aceed575203d91daa0d1468fcd88158ff4d0839751c3b8b36b9f",
+  "dataset_path": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\data\\datasets\\dataset_v2_20220103_20260922_alpaca_sip_split\\bars",
+  "dataset_sha256": "20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9",
+  "pbt_restore_generation": 1,
+  "pbt_parent_exploit_id": "86191e3e4ddf4dc7fe67cfe49247bfcb82a3466bd83e95e489519d8afbccd52d",
+  "status": "running",
+  "last_iteration": 20,
+  "pbt_progress_steps": 97864
+}

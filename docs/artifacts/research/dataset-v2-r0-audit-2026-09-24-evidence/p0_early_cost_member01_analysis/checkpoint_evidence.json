@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "scope": "exploratory_frozen_selection_panel_not_selection_adjusted",
+  "candidate": {
+    "episode_count": 32,
+    "gross_return_mean": 0.000879127289556188,
+    "net_return_mean": 0.0006666272895561886,
+    "net_sharpe_per_sqrt_bar_mean": -0.014827408993369845,
+    "turnover_mean": 2.125,
+    "short_action_fraction": 0.9996744791666666,
+    "flat_action_fraction": 0.0,
+    "long_action_fraction": 0.0003255208333333333
+  },
+  "controls": {
+    "flat": {
+      "episode_count": 32,
+      "gross_return_mean": 0.0,
+      "net_return_mean": 0.0,
+      "net_sharpe_per_sqrt_bar_mean": 0.0,
+      "turnover_mean": 0.0,
+      "short_action_fraction": 0.0,
+      "flat_action_fraction": 1.0,
+      "long_action_fraction": 0.0
+    },
+    "long_only": {
+      "episode_count": 32,
+      "gross_return_mean": -0.0007785450278411771,
+      "net_return_mean": -0.000978545027841177,
+      "net_sharpe_per_sqrt_bar_mean": 0.008271140634209743,
+      "turnover_mean": 2.0,
+      "short_action_fraction": 0.0,
+      "flat_action_fraction": 0.0,
+      "long_action_fraction": 1.0
+    },
+    "short_only": {
+      "episode_count": 32,
+      "gross_return_mean": 0.0007785450278411771,
+      "net_return_mean": 0.0005785450278411775,
+      "net_sharpe_per_sqrt_bar_mean": -0.015578861677502165,
+      "turnover_mean": 2.0,
+      "short_action_fraction": 1.0,
+      "flat_action_fraction": 0.0,
+      "long_action_fraction": 0.0
+    }
+  },
+  "cost_sensitivity": {
+    "0.5": 0.0007728772895561882,
+    "1.0": 0.0006666272895561886,
+    "2.0": 0.0004541272895561884
+  },
+  "paired_block_intervals": {
+    "flat": {
+      "mean_delta": 0.0006666272895561882,
+      "ci_low": -0.0017206177879663864,
+      "ci_high": 0.0030538723670787632,
+      "episode_count": 32,
+      "effective_blocks": 8,
+      "symbols": 6,
+      "block_rows": 5000,
+      "draws": 10000,
+      "seed": 20260924,
+      "scope": "exploratory_selection_panel_not_selection_adjusted"
+    },
+    "long_only": {
+      "mean_delta": 0.0016451723173973652,
+      "ci_low": -0.0032174000993627945,
+      "ci_high": 0.006507744734157525,
+      "episode_count": 32,
+      "effective_blocks": 8,
+      "symbols": 6,
+      "block_rows": 5000,
+      "draws": 10000,
+      "seed": 20260924,
+      "scope": "exploratory_selection_panel_not_selection_adjusted"
+    },
+    "short_only": {
+      "mean_delta": 8.808226171501098e-05,
+      "ci_low": 0.0,
+      "ci_high": 0.00017616452343002196,
+      "episode_count": 32,
+      "effective_blocks": 8,
+      "symbols": 6,
+      "block_rows": 5000,
+      "draws": 10000,
+      "seed": 20260924,
+      "scope": "exploratory_selection_panel_not_selection_adjusted"
+    }
+  },
+  "regime_behavior": {
+    "sideways_abs_return": 0.0002,
+    "episode_count": 32,
+    "regimes": {
+      "bullish": {
+        "episode_count": 14,
+        "market_gross_return_mean": 0.0046491199872391665,
+        "policy_gross_return_mean": -0.004419217674747712,
+        "policy_net_return_mean": -0.00464778910331914,
+        "short_action_fraction": 0.9992559523809523,
+        "flat_action_fraction": 0.0,
+        "long_action_fraction": 0.000744047619047619
+      },
+      "bearish": {
+        "episode_count": 18,
+        "market_gross_return_mean": -0.005000062261792554,
+        "policy_gross_return_mean": 0.005000062261792554,
+        "policy_net_return_mean": 0.004800062261792555,
+        "short_action_fraction": 1.0,
+        "flat_action_fraction": 0.0,
+        "long_action_fraction": 0.0
+      }
+    },
+    "scope": "exploratory_ex_post_selection_panel"
+  }
+}

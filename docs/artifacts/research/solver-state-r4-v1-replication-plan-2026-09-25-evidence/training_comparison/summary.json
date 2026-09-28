@@ -1,0 +1,123 @@
+{
+  "run_tag": "phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756",
+  "collected_only": false,
+  "config": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925.json",
+  "results": [
+    {
+      "variant_id": "seed20260924_masked",
+      "series_id": "seed20260924_masked",
+      "experiment_name": "phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260924_masked",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260924_masked\\training_fn_ITraderEnv_11ec2_00000_0_2026-09-25_19-18-05",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_11ec2_00000_0_2026-09-25_19-18-05\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_11ec2_00000_0_2026-09-25_19-18-05\\plots",
+      "final_metric": -0.0037005422022236
+    },
+    {
+      "variant_id": "seed20260924_position",
+      "series_id": "seed20260924_position",
+      "experiment_name": "phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260924_position",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260924_position\\training_fn_ITraderEnv_c6586_00000_0_2026-09-25_19-37-26",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_c6586_00000_0_2026-09-25_19-37-26\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_c6586_00000_0_2026-09-25_19-37-26\\plots",
+      "final_metric": -0.0017308443851399
+    },
+    {
+      "variant_id": "seed20260924_time",
+      "series_id": "seed20260924_time",
+      "experiment_name": "phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260924_time",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260924_time\\training_fn_ITraderEnv_78cce_00000_0_2026-09-25_19-56-45",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_78cce_00000_0_2026-09-25_19-56-45\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_78cce_00000_0_2026-09-25_19-56-45\\plots",
+      "final_metric": -0.0010504867475993
+    },
+    {
+      "variant_id": "seed20260924_both",
+      "series_id": "seed20260924_both",
+      "experiment_name": "phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260924_both",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260924_both\\training_fn_ITraderEnv_2ae8d_00000_0_2026-09-25_20-16-03",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_2ae8d_00000_0_2026-09-25_20-16-03\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_2ae8d_00000_0_2026-09-25_20-16-03\\plots",
+      "final_metric": -0.0017485859661992
+    },
+    {
+      "variant_id": "seed20260925_masked",
+      "series_id": "seed20260925_masked",
+      "experiment_name": "phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260925_masked",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260925_masked\\training_fn_ITraderEnv_ddcd2_00000_0_2026-09-25_20-35-22",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_ddcd2_00000_0_2026-09-25_20-35-22\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_ddcd2_00000_0_2026-09-25_20-35-22\\plots",
+      "final_metric": -2.958574521945694e-05
+    },
+    {
+      "variant_id": "seed20260925_position",
+      "series_id": "seed20260925_position",
+      "experiment_name": "phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260925_position",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260925_position\\training_fn_ITraderEnv_920a6_00000_0_2026-09-25_20-54-43",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_920a6_00000_0_2026-09-25_20-54-43\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_920a6_00000_0_2026-09-25_20-54-43\\plots",
+      "final_metric": 0.0001230063530567
+    },
+    {
+      "variant_id": "seed20260925_time",
+      "series_id": "seed20260925_time",
+      "experiment_name": "phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260925_time",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260925_time\\training_fn_ITraderEnv_4431b_00000_0_2026-09-25_21-14-01",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_4431b_00000_0_2026-09-25_21-14-01\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_4431b_00000_0_2026-09-25_21-14-01\\plots",
+      "final_metric": -0.0002798066642594
+    },
+    {
+      "variant_id": "seed20260925_both",
+      "series_id": "seed20260925_both",
+      "experiment_name": "phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260925_both",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260925_both\\training_fn_ITraderEnv_fe6ec_00000_0_2026-09-25_21-33-32",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_fe6ec_00000_0_2026-09-25_21-33-32\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_fe6ec_00000_0_2026-09-25_21-33-32\\plots",
+      "final_metric": 0.0006589481912523
+    },
+    {
+      "variant_id": "seed20260926_masked",
+      "series_id": "seed20260926_masked",
+      "experiment_name": "phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260926_masked",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260926_masked\\training_fn_ITraderEnv_c78c1_00000_0_2026-09-25_21-53-29",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_c78c1_00000_0_2026-09-25_21-53-29\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_c78c1_00000_0_2026-09-25_21-53-29\\plots",
+      "final_metric": 0.0
+    },
+    {
+      "variant_id": "seed20260926_position",
+      "series_id": "seed20260926_position",
+      "experiment_name": "phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260926_position",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260926_position\\training_fn_ITraderEnv_9184c_00000_0_2026-09-25_22-13-27",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_9184c_00000_0_2026-09-25_22-13-27\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_9184c_00000_0_2026-09-25_22-13-27\\plots",
+      "final_metric": 1.088039859031294e-05
+    },
+    {
+      "variant_id": "seed20260926_time",
+      "series_id": "seed20260926_time",
+      "experiment_name": "phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260926_time",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260926_time\\training_fn_ITraderEnv_5b4d8_00000_0_2026-09-25_22-33-24",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_5b4d8_00000_0_2026-09-25_22-33-24\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_5b4d8_00000_0_2026-09-25_22-33-24\\plots",
+      "final_metric": 3.161681418260665e-05
+    },
+    {
+      "variant_id": "seed20260926_both",
+      "series_id": "seed20260926_both",
+      "experiment_name": "phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260926_both",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925_191756_seed20260926_both\\training_fn_ITraderEnv_24945_00000_0_2026-09-25_22-53-21",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_24945_00000_0_2026-09-25_22-53-21\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_24945_00000_0_2026-09-25_22-53-21\\plots",
+      "final_metric": 1.3757783461175354e-05
+    }
+  ],
+  "primary_metric": "evaluation/net_return_mean",
+  "compare_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\artifacts\\research\\solver-state-r4-v1-replication-plan-2026-09-25-evidence\\training_comparison\\ablation_compare.csv",
+  "compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\artifacts\\research\\solver-state-r4-v1-replication-plan-2026-09-25-evidence\\training_comparison\\ablation_compare.png",
+  "sharpe_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\artifacts\\research\\solver-state-r4-v1-replication-plan-2026-09-25-evidence\\training_comparison\\ablation_compare_validation_sharpe.png",
+  "entropy_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\artifacts\\research\\solver-state-r4-v1-replication-plan-2026-09-25-evidence\\training_comparison\\ablation_compare_entropy.png",
+  "episode_len_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\artifacts\\research\\solver-state-r4-v1-replication-plan-2026-09-25-evidence\\training_comparison\\ablation_compare_episode_len.png",
+  "diagnostics_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\artifacts\\research\\solver-state-r4-v1-replication-plan-2026-09-25-evidence\\training_comparison\\ablation_compare_diagnostics.png",
+  "action_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\artifacts\\research\\solver-state-r4-v1-replication-plan-2026-09-25-evidence\\training_comparison\\ablation_compare_action_fractions.png"
+}

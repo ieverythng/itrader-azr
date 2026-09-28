@@ -1,0 +1,158 @@
+{
+  "schema_version": 1,
+  "scope": "exploratory_frozen_selection_panel_not_selection_adjusted",
+  "candidate": {
+    "episode_count": 32,
+    "gross_return_mean": 0.0008176812271375034,
+    "net_return_mean": 0.0006176812271375038,
+    "net_sharpe_per_sqrt_bar_mean": -0.009763300310774874,
+    "turnover_mean": 2.0,
+    "short_action_fraction": 0.75,
+    "flat_action_fraction": 0.0,
+    "long_action_fraction": 0.25
+  },
+  "controls": {
+    "flat": {
+      "episode_count": 32,
+      "gross_return_mean": 0.0,
+      "net_return_mean": 0.0,
+      "net_sharpe_per_sqrt_bar_mean": 0.0,
+      "turnover_mean": 0.0,
+      "short_action_fraction": 0.0,
+      "flat_action_fraction": 1.0,
+      "long_action_fraction": 0.0
+    },
+    "long_only": {
+      "episode_count": 32,
+      "gross_return_mean": -0.0007785450278411771,
+      "net_return_mean": -0.000978545027841177,
+      "net_sharpe_per_sqrt_bar_mean": 0.008271140634209743,
+      "turnover_mean": 2.0,
+      "short_action_fraction": 0.0,
+      "flat_action_fraction": 0.0,
+      "long_action_fraction": 1.0
+    },
+    "random": {
+      "episode_count": 32,
+      "gross_return_mean": -0.0002392939107825323,
+      "net_return_mean": -0.013114293910782532,
+      "net_sharpe_per_sqrt_bar_mean": -0.25857378136384634,
+      "turnover_mean": 128.75,
+      "short_action_fraction": 0.3347298177083334,
+      "flat_action_fraction": 0.33552408854166665,
+      "long_action_fraction": 0.32974609374999997
+    },
+    "short_only": {
+      "episode_count": 32,
+      "gross_return_mean": 0.0007785450278411771,
+      "net_return_mean": 0.0005785450278411775,
+      "net_sharpe_per_sqrt_bar_mean": -0.015578861677502165,
+      "turnover_mean": 2.0,
+      "short_action_fraction": 1.0,
+      "flat_action_fraction": 0.0,
+      "long_action_fraction": 0.0
+    },
+    "untrained": {
+      "episode_count": 32,
+      "gross_return_mean": 0.0007785450278411771,
+      "net_return_mean": 0.0005785450278411775,
+      "net_sharpe_per_sqrt_bar_mean": -0.015578861677502165,
+      "turnover_mean": 2.0,
+      "short_action_fraction": 1.0,
+      "flat_action_fraction": 0.0,
+      "long_action_fraction": 0.0
+    }
+  },
+  "cost_sensitivity": {
+    "0.5": 0.0007176812271375034,
+    "1.0": 0.0006176812271375038,
+    "2.0": 0.0004176812271375034
+  },
+  "paired_block_intervals": {
+    "flat": {
+      "mean_delta": 0.0006176812271375034,
+      "ci_low": -3.898592553114267e-05,
+      "ci_high": 0.0012743483798061492,
+      "episode_count": 32,
+      "effective_blocks": 8,
+      "symbols": 6,
+      "block_rows": 5000,
+      "draws": 10000,
+      "seed": 20260924,
+      "scope": "exploratory_selection_panel_not_selection_adjusted"
+    },
+    "long_only": {
+      "mean_delta": 0.0015962262549786806,
+      "ci_low": -0.001450766607149578,
+      "ci_high": 0.004643219117106938,
+      "episode_count": 32,
+      "effective_blocks": 8,
+      "symbols": 6,
+      "block_rows": 5000,
+      "draws": 10000,
+      "seed": 20260924,
+      "scope": "exploratory_selection_panel_not_selection_adjusted"
+    },
+    "random": {
+      "mean_delta": 0.013731975137920037,
+      "ci_low": 0.013087457131665484,
+      "ci_high": 0.01437649314417459,
+      "episode_count": 32,
+      "effective_blocks": 8,
+      "symbols": 6,
+      "block_rows": 5000,
+      "draws": 10000,
+      "seed": 20260924,
+      "scope": "exploratory_selection_panel_not_selection_adjusted"
+    },
+    "short_only": {
+      "mean_delta": 3.9136199296326295e-05,
+      "ci_low": -0.0018645256170505863,
+      "ci_high": 0.0019427980156432384,
+      "episode_count": 32,
+      "effective_blocks": 8,
+      "symbols": 6,
+      "block_rows": 5000,
+      "draws": 10000,
+      "seed": 20260924,
+      "scope": "exploratory_selection_panel_not_selection_adjusted"
+    },
+    "untrained": {
+      "mean_delta": 3.9136199296326295e-05,
+      "ci_low": -0.0018645256170505863,
+      "ci_high": 0.0019427980156432384,
+      "episode_count": 32,
+      "effective_blocks": 8,
+      "symbols": 6,
+      "block_rows": 5000,
+      "draws": 10000,
+      "seed": 20260924,
+      "scope": "exploratory_selection_panel_not_selection_adjusted"
+    }
+  },
+  "regime_behavior": {
+    "sideways_abs_return": 0.0002,
+    "episode_count": 32,
+    "regimes": {
+      "bullish": {
+        "episode_count": 14,
+        "market_gross_return_mean": 0.0046491199872391665,
+        "policy_gross_return_mean": -0.0013206270304066997,
+        "policy_net_return_mean": -0.0015206270304066998,
+        "short_action_fraction": 0.7142857142857143,
+        "flat_action_fraction": 0.0,
+        "long_action_fraction": 0.2857142857142857
+      },
+      "bearish": {
+        "episode_count": 18,
+        "market_gross_return_mean": -0.005000062261792554,
+        "policy_gross_return_mean": 0.0024808098718941056,
+        "policy_net_return_mean": 0.002280809871894106,
+        "short_action_fraction": 0.7777777777777778,
+        "flat_action_fraction": 0.0,
+        "long_action_fraction": 0.2222222222222222
+      }
+    },
+    "scope": "exploratory_ex_post_selection_panel"
+  }
+}

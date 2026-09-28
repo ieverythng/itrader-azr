@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-09-25",
+  "git_commit": "089411666e7105b79d891f2edefcd7c5fa9792de",
+  "source_tree_sha256": "c2553b181218222797b740791bd0bf4e57ed8732a690c504b028ec5239f443e9",
+  "dataset_sha256": "20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9",
+  "evaluation_panel_sha256": "2314a55ceac6aceed575203d91daa0d1468fcd88158ff4d0839751c3b8b36b9f",
+  "topology": {
+    "accepted": "workers=0",
+    "rejected": "workers=1 per trial",
+    "reason": "two remote workers duplicated the full dataset and reduced free RAM to 1.23 GiB after the first update"
+  },
+  "ray258_gate": {
+    "experiment": "v2r0_ray258_parity_20260925_001454_sync_exploit_local_2x12",
+    "runtime": "2.58.0",
+    "members": 2,
+    "updates_per_member": 12,
+    "minimum_member_steps": 58592,
+    "exploit_restore_lineages": 1,
+    "strict_lineage_pass": true,
+    "fresh_replay_abs_delta": 0.0,
+    "best_replayed_net_return": -0.000131050929111,
+    "best_replayed_sharpe_per_sqrt_bar": -0.0232703191,
+    "minimum_free_ram_gib": 2.34,
+    "wall_time_seconds_approx": 373
+  },
+  "ray29_gate": {
+    "experiment": "v2r0_ray29_parity_20260925_002225_sync_exploit_local_2x12",
+    "runtime": "2.9.0",
+    "members": 2,
+    "updates_per_member": 12,
+    "exploit_restore_lineages": 1,
+    "strict_lineage_pass": true,
+    "fresh_replay_abs_delta": 0.0,
+    "best_replayed_net_return": 0.000266063976657,
+    "best_replayed_sharpe_per_sqrt_bar": -0.0121289511,
+    "minimum_free_ram_gib": 2.09,
+    "wall_time_seconds_approx": 323
+  },
+  "three_seed_terminal_net_return": {
+    "ray258": [-0.00006277145070236636, -0.001545408993886258, -0.0012769025372061768],
+    "ray29": [-0.0017063726164389963, -0.002411918711683762, -0.0007157416830157861]
+  },
+  "validation": {
+    "focused_tests_each_runtime": 126,
+    "full_tests_each_runtime": 254,
+    "healthcheck_each_runtime": "pass",
+    "uv_lock_check": "pass",
+    "git_diff_check": "pass",
+    "html_parse": "pass",
+    "json_parse": "pass"
+  },
+  "decision": "accept Ray 2.58 as the forward R-series runtime; retain Ray 2.9 as a historical reproduction profile; do not interpret platform acceptance as solver promotion"
+}

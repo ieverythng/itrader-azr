@@ -2,7 +2,7 @@
 
 Date: 2026-09-24
 Branch: `agent/Watson-dev`
-Decision: **dataset v2 passes its acquisition, integrity, and RTH loading gate; the next matched P0 is fully preflighted on a crossed development panel but is paused before launch, and R0 has not passed the Phase A economic gate**
+Decision: **dataset v2 and the repaired synchronous-PBT contract pass; the bounded crossed-panel staged-cost and exact-1-bp R0 arms are complete, neither passes the economic gate, and R0 is now the frozen control for a Ray-2.58 platform-parity gate followed by a matched R-series representation study**
 
 ## Executive decision
 
@@ -30,12 +30,13 @@ multi-symbol market claim. The old results still demonstrate that PPO could
 optimize a signal on a genuine but impoverished price path. They do not prove an
 annualized Sharpe of 1, and richer inputs do not guarantee a better policy.
 
-The first dataset-v2 R0 experiment confirms that distinction. PPO remains
-active, policy fractions move materially, KL and explained variance remain
-finite, and a 1 bp objective reduces turnover. Neither tested arm makes money at
-1 bp. The cost-aware arm improves net loss by learning persistent short exposure,
-not by finding positive edge. It is a useful matched bridge and a concrete PBT
-search target, not a promoted solver.
+The dataset-v2 R0 experiments confirm that distinction. PPO remains active,
+policy fractions move materially, KL and explained variance remain finite, and
+cost pressure changes turnover and action persistence. The repaired PBT search
+also mutates and transfers candidates with exact generation-bound provenance.
+Neither the staged-cost nor exact-1-bp arm sustains positive net return and
+positive Sharpe. This is a useful negative baseline: behavior and search are
+learnable, but R0 has not demonstrated economic edge.
 
 ## What changed
 
@@ -261,13 +262,13 @@ No Gate D checkpoint is promoted or treated as an independent winner.
 
 ![Gate D action fractions](dataset-v2-r0-audit-2026-09-24-evidence/gate_d_action_fractions.png)
 
-The next P0 may therefore use the repaired synchronous machinery. It must still
-run the matched no-cost, staged-cost, and exact-1-bp arms; Gate D is only the
-no-cost seam proof and cannot answer the reward/cost comparison by itself.
+The matched P0 therefore used the repaired synchronous machinery. Gate D was
+only the no-cost seam proof; the later staged-cost and exact-1-bp arms supplied
+the reward/cost comparison summarized below.
 
-## Crossed development panel and launch-ready controls
+## Crossed development panel and completed P0 controls
 
-The next P0 now uses one explicit task panel rather than regenerating evaluation
+The completed P0 used one explicit task panel rather than regenerating evaluation
 tasks inside each process. Eight fixed RTH anchors are each crossed with horizons
 96, 128, 160, and 200, producing 32 unique `(start_idx, horizon)` tasks. This
 removes the old horizon/start identity shortcut while preserving the same task
@@ -298,7 +299,7 @@ not merely the matched block's prevailing direction. The seeded untrained
 argmax policy happened to be 100% short and exactly reproduced short-only,
 which is a useful control rather than evidence of learning.
 
-The launch loadout is frozen to this panel, `stream_worker`, family 00,
+The loadout is frozen to this panel, `stream_worker`, family 00,
 random/generated tasks, synchronous Ray-2.9 PBT, four members, one rollout
 worker per member, and 60 updates per arm. The search jointly mutates learning
 rate (`5e-6` to `3e-4`), bounded decaying entropy schedules, gamma, GAE lambda,
@@ -307,9 +308,80 @@ no cost, the predeclared 0 -> 0.25 -> 0.5 -> 1 bp schedule, and exact 1 bp. This
 keeps the entropy expansion explicit inside the same new-P0 search rather than
 attributing its gains to the reward arm.
 
-**Launch state:** all code, controls, hashes, configs, and local validation are
-ready, but no matched P0 arm has been launched. The goal is paused immediately
-before `--variant no_cost` at the user's request.
+The no-cost Gate D run remains the search-seam reference. The subsequent
+staged-cost and exact-1-bp arms were run one at a time against the crossed panel
+and stopped at their predeclared evidence gates rather than consuming the full
+60-update allowance after the economic continuation condition failed.
+
+## Bounded synchronous P0 cost follow-up
+
+The final exact-1-bp arm is
+`v2p0_nonflat_search_sync30_20260924_173537_exact_1bp`. All four members crossed
+96,000 trial-owned sampled environment steps. Three exploit operations produced
+three verified generation-bound target receipts; the scheduler selection,
+donor checkpoint path and tree digest, target restore receipt, first restored
+report, and retained target checkpoint all agree. The strict inspector reported
+no missing, invalid, stale, or pending lineage evidence.
+
+This clean result followed several intentionally invalidated probes. Those
+probes exposed a Ray-2.9 ordering hazard: a synchronous boundary target could be
+pre-staged before all live peers reached the barrier, so a later exploit changed
+the Tune `Trial` while the already-created actor still held its target-local
+checkpoint and configuration. The scheduler now vetoes that early resume,
+unstages orphaned targets after exploitation, and fails closed if an exploited
+paused target already owns an actor. The focused scheduler/gate suite passes all
+118 tests.
+
+| Arm | Valid exposure | Exploit evidence | Behavior at review/stop | Decision |
+|---|---:|---:|---|---|
+| Staged 0 -> 0.25 -> 0.5 -> 1 bp | Four members >= 96k | Three scheduled; bounded mutations | All four converged to short-only: +0.05785% net, -0.01558 Sharpe, turnover 2 | Mechanical/search evidence retained; no economic promotion |
+| Exact 1 bp | Four members >= 96k | Three verified generation-bound exploits | Terminal net -0.07377% to -0.04489%; Sharpe -0.05796 to -0.01396; 52.5--73.3% flat | Mechanical pass; economic stop |
+
+The strongest exact-cost transient was member `00001` at its initial 4,848-step
+report: +0.02266% net with -0.00897 Sharpe. Member `00000` later reached
++0.01296% net at 53,904 steps with -0.03622 Sharpe. No member produced a report
+with both positive net return and positive Sharpe. At the stopping gate, member
+`00000` retained the most directional policy (47.55% short, 52.45% flat), while
+members `00001`--`00003` were 71.3--73.3% flat with the remainder almost entirely
+short. Gross return was weakly positive for three terminal members, but explicit
+costs were larger.
+
+![Exact-1-bp held-out net return](dataset-v2-r0-audit-2026-09-24-evidence/p0_exact_1bp_gate_20260924/p0_exact_1bp_net_return.png)
+
+![Exact-1-bp held-out Sharpe](dataset-v2-r0-audit-2026-09-24-evidence/p0_exact_1bp_gate_20260924/p0_exact_1bp_sharpe.png)
+
+![Exact-1-bp action fractions](dataset-v2-r0-audit-2026-09-24-evidence/p0_exact_1bp_gate_20260924/p0_exact_1bp_action_fractions.png)
+
+The staged/exact contrast is informative. Gradually increasing cost retained the
+panel's short directional control, whereas exact cost from the start drove lower
+turnover and progressively more flat decisions. Neither arm found risk-adjusted
+edge. PBT did search: the three exact-cost exploits mutated learning rate to
+approximately `1.09e-5`, `1.24e-5`, and `8.69e-6`, and transferred bounded
+entropy/PPO settings with verified weights. The basin is therefore not explained
+by absent perturbation or silent restore contamination.
+
+Exploit count is a mechanical-search fact, not an economic-win count. The
+`nonflat_net` donor rule deliberately preferred active donors over flat targets,
+including donors with negative net return at the three exploit boundaries. This
+is useful for probing whether R0 can escape flat collapse, but it must remain
+separate from promotion, which still requires positive net return and Sharpe.
+
+One post-run provenance defect affects presentation, not the executed search.
+The retained run manifest serialized the global Ray learning-rate domain as a
+process-local object string, while this loadout configured `pbt_lr_min=5e-6`
+and `pbt_lr_max=6e-5`. The per-generation resolved-config histories contain
+those bounds and the actual sampled/mutated learning rates, so they remain the
+authority for this completed run. Future manifests now persist the resolved
+domain as stable JSON. Existing manifests and source fingerprints are retained
+unchanged rather than rewritten after the fact.
+
+This result does **not** prove that recurrence will solve the problem. It does
+show that spending more exact-1-bp R0 budget against the same 32 development
+episodes has low information value. R0 lacks persistent hidden state and also
+does not observe its position or previous action; a cost-aware sequential choice
+is consequently a credible representation/lifecycle hypothesis. The next useful
+comparison changes only that representation while freezing data, tasks, seeds,
+cost schedule, PBT cadence, and promotion gates.
 
 ### Why the earlier edge was transient
 
@@ -339,8 +411,9 @@ attributing the limitation to recurrence alone.
 
 ## Promotion gate and next experiment
 
-Dataset v2 itself passes. R0 economic promotion remains blocked. The next run is
-not a blind long PBT; it is a matched P0 search on the v2 RTH authority:
+Dataset v2 and the PBT machinery pass. R0 economic promotion remains blocked.
+The crossed-panel cost study is now a frozen negative baseline, not a candidate
+to extend indefinitely:
 
 Run one arm at a time from the canonical three-arm JSON via
 `run_ablation --variant <id>`. The 20-update/roughly-96k-step review is a hard
@@ -353,19 +426,25 @@ not justify changing the matched loadout in place. The read-only
 from repository-owned stable evidence and returns pass/stop/pending without
 controlling the process or authorizing another arm.
 
-1. Preserve the original panel for historical comparison and use the explicit
-   crossed 8x4 panel for this matched P0 only. Predeclare genuinely new,
-   non-overlapping chronological selection blocks before P1 replication.
-2. Compare no cost, staged 0 -> 0.25 -> 0.5 -> 1 bp cost, and exact 1 bp under
-   an environment-step clock. Do not increase cost alone.
-3. Search lower learning rates, entropy pressure, and cost schedule while keeping
-   the MLP-FiLM architecture, task family 00, random/generated proposer, seeds,
-   and validation identities matched.
-4. Retain each evaluation improvement; record PBT mutations from stable config
-   histories; use synchronous PBT on Ray 2.9, strict generation-bound lineage,
-   and the memory-safe topology.
-5. At every candidate, replay 0.5/1/2 bp and report return, Sharpe, drawdown,
-   turnover, action fractions, horizon, symbol, and chronological regime blocks.
+1. Freeze R0, the crossed panel, control metrics, and the valid staged/exact arm
+   evidence. Do not select further against these same 32 episodes.
+2. Review the separately developed Ray-2.58 migration in an isolated
+   environment and run a bounded R0-only parity bridge. Preserve Ray 2.9 as the
+   reproduction authority unless that bridge passes, and do not change platform
+   and solver representation in the same attribution cell.
+3. Start R1 as a bounded, from-scratch representation challenger on the
+   accepted platform with identical
+   dataset-v2 RTH partitions, family 00 tasks, random/generated proposer, seeds,
+   cost schedules, compute budget, PBT cadence, and evidence gates. R1 tests a
+   reset-every-step chronological window encoder; it is not yet a memory claim.
+4. Proceed to native recurrent R2 lifecycle work only after shape, reset,
+   checkpoint/replay, masking, and finite forward/backward tests pass. Attribute
+   memory only through matched carry-versus-reset controls.
+5. Predeclare genuinely new, non-overlapping chronological blocks before P1
+   economic selection or any Phase A promotion claim.
+6. Stage a later causal conditioning study: C0 current features, C1 trailing
+   train-fitted regime summaries, and shuffled-C1. Current `regime_tags` remain
+   ex-post reporting labels because they use the future outcome window.
 
 The working candidate gate remains deliberately hard:
 
@@ -395,14 +474,19 @@ and not substitutes for the block/replay gates.
 [DONE] Gate D exact-step synchronous-PBT checkpoint closure
    |
    v
-[READY / PAUSED BEFORE LAUNCH] dataset_v2 R0 matched no-cost/staged/exact-cost search
+[DONE / NO PROMOTION] dataset_v2 R0 no-cost/staged/exact-cost evidence
    |
-   +--> [PARALLEL] implement/test R-series lifecycle without performance claims
+   +--> [NOW] Ray-2.58 review + bounded R0-only platform parity
    |
    v
-[GATE] independent R0 candidate passes net/Sharpe/control/block/cost criteria
+[THEN] bounded R1 representation control on the accepted platform
    |
-   +--> R-series same-input ablations on frozen data/evidence contracts
+   v
+[GATE] R0/R1 challenger passes net/Sharpe/control/block/cost criteria on new blocks
+   |
+   +--> native recurrent carry/reset ablations on frozen data/evidence contracts
+   +--> causal C0/C1/shuffled-C1 representation study
+   +--> System-One/CLM/Jev S-series only after R-series closure
    +--> frozen Qwen3.8 proposer vs random/generated at equal solver compute
    +--> families 01/02 only as named, matched curriculum factors
    |
@@ -413,8 +497,10 @@ and not substitutes for the block/replay gates.
 [SEALED] untouched final chronological test, then Phase B capability claims
 ```
 
-R-series engineering may proceed in parallel because it tests model/lifecycle
-seams. It may not consume a dataset-v1 PBT checkpoint as an economic winner.
+R-series engineering should now proceed as a controlled challenger because R0's
+mechanically valid cost study reached a low-information basin. It may not consume
+a dataset-v1 PBT checkpoint as an economic winner, and the v1/v2 contrast remains
+qualitative because data representation and evidence contracts differ.
 Frozen proposer work begins after the R0 data/evidence baseline is frozen and
 must compare curriculum uplift at equal solver compute. Adaptive proposer reward,
 dividend cashflows, and family expansion are Phase B factors, not ways to rescue
@@ -450,10 +536,15 @@ Extended-hours becomes a predeclared Phase B factor.
 - Exact matched-run hashes, the arm loadout, validation results, and continuation
   stops are frozen in
   [`p0_matched_preflight.json`](dataset-v2-r0-audit-2026-09-24-evidence/p0_matched_preflight.json).
+- The valid exact-cost gate, all-member report/config/checkpoint ledgers, three
+  verified exploit receipts, comparison CSVs, and plots are under
+  [`p0_exact_1bp_gate_20260924/`](dataset-v2-r0-audit-2026-09-24-evidence/p0_exact_1bp_gate_20260924/).
 - Loadouts:
   - `itrader/scripts/experiments/configs/phase_a_r0_dataset_v2_controls_32_20260924.json`
   - `itrader/scripts/experiments/configs/phase_a_r0_dataset_v2_controls_crossed_8x4_20260924.json`
   - `itrader/scripts/experiments/configs/phase_a_r0_dataset_v2_p0_cost_search_sync_60_20260924.json`
+  - `itrader/scripts/experiments/configs/phase_a_r0_dataset_v2_p0_early_cost_low_lr_sync_30_20260924.json`
+  - `itrader/scripts/experiments/configs/phase_a_r0_dataset_v2_p0_nonflat_search_sync_30_20260924.json`
   - `itrader/scripts/experiments/configs/evaluation_panels/dataset_v2_r0_crossed_8x4_20260924.json`
   - `itrader/scripts/experiments/configs/phase_a_r0_dataset_v2_mlp_film_12_20260924.json`
   - `itrader/scripts/experiments/configs/phase_a_r0_dataset_v2_cost_aware_12_20260924.json`
@@ -466,9 +557,10 @@ read from ignored `.env` variables and are absent from all artifacts.
 ## Limitations
 
 - This is one original 32-episode development panel, one selection-informed
-  crossed 32-episode development panel, two 12-update single-member arms, and
-  one 35-update four-member no-cost checkpoint gate. The matched three-arm PBT
-  comparison and independent chronological replication remain outstanding.
+  crossed 32-episode development panel, two 12-update single-member arms, one
+  35-update four-member no-cost checkpoint gate, and bounded staged/exact-cost
+  arms through the 96k review gate. Independent chronological replication
+  remains outstanding.
 - The sealed final-test partition remains untouched.
 - Corporate-action dividend cashflows are not modeled.
 - No extended-hours training result is claimed.
@@ -477,4 +569,63 @@ read from ignored `.env` variables and are absent from all artifacts.
 - The original control panel is mildly bullish. The crossed panel removes the
   horizon/start identity shortcut but is selection-informed; block/regime
   attribution and independent chronological replication remain mandatory.
-- The short runs establish seam behavior, not Phase A closure.
+- The bounded runs establish seam behavior and an R0 negative baseline, not
+  Phase A closure or evidence that recurrence will succeed.
+
+## Goal-run closeout
+
+This goal closes the dataset-v2 R0 investigation, not Phase A economic
+promotion. The result separates three claims that had previously been mixed:
+
+1. **Measurement and search are now credible.** Dataset-v2 RTH episodes use
+   full OHLCV, session/continuity-safe partitions, explicit costs, deterministic
+   controls, sampled-environment-step scheduling, immutable checkpoints, and
+   generation-bound PBT lineage. PPO updated and PBT genuinely searched.
+2. **R0 is behaviorally learnable but not economically validated on dataset v2.**
+   Cost schedules changed turnover and action persistence, yet the staged arm
+   reproduced short-only and the exact-cost arm produced no jointly positive
+   net-return/Sharpe report. This supports optimization responsiveness, not a
+   profitable or robust learned policy.
+3. **The two replay-exact `00001`/`00003` research candidates are historical
+   dataset-v1 evidence.** They each sustained five reports above short-only,
+   replayed exactly, remained positive at 2 bp, and had distinct final policy
+   hashes, but shared ancestry and failed independent replication. Dataset-v2
+   supersedes them for selection, so they are mechanism evidence only—not
+   dataset-v2 candidates or promotion evidence.
+
+The repeated Ray-2.9 ordering, restore, pause, and actor-lifecycle defects are
+fixed for this locked reproduction stack, but the repair cost is itself evidence
+that platform migration deserves an explicit gate before solver work. The next
+goal should therefore review the existing Ray-2.58 migration in a separate
+environment before implementing R1. Do not combine the platform and model
+changes in one comparison.
+
+### Next-goal contract
+
+```text
+[FROZEN] dataset-v2 R0 + Ray-2.9 evidence
+    |
+    v
+[PLATFORM GATE] review Ray-2.58 migration; run R0-only parity probes
+    |
+    +-- fail --> retain Ray 2.9 for a matched R0/R1 bridge
+    |
+    v
+[R SERIES] R1 shape control -> R2 lifecycle/carry-reset attribution
+    |
+    v
+[C SERIES] causal C0/C1/shuffled-C1 market representation
+    |
+    v
+[S SERIES] CLM/Jev/System-One study on a frozen solver contract
+```
+
+The Ray gate must preserve dataset/panel/config hashes, deterministic controls,
+economic metrics, mutation domains, sampled-step cadence, immutable checkpoint
+replay, and generation-bound exploit receipts. A fresh bounded R0 run on Ray
+2.58 is a compatibility bridge, not a renewed same-panel performance search.
+Only after that platform bridge passes should R1 change representation under the
+same platform. C-series features must be causal and train-fitted; future-derived
+`regime_tags` remain ex-post labels. S-series research stays separate until the
+R-series solver interface and evidence contract are frozen, so CLM/Jev coupling
+cannot hide a solver or platform regression.

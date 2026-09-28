@@ -6,7 +6,7 @@ Markdown is the source of truth for active documents. HTML companions accompany 
 
 - `architecture.md` — compact current baseline, R-series status, and control rules.
 - `architecture/itrader_system_architecture.md` (+ `.html`) — detailed solver, recurrence, task, proposer, and online-shell architecture.
-- `environment_strategy.md` — dependency authority and Windows/WSL execution boundary.
+- `environment_strategy.md` — Ray-2.58 dependency authority, Ray-2.9 reproduction profile, and Windows/WSL execution boundary.
 - `ops_runbook.md` — operational runbook for compatible environments.
 
 ## Active plans
@@ -36,6 +36,12 @@ Markdown is the source of truth for active documents. HTML companions accompany 
 - `artifacts/research/phase-a-storage-incident-audit-2026-09-19.md` (+ `.html`) — WSL crash-dump root cause, verified C/D/E offload layout, live watchdog/RAM attribution, junction receipts, and deferred coordinated WSL-distro move.
 - `artifacts/research/market-data-provider-evaluation-2026-09-23.md` — primary-source comparison of Alpaca, Databento, Cboe, Tradier, and Polygon/Massive for dataset v2.
 - `artifacts/research/dataset-v2-r0-audit-2026-09-24.md` (+ `.html`) — authenticated Alpaca SIP snapshot, dataset-v1 diagnosis, immutable Parquet/DuckDB/Ray contract, original and crossed RTH controls, matched R0 bridges, strict synchronous-PBT provenance, launch-ready matched P0, plots, and the Phase A-to-Phase B gate.
+- `artifacts/research/ray-258-r0-parity-gate-2026-09-24.md` (+ `.html`) — migration-boundary review, dual-runtime tests, deterministic initialization proof, stochastic-rollout divergence, completed exploit/restore/replay gate, three-seed bridge, resource comparison, and accepted Ray-2.58 boundary.
+- `artifacts/research/solver-state-r4-v1-min-implementation-note-2026-09-25.md` (+ `.html`) — accepted minimal Markov state contract, four-cell dataset-v2 smoke, exact replay, controls, conditional policy diagnostics, and the non-promotion decision before a longer masked-versus-combined gate.
+- `artifacts/research/solver-state-r4-v1-blocking-ablation-2026-09-25.md` (+ `.html`) — frozen 4x3 three-seed blocking gate, exact terminal replay, conditioned diagnostics, crossed-anchor uncertainty, relative time-only net effect, and failed absolute promotion verdict.
+- `artifacts/research/solver-state-r4-v1-replication-plan-2026-09-25.md` (+ `.html`) — completed architecture qualification of R0 + R4-v1: state-feature semantics, zero-init parity, the fresh December-2025 4x3x40 replication, exact replay, counterfactual diagnostics, relative net uplift, near-flat failure, and the withheld economic promotion.
+- `artifacts/research/system-one-clm-jev-trading-ablation-2026-09-24.md` (+ `.html`) — primary-source CLM/Jev review, Discrete(3) state/action contract, offline TaskSpec ranking and future capability-matching seams, current collapse evidence, and a bounded System One ablation ladder; research only, not active architecture.
+- `artifacts/research/system-one-oss-ppo-azr-companion-2026-09-24.md` (+ `.html`) — open System-One model landscape, exact and native PPO-head coupling, CLM-transfer controls, and a bounded AZR-inspired validated-task selector plan; research only.
 - `artifacts/research/azr-stack-review-2026-09-12.md` — local AZR v2 synthesis and source-grounded adaptation recommendations.
 - `artifacts/research/recurrence-code-audit-2026-09-12.md` — independent read-only source audit; do not treat its attempted WSL test as a pass.
 - `artifacts/research/recurrence-docs-revision-audit-2026-09-12.md` — this docs coverage inventory, edit rationale, and validation results.

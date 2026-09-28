@@ -1,6 +1,6 @@
 # Next Actions
 
-Last updated: 2026-09-24
+Last updated: 2026-09-25
 
 ## Dataset-v2 Phase A reset
 
@@ -13,7 +13,7 @@ Last updated: 2026-09-24
 3. **Done:** run the 32-start flat/long/short/random/untrained RTH controls and
    matched fresh 12-update no-cost/1-bp R0 bridges. PPO is active, but both arms
    fail the economic gate; the 1 bp arm reduces turnover by becoming 95.2% short.
-4. **Ready and paused before launch — matched three-arm P0:** Gate D completed
+4. **Done — bounded matched P0 cost study; R0 not promoted:** Gate D completed
    all four members at 170,152--170,416 steps with 140 report/checkpoint pairs,
    five genuine exploits, and no trial error or score/checkpoint lag. A direct
    forensic pass also matched every retained restore copy to its selected donor
@@ -30,16 +30,33 @@ Last updated: 2026-09-24
    This removes the horizon/start shortcut without pretending that a
    selection-informed development panel is an independent test.
 
-   Launch only `--variant no_cost` from the frozen canonical JSON when the user
-   resumes the goal. Keep `stream_worker`, family 00, random/generated tasks,
-   four members, 60 updates, the explicit crossed panel, and 1 bp evidence fixed.
-   Jointly search lower learning rates, bounded decaying entropy schedules, and
-   the existing PPO/GAE parameters. At 20 updates/~96k steps, require four live
-   members, at least two genuine exploits, strict generation-bound lineage,
-   finite/non-empty evidence, and at least 20 GB free on C. Stop between arms;
-   no gate result launches staged-cost or exact-cost automatically. **Do not
-   launch PBT while the current goal is paused.**
-5. **Next P1 after P0 selection:** move selection to predeclared non-overlapping chronological
+   The valid staged-cost arm reached the approximately-96k review gate but
+   converged all members to short-only (+0.05785% net, -0.01558 Sharpe). The
+   final exact-1-bp arm reached the gate with four members, three verified
+   generation-bound exploits, no stale/pending lineage, and a population mean
+   of -0.05317% net, -0.03815 Sharpe, 67.33% flat, and 32.67% short. Across 84
+   reports it produced no jointly positive net-return/Sharpe point. Several
+   earlier probes were explicitly invalidated while closing pre-staged-target
+   restore contamination; they are not economic evidence. Do not spend more R0
+   budget selecting against this same crossed panel.
+5. **Done — Ray-2.58 R0 platform gate:** the current dataset-v2 source passes
+   254 tests and the healthcheck on both Ray 2.9 and 2.58. A fresh local-worker
+   two-member/12-update Ray-2.58 run completed one exact synchronous
+   exploit/restore lineage and exact fresh replay; the matched Ray-2.9 gate did
+   the same. Three fixed-hyperparameter seeds per runtime all ended negative,
+   confirming compatibility but not economic improvement. Ray 2.58 used about
+   0.25 GiB less minimum-free-memory headroom but ran about 16% slower in the
+   small local-worker probe. Root dependencies now target Ray 2.58; Ray 2.9 is a
+   frozen reproduction profile under `itrader/compat/ray29/`. Keep every result
+   runtime-labelled because stochastic PPO trajectories are not seed-identical.
+6. **Next after review — start a bounded R-series challenger:** keep dataset-v2
+   RTH partitions, family 00 tasks, random/generated proposer, crossed panel,
+   seeds, cost schedules, compute budget, PBT cadence, and gates identical. Make
+   R1 the only changed factor and treat it as a reset-every-step chronological
+   window-encoder/shape control, not proof that recurrent memory helps. Proceed
+   to native stateful R2 only after lifecycle, masking, reset, checkpoint/replay,
+   and finite forward/backward tests pass.
+7. **P1 after representation selection:** move selection to predeclared non-overlapping chronological
    blocks. Require positive 1 bp net and Sharpe, aggregate uplift over flat and
    the strongest matched directional control, paired block evidence, exact
    replay, 2 bp survival, and an independent population seed before final test.
@@ -47,8 +64,14 @@ Last updated: 2026-09-24
    candidates remain horizon-static with weak value fit, run named market-only,
    horizon/task-only, and matched explicit-state diagnostics rather than spending
    another blind PBT budget.
-6. **Parallel only:** R-series lifecycle implementation may proceed without a
-   performance claim. Frozen Qwen3.8 and families 01/02 begin only after the R0
+8. **Separate causal C-series:** report existing future-derived regime tags only
+   ex post. Later compare C0 current features, C1 trailing train-fitted summaries,
+   and shuffled-C1 before considering regime experts or family specialization.
+9. **S-series after R-series closure:** keep System-One/CLM/Jev work research-only
+   until the solver interface, Ray platform, and R-series evidence contract are
+   frozen. Run it later as a named independent factor; do not use it to rescue an
+   R-series result or obscure a platform regression.
+10. **Later named factors:** frozen Qwen3.8 and families 01/02 begin only after the R0
    data/evidence baseline is frozen; adaptive proposer reward, dividends, and
    extended-hours training remain later named factors.
 
@@ -113,7 +136,10 @@ Last updated: 2026-09-24
    Keep asynchronous mode only for explicit legacy reproduction.
 9. Use the working Windows `.venv` for current validation. The earlier WSL
    `Exec format error` is historical and does not describe this session.
-10. **Before another overnight PBT:** keep `workers: 1`, declare a memory-safe
+10. **Before another overnight PBT:** use the validated `workers: 0` local-worker
+    topology on this 16-GiB Windows host unless a separately measured remote-worker
+    run proves adequate headroom; two remote workers duplicate the full dataset.
+    Declare a memory-safe
     `ray_num_cpus` cap, and use the validated durable donor/tail adapter. For an
     external pause, still capture coordinated all-member model/progress and
     scheduler state or explicitly budget a fresh-arm restart. A storage A/B can
@@ -141,18 +167,27 @@ Last updated: 2026-09-24
 
 ## Later — matched observability and proposer
 
-15. Add `R4-v1` explicit position/progress/PnL fields identically to FF and
-   recurrent controls. Do not infer action/fill/position from OHLCV-only state.
-16. Run the separate proposer study: rule/random control, frozen LLM, frozen LLM
+15. **Completed — R0 + R4-v1 architecture replication:** the December-2025
+   4x3x40 run, exact terminal replay, update-zero controls, block-aware intervals,
+   and counterfactual diagnostics are frozen. Combined state passed relative net
+   attribution but failed absolute promotion and the near-flat gate. Preserve R0
+   for parity and `R0 + R4-v1` for forward FF training.
+16. **Next P0 — actor robustness on R0 + R4-v1:** use a bounded, matched search
+   over lower learning rates, entropy pressure, and causal 0→cost staging. Keep
+   the fresh chronology fixed only for this predeclared development comparison;
+   retain every best eligible checkpoint; reject near-flat or excessive-turnover
+   policies; replay against flat/long/short/random/untrained controls. Do not add
+   new state features or R4-v2 in this search.
+17. Run the separate proposer study: rule/random control, frozen LLM, frozen LLM
     plus solver-feedback/reference selection, then adaptive proposer. Include
     frozen-versus-adaptive reference-buffer factor, cost-aware verifier, accepted
     solver timesteps, rejects, calls, tokens/latency, cost, turnover, drawdown,
     chronological validation, and untouched final test.
-17. Build shadow mode only after capability profiles have held-out calibration
+18. Build shadow mode only after capability profiles have held-out calibration
     evidence. PPO logits/value outputs are not automatically confidence or
     expected net utility. Keep candidate-specific recurrent state/replay; never
     mutate one shared state across candidate scoring.
-18. Defer R3 GRU, family expansion, MoE, and JEPA until the causal solver and
+19. Defer R3 GRU, family expansion, MoE, and JEPA until the causal solver and
     proposer evidence is credible.
 
 ## Remaining blockers to a performance claim
@@ -164,7 +199,9 @@ Last updated: 2026-09-24
 - Ray-owned manifests and policy logs still reproduce as zero-byte artifacts;
   non-empty stable manifests/config history/status/checkpoint indices now replace
   them as authoritative provenance.
-- No R1/R2/R3/R4 implementation exists on this branch.
+- No R1/R2/R3 implementation exists on this branch. R4-v1-min has an
+  implemented FF seam and replay-valid smoke, but no promoted economic result or
+  recurrent-matched cell.
 - No recurrent training result exists on this branch. The bounded Phase A PPO
   probe validates wiring/search only, not performance.
 - New runs use `semantic_v2`; `legacy_v1` remains only for checkpoint compatibility.

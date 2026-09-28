@@ -1,8 +1,93 @@
 # Handoff
 
+## 2026-09-25 — R0 + R4-v1 architecture qualification and replication
+
+- R0 remains the immutable state-free parity control. `R0 + R4-v1` is the
+  forward Phase A feed-forward training baseline because position and remaining
+  horizon complete the known endogenous control state. This is not economic
+  promotion and does not claim full market observability.
+- The fresh December-2025 4x3x40 replication is complete. All 12 terminal
+  checkpoints replay exactly. Combined state improved net over masked in every
+  seed and passed the pooled paired net gate, but no arm beat long-only or had
+  positive net and Sharpe across seeds; seed 20260926 collapsed near-flat.
+- The decision is architecture promotion without economic promotion. The next
+  bounded P0 searches actor robustness through learning rate, entropy pressure,
+  and causal cost staging with retained-best replay. R4-v2 remains deferred.
+- The completed random-initialized 12-update artifacts are frozen. New runs use
+  the named `zero_v1` residual initialization and verify update-zero policy/value
+  parity before training.
+- The analyzer now makes the turnover ceiling (`20.0`) and near-flat veto
+  (`flat < 0.98`) executable. Baselines are state-arm aware, and checkpoint
+  diagnostics include identical-input state interventions with logit/value
+  sensitivity.
+- The return-uninspected December-2025 RTH panel with eight disjoint anchors and
+  four crossed horizons has now served the completed fixed 4x3x40 gate. PBT was
+  off and the final test remains sealed.
+- Future episode PnL, accounting, holding, drawdown, turnover-budget, and session
+  clock features are registered but not added. R4-v2 nonlinear late fusion and
+  recurrence remain separate factors.
+
+## 2026-09-25 — Ray 2.58 R0 platform gate accepted
+
+- Current dataset-v2 source passes 254 tests and healthcheck on Ray 2.9 and 2.58.
+- Fresh Ray-2.58 `workers=0` 2x12 synchronous PBT crossed the cadence, completed
+  one genuine exploit/restore, passed strict lineage inspection, and replayed
+  its retained best checkpoint exactly. Matched Ray 2.9 mechanics also passed.
+- Three fixed-hyperparameter seeds per runtime all ended negative; Ray 2.58's
+  early positive-net transients all retained negative Sharpe. This is platform
+  acceptance, not solver promotion.
+- Fresh replay found and closed an inference-dropout defect. Older in-loop
+  evaluation with task dropout is stochastic unless verified by exact replay.
+- Root dependency declarations now target Ray 2.58; `itrader/compat/ray29/`
+  records the historical reproduction profile.
+- Validated topology for this 16-GiB host is `workers=0`. Ray 2.58 used about
+  0.25 GiB less memory but ran about 16% slower in the matched small probe.
+- Next after user review: matched Ray-2.58 R0 versus R1. Do not start native
+  RLModule/EnvRunner modernization or R2 in that same attribution cell.
+
+## 2026-09-24 — Ray 2.58 R0 platform gate initial attempt
+
+- Reviewed migration commit `1033dc4`; did not cherry-pick its dataset-v1,
+  asynchronous-PBT experiment boundary.
+- Added current-tree compatibility adapters while preserving dataset-v2 RTH,
+  sampled-step synchronous PBT, checkpoint lineage, and economic reporting.
+- Full suites pass on Ray 2.9 and isolated Ray 2.58. Initial weights and initial
+  deterministic evaluation match exactly; stochastic rollout sequences differ
+  across RLlib versions under the same seed.
+- A two-member 12-update Ray-2.58 sync probe was stopped safely after one update
+  each because concurrent game use reduced free memory to 1.04 GiB. No exploit
+  cadence was reached. Evidence is retained and marked `incomplete`.
+- Do not delete `D:/iTRADER-offload`; it is the authoritative junction target for
+  active Ray results and contains unique checkpoint evidence.
+- Superseded by the completed 2026-09-25 gate above.
+
+## 2026-09-24 — crossed-panel R0 cost study closed
+
+- Final valid arm:
+  `v2p0_nonflat_search_sync30_20260924_173537_exact_1bp`.
+- Mechanical gate: pass at >=96k sampled environment steps for all four members;
+  three exploit events, three verified generation-bound restore lineages, eight
+  exact checkpoint selections, and no pending/stale/rewind evidence.
+- Economic gate: fail. Exact-cost population mean was -0.05317% net,
+  -0.03815 Sharpe/sqrt(bar), 67.33% flat/32.67% short, and turnover 6.609; no
+  report combined positive net return and positive Sharpe.
+- Matched staged cost converged to 100% short at +0.05785% net but -0.01558
+  Sharpe. It is a directional shortcut, not a winner.
+- Root cause closed: synchronous boundary targets can no longer be pre-staged
+  while live peers are below the barrier; post-exploit orphan staging is removed
+  and an already-created exploited actor fails closed.
+- Decision: freeze R0 and stop further same-panel cost search. Next review and
+  parity-test the separately developed Ray-2.58 migration with an R0-only bridge;
+  then test bounded R1 under identical dataset/tasks/seeds/cost/PBT/evidence contracts;
+  later attribute memory only with matched state carry/reset controls. Keep
+  future-derived regime tags ex-post; causal C0/C1/shuffled-C1 is a separate
+  later factor. Keep the CLM/Jev/System-One S-series research-only until the
+  R-series solver/platform/evidence contract is frozen.
+
 Last updated: 2026-09-24
 Branch: `agent/Watson-dev`
-HEAD: `891fcaa` plus the uncommitted dataset-v2 implementation/evidence round
+Baseline HEAD: `0894116`; this dataset-v2 implementation/evidence round is the
+next reviewable delivery on `agent/Watson-dev`
 
 ## 2026-09-24 dataset-v2 reset and R0 bridge
 
@@ -35,17 +120,15 @@ is promoted. A forensic audit matched all five Gate D restore copies to their
 selected donor full-tree hashes; new arms additionally require a generation-bound
 selection/receipt/report/checkpoint chain.
 
-The next P0 is prepared but deliberately not running. Its explicit development
-panel crosses eight fixed RTH starts with horizons 96/128/160/200, removing the
-old horizon/start shortcut. Crossed controls at 1 bp are: flat 0.00000%,
-long-only -0.09785% net/+0.00827 Sharpe, short-only +0.05785% net/-0.01558
-Sharpe, random -1.31143% net/-0.25857 Sharpe, and untrained FiLM exactly equal
-to short-only. The canonical 60-update loadout retains `stream_worker`, family
-00, random/generated tasks, four synchronous members, narrower learning rates,
-and bounded entropy schedules across matched no-cost/staged/exact-cost arms.
-The goal is paused immediately before `--variant no_cost`; do not launch until
-the user resumes it. Then advance any candidate to block uncertainty, 0.5/1/2 bp,
-new chronological blocks, and independent seeds. Keep the final test sealed.
+The crossed development panel uses eight fixed RTH starts with horizons
+96/128/160/200, removing the old horizon/start shortcut. Its bounded staged and
+exact-cost arms are now complete through the 96k review gate. Staged cost became
+the short-only control; exact cost ended negative with mostly flat/short actions
+and no jointly positive net/Sharpe report. Freeze this R0 evidence, review Ray
+2.58 through a bounded R0-only parity bridge, then start R1 as a matched
+representation-only challenger on the accepted platform. Move any candidate to new
+chronological blocks, block uncertainty, 0.5/1/2 bp replay, and independent
+seeds. Keep the final test sealed.
 
 ## 2026-09-17 synchronous bridge — pause and completed recovery
 
@@ -207,21 +290,27 @@ about -0.00003. PnL dominates the shaped reward, drawdown is material, and the
 task-level turnover penalty is negligible relative to both; separate 1 bp
 economic costs still make high-turnover policies unattractive.
 
-The aggregate outputs, plots, replay receipt, final loadout, and earlier
-documentation are committed as evidence. The raw Ray trial/checkpoint tree
-remains local. A new implementation round is staged for user review: a monotonic
-sampled-environment-step PBT clock, exact scaled `net_return` task reward at 1 bp,
-balanced fixed panels, PPO diagnostics, best cadence-checkpoint indexing,
-baseline-relative promotion gates, a fixed-policy/untrained-policy evaluator,
-and two next-P0 JSON loadouts. No recurrent-solver implementation, Ray upgrade,
-or dependency migration is included. The later 120-update matched bridge and
-synchronous PBT probes are local experiment evidence plus staged loadouts; the
-large raw Ray trial/checkpoint trees remain ignored.
+The reviewable implementation/evidence delivery includes the monotonic sampled-
+environment-step PBT clock, exact scaled `net_return` reward, crossed panels,
+PPO/economic diagnostics, immutable checkpoint indexing, strict generation-
+bound restore lineage, fixed/untrained controls, and the bounded cost-search
+loadouts. Raw Ray trial/checkpoint trees and licensed market data remain local.
+No recurrent-solver implementation, Ray upgrade, or dependency migration is
+included.
 
-Validation passed: repository healthcheck, 97-test full suite, focused reporting
-tests, JSON-schema validation, `git diff --check`, and the complete pre-commit
-suite. GitNexus was readable but stale relative to the dirty implementation and
-should be refreshed after the code commit.
+The final architecture/deslop pass also closed three future-run provenance gaps:
+snapshot hashes exclude interrupted atomic-write temporaries, manifests record
+resolved custom PBT learning-rate bounds as stable JSON, and best-checkpoint
+economic eligibility comes from the explicit net/Sharpe/flat promotion gate
+rather than the active ranking metric. Current validation passes the repository
+healthcheck, the complete 236-test suite, focused 95-test affected-module slice,
+`git diff --check`, and a file-scoped pre-commit pass over the six affected
+Phase A source/test/handoff files. The closeout docs then passed HTML parsing,
+local-link resolution, diff check, and a second file-scoped pre-commit pass over
+the complete Phase A closeout set. The earlier all-file pre-commit pass predates
+these three fixes; do not target the concurrently owned Jev/CLM research while
+it is active. GitNexus is readable but stale and should be refreshed separately
+after delivery; the previously observed WSL dump risk still applies.
 
 ## User-review boundary
 
@@ -240,7 +329,10 @@ reward seam, not a learned reward-head requirement.
 - Non-`film` conditioning in that model does not implement concat.
 - Legacy `SolverLSTMModel` is shape-incompatible with appended task embeddings
   and does not carry state.
-- R1–R3 and R4-v1 are design/plan cells only.
+- R1–R3 remain design/plan cells. R4-v1-min has an implemented FF seam plus
+  replay-valid blocking and fresh 4x3x40 gates. Combined state passed relative
+  net attribution on the fresh block, but every arm failed absolute economic
+  promotion; no recurrent cross is economically authorized by this result.
 - Original R2a/R2b/R2c/R2d meanings are preserved from `4732a98`.
 - R2c per-step FiLM is the active candidate; R2b init-only and R2d value-only
   are deferred; R4-v1 is matched explicit solver-state observability.
@@ -324,7 +416,11 @@ sealed final test closed until a sustained independent challenger passes.
    sequence contract.
 8. Run `R2c-CARRY` versus `R2c-RESET` only if R2c remains selected; preserve the
    same-input/same-conditioning attribution control.
-9. Run R4-v1 with identical explicit state fields on FF/recurrent controls.
+9. Preserve both completed R4-v1 gates as failed economic promotions. The next
+   bounded P0 may use the predeclared fresh block only for its declared
+   actor-robustness comparison; it must retain best eligible checkpoints and may
+   not silently add state features. Keep future recurrent controls separately
+   named and chronologically predeclared.
 10. Treat R3 as a later cell-type comparison. Proposer and online/replay/shadow
    work remain within Phase B and can proceed alongside the offline track;
    recurrence experiments do not impose a blanket gate on that work.

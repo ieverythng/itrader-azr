@@ -1,0 +1,51 @@
+{
+  "run_tag": "phase_a_r4_v1_min_2x2_smoke_20260925_combined",
+  "collected_only": true,
+  "config": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\phase_a_r4_v1_min_2x2_smoke_20260925.json",
+  "results": [
+    {
+      "variant_id": "masked_control",
+      "series_id": "masked_control",
+      "experiment_name": "phase_a_r4_v1_min_2x2_smoke_20260925_132332_masked_control",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r4-v1-min-20260925\\phase_a_r4_v1_min_2x2_smoke_20260925_132332_masked_control\\training_fn_ITraderEnv_91a74_00000_0_2026-09-25_13-23-44",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r4-v1-min-20260925\\_stable_metrics\\training_fn_ITraderEnv_91a74_00000_0_2026-09-25_13-23-44\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r4-v1-min-20260925\\_stable_metrics\\training_fn_ITraderEnv_91a74_00000_0_2026-09-25_13-23-44\\plots",
+      "final_metric": -0.002003706649847
+    },
+    {
+      "variant_id": "position_only",
+      "series_id": "position_only",
+      "experiment_name": "phase_a_r4_v1_min_2x2_smoke_20260925_132558_position_only",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r4-v1-min-20260925\\phase_a_r4_v1_min_2x2_smoke_20260925_132558_position_only\\training_fn_ITraderEnv_e5f2b_00000_0_2026-09-25_13-26-06",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r4-v1-min-20260925\\_stable_metrics\\training_fn_ITraderEnv_e5f2b_00000_0_2026-09-25_13-26-06\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r4-v1-min-20260925\\_stable_metrics\\training_fn_ITraderEnv_e5f2b_00000_0_2026-09-25_13-26-06\\plots",
+      "final_metric": -0.003976857477121
+    },
+    {
+      "variant_id": "remaining_only",
+      "series_id": "remaining_only",
+      "experiment_name": "phase_a_r4_v1_min_2x2_smoke_20260925_132758_remaining_only",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r4-v1-min-20260925\\phase_a_r4_v1_min_2x2_smoke_20260925_132758_remaining_only\\training_fn_ITraderEnv_2ce55_00000_0_2026-09-25_13-28-05",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r4-v1-min-20260925\\_stable_metrics\\training_fn_ITraderEnv_2ce55_00000_0_2026-09-25_13-28-05\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r4-v1-min-20260925\\_stable_metrics\\training_fn_ITraderEnv_2ce55_00000_0_2026-09-25_13-28-05\\plots",
+      "final_metric": -0.0009338103525319
+    },
+    {
+      "variant_id": "position_remaining",
+      "series_id": "position_remaining",
+      "experiment_name": "phase_a_r4_v1_min_2x2_smoke_20260925_132953_position_remaining",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r4-v1-min-20260925\\phase_a_r4_v1_min_2x2_smoke_20260925_132953_position_remaining\\training_fn_ITraderEnv_71e21_00000_0_2026-09-25_13-30-00",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r4-v1-min-20260925\\_stable_metrics\\training_fn_ITraderEnv_71e21_00000_0_2026-09-25_13-30-00\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r4-v1-min-20260925\\_stable_metrics\\training_fn_ITraderEnv_71e21_00000_0_2026-09-25_13-30-00\\plots",
+      "final_metric": -0.0018429794530991
+    }
+  ],
+  "primary_metric": "evaluation/net_return_mean",
+  "compare_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\artifacts\\research\\solver-state-r4-v1-min-implementation-note-2026-09-25-evidence\\smoke_4cell\\ablation_compare.csv",
+  "compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\artifacts\\research\\solver-state-r4-v1-min-implementation-note-2026-09-25-evidence\\smoke_4cell\\ablation_compare.png",
+  "sharpe_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\artifacts\\research\\solver-state-r4-v1-min-implementation-note-2026-09-25-evidence\\smoke_4cell\\ablation_compare_validation_sharpe.png",
+  "entropy_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\artifacts\\research\\solver-state-r4-v1-min-implementation-note-2026-09-25-evidence\\smoke_4cell\\ablation_compare_entropy.png",
+  "episode_len_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\artifacts\\research\\solver-state-r4-v1-min-implementation-note-2026-09-25-evidence\\smoke_4cell\\ablation_compare_episode_len.png",
+  "diagnostics_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\artifacts\\research\\solver-state-r4-v1-min-implementation-note-2026-09-25-evidence\\smoke_4cell\\ablation_compare_diagnostics.png",
+  "action_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\artifacts\\research\\solver-state-r4-v1-min-implementation-note-2026-09-25-evidence\\smoke_4cell\\ablation_compare_action_fractions.png"
+}

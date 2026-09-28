@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "captured_at": "2026-09-24",
+  "purpose": "Reproducibility receipt for the exact released CLM-v0.1-8B head and its required Qwen3-8B last-token-pooling backbone.",
+  "assets": [
+    {
+      "repository": "Contrastive-LM/CLM-v0.1-8B",
+      "revision": "87655cb835bd76fd66c2da78e1e3709f7fa11a94",
+      "local_path": "D:\\MODELS\\Contrastive-LM\\CLM-v0.1-8B",
+      "total_repository_bytes": 75834346,
+      "primary_file": {
+        "name": "CLM_v0.1-8B.pt",
+        "bytes": 75557149,
+        "sha256": "b2b4a8c9c2d39263eff78a351eb909a342ce9b3bf21a3f07c1d1bf15f1c4eda5"
+      }
+    },
+    {
+      "repository": "Qwen/Qwen3-8B",
+      "revision": "b968826d9c46dd6066d109eabc6255188de91218",
+      "local_path": "D:\\MODELS\\Qwen\\Qwen3-8B",
+      "total_repository_bytes": 16397461266,
+      "weight_shards": [
+        {
+          "name": "model-00001-of-00005.safetensors",
+          "bytes": 3996250744,
+          "sha256": "31d6a825ae35f11fb85b195b4c42c146c051e446433125a215336abdf95cbf5f"
+        },
+        {
+          "name": "model-00002-of-00005.safetensors",
+          "bytes": 3993160032,
+          "sha256": "5991236cea6fe21f3d43cab0f0e84448734fbbe0789816202989f2ddc9d18282"
+        },
+        {
+          "name": "model-00003-of-00005.safetensors",
+          "bytes": 3959604768,
+          "sha256": "c5185c4794be2d8a9784d5753c9922db38df478ce11f9ed0b415b7304d896836"
+        },
+        {
+          "name": "model-00004-of-00005.safetensors",
+          "bytes": 3187841392,
+          "sha256": "b5ee7de71fbf17db3d5704e0c8f2bc7d005ca9e1d7ca2aeb19827b0cfcaa917a"
+        },
+        {
+          "name": "model-00005-of-00005.safetensors",
+          "bytes": 1244659840,
+          "sha256": "20c2d6366ab85c90786ccdd829cd2b9e7d30ef3b2ebbb998280e7e4014b542ff"
+        }
+      ]
+    }
+  ],
+  "compatibility_note": "The released CLM head is trained against Qwen3-8B with last-token pooling. Existing GGUF or differently sized Qwen checkpoints are not interchangeable evidence for this ablation.",
+  "status": "downloaded_and_sha256_verified"
+}

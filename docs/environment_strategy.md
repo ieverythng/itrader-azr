@@ -8,16 +8,16 @@ not change dependencies.
 The source-of-truth dependency declarations are `pyproject.toml` and `uv.lock`:
 
 - Python `>=3.11,<3.12`
-- Ray/RLlib `2.9.0`
-- Gymnasium `0.28.1`
+- Ray/RLlib `2.58.0`
+- Gymnasium `1.2.2`
 - DuckDB `0.10.2`
-- PyArrow `13.0.0`
+- PyArrow `17.0.0`
 - setuptools `69.5.1`
 - PyTorch `>=2.3,<2.4`
 
-The old `docs/phase_b_plan.md` Ray/RLlib `2.47.1` line is retained only as a
-historical proposal and is not an API authority. No lock or environment change
-was made in the 2026-09-12 docs pass.
+The old `docs/phase_b_plan.md` Ray/RLlib `2.47.1` line is a historical proposal.
+Ray 2.9 is retained only through `itrader/compat/ray29/` and the existing
+reproduction environment. New R-series runs use the root Ray 2.58 lock.
 
 ## Supported execution surfaces
 
@@ -54,19 +54,20 @@ and error in the dated audit.
 
 ## Recurrent implementation prerequisite
 
-Before using RLlib recurrent APIs, verify them against the locked Ray 2.9.0
-runtime in a compatible environment. Do not copy flags or state behavior from the
-historical 2.47.1 plan. The recurrent contract must cover sequence lengths,
+Before using RLlib recurrent APIs, verify them against the locked Ray 2.58.0
+runtime in a compatible environment. Do not copy flags or state behavior from
+the historical 2.47.1 plan or Ray-2.9 reproduction profile. The recurrent contract must cover sequence lengths,
 padding masks, last valid h/c, terminal/truncated bootstrap, fragment detach,
 vector-worker state ownership, training/inference parity, and checkpoint/replay
 state.
 
 ## Current validation boundary
 
-The earlier WSL `Exec format error` remains a historical observation. The current
-Windows-native `.venv\Scripts\python.exe` executes the repository suite and Ray
-2.9 training stack. The optional Ray dashboard package is absent, so the trainer
-retries without the dashboard; this does not affect training.
+The earlier WSL `Exec format error` remains a historical observation. The root
+lock now targets Ray 2.58. The existing repository `.venv` is intentionally left
+as the Ray-2.9 reproduction surface until the user rebuilds it; the accepted
+Ray-2.58 gate used a separate Python 3.11 environment. The optional Ray dashboard
+package is not required for training.
 
 Ray 2.9 on this Windows installation can truncate Tune-owned manifests and PBT
 text logs to zero bytes. Repository-owned run manifests/status are therefore

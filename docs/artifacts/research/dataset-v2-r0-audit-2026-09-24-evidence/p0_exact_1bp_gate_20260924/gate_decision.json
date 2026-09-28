@@ -1,0 +1,67 @@
+{
+  "decision": "pass",
+  "exact_receipt_count": 8,
+  "expected_members": 4,
+  "experiment_name": "v2p0_nonflat_search_sync30_20260924_173537_exact_1bp",
+  "exploit_count": 3,
+  "free_gb": 61.43636703491211,
+  "invalid_receipts": [],
+  "lineage_pending": [],
+  "lineage_problems": [],
+  "members": [
+    {
+      "at_review": true,
+      "exact_checkpoint": true,
+      "net_return": -0.0004792325893565241,
+      "pbt_progress_steps": 97936,
+      "report_count": 20,
+      "sharpe_per_sqrt_bar": -0.013964463699352532,
+      "status": "running",
+      "trial_id": "9cc5b_00000"
+    },
+    {
+      "at_review": true,
+      "exact_checkpoint": true,
+      "net_return": -0.0007377077286014733,
+      "pbt_progress_steps": 107528,
+      "report_count": 22,
+      "sharpe_per_sqrt_bar": -0.05795882786622924,
+      "status": "running",
+      "trial_id": "9cc5b_00001"
+    },
+    {
+      "at_review": true,
+      "exact_checkpoint": true,
+      "net_return": -0.0004609899805106175,
+      "pbt_progress_steps": 97776,
+      "report_count": 20,
+      "sharpe_per_sqrt_bar": -0.03465155828533857,
+      "status": "running",
+      "trial_id": "9cc5b_00002"
+    },
+    {
+      "at_review": true,
+      "exact_checkpoint": true,
+      "net_return": -0.00044893329656089037,
+      "pbt_progress_steps": 107904,
+      "report_count": 22,
+      "sharpe_per_sqrt_bar": -0.046022943026052796,
+      "status": "running",
+      "trial_id": "9cc5b_00003"
+    }
+  ],
+  "members_at_review": 4,
+  "minimum_exploits": 3,
+  "minimum_free_gb": 20.0,
+  "missing_receipts": [],
+  "observed_members": 4,
+  "pending": [],
+  "reasons": [],
+  "results_root": "C:\\itrader-ray\\v2p0-nonflat-search-sync30-20260924",
+  "review_steps": 96000,
+  "run_status": "completed",
+  "schema_version": 2,
+  "stale_targets": [],
+  "strict_lineage_required": true,
+  "verified_lineage_receipt_count": 3
+}

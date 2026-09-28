@@ -1,6 +1,6 @@
 # iTrader Architecture Entry Point
 
-Last updated: 2026-09-24
+Last updated: 2026-09-25
 Branch snapshot: `agent/Watson-dev` with the uncommitted dataset-v2 implementation round
 Status: **active working architecture; recurrence and trunk/head design pending grill-me review**
 
@@ -58,6 +58,14 @@ different start. Restore provenance is generation-bound: scheduler selection,
 one target receipt with the same full-tree checkpoint digest, a target report,
 and a retained target checkpoint must agree before an exploit counts.
 
+Ray 2.58 is the accepted forward R-series runtime; Ray 2.9 remains a frozen
+historical reproduction profile. The current source passes 254 tests on both,
+matches initial policy weights and deterministic R0 controls exactly, and closes
+the Ray-2.58 synchronous exploit/restore/replay contract. RLlib stochastic
+rollout streams differ under the same seed, so results remain runtime-labelled
+and R1 must include a matched Ray-2.58 R0 control. Do not combine solver
+representation with the later native RLModule/EnvRunner migration.
+
 ## Market-data authority
 
 ```text
@@ -83,14 +91,19 @@ licensed data and credentials remain ignored while aggregate evidence is tracked
 
 | ID | Historical identity | Current status | Attribution rule |
 |---|---|---|---|
-| R0 | `SolverMLPFiLM`, no cross-step state | **Implemented/default** | Control for all solver studies |
+| R0 | `SolverMLPFiLM`, no cross-step state | **Implemented; immutable parity control** | Historical control for all solver studies |
 | R1 | Reset-every-step window LSTM + FiLM, explicit market/task split | **Unimplemented** | Within-window temporal encoder only |
 | R2a | Stateful LSTM + task concatenation | **Unimplemented / planned** | Original recurrence baseline |
 | R2b | Stateful LSTM + FiLM initial state only | **Deferred** | RLlib `get_initial_state()` does not receive the task under the current contract |
 | R2c | Stateful LSTM + per-step FiLM | **Active candidate / unimplemented** | Original per-step identity; placement remains open pending grill-me review |
 | R2d | Init + per-step FiLM on value head only | **Deferred** | Requires matched policy/value placement controls |
 | R3 | Stateful GRU + per-step FiLM | **Planned after LSTM controls** | Cell-type/compute comparison |
-| R4-v1 | Matched explicit solver-state features on feed-forward and recurrent controls | **Planned, versioned** | Not the historical task-conditioned-init R4 |
+| R4-v1 | Matched explicit solver state: position + remaining horizon | **Architecture-qualified; 40-update replication complete** | `R0 + R4-v1` is the forward FF training baseline; paired net uplift passed, absolute economic promotion failed |
+
+After the core R-series representation/lifecycle study, causal C0/C1/shuffled-
+C1 remains a separate train-fitted market-representation factor. The
+System-One/CLM/Jev S-series remains research-only until the R-series solver
+interface, platform, and evidence contract are frozen.
 
 Provenance is fixed by `git show 4732a98:docs/research/recurrent-solver-ablation.md`:
 that document named init-only FiLM **R2b**, per-step FiLM **R2c**, and value-head-only
@@ -143,10 +156,26 @@ these choices until the ongoing grill-me review confirms them.
 ## Task observability and online state
 
 position, previous action, realized reward, unrealized PnL, or episode progress.
-No market-only RNN can reconstruct sampled actions/fills/position exactly. When
-studying solver-state observability, add typed, normalized fields to both the
-feed-forward and recurrent controls. Keep `R4-v1` separate from R-series
-conditioning claims.
+No market-only RNN can reconstruct sampled actions/fills/position exactly. The
+accepted `R4-v1-min` FF seam is the fixed
+`[position, remaining_horizon_fraction]` block. Its blocking three-seed,
+12-update masked/position/time/both gate is replay-valid: time-only showed a
+  positive paired net effect with an anchor interval excluding zero, but no arm
+  had positive three-seed net and Sharpe or beat the controls. A later decision
+  architecture-qualifies the complete `R0 + R4-v1` pair as the forward
+  feed-forward training baseline because it removes the known endogenous
+  position/termination alias; this does not reverse the failed economic verdict.
+  R0 remains the parity control. R1 must keep state-free and explicitly named
+  `R1 + R4-v1` cells so recurrence and observability remain attributable.
+
+  The completed 4x3x40 replication used the named `zero_v1` residual
+  initialization profile and preserved update-zero policy/value parity. Combined
+  state improved net over masked in all seeds and passed the pooled relative net
+  gate, but failed control superiority, Sharpe consistency, and the near-flat
+  gate. Episode PnL, accounting, holding,
+  drawdown, turnover-budget, and session-clock features are registered future
+  factors rather than current inputs. Nonlinear market/task × state late fusion
+  is reserved for separately named R4-v2.
 
 `TaskEncoder` is versioned. `legacy_v1` preserves historical checkpoint behavior.
 New runs use `semantic_v2`, which represents solver-relevant normalized task

@@ -1,5 +1,76 @@
 # Decisions
 
+## 2026-09-25 — Close the R4-v1 replication without economic promotion
+
+- Decision: retain `R0 + R4-v1` as the architecture-qualified Phase A
+  feed-forward training baseline and R0 as the immutable state-free parity
+  control. Do not economically promote any R4-v1 arm.
+- Why: on the fresh December-2025 4x3x40 replication, combined state improved
+  terminal net return over masked in all three seeds and its pooled
+  seed-then-anchor interval excluded zero. All terminal replays were exact and
+  the state counterfactuals were active. Nevertheless, no arm beat long-only or
+  achieved positive net and Sharpe across seeds, and seed 20260926 breached the
+  near-flat ceiling.
+- Consequences: keep position and remaining horizon together for the exact-cost,
+  finite-horizon task; run a bounded actor-robustness search with retained-best
+  replay before R4-v2; preserve separate `R1` and `R1 + R4-v1` cells.
+- Non-goals: this does not claim a profitable solver, a fully observed market
+  MDP, R4-v2 approval, or final-test eligibility.
+- Revisit when: the actor-robustness search produces a replay-valid candidate
+  that passes the flat/turnover guards and deterministic-control gate.
+
+## 2026-09-25 — Architecture-qualify R0 + R4-v1 without economic promotion
+
+- Decision: preserve R0 unchanged as the historical/parity control and use the
+  complete position-plus-remaining-horizon connector as the forward feed-forward
+  Phase A baseline named `R0 + R4-v1`.
+- Why: those variables remove the known endogenous action-cost and finite-horizon
+  alias. Improved critic fit and relative economics support state use, while the
+  completed 12-update gate still fails absolute economic promotion.
+- Consequences: the new replication uses the named `zero_v1` residual
+  initialization, matched update-zero controls, counterfactual diagnostics,
+  explicit turnover/near-flat gates, and a fresh December-2025 validation block.
+  R1 remains state-free versus an explicitly named `R1 + R4-v1` cross.
+- Non-goals: no PBT, R4-v2, sealed-test read, recurrence implementation, or
+  economic promotion is authorized by this architecture decision.
+- Revisit outcome: the fixed 40-update 4x3 replication and exact replay are
+  complete; the architecture decision stands and economic promotion remains
+  rejected by the newer decision above.
+
+## 2026-09-25 — Do not economically promote R4-v1 after the blocking 4x3 gate
+
+- Decision: retain the implemented R4-v1 connector as an available named
+  observability factor, but do not economically promote it from this
+  development-panel result. The later architecture qualification above
+  supersedes the earlier default-input restriction without changing this
+  economic verdict.
+- Why: time-only produced directionally consistent net uplift and a positive
+  seed-then-anchor interval, but its absolute three-seed net and Sharpe were
+  negative. The complete position-plus-time arm improved every seed relative to
+  masked but its pooled intervals crossed zero, and it also failed flat,
+  directional, and untrained controls.
+- Consequences: the special R4-before-R1 execution block is closed, but R1 still
+  requires user review and its lifecycle/placement gates. R4 must not be silently
+  bundled with recurrence. No PBT, sealed-test, or 2-bp promotion follows.
+- Revisit when: a new chronological development block is predeclared and the
+  remaining-time factor can be tested without reselecting on the same anchors.
+
+## 2026-09-25 — Accept Ray 2.58 for the R-series; freeze Ray 2.9 for reproduction
+
+- Decision: coordinated root dependencies target Ray/RLlib 2.58.0, Gymnasium
+  1.2.2, and PyArrow 17.0.0. Ray 2.9 remains a version-pinned historical
+  reproduction profile under `itrader/compat/ray29/`.
+- Why: current dataset-v2 source passes both 254-test suites, deterministic
+  initialization/control, a local-worker synchronous exploit/restore gate,
+  strict generation-bound lineage, and exact fresh replay. Cross-version PPO
+  trajectories are not seed-identical, so numerical endpoint identity is not an
+  acceptance condition.
+- Consequences: future R0/R1 comparisons use Ray 2.58 and carry runtime labels;
+  the validated topology on this host is `workers=0`. Native
+  RLModule/EnvRunner modernization remains a separate factor.
+- Revisit when: a measured remote-worker topology has safe memory headroom or
+  the native RLlib-stack migration has its own R0 parity gate.
+
 ## 2026-09-24 — Cross starts and horizons in the P0 development panel
 
 - Decision: evaluate the next matched P0 on eight explicit RTH starts crossed

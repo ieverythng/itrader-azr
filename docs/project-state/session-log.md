@@ -1,5 +1,147 @@
 # Session Log
 
+## 2026-09-25 — R4-v1 fresh 4x3x40 replication closed
+
+- Completed all 12 fixed cells on the predeclared December-2025 32-task panel at
+  exactly 40 PPO updates with PBT off and one frozen source/data/panel identity.
+- Replayed all 12 terminal checkpoints exactly in fresh processes and completed
+  arm-aware state counterfactual diagnostics. Update-zero controls remained
+  byte-identical across all state masks for each seed.
+- Combined state improved terminal net over masked in all seeds; the pooled
+  seed-then-anchor net interval was positive. Mean turnover also fell from 11.40
+  to 4.71, and critic/state sensitivity was genuine.
+- Withheld economic promotion: no arm beat long-only, Sharpe uplift was not
+  seed-consistent, and seed 20260926 breached the 98% near-flat ceiling.
+- Froze `R0 + R4-v1` as the architecture-qualified forward FF baseline while R0
+  remains the parity control. Next P0 targets actor robustness, not R4-v2.
+- Evidence and final audit:
+  `docs/artifacts/research/solver-state-r4-v1-replication-plan-2026-09-25.md`.
+
+## 2026-09-25 — R4-v1 architecture qualification and 40-update prelaunch
+
+- Split architecture qualification from economic promotion: R0 remains the
+  immutable parity control; `R0 + R4-v1` becomes the forward FF baseline, while
+  the completed 12-update economic verdict remains a failure.
+- Added the named `zero_v1` residual initialization and an update-zero regression
+  proving nonzero state inputs preserve R0 actions/logits/values within
+  floating-point tolerance.
+- Added arm-aware untrained controls, executable turnover/near-flat gates, and
+  identical-input counterfactual diagnostics with logit/value deltas.
+- Predeclared eight return-uninspected December-2025 RTH anchors crossed with all
+  four horizons and a fixed 4x3 40-update, non-PBT replication loadout.
+- Registered episode accounting, holding, risk-budget, and session-clock state
+  semantics for later named factors; none enter the current observation.
+
+## 2026-09-25 — R4-v1 blocking 4x3 economic decision
+
+- Completed 12 sequential Ray-2.58 cells across masked/position/time/both and
+  seeds 20260924–20260926 at 12 PPO updates each on the frozen crossed panel.
+- Replayed every update-12 checkpoint exactly and produced terminal
+  state-conditioned diagnostics. All schema, dataset, panel, and source
+  fingerprints matched; no PBT, final-test access, 2-bp work, or R1 launch
+  occurred.
+- Time-only passed the relative net gate: all seed deltas were positive and the
+  pooled seed-then-anchor 95% interval was [+0.0265%, +0.1752%]. Its absolute
+  mean net and Sharpe remained negative. Both and position also failed, so no
+  R4-v1 arm is promoted.
+- Added tested hard-RAM gating, explicit terminal replay/diagnostic selection,
+  namespaced control evidence, and an eight-anchor crossed-horizon bootstrap.
+- Audit and evidence:
+  `docs/artifacts/research/solver-state-r4-v1-blocking-ablation-2026-09-25.md`.
+
+## 2026-09-25 — R4-v1-min Markov-state seam and bounded smoke
+
+- Implemented the backwards-compatible 334-wide R4-v1-min observation contract:
+  the historical 332-wide market/task base plus a fixed position/remaining-
+  horizon block, with a bias-free actor/value residual and exact masked parity.
+- Completed sequential masked, position, time, and combined three-update cells
+  on the crossed dataset-v2 RTH panel at fixed 1 bp. All four checkpoints replay
+  exactly, but every terminal result is negative and economically ineligible.
+- Added matched controls and state-conditioned checkpoint diagnostics. Position
+  input changes action probabilities but caused severe switching in its cell;
+  time-only was least negative. Early positive values did not beat the seeded
+  untrained/directional explanation.
+- Recorded the full audit and evidence under
+  `docs/artifacts/research/solver-state-r4-v1-min-implementation-note-2026-09-25.md`.
+  The next gate is a longer masked-versus-combined probe with best-update
+  retention, not PBT or automatic R1 promotion.
+- Validation before launch: 268 tests, healthcheck, and scoped pre-commit passed;
+  focused diagnostic tests pass after the evidence seam. No commit, staging,
+  deletion, final-test access, PBT, or R1 launch occurred.
+
+## 2026-09-25 — Ray 2.58 R0 platform acceptance
+
+- Re-ran the current dataset-v2 R0 source on Ray 2.58 with a memory-safe local
+  rollout-worker topology. The 2x12 synchronous run reached about 58.6k sampled
+  steps/member and closed one exact exploit/restore lineage plus fresh replay.
+- Ran the matched Ray-2.9 mechanical gate and three fixed-hyperparameter seeds per
+  runtime. All six terminal rows and all best-checkpoint Sharpes were negative;
+  the bridge is compatibility evidence, not economic uplift.
+- Diagnosed replay drift to task-embedding dropout keyed to PyTorch module mode.
+  Updated `SolverMLPFiLM` to honor RLlib `is_training`; corrected replays have
+  zero delta.
+- Promoted coordinated Ray 2.58/Gymnasium 1.2.2/PyArrow 17 dependency pins and
+  retained a Ray-2.9 reproduction profile under `itrader/compat/ray29/`.
+- Validation: 126 focused and 254 full tests pass on both runtimes; both
+  healthchecks pass. No commit, stage, deletion, R1 launch, or raw-artifact
+  cleanup was performed.
+
+## 2026-09-24 — Ray 2.58 current-R0 compatibility gate
+
+- Reviewed and bounded the separate Ray-2.58 migration; ported only API adapters
+  into current dataset-v2 source rather than cherry-picking the stale experiment
+  boundary.
+- Passed 248 tests on both Ray 2.9 and Ray 2.58 plus both healthchecks.
+- Proved exact cross-runtime initial policy weights and fixed-panel evaluation;
+  localized same-seed divergence to the first stochastic rollout.
+- Completed repeatable one-update controls on both runtimes.
+- Started the two-member 12-update synchronous Ray-2.58 probe and stopped it at
+  one update/member when free memory reached 1.04 GiB during concurrent game use.
+  No exploit occurred before the 24k cadence.
+- Corrected its status to `incomplete` and added a tested target-step completion
+  guard so Tune `TERMINATED` trials cannot contaminate ablation evidence.
+- Audited `D:/iTRADER-offload`: retain it; it is live authoritative storage, not
+  a disposable cache.
+
+## 2026-09-24 — dataset-v2 R0 goal closeout
+
+- Closed R0 as a mechanically credible but economically negative dataset-v2
+  baseline. Measurement, controls, PPO activity, PBT mutation/transfer, replay,
+  and generation-bound lineage pass; no v2 R0 arm passes net-plus-Sharpe.
+- Kept the earlier replay-exact `00001`/`00003` checkpoints explicitly scoped to
+  dataset-v1 mechanism evidence. Their shared ancestry and failed independent
+  replication block promotion, and dataset-v2 supersedes them for selection.
+- Fixed three future-run provenance defects test-first: atomic snapshot hashes
+  exclude `.tmp` files, manifests serialize resolved PBT learning-rate domains,
+  and best-checkpoint economic eligibility comes from the explicit promotion
+  gate rather than the ranking metric. Healthcheck, 236 tests, diff check, HTML
+  parsing, and file-scoped pre-commit pass.
+- Set the next-goal order: review Ray 2.58 in isolation and prove an R0-only
+  platform bridge; then R1/R2; then causal C0/C1/shuffled-C1; keep the
+  System-One/CLM/Jev S-series research-only until the R-series solver/platform/
+  evidence contract is frozen.
+- Preserved the user's no-commit boundary: the branch remains at `0894116`, the
+  index is empty, and no Jev/CLM research artifact was removed or rewritten.
+
+## 2026-09-24 — final dataset-v2 R0 exact-cost gate
+
+- Closed the pre-staged-target Ray-2.9 contamination path test-first. The final
+  exact-1-bp arm passed strict synchronous-PBT lineage inspection with four
+  members at the 96k gate and three verified exploits.
+- Stopped deliberately after the continuation gate: population mean net return
+  -0.05317%, Sharpe/sqrt(bar) -0.03815, 67.33% flat, and no jointly positive
+  net/Sharpe report across 84 evaluations.
+- Compared the valid staged arm: all members converged to short-only at
+  +0.05785% net but -0.01558 Sharpe. PPO/PBT are responsive; economic promotion
+  remains closed.
+- Preserved compact per-member checkpoints/config/report/receipt evidence,
+  comparison CSVs, the strict gate decision, and net-return/Sharpe/action plots
+  under the dated dataset-v2 audit evidence directory.
+- Updated the roadmap: freeze R0, review Ray 2.58 through an R0-only parity
+  bridge, then begin bounded R1 as a matched representation challenger; retain
+  P1 independent chronological blocks and defer causal regime conditioning to
+  an explicit C-series study.
+
 # 2026-09-24 — Dataset-v2 acquisition and R0 bridge
 
 - Authenticated old Alpaca SIP access and built an immutable, split-adjusted,

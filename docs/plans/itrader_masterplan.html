@@ -1,9 +1,6 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>iTrader Masterplan</title><style>
-:root{--ink:#172019;--muted:#536058;--line:#ccd4ce;--paper:#f3f6f3;--panel:#fff;--green:#176b49;--blue:#1f5d8c;--amber:#a96113}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--paper);font-family:"Segoe UI",Arial,sans-serif;line-height:1.58}header{color:#eef6f0;background:linear-gradient(135deg,#17271e,#204b36);border-bottom:5px solid var(--green)}header>div,main{width:min(1120px,calc(100% - 36px));margin:auto}header>div{padding:48px 0 40px}.eyebrow{margin:0 0 8px;color:#9ed1b4;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}header h1{max-width:920px;margin:0;color:#fff;font:700 clamp(2.2rem,5vw,3.6rem)/1.05 Georgia,serif}header p{max-width:850px;margin:14px 0 0;color:#d5e4da;font-size:1.05rem}main{padding:34px 0 72px}.source-note{margin:0 0 18px;color:var(--muted);font-size:.88rem}.source-note a{color:var(--blue)}article{padding:clamp(26px,5vw,58px);background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(23,32,25,.08)}h1,h2,h3,h4{color:var(--ink);font-family:Georgia,serif;line-height:1.2}article>h1{display:none}h2{margin:2.1em 0 .65em;padding-top:.2em;font-size:clamp(1.55rem,3vw,2.1rem);border-top:1px solid var(--line)}h2:first-of-type{border-top:0;margin-top:.4em}h3{margin:1.65em 0 .45em;font-size:1.28rem}p,li,td,th{color:var(--muted)}strong{color:var(--ink)}a{color:var(--blue)}code{padding:.08em .3em;color:#164d74;background:#edf3f6;border-radius:3px;font-family:Consolas,monospace;font-size:.92em}pre{overflow:auto;padding:17px;color:#eef5f0;background:#1b2720;border-left:4px solid var(--green);border-radius:5px}pre code{padding:0;color:inherit;background:transparent}blockquote{margin:1.2em 0;padding:12px 18px;background:#fff8e9;border-left:4px solid var(--amber)}blockquote p{margin:0;color:#63491f}table{width:100%;margin:1.2em 0 1.55em;border-collapse:collapse;font-size:.91rem}th,td{padding:9px 10px;border:1px solid var(--line);text-align:left;vertical-align:top}th{color:#fff;background:#244d68}tbody tr:nth-child(even){background:#f4f6f4}ul,ol{padding-left:1.45em}li+li{margin-top:.35em}@media(max-width:650px){header>div,main{width:min(100% - 22px,1120px)}article{padding:22px 18px}table{display:block;overflow-x:auto}}@media print{body{background:#fff}header{color:#000;background:#fff;border-bottom:2px solid #000}header h1{color:#000}header p,.eyebrow{color:#444}main{width:100%;padding:0}article{border:0;box-shadow:none;padding:0}}
-</style></head><body><header><div><p class="eyebrow">Active plan</p><h1>iTrader Masterplan</h1><p>Current cross-phase order, evidence gates, and solver-development decisions.</p></div></header><main><p class="source-note">Generated from <a href="itrader_masterplan.md">itrader_masterplan.md</a>.</p><article><h1 id="itrader-masterplan">iTrader Masterplan</h1>
-<p>Last updated: 2026-09-24
-Status: <strong>dataset v2, crossed RTH controls, and strict synchronous-PBT provenance are validated; the next matched P0 is paused launch-ready, and no v2 R0 candidate passes the Phase A economic gate</strong>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>iTrader Masterplan</title><style>:root{color-scheme:light;--ink:#18201d;--muted:#5c6762;--line:#ccd3cf;--paper:#fbfcfa;--wash:#eef2ef;--accent:#1f6651}*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:16px/1.55 Georgia,serif}main{max-width:1120px;margin:32px auto;background:var(--paper);padding:48px 58px 64px;border:1px solid var(--line)}h1,h2,h3{line-height:1.2}h2{margin-top:40px;padding-top:18px;border-top:1px solid var(--line)}table{width:100%;border-collapse:collapse;margin:18px 0 24px;font-size:.9rem}th,td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}th{background:#e8eeea}tbody tr:nth-child(even){background:#f4f6f4}code{font:.9em Consolas,monospace;background:#edf0ee;padding:1px 4px}pre{overflow:auto;background:#edf0ee;padding:14px}a{color:var(--accent)}img{max-width:100%;height:auto;border:1px solid var(--line)}@media(max-width:760px){main{margin:0;padding:28px 18px}table{display:block;overflow:auto}}</style></head><body><main><h1 id="itrader-masterplan">iTrader Masterplan</h1>
+<p>Last updated: 2026-09-25
+Status: <strong>dataset-v2 R0 is the immutable negative/parity control; R0 + R4-v1 is architecture-qualified by the completed fresh 4x3x40 replication, but remains economically unpromoted</strong>
 Branch snapshot: <code>agent/Watson-dev</code> plus the uncommitted dataset-v2 implementation/evidence round</p>
 <h2 id="north-star">North star</h2>
 <p>iTrader is a governed proposer/curriculum plus numerical solver system. Keep
@@ -129,12 +126,14 @@ columns. Clip fraction remains explicitly unavailable on this legacy learner.
 Cadence checkpoints write a best-held-out pointer for mandatory fresh-process
 replay, and the ablation harness supports explicit baseline-relative terminal
 promotion gates.</li>
-<li><strong>Next platform seam:</strong> preserve Ray 2.9 as the locked reproduction baseline,
-then migrate in a separate environment to Ray 2.58.0. First prove old-API
-parity, then port <code>ModelV2</code>/workers/callbacks to
-<code>RLModule</code>/EnvRunner/Learner/ConnectorV2. Reconcile the current dependency
-declaration drift: 2.9.0 in <code>pyproject.toml</code>/Conda versus 2.47.x in the
-constraints and cluster setup.</li>
+<li><strong>Platform seam accepted:</strong> Ray 2.58.0 is the forward R-series authority and
+Ray 2.9 is a frozen historical reproduction profile. Both runtime suites,
+deterministic initialization/control, synchronous exploit/restore lineage,
+and exact fresh replay pass. A three-seed smoke bridge confirms that both
+short runs remain economically negative and that same-seed PPO endpoints are
+not a valid cross-version parity requirement. R1 must use a Ray-2.58 R0
+control; a later <code>RLModule</code>/EnvRunner/Learner/ConnectorV2 modernization remains
+a separate factor.</li>
 <li><strong>Completed but not promoted:</strong> the matched four-member-per-arm 120-update
 bridge compared exact 1 bp <code>net_return</code> with historical <code>pnl_linear</code> under
 identical seeds, starts, data, exposure, and MLP-FiLM architecture. Mean
@@ -212,16 +211,15 @@ relocate an active run.</p>
 <code>docs/artifacts/research/phase-a-mlp-film-autoresearch-2026-09-19.md</code>, with the
 earlier repair chronology in
 <code>docs/artifacts/research/phase-a-performance-validity-audit-2026-09-12.md</code>.</p>
-<p>Dataset-v2 supersedes dataset-v1 for new performance selection. The next P0 is
-a matched RTH search over no-cost, staged-cost, and exact-cost schedules on an
-environment-step clock, with tighter best-evaluation checkpoint retention and
-an explicit crossed task panel. P1
-then uses independent, non-overlapping chronological blocks, paired block-aware
-uncertainty, regime-conditioned actions, and 0.5/1/2 bp replay. R-series
-engineering can proceed in parallel, but frozen proposer/family uplift cannot be
-claimed until the R0 data/evidence baseline is frozen. A frozen Qwen3.8 proposer
-then compares against random/generated tasks at equal R0 checkpoint and solver
-compute; adaptive proposer reward remains later Phase B work.</p>
+<p>Dataset-v2 supersedes dataset-v1 for new performance selection. The matched RTH
+no-cost/staged/exact-cost P0 is complete and not promoted. The Ray-2.58 R0
+platform gate is accepted; after review, run R1 beside a matched Ray-2.58 R0
+control. P1 uses independent, non-overlapping chronological
+blocks, paired block-aware uncertainty, regime-conditioned actions, and 0.5/1/2
+bp replay. Frozen proposer/family uplift cannot be claimed until the R-series
+solver/evidence contract is frozen. A frozen Qwen3.8 proposer then compares
+against random/generated tasks at equal checkpoint and solver compute; adaptive
+proposer reward remains later Phase B work.</p>
 <p>The first dataset-v2 P0 launch stopped safely during the no-cost arm after four
 genuine exploits: Ray 2.9 scheduled a save on an exploited actor before its
 first post-restore result. A verification gate showed that the initial guard
@@ -237,22 +235,33 @@ report while exposing only cadence/terminal checkpoints to Tune. Gate D then
 completed all four members at 170,152--170,416 trial-owned steps with 140
 reports/checkpoints, five genuine exploits, five exact same-step donor receipts,
 and zero trial errors, skips, or receipt lag. It crossed the former 102,080 and
-120k failure regions and closes the Ray 2.9 checkpoint/search seam. A later
+120k failure regions and closes the first Ray 2.9 checkpoint/search seam. A later
 forensic pass matched every retained Gate D restore copy to the selected donor
 tree hash. New arms make the proof generation-bound: scheduler selection,
 exactly one target restore receipt, a target report, and a target retained
 checkpoint must all agree. Its strongest
 point (<code>00000</code>, 29,232 steps) reached +0.08116% 1 bp net and +0.01576 Sharpe for
 three consecutive positive-net/positive-Sharpe reports, then regressed; every
-terminal row was negative. Gate D is not a matched economic result. The next P0
-is the fresh no-cost/staged/exact-cost comparison on the crossed v2 RTH panel.
-The canonical 60-update/four-member loadout is frozen with <code>stream_worker</code>,
-family 00, random/generated tasks, a <code>5e-6..3e-4</code> learning-rate range, and
-bounded decaying entropy schedules. Run its arms individually and enforce a hard
-20-update continuation gate for population health, genuine exact-receipt
-exploitation, finite/non-empty evidence, and storage headroom before spending
-the next arm's budget. The goal is currently paused immediately before the
-<code>no_cost</code> launch; no PBT arm is running.</p>
+terminal row was negative. Gate D is not a matched economic result.</p>
+<p>The crossed-panel staged-cost and exact-1-bp follow-ups are now complete through
+their predeclared approximately-96k-step review gates. Several early probes were
+invalidated when a synchronous target was pre-staged before the population
+barrier and later restored target-local state despite a donor exploit. The
+scheduler now vetoes early boundary resume, removes orphan target staging after
+exploit, and fails closed if a paused exploit target already owns an actor. The
+final exact-cost arm passed strict inspection with four members, three exploits,
+three verified generation-bound restore lineages, and no stale or pending
+evidence.</p>
+<p>Economically, staged cost converged all four members to the matched short-only
+control (+0.05785% net, -0.01558 Sharpe, turnover 2). Exact 1 bp ended with a
+population mean -0.05317% net, -0.03815 Sharpe/sqrt(bar), 67.33% flat, 32.67%
+short, 0% long, and turnover 6.609. Across 84 exact-cost reports only three had
+positive net return, three had positive Sharpe, and none had both. PBT mutations
+and weight transfers were valid; the result is a mechanically credible R0 basin,
+not absent search. Further exact-cost R0 selection against the same panel is
+stopped. R0 remains the compatibility/economic control for a matched R-series
+challenger. The accepted Ray-2.58 platform gate now permits a Ray-2.58 R0/R1
+comparison without confounding framework and representation.</p>
 <p>The dataset reset and first v2 R0 evidence are in
 <code>docs/artifacts/research/dataset-v2-r0-audit-2026-09-24.md</code>.</p>
 <h2 id="phase-b-offline-replayshadow-work">Phase B — offline + replay/shadow work</h2>
@@ -266,8 +275,16 @@ ongoing grill-me review, not an accepted architecture. Families <code>00</code>�
 the roadmap; <code>00</code>–<code>02</code> may share <code>Discrete(3)</code> output width without settling
 input schemas, task semantics, reward assignments, or state ownership.</p>
 <h3 id="solver-standard-proposed-not-settled">Solver standard (proposed, not settled)</h3>
-<p>Keep R0 as the control. Do not describe model registration as model selection.
-R1–R3 are unimplemented, and R4 is versioned as <code>R4-v1</code>. The shared-trunk and
+<p>Keep R0 as the immutable parity control. Do not describe model registration as
+model selection. R1–R3 remain unimplemented. <code>R4-v1-min</code> has a
+backwards-compatible position/remaining-horizon seam, a completed blocking 4x3
+gate, and a completed fresh 4x3x40 replication. On the fresh block, combined
+state improved terminal net over masked in all seeds and passed the pooled
+relative net gate, but every arm failed the absolute economic gate because of
+control inferiority, Sharpe inconsistency, and near-flat collapse. The complete
+connector is nevertheless architecture-qualified: <code>R0 + R4-v1</code> is the forward
+feed-forward training baseline because it removes the known endogenous
+control-state alias. Economic promotion remains blocked. The shared-trunk and
 family-head arrangement remains open pending user review.</p>
 <p>Historical provenance is authoritative:</p>
 <table>
@@ -282,7 +299,7 @@ family-head arrangement remains open pending user review.</p>
 <tr>
 <td>R0</td>
 <td>MLP + implemented FiLM (<code>tanh(gamma)*hidden + beta</code>)</td>
-<td>Implemented/default</td>
+<td>Implemented; immutable parity control</td>
 </tr>
 <tr>
 <td>R1</td>
@@ -316,8 +333,8 @@ family-head arrangement remains open pending user review.</p>
 </tr>
 <tr>
 <td>R4-v1</td>
-<td>Matched explicit solver-state features on FF + recurrent controls</td>
-<td>Separate observability study</td>
+<td>Position + remaining-horizon state on matched controls</td>
+<td>Architecture-qualified with R0; fresh 4x3x40 replication passed paired net attribution but failed absolute promotion</td>
 </tr>
 </tbody>
 </table>
@@ -351,25 +368,53 @@ reset semantics before training.</p>
 regime tags, difficulty, and metadata while exposing a seed feature. New runs
 use versioned <code>semantic_v2</code>, which represents normalized solver-relevant task
 fields while excluding episode seed/start location shortcuts; checkpoint
-compatibility remains explicit. R4-v1 adds position/progress/PnL fields identically
-to feed-forward and recurrent controls. OHLCV-only recurrence cannot know sampled
-actions, fills, or position exactly.</p>
+compatibility remains explicit. R4-v1-min adds position and normalized remaining
+horizon through a fixed two-value block on the FF control. New replication uses
+the named <code>zero_v1</code> residual initialization so the update-zero policy/value
+matches R0; historical checkpoints retain <code>random_v1</code>. R1 must preserve a clean
+state-free cell and an explicitly named <code>R1 + R4-v1</code> cross. Episode PnL, cost
+basis, unrealized/realized PnL, holding duration, drawdown, accumulated turnover,
+and market-session time are registered future factors with explicit ownership
+and reset semantics, not current inputs. OHLCV-only recurrence cannot know
+sampled actions, fills, or position exactly.</p>
 <h3 id="phase-b-implementationevidence-order">Phase B implementation/evidence order</h3>
 <ol>
-<li>Complete the mandatory Phase A revalidation gate and preserve R0 as a
-compatibility control, not a validated performance winner.</li>
+<li>Preserve the completed dataset-v2 R0 cost study as a compatibility/economic
+control, not a validated performance winner. Do not continue selecting on
+the same crossed 32-episode panel.</li>
+<li>Preserve the accepted Ray-2.58 gate. The local-worker two-member run closed a
+genuine exploit, exact donor digest, generation-bound target receipt,
+monotonic target clock, post-restore report, and exact fresh replay. The
+three-seed smoke bridge ended negative on both versions. Keep Ray 2.9 only for
+historical reproduction, run R1 beside a Ray-2.58 R0 control, and never change
+solver representation plus native RLlib stack in the same attribution cell.</li>
 <li>Produce truthful task/family/regime metadata through the shared episode-evidence
 contract.</li>
-<li>Complete alignment/reward controls on R0; keep reward changes independent of
-recurrence. Treat the staged reward file as existing/unreviewed here.</li>
+<li>Keep reward, dataset, tasks, seeds, PBT cadence, and economic gates fixed while
+changing solver representation; do not attribute a cost-objective change to
+recurrence.</li>
 <li>Implement and test R1 shape splitting, chronological newest-bar convention,
 FiLM readout, finite forward/backward, and smoke configuration.</li>
 <li>Implement R2a native recurrent LSTM with state lifecycle tests.</li>
 <li>Implement R2c readout FiLM and the named <code>R2c-CARRY</code>/<code>R2c-RESET</code> pair.</li>
 <li>Only then consider the named pre-cell factor, R2b init-only, R2d value-only,
 and R3 GRU according to evidence.</li>
-<li>Run <code>R4-v1</code> with identical explicit state features on R0 and the winning
-recurrent control.</li>
+<li>Preserve both R4-v1 economic failures while using <code>R0 + R4-v1</code> as the
+architecture-qualified forward FF baseline. The fresh December-2025 4x3x40
+replication is complete with zero-init parity, exact replay, block-aware
+uncertainty, and counterfactual diagnostics. Combined state improved net over
+masked in all seeds and passed the pooled relative net gate, but failed
+long-only superiority, Sharpe consistency, and the near-flat ceiling. Next run
+a bounded actor-robustness search over learning rate, entropy pressure, and
+causal cost staging with retained-best replay. Keep state-free R1 and the
+named <code>R1 + R4-v1</code> cross separate. R4-v2 nonlinear late fusion remains a
+later independent factor.</li>
+<li>Run causal conditioning only as a separate C-series factor: C0 current
+features, C1 trailing train-fitted regime summaries, and shuffled-C1. Never
+train on the current future-derived <code>regime_tags</code>.</li>
+<li>Keep the System-One/CLM/Jev S-series research-only until the R-series solver
+interface, platform, and evidence contract are frozen. Then run it as a named
+independent factor rather than mixing it into an R or C comparison.</li>
 <li>Promote only after held-out chronological evaluation, multi-seed results,
 state norms, sequence-mask checks, compute/memory, and checkpoint/replay tests.</li>
 </ol>
@@ -418,4 +463,4 @@ reward and must not be interpreted as economic return. Historical checkpoints
 the Phase A gate passes. Phase B architecture work may continue independently,
 but no Phase B capability or uplift claim may use their old PBT scores as a
 validated performance baseline.</p>
-</article></main></body></html>
+</main></body></html>

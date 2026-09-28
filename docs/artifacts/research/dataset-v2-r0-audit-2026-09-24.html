@@ -75,8 +75,8 @@
   <header>
     <div class="eyebrow">iTrader research audit · 24 September 2026</div>
     <h1>Dataset v2 + R0</h1>
-    <p class="lede">A clean twelve-symbol OHLCV authority is live. PPO responds to the richer market surface, restore provenance is generation-bound, and the matched P0 is preflighted on a crossed development panel—but no dataset-v2 candidate has sustained economic edge.</p>
-    <div class="decision"><strong>Decision:</strong> dataset v2 and strict synchronous-PBT evidence pass. The next P0 is launch-ready and intentionally paused before its first arm; R0 promotion remains blocked.</div>
+    <p class="lede">A clean twelve-symbol OHLCV authority is live. PPO and synchronous PBT respond correctly, but bounded staged-cost and exact-1-bp R0 searches do not sustain economic edge.</p>
+    <div class="decision"><strong>Decision:</strong> freeze R0 as the mechanically valid negative control. Require a Ray-2.58 R0 platform-parity gate before beginning a matched R-series representation study, without relaxing the Phase A economic gate.</div>
   </header>
 
   <h2>Executive readout</h2>
@@ -84,9 +84,9 @@
     <div class="card"><span class="label">Unique minute bars</span><span class="metric pass">10,370,064</span><p>Zero duplicate symbol/timestamp keys.</p></div>
     <div class="card"><span class="label">Phase A RTH bars</span><span class="metric">5,515,061</span><p>All sessions retained; RTH alone is selected.</p></div>
     <div class="card"><span class="label">Universe</span><span class="metric">12 symbols</span><p>Eight liquid stocks plus SPY, QQQ, IWM, and TLT.</p></div>
-    <div class="card"><span class="label">Strongest control</span><span class="metric pass">+0.0597%</span><p>Long-only net return at 1 bp.</p></div>
-    <div class="card"><span class="label">No-cost R0 terminal</span><span class="metric fail">−0.8075%</span><p>Active policy, excessive switching costs.</p></div>
-    <div class="card"><span class="label">1 bp R0 terminal</span><span class="metric warn">−0.2951%</span><p>Lower turnover, but 95.2% short.</p></div>
+    <div class="card"><span class="label">Exact-cost mechanics</span><span class="metric pass">3 exploits</span><p>All three generation-bound restores verified.</p></div>
+    <div class="card"><span class="label">Exact-cost population</span><span class="metric fail">−0.05317%</span><p>Mean net at the 96k review gate.</p></div>
+    <div class="card"><span class="label">Joint-positive reports</span><span class="metric fail">0 / 84</span><p>No report had positive net and Sharpe.</p></div>
   </div>
 
   <div class="callout"><strong>The central correction:</strong> dataset v1 did contain a genuine close path. Close-to-close PnL was not automatically fabricated. The defects were collapsed OHLC, duplicated/summed volume, DST-unsafe timestamps, and earlier reward/reporting seams. That makes the old work useful solver-development evidence, but not an economic-promotion baseline.</div>
@@ -207,7 +207,7 @@
   <figure><img src="dataset-v2-r0-audit-2026-09-24-evidence/gate_d_action_fractions.png" alt="Gate D action fractions"><figcaption>Action behavior remained observable and non-flat; direction is diagnostic, not an independent rejection rule.</figcaption></figure>
 
   <h2>Crossed development panel</h2>
-  <p>The original panel assigned different starts to different horizons while <code>semantic_v2</code> exposes horizon. The canonical P0 now crosses eight explicit RTH anchors with horizons 96, 128, 160, and 200. This removes the horizon/start identity shortcut while preserving 32 tasks. The anchors are selection-informed, so this remains a development panel—not an independent or final test.</p>
+  <p>The original panel assigned different starts to different horizons while <code>semantic_v2</code> exposes horizon. The completed P0 crossed eight explicit RTH anchors with horizons 96, 128, 160, and 200. This removes the horizon/start identity shortcut while preserving 32 tasks. The anchors are selection-informed, so this remains a development panel—not an independent or final test.</p>
   <div class="table-wrap"><table>
     <thead><tr><th>Policy</th><th>Net @ 1 bp</th><th>Sharpe / √bar</th><th>Turnover</th><th>Short / Flat / Long</th></tr></thead>
     <tbody>
@@ -223,21 +223,42 @@
     <figure class="card wide"><img src="dataset-v2-r0-audit-2026-09-24-evidence/crossed_controls_sharpe.png" alt="Crossed-panel Sharpe"><figcaption>No deterministic direction has both positive net return and positive Sharpe.</figcaption></figure>
     <figure class="card full"><img src="dataset-v2-r0-audit-2026-09-24-evidence/crossed_controls_action_fractions.png" alt="Crossed-panel action fractions"><figcaption>The seeded untrained argmax policy is 100% short and exactly matches short-only.</figcaption></figure>
   </div>
-  <div class="callout"><strong>Launch state:</strong> the 60-update, four-member, <code>stream_worker</code> loadout is frozen with random/generated family-00 tasks, narrower learning rates, bounded entropy schedules, and matched no-cost/staged/exact-cost arms. No arm is running; the goal is paused immediately before <code>--variant no_cost</code>.</div>
+  <div class="callout"><strong>Study state:</strong> the bounded staged-cost and exact-1-bp reviews are complete. R0 is frozen as the crossed-panel control; no further selection against these same 32 tasks is authorized by this result.</div>
+
+  <h2>Bounded P0 cost follow-up</h2>
+  <div class="callout"><strong>Mechanical gate passed.</strong> The final exact-cost arm brought all four members beyond 96k sampled environment steps, completed three exploit/mutation events, and verified all three generation-bound restore lineages. Eight exact checkpoint selections were retained with no pending, stale, invalid, or rewind evidence.</div>
+  <p>Several preceding probes were rejected—not scored—after exposing a Ray-2.9 ordering hazard. A target could be pre-staged before every live peer reached the synchronous barrier, leaving the actor with target-local state after Tune declared a donor exploit. The scheduler now vetoes early boundary resume, removes orphan staging after exploit, and fails closed if an exploited paused target already owns an actor.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Arm</th><th>Mean/terminal net</th><th>Sharpe / √bar</th><th>Action basin</th><th>Decision</th></tr></thead>
+    <tbody>
+      <tr><td>Staged 0 → 0.25 → 0.5 → 1 bp</td><td class="pass">+0.05785%</td><td class="fail">−0.01558</td><td>100% short · turnover 2</td><td>No promotion</td></tr>
+      <tr><td>Exact 1 bp</td><td class="fail">−0.05317%</td><td class="fail">−0.03815</td><td>67.33% flat · 32.67% short · turnover 6.609</td><td>Stop at review gate</td></tr>
+    </tbody>
+  </table></div>
+  <p>Across 84 exact-cost reports, only three had positive net return, three had positive Sharpe, and none had both. All terminal policies had positive gross return, but turnover and liquidation costs were approximately 3.55× the positive PnL component. The staged curriculum learned a low-turnover directional shortcut; exact cost learned mostly-flat policies that still churned enough to lose.</p>
+  <p>The <code>nonflat_net</code> donor rule intentionally selected active donors over flat targets even when those donors had negative net return. Exploit count therefore proves search activity, not economic success; promotion remains governed by positive net return and Sharpe.</p>
+  <div class="callout"><strong>Manifest caveat:</strong> the retained run manifest rendered the global Ray learning-rate domain as a process-local object string even though this loadout used <code>pbt_lr_min=5e-6</code> and <code>pbt_lr_max=6e-5</code>. Per-generation resolved-config histories record the executed bounds and sampled/mutated rates and remain authoritative. Future manifests serialize the resolved domain as stable JSON; completed evidence is not rewritten.</div>
+  <div class="grid">
+    <figure class="card wide"><img src="dataset-v2-r0-audit-2026-09-24-evidence/p0_exact_1bp_gate_20260924/p0_exact_1bp_net_return.png" alt="Exact one-basis-point held-out net return"><figcaption>Three positive-net observations appeared, but none coincided with positive Sharpe.</figcaption></figure>
+    <figure class="card wide"><img src="dataset-v2-r0-audit-2026-09-24-evidence/p0_exact_1bp_gate_20260924/p0_exact_1bp_sharpe.png" alt="Exact one-basis-point held-out Sharpe"><figcaption>Sharpe remained negative at the review gate for every member.</figcaption></figure>
+    <figure class="card full"><img src="dataset-v2-r0-audit-2026-09-24-evidence/p0_exact_1bp_gate_20260924/p0_exact_1bp_action_fractions.png" alt="Exact one-basis-point action fractions"><figcaption>Cost pressure progressively moved the population toward flat/short behavior with no terminal long exposure.</figcaption></figure>
+  </div>
+  <div class="callout warnbox"><strong>What this justifies:</strong> the mechanically valid R0 basin makes a solver-representation challenger informative. It does not prove recurrence will help. R1 must change only representation while dataset, panel, tasks, seeds, costs, PBT cadence, compute, and gates remain fixed.</div>
 
   <h3>Why the earlier edge was transient</h3>
   <p>The historical +0.39258% R0 checkpoint used one dominant action for more than 95% of steps in 29/32 episodes: short at horizons 96/128/160 and long at horizon 200. Gate D member <code>00000</code> had the same family resemblance, with most positive return supplied by the 200-bar group. Meanwhile entropy stayed at 99.2–99.6% of the three-action maximum and explained variance remained near zero. Small logit shifts could therefore flip an entire horizon group under deterministic argmax evaluation.</p>
   <p>The best Gate D point occurred before its first exploit, ruling out checkpoint restoration as the origin of the transient. The crossed panel is the immediate discriminator. R0 also lacks current position and previous action, making a transaction-cost objective partially observable and favoring static direction or flat shortcuts. If the crossed search remains horizon-static, preserve R0 as the compatibility baseline and run named market-only, horizon/task-only, and matched explicit-state diagnostics before blaming recurrence.</p>
 
   <h2>Gate and next run</h2>
-  <div class="callout failbox"><strong>Promotion remains blocked.</strong> Neither short bridge beats flat or long-only. The sealed final test stays closed.</div>
-  <p>Run one arm at a time from the canonical three-arm JSON with <code>run_ablation --variant &lt;id&gt;</code>. At 20 updates (roughly 96k sampled steps), continue only when all four members are healthy, at least two genuine exploits have exact donor receipts and fresh post-restore reports, required evidence is finite and non-empty, and C retains at least 20 GB free. Otherwise stop before consuming another arm's budget. The read-only <code>inspect_pbt_gate</code> command evaluates this contract as pass, stop, or pending; it never authorizes the next arm automatically.</p>
+  <div class="callout failbox"><strong>Promotion remains blocked.</strong> Search and restore mechanics pass, but no cost arm produces jointly positive net return and Sharpe. The sealed final test stays closed.</div>
+  <p>The next useful run is not another longer exact-cost R0 search against the same panel. Freeze this result, review the separately developed Ray-2.58 migration, and use R0 for platform parity before changing solver representation.</p>
   <ol>
-    <li>Use the explicit crossed panel for this P0 and predeclare new, non-overlapping chronological blocks for P1.</li>
-    <li>Run matched synchronous PBT over no cost, staged 0 → 0.25 → 0.5 → 1 bp, and exact 1 bp on the environment-step clock.</li>
-    <li>Search lower learning rates and bounded entropy schedules jointly with cost schedule; keep architecture, family 00, tasks, and panel fixed.</li>
-    <li>Retain every evaluation improvement and replay 0.5/1/2 bp with return, Sharpe, drawdown, turnover, action, horizon, symbol, and regime blocks.</li>
-    <li>Promote only after positive net and Sharpe, aggregate uplift over flat and the strongest matched directional control, paired block evidence, exact replay, 2 bp survival, and independent-seed replication.</li>
+    <li>Review Ray 2.58 in an isolated environment and run a bounded R0-only parity bridge; do not combine the platform and R1 changes.</li>
+    <li>Implement R1 as a bounded reset-every-step chronological window-encoder control; do not call it persistent memory.</li>
+    <li>Keep dataset-v2 RTH data, family 00, random/generated proposer, panel, seeds, costs, compute, PBT cadence, and evidence gates identical to R0.</li>
+    <li>Proceed to native R2 recurrence only after lifecycle, mask, reset, checkpoint/replay, and finite forward/backward tests pass; isolate carry state with matched carry/reset runs.</li>
+    <li>Move economic selection to predeclared non-overlapping chronological blocks before any promotion claim.</li>
+    <li>Keep future-derived regime tags ex-post. Study causal market conditioning later as C0 vs trailing train-fitted C1 vs shuffled-C1.</li>
   </ol>
   <p><code>Sharpe / sqrt(bar) ≥ 0.02</code> and a <code>+0.005</code> margin over the directional control remain high-signal challenger thresholds—not annualized claims and not substitutes for block/replay gates.</p>
 
@@ -246,13 +267,34 @@
     <div class="step done"><strong>Done · characterize dataset v1</strong><br>Real close path; invalid full-OHLCV/provenance baseline.</div>
     <div class="step done"><strong>Done · freeze dataset v2 and controls</strong><br>Immutable SIP snapshot, RTH contract, original and crossed deterministic baselines.</div>
     <div class="step done"><strong>Done · strict sync-PBT provenance</strong><br>Gate D forensic closure plus generation-bound receipts for new arms.</div>
-    <div class="step now"><strong>Ready / paused · R0 matched cost/reward search</strong><br>Resume with no cost; never chain staged or exact 1 bp automatically.</div>
-    <div class="step"><strong>Parallel · R-series lifecycle engineering</strong><br>Correctness work may proceed without claiming economic uplift.</div>
-    <div class="step"><strong>Gate · independent R0 economic candidate</strong><br>Net, Sharpe, controls, blocks, costs, replay, and seed replication.</div>
+    <div class="step done"><strong>Done / no promotion · R0 cost study</strong><br>Staged and exact cost changed behavior; neither produced jointly positive economics.</div>
+    <div class="step now"><strong>Now · Ray-2.58 review and R0 parity</strong><br>Validate platform/API/checkpoint/PBT parity before changing the solver.</div>
+    <div class="step"><strong>Then · bounded R1 representation control</strong><br>Change representation only; retain R0 as the frozen comparator.</div>
+    <div class="step"><strong>Gate · independent R0/R1 economic candidate</strong><br>New blocks, net, Sharpe, controls, costs, replay, and seed replication.</div>
+    <div class="step"><strong>Separate · causal C-series</strong><br>C0 vs trailing C1 vs shuffled-C1; never train on future regime labels.</div>
+    <div class="step"><strong>After R · System-One S-series</strong><br>Keep CLM/Jev coupling research-only until the solver/platform/evidence contract is frozen.</div>
     <div class="step"><strong>Then · frozen proposer and family factors</strong><br>Qwen3.8 vs random/generated at equal R0 checkpoint/compute; families 01/02 named separately.</div>
     <div class="step"><strong>Later · adaptive proposer, dividends, extended hours</strong><br>Explicit cashflows and session regimes; no silent semantic changes.</div>
     <div class="step"><strong>Sealed · final chronological test</strong><br>Open only after selection is complete.</div>
   </div>
+
+  <h2>Goal-run closeout</h2>
+  <p>This goal closes the dataset-v2 R0 investigation, not Phase A economic promotion. Dataset-v2 measurement, deterministic controls, synchronous search, immutable checkpointing, and generation-bound restore provenance are credible. PPO and PBT were active, but R0 did not produce jointly positive net return and Sharpe under the bounded staged-cost or exact-cost studies.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Claim</th><th>Decision</th><th>Evidence boundary</th></tr></thead>
+    <tbody>
+      <tr><td>Measurement/search correctness</td><td class="pass">Pass</td><td>Full OHLCV, session-safe RTH partitions, explicit costs, controls, sampled-step cadence, checkpoint replay, strict lineage</td></tr>
+      <tr><td>R0 optimization responsiveness</td><td class="pass">Pass</td><td>Cost schedules changed turnover/action persistence and PBT transferred real mutations</td></tr>
+      <tr><td>Dataset-v2 R0 economic edge</td><td class="fail">Fail</td><td>Staged cost reproduced short-only; exact cost had 0/84 jointly positive net/Sharpe reports</td></tr>
+      <tr><td>Historical <code>00001</code>/<code>00003</code></td><td>Research candidates only</td><td>Dataset-v1, exact replay and 2-bp survival, but shared ancestry and failed independent replication</td></tr>
+    </tbody>
+  </table></div>
+  <pre><code>[FROZEN] dataset-v2 R0 + Ray-2.9 evidence
+    -&gt; [PLATFORM GATE] Ray-2.58 review + R0 parity
+    -&gt; [R SERIES] R1 shape control + R2 lifecycle attribution
+    -&gt; [C SERIES] causal C0/C1/shuffled-C1
+    -&gt; [S SERIES] CLM/Jev/System-One on a frozen solver contract</code></pre>
+  <p>The Ray gate must preserve hashes, deterministic controls, economic metrics, resolved mutation domains, sampled-step cadence, checkpoint replay, and generation-bound receipts. The R0 bridge is compatibility evidence, not renewed same-panel selection. C-series features remain causal and train-fitted; S-series work stays separate until the R-series solver interface and evidence contract are frozen.</p>
 
   <h2>Dividend and session boundary</h2>
   <p>Prices are split-adjusted and not dividend-adjusted. Dividends later enter as explicit signed cashflows with ex-date ownership, long/short sign, and replay tests. Pre-market and after-hours are retained because they are costly to reconstruct, but Phase A remains RTH-only so liquidity, spread, volatility, execution, and annualization regimes are not silently mixed.</p>
@@ -265,11 +307,13 @@
     <li><a href="dataset-v2-r0-audit-2026-09-24-evidence/no_cost_report_rows.csv">No-cost report rows</a> and <a href="dataset-v2-r0-audit-2026-09-24-evidence/cost_1bp_report_rows.csv">1 bp report rows</a></li>
     <li><a href="dataset-v2-r0-audit-2026-09-24-evidence/gate_d_run_manifest.json">Gate D manifest</a>, <a href="dataset-v2-r0-audit-2026-09-24-evidence/gate_d_run_status.json">terminal status</a>, <a href="dataset-v2-r0-audit-2026-09-24-evidence/gate_d_pbt_events.jsonl">PBT events</a>, and member ledgers with the <code>gate_d_</code> prefix</li>
     <li><a href="dataset-v2-r0-audit-2026-09-24-evidence/p0_matched_preflight.json">Matched P0 preflight</a> with exact hashes, arm loadout, validation results, and continuation stops</li>
+    <li><a href="dataset-v2-r0-audit-2026-09-24-evidence/p0_exact_1bp_gate_20260924/gate_decision.json">Final exact-cost gate decision</a>, member ledgers, exploit receipts, comparison CSVs, and plots</li>
+    <li>Final bounded loadouts: <code>phase_a_r0_dataset_v2_p0_early_cost_low_lr_sync_30_20260924.json</code> and <code>phase_a_r0_dataset_v2_p0_nonflat_search_sync_30_20260924.json</code></li>
     <li><a href="dataset-v2-r0-audit-2026-09-24.md">Markdown source of truth</a></li>
   </ul>
   <p>Licensed raw/Parquet bars and API credentials remain ignored. The repository stores reproducibility metadata, configs, aggregate metrics, plots, and tests.</p>
 
-  <footer>Limitations: one original and one selection-informed crossed 32-episode development panel; two 12-update single-member arms; one 35-update four-member no-cost checkpoint gate; matched three-arm PBT and independent chronological replication outstanding; final test untouched; dividend cashflows and extended-hours training untested; second-provider overlap certification pending.</footer>
+  <footer>Limitations: one original and one selection-informed crossed 32-episode development panel; two 12-update single-member arms; one 35-update no-cost checkpoint gate; bounded staged/exact-cost arms through the 96k review gate; independent chronological replication outstanding; final test untouched; dividend cashflows and extended-hours training untested; second-provider overlap certification pending.</footer>
 </main>
 </body>
 </html>

@@ -1,15 +1,15 @@
 {
   "schema_version": 2,
-  "recorded_at_utc": "2026-09-24T11:00:53.9974067Z",
-  "launch_state": "paused_by_user_ready_to_launch",
-  "git_commit": "891fcaa2ba2200d0affe2c97a6d9ada592dbcfaa",
+  "recorded_at_utc": "2026-09-24T12:15:18.2329554Z",
+  "launch_state": "authorized_after_zero_update_ray_config_repair",
+  "git_commit": "089411666e7105b79d891f2edefcd7c5fa9792de",
   "working_tree_dirty": true,
   "pbt_process_running": false,
   "resume_command": ".venv/Scripts/python.exe -m itrader.scripts.experiments.run_ablation itrader/scripts/experiments/configs/phase_a_r0_dataset_v2_p0_cost_search_sync_60_20260924.json --variant no_cost",
   "source_tree_fingerprint": {
     "algorithm": "sha256(sorted relative-path TAB file-sha256 LF)",
     "python_file_count": 87,
-    "source_tree_sha256": "b05244d2271a29ca6b495acbdd883012c1f4b1dbcd5035503efc86052d57a1d0"
+    "source_tree_sha256": "1a59c9940d6d75e1dd5c693812b1f3a2b80ba3ad69a84a8e1dc1c5a5ed5c8945"
   },
   "dataset": {
     "id": "dataset_v2_20220103_20260922_alpaca_sip_split",
@@ -85,9 +85,11 @@
     "panel_loader": "passed: 32 tasks, 8 starts, horizons 96/128/160/200",
     "html_local_links": "passed for audit, masterplan, and architecture companions",
     "strict_lineage_chain": "covered by focused unit regressions; first live proof is the 20-update gate",
+    "ray_config_regression": "passed: frozen provenance config is accepted by pinned Ray 2.9 PPOConfig",
     "gate_d_forensic_restore_audit": "passed: 5/5 retained restore copies match selected donor full-tree hashes",
     "refactor_branch_reconciliation": "selective only: provenance, promotion, async donor, market-data validation, and atomic raw-manifest writes; no wholesale cherry-pick"
   },
-  "preflight_c_drive_free_gb": 64.61,
-  "pause_boundary": "No PBT arm launched. Resume only on explicit user request, beginning with no_cost and stopping again at the 20-update continuation gate."
+  "preflight_c_drive_free_gb": 64.28,
+  "launch_history": "The 14:12 no_cost attempt failed all four actors before iteration 1 because Ray 2.9 treated the provenance-only evaluation_panel_sha256 key as an AlgorithmConfig.evaluation argument. It produced no solver evidence. The internal key is now namespaced under frozen_provenance and covered by a pinned-Ray regression.",
+  "pause_boundary": "User resumed the goal. Launch a fresh no_cost experiment identity and stop again at the 20-update continuation gate before authorizing more budget or another arm."
 }
