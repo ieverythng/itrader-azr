@@ -103,14 +103,45 @@ def _strict_lineage_problems(
     stable_dirs: dict[str, Path],
     report_rows: dict[str, list[dict[str, str]]],
     checkpoint_rows: dict[str, list[dict[str, Any]]],
-) -> tuple[list[dict[str, str]], int]:
+) -> tuple[list[dict[str, str]], list[dict[str, str]], int]:
     """Validate the scheduler -> restore -> report -> checkpoint chain."""
     problems: list[dict[str, str]] = []
+    pending: list[dict[str, str]] = []
     verified_receipts = 0
+    rewind_keys: set[tuple[str, int]] = set()
+    for trial_id, rows in report_rows.items():
+        last_by_generation: dict[int, tuple[int, int]] = {}
+        for row in rows:
+            generation = _integer(row.get("pbt_restore_generation"))
+            progress_steps = _integer(row.get("pbt_progress_steps"))
+            training_iteration = _integer(row.get("training_iteration"))
+            previous = last_by_generation.get(generation)
+            if (
+                previous is not None
+                and progress_steps > previous[0]
+                and training_iteration < previous[1]
+                and (trial_id, generation) not in rewind_keys
+            ):
+                exploit_id = str(row.get("pbt_parent_exploit_id", "")) or (
+                    f"{trial_id}:generation-{generation}"
+                )
+                problems.append(
+                    _lineage_problem(
+                        exploit_id,
+                        "training iteration rewound within one restore generation: "
+                        f"{previous[1]}@{previous[0]} -> "
+                        f"{training_iteration}@{progress_steps}",
+                    )
+                )
+                rewind_keys.add((trial_id, generation))
+            if previous is None or progress_steps >= previous[0]:
+                last_by_generation[generation] = (progress_steps, training_iteration)
     all_receipts: dict[str, list[tuple[str, Path, dict[str, Any] | None]]] = {}
     for trial_id, stable_dir in stable_dirs.items():
         for receipt_path in sorted((stable_dir / "restore_receipts").glob("*.json")):
             receipt = _read_json(receipt_path)
+            if (receipt or {}).get("receipt_kind") != "pbt_exploit":
+                continue
             exploit_id = str((receipt or {}).get("parent_exploit_id", ""))
             if exploit_id:
                 all_receipts.setdefault(exploit_id, []).append(
@@ -197,6 +228,20 @@ def _strict_lineage_problems(
                 )
 
         receipts = all_receipts.get(exploit_id, [])
+        if not receipts:
+            target_has_advanced = any(
+                _integer(row.get("pbt_progress_steps"))
+                > _integer(target.get("pbt_progress_steps"))
+                for row in report_rows.get(target_id, [])
+            )
+            collection = problems if target_has_advanced else pending
+            collection.append(
+                _lineage_problem(
+                    exploit_id,
+                    "lineage is awaiting restore receipt and first post-restore report",
+                )
+            )
+            continue
         if len(receipts) != 1:
             problems.append(
                 _lineage_problem(
@@ -253,10 +298,15 @@ def _strict_lineage_problems(
             and _integer(row.get("pbt_progress_steps")) > restore_clock
         ]
         if not fresh_reports:
-            problems.append(
+            target_has_advanced = any(
+                _integer(row.get("pbt_progress_steps")) > restore_clock
+                for row in report_rows.get(target_id, [])
+            )
+            collection = problems if target_has_advanced else pending
+            collection.append(
                 _lineage_problem(
                     exploit_id,
-                    "lineage has no fresh report from the restored generation",
+                    "lineage is awaiting its first fresh restored-generation report",
                 )
             )
             continue
@@ -289,7 +339,7 @@ def _strict_lineage_problems(
             continue
         verified_receipts += 1
 
-    return problems, verified_receipts
+    return problems, pending, verified_receipts
 
 
 def _free_gb(path: Path) -> float:
@@ -317,9 +367,38 @@ def _member_statuses(results_root: Path, experiment_name: str) -> list[tuple[Pat
         if not status:
             continue
         trial_dir = Path(str(status.get("trial_dir", "")))
-        if trial_dir.parent.name == experiment_name:
+        if experiment_name in trial_dir.parts:
             members.append((status_path.parent, status))
     return members
+
+
+def _event_trial_ids(event: dict[str, Any]) -> set[str]:
+    identities = (event.get("trial"), event.get("target"), event.get("donor"))
+    return {
+        str(identity.get("trial_id", ""))
+        for identity in identities
+        if isinstance(identity, dict) and identity.get("trial_id")
+    }
+
+
+def _pbt_events(
+    results_root: Path,
+    experiment_name: str,
+    member_ids: set[str],
+) -> tuple[list[dict[str, Any]], int]:
+    events_root = results_root / "_stable_metrics" / "_pbt_events"
+    canonical_path = events_root / experiment_name / "events.jsonl"
+    if canonical_path.is_file():
+        return _read_jsonl(canonical_path)
+
+    legacy_path = events_root / "driver_artifacts" / "events.jsonl"
+    events, invalid_rows = _read_jsonl(legacy_path)
+    matching_events = [
+        event
+        for event in events
+        if _event_trial_ids(event) & member_ids
+    ]
+    return matching_events, invalid_rows
 
 
 def inspect_pbt_gate(
@@ -438,14 +517,11 @@ def inspect_pbt_gate(
             }
         )
 
-    events_path = (
-        results_root
-        / "_stable_metrics"
-        / "_pbt_events"
-        / experiment_name
-        / "events.jsonl"
+    events, invalid_event_rows = _pbt_events(
+        results_root,
+        experiment_name,
+        set(stable_dirs),
     )
-    events, invalid_event_rows = _read_jsonl(events_path)
     if invalid_event_rows:
         issue = f"PBT event log has {invalid_event_rows} incomplete row(s)"
         (failures if run_state == "completed" else pending).append(issue)
@@ -454,8 +530,13 @@ def inspect_pbt_gate(
         failures.append(f"PBT recorded {len(skipped)} exploit_skipped event(s)")
 
     exploits = [event for event in events if event.get("event") == "exploit"]
+    checkpoint_selection_events = {
+        "stable_checkpoint_selected",
+        "post_restore_exact_checkpoint_selected",
+        "capacity_resume_exact_checkpoint_selected",
+    }
     selected_events = [
-        event for event in events if event.get("event") == "stable_checkpoint_selected"
+        event for event in events if event.get("event") in checkpoint_selection_events
     ]
     receipts: set[tuple[str, int]] = set()
     invalid_receipts: list[dict[str, Any]] = []
@@ -482,9 +563,14 @@ def inspect_pbt_gate(
     missing_receipts: list[dict[str, Any]] = []
     stale_targets: list[dict[str, Any]] = []
     lineage_problems: list[dict[str, str]] = []
+    lineage_pending: list[dict[str, str]] = []
     verified_lineage_receipts = 0
     if require_lineage_receipts:
-        lineage_problems, verified_lineage_receipts = _strict_lineage_problems(
+        (
+            lineage_problems,
+            lineage_pending,
+            verified_lineage_receipts,
+        ) = _strict_lineage_problems(
             exploits=exploits,
             selected_events=selected_events,
             stable_dirs=stable_dirs,
@@ -495,6 +581,12 @@ def inspect_pbt_gate(
             failures.append(
                 f"{len(lineage_problems)} strict lineage verification problem(s)"
             )
+        if lineage_pending:
+            issue = f"{len(lineage_pending)} lineage event(s) awaiting restore evidence"
+            if run_state == "completed":
+                failures.append(issue)
+            else:
+                pending.extend(item["reason"] for item in lineage_pending)
     else:
         for event in exploits:
             donor = event.get("donor") or {}
@@ -552,6 +644,7 @@ def inspect_pbt_gate(
         "strict_lineage_required": require_lineage_receipts,
         "verified_lineage_receipt_count": verified_lineage_receipts,
         "lineage_problems": lineage_problems,
+        "lineage_pending": lineage_pending,
         "missing_receipts": missing_receipts,
         "invalid_receipts": invalid_receipts,
         "stale_targets": stale_targets,

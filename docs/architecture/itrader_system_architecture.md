@@ -1,8 +1,13 @@
 # iTrader System Architecture
 
-Last updated: 2026-09-25
-Branch snapshot: `agent/Watson-dev` with the uncommitted dataset-v2 implementation round
-Status: **active working architecture; recurrence and trunk/head design pending grill-me review**
+Last reconciled: 2026-10-01
+Branch snapshot: `agent/Watson-dev` with the uncommitted R4-v1 implementation/evidence round
+Status: **active working architecture; R0 + R4-v1 is architecture-qualified but economically unpromoted, and R1-R3 remain unimplemented**
+
+Research identities and evidence status are indexed in the
+[iTrader Research Dashboard](../research/itrader_research_dashboard.md); the
+[masterplan](../plans/itrader_masterplan.md) remains the phase-order and
+promotion authority.
 
 ## 1. Source-grounded runtime
 
@@ -353,7 +358,16 @@ calibration evidence.
   and recorded compute/memory cost.
 - R3 waits for a meaningful LSTM result.
 - R4-v1-min is implemented and replay-valid on FF. Its fresh 4x3x40 replication
-  found a relative combined-state net effect but failed absolute promotion;
-  next work targets actor robustness on the qualified baseline, not R4-v2.
+  found a relative combined-state net effect but failed absolute promotion. The
+  subsequent actor-robustness PBT, checkpoint forensics, and two-process
+  fresh-panel G0 diagnostic are complete and economically rejected. The G0
+  checkpoints have byte-identical paired artifacts but historical receipts lack
+  producer identities. All had negative fresh-panel net return and Sharpe.
+  Next work compares matched R0, R0 + R4-v1, clean R1, and separately named
+  `R1 + R4-v1`, with causal staging retained as an explicit matched curriculum
+  factor. R4-v2 remains a distinct later joint-fusion factor.
+
+Implementation prerequisites and tests are specified in
+[R1 development readiness](../project-state/r1-development-readiness.md).
 - No recurrent cell becomes operational guidance from an unimplemented design,
   a zero-state probe, PPO logits/value scores, or a training-only curve.

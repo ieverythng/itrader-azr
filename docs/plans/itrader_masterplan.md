@@ -1,13 +1,25 @@
 # iTrader Masterplan
 
-Last updated: 2026-09-25
-Status: **dataset-v2 R0 is the immutable negative/parity control; R0 + R4-v1 is architecture-qualified by the completed fresh 4x3x40 replication, but remains economically unpromoted**
-Branch snapshot: `agent/Watson-dev` plus the uncommitted dataset-v2 implementation/evidence round
+Last reconciled: 2026-10-03
+Status: **dataset-v2 R0 is the immutable negative/parity control; R0 + R4-v1 is architecture-qualified but economically unpromoted after G0 artifact-pair closure; fixed-recipe R1 attribution is next**
+Branch snapshot: `agent/Watson-dev` plus the uncommitted R4-v1 implementation/evidence round
 
 ## North star
 
+The [R1 development-readiness contract](../project-state/r1-development-readiness.md)
+defines the next diagnostics and replay-identity work before implementation.
+The representation screen includes R0, R0 + R4-v1, R1, and R1 + R4-v1 under
+each explicit curriculum factor, completing the encoder-by-state comparison.
+G0 artifacts establish paired byte parity; separate producer processes cannot
+be independently verified from the historical receipts.
+
 iTrader is a governed proposer/curriculum plus numerical solver system. Keep
 learning, framing, deterministic gating, and execution separate.
+
+The [iTrader Research Dashboard](../research/itrader_research_dashboard.md)
+indexes wing identities, controls, dependencies, and evidence. It is a companion
+registry, not a competing plan: this masterplan remains authoritative for phase
+order and promotion.
 
 ```text
 offline: historical OHLCV -> proposer/curriculum -> validated TaskSpec pool
@@ -400,16 +412,33 @@ sampled actions, fills, or position exactly.
 7. Implement R2c readout FiLM and the named `R2c-CARRY`/`R2c-RESET` pair.
 8. Only then consider the named pre-cell factor, R2b init-only, R2d value-only,
    and R3 GRU according to evidence.
-9. Preserve both R4-v1 economic failures while using `R0 + R4-v1` as the
+9. Preserve the completed R4-v1 economic failures while using `R0 + R4-v1` as the
    architecture-qualified forward FF baseline. The fresh December-2025 4x3x40
    replication is complete with zero-init parity, exact replay, block-aware
    uncertainty, and counterfactual diagnostics. Combined state improved net over
    masked in all seeds and passed the pooled relative net gate, but failed
-   long-only superiority, Sharpe consistency, and the near-flat ceiling. Next run
-   a bounded actor-robustness search over learning rate, entropy pressure, and
-   causal cost staging with retained-best replay. Keep state-free R1 and the
-   named `R1 + R4-v1` cross separate. R4-v2 nonlinear late fusion remains a
-   later independent factor.
+   long-only superiority, Sharpe consistency, and the near-flat ceiling. The
+   subsequent January-2026 four-member PBT pair is also complete: causal cost
+   staging converged exactly to short-only, while exact 1 bp from update zero
+   converged exactly to flat; neither produced a replay-valid
+   directional-control-beating candidate. The checkpoint-level follow-up found
+   that all 81 jointly positive causal reports were at least 98.014% short and
+   that the unexploited 77,832-step checkpoint combined high stochastic entropy
+   with narrow greedy action margins and a repeatable one-action replay
+   mismatch. Do not spend another full PBT population on the same January
+   panel. The fresh-panel G0 diagnostic is complete: five unexploited member
+   `00002` checkpoints have paired byte-identical action and reward artifacts,
+   but every November-panel net return and Sharpe was negative. Historical
+   receipts lack producer identity, so separate-process provenance is unknown.
+   The least-negative 102,040-step checkpoint repeated essentially the same
+   75/0/25 short/flat/long mix at every anchor, while later checkpoints were pure
+   short. Freeze the lower-LR recipe across matched R0, R0 + R4-v1, clean R1,
+   and R1 + R4-v1.
+   Treat causal cost staging as an explicit matched factor and run PBT only
+   after representation attribution. Cross fixed 1 bp and causal staging as
+   explicit curriculum cells; neither is part of an R identity. Keep state-free R1 and the named
+   `R1 + R4-v1` cross separate. R4-v2 nonlinear late fusion remains a later
+   independent factor.
 10. Run causal conditioning only as a separate C-series factor: C0 current
    features, C1 trailing train-fitted regime summaries, and shuffled-C1. Never
    train on the current future-derived `regime_tags`.

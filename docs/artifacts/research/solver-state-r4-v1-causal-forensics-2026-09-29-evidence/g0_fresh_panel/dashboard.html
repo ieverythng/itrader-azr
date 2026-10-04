@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>R4-v1 G0 Fresh-Panel Closure</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #10151d;
+      --panel: #171e29;
+      --panel2: #1d2633;
+      --text: #edf2f7;
+      --muted: #9aa9bb;
+      --border: #2d3948;
+      --blue: #5aa9ff;
+      --orange: #ff9f55;
+      --green: #55c98b;
+      --red: #ff7470;
+      --purple: #b58cff;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 Inter, ui-sans-serif, system-ui, sans-serif; }
+    main { max-width: 1500px; margin: 0 auto; padding: 28px; }
+    header { display: grid; grid-template-columns: 1.6fr 1fr; gap: 24px; align-items: end; margin-bottom: 22px; }
+    h1 { font-size: 28px; margin: 0 0 8px; letter-spacing: -0.02em; }
+    h2 { font-size: 17px; margin: 0 0 12px; }
+    p { margin: 0; }
+    .lede { color: var(--muted); max-width: 850px; }
+    .decision { background: var(--panel2); border: 1px solid var(--border); padding: 14px 16px; }
+    .decision strong { color: var(--orange); display: block; font-size: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
+    .card { background: var(--panel); border: 1px solid var(--border); padding: 16px; min-width: 0; }
+    .span-4 { grid-column: span 4; }
+    .span-5 { grid-column: span 5; }
+    .span-6 { grid-column: span 6; }
+    .span-7 { grid-column: span 7; }
+    .span-8 { grid-column: span 8; }
+    .span-12 { grid-column: span 12; }
+    .kpi { display: flex; align-items: baseline; gap: 8px; }
+    .kpi b { font-size: 25px; letter-spacing: -0.02em; }
+    .kpi small, .caption { color: var(--muted); font-size: 12px; }
+    .negative { color: var(--red); }
+    .positive { color: var(--green); }
+    .neutral { color: var(--blue); }
+    svg { width: 100%; height: auto; display: block; overflow: visible; }
+    .axis { stroke: var(--border); stroke-width: 1; }
+    .zero { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 4; }
+    .label { fill: var(--muted); font-size: 11px; }
+    .series-source { fill: none; stroke: var(--blue); stroke-width: 2.5; }
+    .series-fresh { fill: none; stroke: var(--orange); stroke-width: 2.5; }
+    .dot-source { fill: var(--blue); }
+    .dot-fresh { fill: var(--orange); }
+    .legend { display: flex; gap: 18px; color: var(--muted); font-size: 12px; margin: 4px 0 10px; }
+    .swatch { width: 10px; height: 10px; display: inline-block; margin-right: 6px; }
+    .actions { display: grid; gap: 11px; }
+    .action-row { display: grid; grid-template-columns: 76px 1fr 155px; gap: 10px; align-items: center; }
+    .stack { height: 16px; display: flex; background: #273241; overflow: hidden; }
+    .short { background: var(--purple); }
+    .flat { background: var(--muted); }
+    .long { background: var(--green); }
+    table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+    th, td { text-align: right; padding: 8px 9px; border-bottom: 1px solid var(--border); }
+    th:first-child, td:first-child { text-align: left; }
+    th { color: var(--muted); font-weight: 600; font-size: 12px; }
+    .receipt { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+    .receipt div { border-left: 3px solid var(--green); padding-left: 10px; }
+    .receipt b { display: block; }
+    .next { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .next article { background: var(--panel2); border: 1px solid var(--border); padding: 13px; }
+    .next b { color: var(--blue); display: block; margin-bottom: 5px; }
+    code { color: #c8daf0; }
+    @media (max-width: 950px) {
+      header { grid-template-columns: 1fr; }
+      .span-4, .span-5, .span-6, .span-7, .span-8 { grid-column: span 12; }
+      .next, .receipt { grid-template-columns: 1fr; }
+      .action-row { grid-template-columns: 70px 1fr; }
+      .action-row small { grid-column: 2; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <section>
+      <h1>R4-v1 G0 fresh-panel closure</h1>
+      <p class="lede">Five unexploited member <code>00002</code> checkpoints from the causal cost curriculum, replayed without training on a predeclared November 2025 RTH panel. Every action and reward trace reproduced in two clean Ray 2.58 processes.</p>
+    </section>
+    <aside class="decision">
+      <strong>Architecture qualified · economic promotion rejected</strong>
+      <span>Close R0 + R4-v1. Proceed to fixed-recipe R1 attribution; do not reopen same-panel PBT.</span>
+    </aside>
+  </header>
+
+  <section class="grid">
+    <article class="card span-4">
+      <h2>Least-negative fresh checkpoint</h2>
+      <div class="kpi"><b class="negative">−0.2282%</b><small>mean 1 bp net return</small></div>
+      <div class="kpi"><b class="negative">−0.00620</b><small>Sharpe / √bar</small></div>
+      <p class="caption">102,040 steps · update 21 · 0.5 bp training stage</p>
+    </article>
+    <article class="card span-4">
+      <h2>Action structure at 102,040</h2>
+      <div class="kpi"><b class="neutral">75 / 0 / 25</b><small>short / flat / long %</small></div>
+      <p class="caption">The same near-identical action mix appeared at every anchor. Diversity increased, but market conditioning did not.</p>
+    </article>
+    <article class="card span-4">
+      <h2>Determinism receipt</h2>
+      <div class="kpi"><b class="positive">10 / 10</b><small>trace comparisons exact</small></div>
+      <p class="caption">Five episode/reward files and five per-step action/logit files matched byte-for-byte across fresh processes.</p>
+    </article>
+
+    <article class="card span-6">
+      <h2>Checkpoint net return: selection panel vs fresh panel</h2>
+      <div class="legend"><span><i class="swatch" style="background:var(--blue)"></i>January source panel</span><span><i class="swatch" style="background:var(--orange)"></i>November fresh panel</span></div>
+      <svg id="net-chart" viewBox="0 0 620 300" role="img" aria-label="Mean net return percent by checkpoint steps"></svg>
+      <p class="caption">Y-axis: mean net return at 1 bp evidence cost (%). X-axis: retained sampled environment steps. Source: member 00002 stable metrics and fresh G0 replay.</p>
+    </article>
+    <article class="card span-6">
+      <h2>Checkpoint Sharpe: selection panel vs fresh panel</h2>
+      <div class="legend"><span><i class="swatch" style="background:var(--blue)"></i>January source panel</span><span><i class="swatch" style="background:var(--orange)"></i>November fresh panel</span></div>
+      <svg id="sharpe-chart" viewBox="0 0 620 300" role="img" aria-label="Sharpe per square root bar by checkpoint steps"></svg>
+      <p class="caption">Y-axis: mean net Sharpe per √bar. X-axis: retained sampled environment steps. The sign reversal is the decisive generalization failure.</p>
+    </article>
+
+    <article class="card span-7">
+      <h2>Fresh-panel action fractions</h2>
+      <div class="actions" id="action-bars"></div>
+      <p class="caption" style="margin-top:12px">Equal-weight mean of 32 episode fractions. Purple = short, gray = flat, green = long. The 106,968-step and terminal policies are pure short.</p>
+    </article>
+    <article class="card span-5">
+      <h2>Decision confidence at the boundary</h2>
+      <svg id="margin-chart" viewBox="0 0 520 280" role="img" aria-label="First percentile top-two probability margin by checkpoint"></svg>
+      <p class="caption">Y-axis: p1 top-two softmax probability gap. X-axis: retained steps. Later pure-short policies are more decisive, not more economically portable.</p>
+    </article>
+
+    <article class="card span-8">
+      <h2>102,040-step per-anchor economic outcome</h2>
+      <svg id="anchor-chart" viewBox="0 0 760 320" role="img" aria-label="Net return percent by symbol anchor"></svg>
+      <p class="caption">Y-axis: 1 bp mean net return by anchor (%), averaged over horizons 96/128/160/200. X-axis: predeclared symbol/date anchor.</p>
+    </article>
+    <article class="card span-4">
+      <h2>What the anchor slice says</h2>
+      <p>GOOGL, META, and MSFT were positive; five anchors were negative and NVDA dominated the downside. Yet the policy used essentially the same 75/0/25 episode-weighted action mix at every anchor.</p>
+      <p style="margin-top:10px;color:var(--muted)">This is compatible with a horizon/phase rule plus directional exposure. It is not evidence that the MLP-FiLM policy learned a portable conditional market rule.</p>
+      <div class="receipt">
+        <div><b>Panel</b><span>8 × 4 crossed</span></div>
+        <div><b>Training</b><span>none</span></div>
+        <div><b>PBT</b><span>off</span></div>
+      </div>
+    </article>
+
+    <article class="card span-12">
+      <h2>Frozen R1 boundary</h2>
+      <div class="next">
+        <article><b>Ray-2.58 R0</b><span>State-free parity control using member 00002's lower-LR fixed recipe.</span></article>
+        <article><b>Clean R1</b><span>Reset-every-step chronological window encoder; no cross-step memory claim.</span></article>
+        <article><b>R1 + R4-v1</b><span>Separately named cross retaining position + remaining horizon for actor and critic.</span></article>
+      </div>
+      <p class="caption" style="margin-top:12px">Keep causal 0 → 0.25 → 0.5 → 1 bp staging as an explicit matched curriculum factor against fixed 1 bp. Keep PBT disabled until representation attribution is complete. Clip fraction remains unavailable in the legacy learner telemetry and must be repaired before performance interpretation.</p>
+    </article>
+  </section>
+</main>
+<script>
+const checkpoints = [
+  {s:77832, sourceNet:.4022571804, freshNet:-.3456717026, sourceSharpe:.0187520041, freshSharpe:-.0080299302, a:[.9977213542,0,.0022786458], margin:.0030724819},
+  {s:92384, sourceNet:.4047683447, freshNet:-.3178110684, sourceSharpe:.0184471396, freshSharpe:-.0052664995, a:[.9970703125,0,.0029296875], margin:.0040052663},
+  {s:102040, sourceNet:.2074773299, freshNet:-.2282167061, sourceSharpe:-.0006784671, freshSharpe:-.0061953464, a:[.7506510417,0,.2493489583], margin:.0078373040},
+  {s:106968, sourceNet:.4416109626, freshNet:-.3387318015, sourceSharpe:.0244545758, freshSharpe:-.0068118708, a:[1,0,0], margin:.0235392958},
+  {s:194368, sourceNet:.4416109626, freshNet:-.3387318015, sourceSharpe:.0244545758, freshSharpe:-.0068118708, a:[1,0,0], margin:.4435781864}
+];
+const anchors = [
+  ['AAPL',-.0797819381],['AMZN',-.4112538474],['AMD',-.1383650159],['AVGO',-.6757054901],
+  ['GOOGL',.1391310294],['META',.1971289349],['MSFT',.9680460177],['NVDA',-1.8249333397]
+];
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+function lineChart(id, keyA, keyB, minY, maxY, format) {
+  const svg=document.getElementById(id), W=620,H=300,L=58,R=18,T=18,B=48, iw=W-L-R, ih=H-T-B;
+  const x=i=>L+i*iw/(checkpoints.length-1), y=v=>T+(maxY-v)*ih/(maxY-minY);
+  let h=`<line class="axis" x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}"/><line class="axis" x1="${L}" y1="${T}" x2="${L}" y2="${H-B}"/>`;
+  if(minY<0&&maxY>0) h+=`<line class="zero" x1="${L}" y1="${y(0)}" x2="${W-R}" y2="${y(0)}"/>`;
+  for(let j=0;j<=4;j++){const v=minY+(maxY-minY)*j/4;h+=`<text class="label" x="${L-8}" y="${y(v)+4}" text-anchor="end">${format(v)}</text>`;}
+  const path=k=>checkpoints.map((d,i)=>`${i?'L':'M'}${x(i)},${y(d[k])}`).join(' ');
+  h+=`<path class="series-source" d="${path(keyA)}"/><path class="series-fresh" d="${path(keyB)}"/>`;
+  checkpoints.forEach((d,i)=>{h+=`<circle class="dot-source" cx="${x(i)}" cy="${y(d[keyA])}" r="4"/><circle class="dot-fresh" cx="${x(i)}" cy="${y(d[keyB])}" r="4"/><text class="label" x="${x(i)}" y="${H-B+20}" text-anchor="middle">${Math.round(d.s/1000)}k</text>`});
+  h+=`<text class="label" x="${L+iw/2}" y="${H-5}" text-anchor="middle">sampled environment steps</text>`;
+  svg.innerHTML=h;
+}
+lineChart('net-chart','sourceNet','freshNet',-.45,.55,v=>v.toFixed(2)+'%');
+lineChart('sharpe-chart','sourceSharpe','freshSharpe',-.012,.03,v=>v.toFixed(3));
+
+document.getElementById('action-bars').innerHTML=checkpoints.map(d=>`<div class="action-row"><b>${Math.round(d.s/1000)}k</b><div class="stack"><span class="short" style="width:${d.a[0]*100}%"></span><span class="flat" style="width:${d.a[1]*100}%"></span><span class="long" style="width:${d.a[2]*100}%"></span></div><small>${(d.a[0]*100).toFixed(1)} / ${(d.a[1]*100).toFixed(1)} / ${(d.a[2]*100).toFixed(1)}</small></div>`).join('');
+
+(function(){const svg=document.getElementById('margin-chart'),W=520,H=280,L=56,R=18,T=18,B=48,iw=W-L-R,ih=H-T-B,max=.46;let h=`<line class="axis" x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}"/><line class="axis" x1="${L}" y1="${T}" x2="${L}" y2="${H-B}"/>`;checkpoints.forEach((d,i)=>{const bw=50,x=L+20+i*(iw-40)/4,y=T+(max-d.margin)*ih/max;h+=`<rect x="${x}" y="${y}" width="${bw}" height="${H-B-y}" fill="${css('--purple')}"/><text class="label" x="${x+bw/2}" y="${H-B+19}" text-anchor="middle">${Math.round(d.s/1000)}k</text>`});for(let j=0;j<=4;j++){const v=max*j/4,y=T+(max-v)*ih/max;h+=`<text class="label" x="${L-8}" y="${y+4}" text-anchor="end">${v.toFixed(2)}</text>`;}h+=`<text class="label" x="${L+iw/2}" y="${H-5}" text-anchor="middle">sampled environment steps</text>`;svg.innerHTML=h})();
+
+(function(){const svg=document.getElementById('anchor-chart'),W=760,H=320,L=60,R=16,T=20,B=55,iw=W-L-R,ih=H-T-B,min=-2,max=1.1,y=v=>T+(max-v)*ih/(max-min),zero=y(0);let h=`<line class="axis" x1="${L}" y1="${H-B}" x2="${W-R}" y2="${H-B}"/><line class="axis" x1="${L}" y1="${T}" x2="${L}" y2="${H-B}"/><line class="zero" x1="${L}" y1="${zero}" x2="${W-R}" y2="${zero}"/>`;anchors.forEach((d,i)=>{const bw=54,x=L+15+i*(iw-30)/8,val=d[1],top=Math.min(zero,y(val)),height=Math.abs(y(val)-zero);h+=`<rect x="${x}" y="${top}" width="${bw}" height="${height}" fill="${val>=0?css('--green'):css('--red')}"/><text class="label" x="${x+bw/2}" y="${H-B+20}" text-anchor="middle">${d[0]}</text>`});for(let j=0;j<=3;j++){const v=min+(max-min)*j/3;h+=`<text class="label" x="${L-8}" y="${y(v)+4}" text-anchor="end">${v.toFixed(1)}%</text>`;}h+=`<text class="label" x="${L+iw/2}" y="${H-6}" text-anchor="middle">predeclared November 2025 anchor</text>`;svg.innerHTML=h})();
+</script>
+</body>
+</html>

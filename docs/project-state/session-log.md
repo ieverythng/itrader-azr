@@ -1,5 +1,132 @@
 # Session Log
 
+## 2026-10-03 — GPT-6 review and R1 readiness
+
+- Set the independent reviewer default to GPT-6.1 Sol at MAX in `REVIEW.md`.
+  Dispatched fresh Sol Standards and Astra Spec reviewers against `c13af18`
+  plus the relevant dirty/untracked changes.
+- Added `r1-development-readiness.md` with loss-time clip-fraction semantics,
+  producer/process receipts, model selection and reset-per-decision R1 tests.
+- Completed the proposed comparison matrix with the R0 + R4-v1 control under
+  each cost factor; a 12-update prefix cannot test the full original schedule.
+- Astra reproduced three blockers: selection-score collisions accepted as replay
+  parity; unmatched provenance accepted by R4 promotion; altered donor trees
+  rehashed and accepted without checking the indexed score-bound digest.
+  See `docs/artifacts/research/r1-readiness-independent-review-2026-10-03.md`.
+  Runtime repairs remain the next implementation work, before training.
+- Sol additionally reproduced string-valued replay success being accepted and
+  baseline controls entering the economic comparison without matching identities.
+  Both belong to the attribution-gate repair before the R1 screen.
+- Full suite: 344 passed; required-dependency healthcheck passed; GitNexus stale.
+  Dirty branch retained, with no staging, commit, push, deletion or training.
+
+## 2026-10-03 — Canonical experiment browser added
+
+- Added a repo-owned experiment registry whose entries contain provenance,
+  source pointers, and eight explicit comparability factors, not copied metric
+  values.
+- Added a test-covered renderer and self-contained experiment browser with a
+  searchable record/checkpoint index, experiment tabs, legacy-dashboard links,
+  and builder-owned comparison verdicts.
+- Registered the R4-v1 minimum smoke, 4x3 blocking attribution,
+  causal-versus-exact actor-robustness PBT, and member-`00002` G0 closure. G0
+  retained-checkpoint paths resolve from authoritative replay receipts.
+- Kept the former dashboards immutable as provenance snapshots. The generated
+  browser is now the shared browsing surface; the Markdown research dashboard
+  remains the research-identity and decision registry.
+- Hardened the browser after independent execution-first review: the factor and
+  unit vocabularies are closed, duplicate/non-finite JSON and malformed records
+  fail closed, G0 decisions are visible, paired artifacts/results/panel hashes
+  are verified, and historical receipts without producer IDs are labelled as
+  artifact parity rather than independent-process proof.
+
+## 2026-10-03 — G0 fresh-panel checkpoint closure completed
+
+- Added a fail-closed diagnostic panel override to checkpoint replay and state
+  diagnostics. It preserves validation-only access, dataset provenance, source
+  panel cardinality, and rejects overlapping observation/outcome intervals.
+- Predeclared a November-2025 RTH panel with eight outcome-uninspected anchors
+  crossed with horizons 96/128/160/200. No final-test data was opened.
+- Replayed member `00002` at 77,832, 92,384, 102,040, 106,968, and 194,368
+  sampled environment steps twice in fresh Ray-2.58 processes. All five
+  episode/reward files and all five per-step action/logit files matched exactly.
+- Every checkpoint was negative on the fresh panel. The least-negative 102,040
+  checkpoint was -0.22822% net/-0.00620 Sharpe; its action mix was effectively
+  anchor-invariant. Later checkpoints collapsed to pure short.
+- Added raw-logit and normalized softmax top-two margin summaries plus per-anchor
+  action summaries. Clip fraction remains explicitly unavailable (`not scored`)
+  in these legacy learner records; KL and explained variance are retained.
+- Closed R0 + R4-v1 without economic promotion. The next solver gate is matched
+  fixed-recipe Ray-2.58 R0 / clean R1 / R1 + R4-v1, with fixed 1 bp and causal
+  staging kept as explicit factors and PBT disabled during attribution.
+- Evidence:
+  `docs/artifacts/research/solver-state-r4-v1-causal-forensics-2026-09-29-evidence/g0_fresh_panel/`.
+
+## 2026-10-01 — Canonical research dashboard and documentation map
+
+- Added `docs/research/itrader_research_dashboard.md` and a self-contained,
+  searchable/filterable HTML companion with masterplan alignment, research-axis
+  registry, R/S detail, PF→WM→TTS ordering, crossing rules, bounded G0–G9 gates,
+  evidence ledger, and documentation ownership map.
+- Added `docs/research/README.md`, rewrote the top-level docs index as a compact
+  authority/navigation surface, and rebuilt the artifact research index as a
+  categorized catalog including the previously unindexed Markov and Stratego
+  reports.
+- Kept R/C/S canonical, provisional ATX/PF/WM/TTS/AZR names explicit, reward and
+  task families orthogonal, Market-JEPA separate, and R4-v2's fixed design
+  untouched while recording its unresolved parallel-branch status.
+- Reconciled active architecture, masterplan links, focused research notes,
+  historical Phase-B/runtime warnings, project-state pointers, and implementation
+  spec scaffold status. No experiment, solver, environment, or live-execution
+  behavior was changed.
+- Validation: `git diff --check`; 22-document local-link and UTF-8 checks; five
+  HTML companion structure checks; dashboard JavaScript syntax; healthcheck;
+  `297 passed`; and file-scoped pre-commit all passed. GitNexus was stale and its
+  status helper lacked `python3`, so no graph-derived status was treated as
+  authoritative.
+
+## 2026-09-29 — R4-v1 causal/PBT forensics closed
+
+- Segmented the completed causal arm by the optimization cost actually used for
+  each update: jointly positive net/Sharpe reports rose `0 -> 8 -> 33 -> 40`
+  across 0/0.25/0.5/1 bp, while mean greedy short fraction rose
+  `7.4% -> 37.2% -> 88.4% -> 100%`.
+- Verified that all 81 jointly positive reports were at least 98.014% short.
+  Member `00002` reached the basin without restore and PBT propagated it; late
+  tied-basin exploits added no economics.
+- Added exact progress-checkpoint replay selection and replayed member `00002`
+  at 77,832 steps. It repeated the marginal best's one-action parity delta.
+  Its 4,672-step diagnostic showed high stochastic entropy but narrow greedy
+  top-two margins, so it is a boundary probe rather than an economic candidate.
+- Found and fixed a reporting-only static-cost omission. The completed exact
+  arm's resolved task configs prove 1 bp reward delivery; future rows now
+  persist the static value instead of displaying a missing field as zero.
+- Decision: no more full PBT on the January panel. Finish a bounded fresh-panel
+  checkpoint/logit diagnostic, then freeze the lower-LR unexploited recipe for
+  matched R0 / clean R1 / R1 + R4-v1 attribution. Causal staging remains an
+  explicitly named factor; PBT follows representation attribution.
+- Evidence and audit:
+  `docs/artifacts/research/solver-state-r4-v1-causal-forensics-2026-09-29.md`.
+
+## 2026-09-29 — R4-v1 actor-robustness search closed
+
+- Added a predeclared January-2026 crossed 32-task panel and a canonical matched
+  combined-state PBT loadout for causal cost staging versus exact 1 bp.
+- Closed two test-first harness defects: Ray-2.58 environment override delivery
+  now uses the group-level env seam, and exact post-sync retained checkpoints are
+  valid restore authorities. A reporting-only collector repair now resolves
+  experiment-scoped baseline metrics with a legacy fallback.
+- Completed both four-member/40-update arms. Each produced six exploits, 18 exact
+  receipts, and six verified lineages with no stale or invalid provenance.
+- Causal staging ended short-only and exactly tied the matched short control;
+  exact cost from update zero ended flat. Four exact terminal replays confirmed
+  the latter. One apparent causal increment failed exact replay and was rejected.
+- Preserved the December masked/position/time/both fixed-recipe run as the state
+  attribution reference. No independent population, cost stress, R4-v2, or R1
+  run was launched because no candidate cleared the earlier economic gates.
+- Evidence and final audit:
+  `docs/artifacts/research/solver-state-r4-v1-actor-robustness-2026-09-29.md`.
+
 ## 2026-09-25 — R4-v1 fresh 4x3x40 replication closed
 
 - Completed all 12 fixed cells on the predeclared December-2025 32-task panel at

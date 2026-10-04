@@ -1,7 +1,7 @@
 # Solver-state Markov completion for iTrader
 
-**Date:** 2026-09-25  
-**Scope:** Research note only; no implementation or active architecture changes  
+**Date:** 2026-09-25
+**Scope:** Research note only; no implementation or active architecture changes
 **Question:** Which agent-owned variables must accompany the market window and
 `TaskSpec` embedding when actions are target positions and the optimization reward
 charges turnover plus terminal liquidation?

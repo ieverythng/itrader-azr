@@ -1,10 +1,20 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>iTrader Masterplan</title><style>:root{color-scheme:light;--ink:#18201d;--muted:#5c6762;--line:#ccd3cf;--paper:#fbfcfa;--wash:#eef2ef;--accent:#1f6651}*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:16px/1.55 Georgia,serif}main{max-width:1120px;margin:32px auto;background:var(--paper);padding:48px 58px 64px;border:1px solid var(--line)}h1,h2,h3{line-height:1.2}h2{margin-top:40px;padding-top:18px;border-top:1px solid var(--line)}table{width:100%;border-collapse:collapse;margin:18px 0 24px;font-size:.9rem}th,td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}th{background:#e8eeea}tbody tr:nth-child(even){background:#f4f6f4}code{font:.9em Consolas,monospace;background:#edf0ee;padding:1px 4px}pre{overflow:auto;background:#edf0ee;padding:14px}a{color:var(--accent)}img{max-width:100%;height:auto;border:1px solid var(--line)}@media(max-width:760px){main{margin:0;padding:28px 18px}table{display:block;overflow:auto}}</style></head><body><main><h1 id="itrader-masterplan">iTrader Masterplan</h1>
-<p>Last updated: 2026-09-25
-Status: <strong>dataset-v2 R0 is the immutable negative/parity control; R0 + R4-v1 is architecture-qualified by the completed fresh 4x3x40 replication, but remains economically unpromoted</strong>
-Branch snapshot: <code>agent/Watson-dev</code> plus the uncommitted dataset-v2 implementation/evidence round</p>
+<p>Last reconciled: 2026-10-03
+Status: <strong>dataset-v2 R0 is the immutable negative/parity control; R0 + R4-v1 is architecture-qualified but economically unpromoted after G0 artifact-pair closure; fixed-recipe R1 attribution is next</strong>
+Branch snapshot: <code>agent/Watson-dev</code> plus the uncommitted R4-v1 implementation/evidence round</p>
 <h2 id="north-star">North star</h2>
+<p>The <a href="../project-state/r1-development-readiness.md">R1 development-readiness contract</a>
+defines the next diagnostics and replay-identity work before implementation.
+The representation screen includes R0, R0 + R4-v1, R1, and R1 + R4-v1 under
+each explicit curriculum factor, completing the encoder-by-state comparison.
+G0 artifacts establish paired byte parity; separate producer processes cannot
+be independently verified from the historical receipts.</p>
 <p>iTrader is a governed proposer/curriculum plus numerical solver system. Keep
 learning, framing, deterministic gating, and execution separate.</p>
+<p>The <a href="../research/itrader_research_dashboard.html">iTrader Research Dashboard</a>
+indexes wing identities, controls, dependencies, and evidence. It is a companion
+registry, not a competing plan: this masterplan remains authoritative for phase
+order and promotion.</p>
 <pre><code class="language-text">offline: historical OHLCV -&gt; proposer/curriculum -&gt; validated TaskSpec pool
 -&gt; ITraderEnv -&gt; numerical PPO solver -&gt; held-out capability evidence
 online: market window -&gt; MarketFramer -&gt; CandidateTask + WAIT -&gt; solver score
@@ -68,7 +78,7 @@ overwhelmingly flat. These are in-sample diagnostics because the historical run
 used the full Parquet file, but they disprove the interpretation that the shaped
 PBT score was itself profitable return.</p>
 <p>The different historical gammas confirm that the long PBT run did mutate
-configurations after checkpoints became available. Ray's default numeric
+configurations after checkpoints became available. Ray&#39;s default numeric
 perturbation multiplied categorical gamma values by 0.8/1.2 without domain
 validation: one target ended at <code>gamma=0.6272</code>, while the other ended at the
 invalid <code>gamma=1.188</code>.</p>
@@ -92,7 +102,7 @@ remains unavailable to PBT and proposer updates.</li>
 <li><strong>Implemented:</strong> constrain PBT domains, diversify member seeds and initial configurations,
 align checkpoint cadence with perturbation cadence, and persist lineage. The
 PBT time attribute is now trial-owned cumulative sampled environment steps,
-so restoring a donor checkpoint cannot rewind the target's burn-in, cadence,
+so restoring a donor checkpoint cannot rewind the target&#39;s burn-in, cadence,
 or total exposure as restored <code>training_iteration</code> did near iteration 130.</li>
 <li><strong>Implemented:</strong> replace zero-byte Tune manifests/trial records with atomic non-empty evidence
 outside Tune-owned paths; summarize every population member.</li>
@@ -163,7 +173,7 @@ prefix. Each member reached 576k–580k trial-owned steps and 12 durable
 checkpoints. Actual configuration changes numbered 10 and 8 across the
 respective arms; gamma stayed in 0.98–0.995. Terminal mean net returns
 were -0.14219% and -1.00048%, with all terminal Sharpes negative. Fresh
-replay exactly reproduced each arm's best checkpoint. PnL-linear member
+replay exactly reproduced each arm&#39;s best checkpoint. PnL-linear member
 00001 briefly scored +0.06718% net at 1 bp, but Sharpe was -0.02301,
 turnover 26.1875, and its paired 14-block exploratory interval against
 long-only crossed zero. It turned negative at 2 bp. This is real episodic
@@ -295,8 +305,7 @@ family-head arrangement remains open pending user review.</p>
 <th>Status</th>
 </tr>
 </thead>
-<tbody>
-<tr>
+<tbody><tr>
 <td>R0</td>
 <td>MLP + implemented FiLM (<code>tanh(gamma)*hidden + beta</code>)</td>
 <td>Implemented; immutable parity control</td>
@@ -336,8 +345,7 @@ family-head arrangement remains open pending user review.</p>
 <td>Position + remaining-horizon state on matched controls</td>
 <td>Architecture-qualified with R0; fresh 4x3x40 replication passed paired net attribution but failed absolute promotion</td>
 </tr>
-</tbody>
-</table>
+</tbody></table>
 <p>The <code>bec5c77</code> “R2b per-step” label maps to original R2c. The older
 init-oriented R4 maps conceptually to R2b; <code>bec5c77</code> instead used R4 for
 matched observation features. IDs are not executable flags, and this
@@ -399,29 +407,46 @@ FiLM readout, finite forward/backward, and smoke configuration.</li>
 <li>Implement R2c readout FiLM and the named <code>R2c-CARRY</code>/<code>R2c-RESET</code> pair.</li>
 <li>Only then consider the named pre-cell factor, R2b init-only, R2d value-only,
 and R3 GRU according to evidence.</li>
-<li>Preserve both R4-v1 economic failures while using <code>R0 + R4-v1</code> as the
+<li>Preserve the completed R4-v1 economic failures while using <code>R0 + R4-v1</code> as the
 architecture-qualified forward FF baseline. The fresh December-2025 4x3x40
 replication is complete with zero-init parity, exact replay, block-aware
 uncertainty, and counterfactual diagnostics. Combined state improved net over
 masked in all seeds and passed the pooled relative net gate, but failed
-long-only superiority, Sharpe consistency, and the near-flat ceiling. Next run
-a bounded actor-robustness search over learning rate, entropy pressure, and
-causal cost staging with retained-best replay. Keep state-free R1 and the
-named <code>R1 + R4-v1</code> cross separate. R4-v2 nonlinear late fusion remains a
-later independent factor.</li>
+long-only superiority, Sharpe consistency, and the near-flat ceiling. The
+subsequent January-2026 four-member PBT pair is also complete: causal cost
+staging converged exactly to short-only, while exact 1 bp from update zero
+converged exactly to flat; neither produced a replay-valid
+directional-control-beating candidate. The checkpoint-level follow-up found
+that all 81 jointly positive causal reports were at least 98.014% short and
+that the unexploited 77,832-step checkpoint combined high stochastic entropy
+with narrow greedy action margins and a repeatable one-action replay
+mismatch. Do not spend another full PBT population on the same January
+panel. The fresh-panel G0 diagnostic is complete: five unexploited member
+<code>00002</code> checkpoints have paired byte-identical action and reward artifacts,
+but every November-panel net return and Sharpe was negative. Historical
+receipts lack producer identity, so separate-process provenance is unknown.
+The least-negative 102,040-step checkpoint repeated essentially the same
+75/0/25 short/flat/long mix at every anchor, while later checkpoints were pure
+short. Freeze the lower-LR recipe across matched R0, R0 + R4-v1, clean R1,
+and R1 + R4-v1.
+Treat causal cost staging as an explicit matched factor and run PBT only
+after representation attribution. Cross fixed 1 bp and causal staging as
+explicit curriculum cells; neither is part of an R identity. Keep state-free R1 and the named
+<code>R1 + R4-v1</code> cross separate. R4-v2 nonlinear late fusion remains a later
+independent factor.</li>
 <li>Run causal conditioning only as a separate C-series factor: C0 current
-features, C1 trailing train-fitted regime summaries, and shuffled-C1. Never
-train on the current future-derived <code>regime_tags</code>.</li>
+   features, C1 trailing train-fitted regime summaries, and shuffled-C1. Never
+   train on the current future-derived <code>regime_tags</code>.</li>
 <li>Keep the System-One/CLM/Jev S-series research-only until the R-series solver
-interface, platform, and evidence contract are frozen. Then run it as a named
-independent factor rather than mixing it into an R or C comparison.</li>
+   interface, platform, and evidence contract are frozen. Then run it as a named
+   independent factor rather than mixing it into an R or C comparison.</li>
 <li>Promote only after held-out chronological evaluation, multi-seed results,
-state norms, sequence-mask checks, compute/memory, and checkpoint/replay tests.</li>
+   state norms, sequence-mask checks, compute/memory, and checkpoint/replay tests.</li>
 </ol>
 <p>R1 need not win before R2 is tested. It must be correct and measurable.</p>
 <h2 id="phase-b-azr-inspired-curriculum-boundary">Phase B — AZR-inspired curriculum boundary</h2>
 <p><strong>Status: bootstrap handoff implemented; co-adaptive loop planned.</strong></p>
-<p>The local AZR v2 source's Eq. 4 proposer reward is zero at <code>p=0</code> or <code>p=1</code>,
+<p>The local AZR v2 source&#39;s Eq. 4 proposer reward is zero at <code>p=0</code> or <code>p=1</code>,
 otherwise <code>1-p</code>; it is not a symmetric 50% peak and not measured learning
 progress. iTrader should retain deterministic validation, reference/task buffers,
 and role-specific evidence without claiming reproduction.</p>

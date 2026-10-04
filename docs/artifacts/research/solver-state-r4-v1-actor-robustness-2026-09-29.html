@@ -1,0 +1,339 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>R0 + R4-v1 actor-robustness audit</title><style>body{margin:0;background:#f5f3ed;color:#20241f;font:17px/1.65 Georgia,serif}main{max-width:980px;margin:0 auto;padding:54px 62px;background:#fff;box-shadow:0 0 30px #0001}h1,h2,h3{color:#173b32;line-height:1.2}h1{font-size:2.4rem;border-bottom:3px solid #b78d3b;padding-bottom:.35em}h2{margin-top:2em;border-bottom:1px solid #d9d3c5;padding-bottom:.25em}code{background:#eef1ec;padding:.12em .35em;border-radius:4px;font:90% Consolas,monospace}pre{overflow:auto;background:#1f2825;color:#eef5ef;padding:1em;border-radius:7px}table{border-collapse:collapse;width:100%;margin:1.2em 0;font-size:.94rem}th,td{border:1px solid #d7d4ca;padding:.55em .7em;text-align:left;vertical-align:top}th{background:#e8eee9;color:#173b32}tr:nth-child(even) td{background:#faf9f5}a{color:#176a58}blockquote{border-left:4px solid #b78d3b;margin-left:0;padding-left:1em;color:#4f574f}@media(max-width:720px){main{padding:28px 20px}table{display:block;overflow-x:auto}}</style></head><body><main><article><h1>R0 + R4-v1 actor-robustness audit</h1>
+<p>Date: 2026-09-29<br>Status: complete; mechanically valid search, no economic promotion</p>
+<h2>Decision under test</h2>
+<p>The accepted feed-forward baseline remains <code>R0 + R4-v1</code>: the MLP-FiLM market/task path plus the
+minimal agent-visible position and remaining-horizon state residual. State-free R0 remains the
+immutable parity control. The combined state arm is architecture-qualified but economically
+unpromoted; this audit tests whether its actor is more robust under lower learning rates,
+bounded entropy pressure, and a causal transaction-cost curriculum.</p>
+<p>This is not an R4-v2, R1, task-family, proposer, data, or reward-function experiment. No
+market/task x state interaction is added. Family 00, the random/generated proposer, dataset-v2
+RTH partitions, the 60x5 market input, semantic-v2 task encoding, exact 1 bp evidence, and the
+Ray 2.58 legacy PPO stack remain fixed.</p>
+<h2>Frozen experiment contract</h2>
+<p>The canonical loadout is
+<a href="../../../itrader/scripts/experiments/configs/phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929.json"><code>phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929.json</code></a>.
+Its primary arm uses:</p>
+<ul>
+<li>combined <code>position + remaining_horizon_fraction</code> state with <code>zero_v1</code> residual initialization;</li>
+<li>four synchronous PBT members, two resident local-worker trials at a time, and a 40-update /
+approximately 192k-step cap per member;</li>
+<li><code>nonflat_net</code> donor ranking with the absolute economic gate kept separate;</li>
+<li>learning rate bounded to <code>5e-6 .. 6e-5</code>;</li>
+<li>the four frozen entropy schedules already covered by the PBT contract;</li>
+<li>causal cost stages <code>0 -&gt; 0.25 -&gt; 0.5 -&gt; 1 bp</code> at target-owned sampled-environment steps
+<code>0 / 48k / 96k / 144k</code>;</li>
+<li>a five-update PBT/checkpoint cadence, ten-update burn-in, retained-best checkpoints, and exact
+generation-bound provenance;</li>
+<li>a matched exact-1-bp arm that may run only after the causal-cost arm is reviewed.</li>
+</ul>
+<p>The masked, position-only, and time-only cells from the completed December 2025 4x3x40
+replication remain the attribution reference. A winning combined-state recipe must later be
+frozen and replayed against those arms; spending four independent PBT populations on the four
+state masks would confound state attribution with search luck.</p>
+<h2>New chronological selection block</h2>
+<p>The PBT search does not select again on the December 2025 attribution panel. The predeclared
+January 2026 panel is
+<a href="../../../itrader/scripts/experiments/configs/evaluation_panels/dataset_v2_r4_actor_jan2026_crossed_8x4_20260929.json"><code>dataset_v2_r4_actor_jan2026_crossed_8x4_20260929.json</code></a>.
+It contains eight outcome-uninspected RTH anchors from January 2, 5, and 6, crossed with the
+frozen 96/128/160/200 horizons. All 32 tasks were validated against the symbol-safe validation
+partition before launch. It is a development selection block, not the sealed final test.</p>
+<h2>Gates and bounded accounting</h2>
+<p>The 96k-step review is the continuation gate. Mechanical continuation requires all four members,
+finite/non-empty reports, at least two genuine exploit attempts after burn-in, exact target
+receipts, monotonic target-owned clocks, and no stale or pending lineage. The host must retain at
+least 2 GiB free RAM.</p>
+<p>Economic promotion remains stricter than PBT donor selection:</p>
+<ol>
+<li>positive 1 bp net return and positive Sharpe per square-root bar;</li>
+<li>no effectively all-flat policy (<code>flat &lt; 98%</code>) and explicit turnover reporting;</li>
+<li>sustained passing reports rather than one transient point;</li>
+<li>exact fresh-process checkpoint replay;</li>
+<li>comparison with flat, long-only, short-only, random, and untrained controls;</li>
+<li>paired chronological-block uncertainty and 0.5/1/2 bp replay;</li>
+<li>a frozen masked/position/time/both replication and an independent population seed before
+economic promotion.</li>
+</ol>
+<p><code>Sharpe / sqrt(bar) &gt;= 0.02</code> and a <code>+0.005</code> margin over the strongest directional control remain
+high-signal challenger targets, not substitutes for the full promotion gate.</p>
+<h2>Run ledger</h2>
+<table>
+<thead>
+<tr>
+<th>Run</th>
+<th>Status</th>
+<th>Keep/reject reason</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>..._062326_both_causal_cost</code></td>
+<td>invalidated at update zero</td>
+<td>Ray 2.58 <code>EnvRunnerGroup</code> has no <code>foreach_worker</code>; causal cost delivery had not been exercised by the prior fixed-cost platform gate. No PPO update completed.</td>
+</tr>
+<tr>
+<td><code>..._062604_both_causal_cost</code></td>
+<td>invalidated at the 120k boundary</td>
+<td>It exposed a contradiction between exact post-sync checkpoint retention and restore validation. The scheduler correctly selected an immutable post-sync sidecar, while the validator incorrectly required <code>reported_to_tune=true</code>. The evidence before the failure remains diagnostic only.</td>
+</tr>
+<tr>
+<td><code>..._065425_both_causal_cost</code></td>
+<td>completed; mechanically valid; economically rejected</td>
+<td>Test-first restore validation accepts either a Tune-reported checkpoint or an exact post-sync retained sidecar. All four members exceeded 192k target-owned steps; six exploits, 18 exact receipts, and six verified lineages closed without stale or invalid provenance. All terminal members collapsed to the matched short-only policy.</td>
+</tr>
+<tr>
+<td><code>..._074623_both_exact_1bp</code></td>
+<td>completed; mechanically valid; economically rejected</td>
+<td>Identical Python fingerprint, seeds, panel, topology, and budget. All four members exceeded 192k target-owned steps; six exploits, 18 exact receipts, and six verified lineages closed without stale or invalid provenance. Every terminal policy was exactly flat.</td>
+</tr>
+</tbody></table>
+<h2>Causal-cost result</h2>
+<p>The repaired causal-cost arm passed its 120k, 144k, and terminal gates. At the terminal gate all
+four members reported the same held-out result:</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th align="right">Terminal value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1 bp net return</td>
+<td align="right"><code>+0.441611%</code></td>
+</tr>
+<tr>
+<td>Sharpe / sqrt(bar)</td>
+<td align="right"><code>0.024455</code></td>
+</tr>
+<tr>
+<td>turnover</td>
+<td align="right"><code>2.0</code></td>
+</tr>
+<tr>
+<td>short / flat / long</td>
+<td align="right"><code>100% / 0% / 0%</code></td>
+</tr>
+</tbody></table>
+<p>This is a valid PBT search result but not solver promotion. The identical January-panel controls
+were flat <code>0%</code>, long-only <code>-0.481611%</code>, short-only <code>+0.441611%</code>, random <code>-1.385487%</code>, and
+untrained <code>-0.127701%</code>. The learned population therefore tied the strongest directional control
+exactly; its apparent edge is the panel&#39;s short direction, not demonstrated conditional trading.</p>
+<p>PBT itself did search. Six exploit decisions converged the population onto the best available
+short lineage while lower learning rates and entropy schedules continued to mutate. The causal
+cost stages were delivered at target-owned <code>0 / 48k / 96k / 144k</code> steps, and all members
+continued after the final exact-1-bp transition. This keeps causal cost staging as a mechanically
+valid curriculum factor, but does not establish economic uplift.</p>
+<p>Across members, positive-net reports numbered <code>20 / 25 / 29 / 15</code>; the first occurred at
+approximately <code>103k / 78k / 58k / 128k</code> target-owned steps. The strongest recorded report was
+member <code>00001</code> at 107,056 steps: <code>+0.444556%</code> net and <code>0.024954</code> Sharpe with action fractions
+<code>99.9430% short / 0.0244% flat / 0.0326% long</code>. That apparent increment over short-only was not
+checkpoint-stable and was far below the declared <code>+0.005</code> Sharpe margin.</p>
+<h2>Matched exact-1-bp result</h2>
+<p>The exact-cost arm completed the same four-member, 40-update budget on the same Python source
+fingerprint. Its terminal lineage gate passed with four complete members, six genuine exploits,
+18 exact restore receipts, six verified generation chains, and no missing, invalid, stale, or
+pending provenance. Every terminal checkpoint reported and freshly replayed:</p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th align="right">Terminal value</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1 bp net return</td>
+<td align="right"><code>0.000000%</code></td>
+</tr>
+<tr>
+<td>Sharpe / sqrt(bar)</td>
+<td align="right"><code>0.000000</code></td>
+</tr>
+<tr>
+<td>turnover</td>
+<td align="right"><code>0.0</code></td>
+</tr>
+<tr>
+<td>short / flat / long</td>
+<td align="right"><code>0% / 100% / 0%</code></td>
+</tr>
+</tbody></table>
+<p>The only positive report in the entire exact-cost population occurred in member <code>00001</code> at
+9,776 steps: <code>+0.003367%</code> net and <code>0.002014</code> Sharpe while <code>99.9844%</code> flat. It failed the explicit
+near-flat gate and never recurred. PBT continued to perturb learning rate, entropy schedule,
+discount, GAE lambda, minibatch size, SGD passes, clipping, and value-loss settings; it did not
+recover a non-flat policy. The result therefore separates a valid search from an economic
+failure: exact 1 bp from update zero makes inactivity the stable basin for this search space.</p>
+<p>Because every trained exact-cost report was ineligible, its retained forensic <code>best</code> pointers
+refer to update-zero checkpoints. All four replayed exactly but remained economically negative.
+The four terminal checkpoints also replayed exactly at the all-flat zero result. There is no
+hidden trained winner behind checkpoint selection.</p>
+<h2>State-arm attribution carried forward</h2>
+<p>The December fixed-recipe replication remains the clean state attribution study; this PBT search
+does not replace it with four independently searched populations. Its terminal means were:</p>
+<table>
+<thead>
+<tr>
+<th>Arm</th>
+<th align="right">Mean 1 bp net</th>
+<th align="right">Mean Sharpe / sqrt(bar)</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>masked</td>
+<td align="right"><code>-0.1243%</code></td>
+<td align="right"><code>-0.0370</code></td>
+<td>immutable R0-like attribution control</td>
+</tr>
+<tr>
+<td>position</td>
+<td align="right"><code>-0.0532%</code></td>
+<td align="right"><code>-0.0262</code></td>
+<td>consistent relative net improvement, no absolute promotion</td>
+</tr>
+<tr>
+<td>time</td>
+<td align="right"><code>-0.0433%</code></td>
+<td align="right"><code>-0.0201</code></td>
+<td>strongest mean gross return and critic fit</td>
+</tr>
+<tr>
+<td>position + time</td>
+<td align="right"><code>-0.0359%</code></td>
+<td align="right"><code>-0.0164</code></td>
+<td>architecture-qualified combined baseline; primary arm here</td>
+</tr>
+</tbody></table>
+<p>The combined branch remains the correct forward feed-forward control-state representation. The
+new search changes the actor conclusion, not the observability conclusion: lower learning rates,
+entropy pressure, and cost curriculum did not produce conditional economic edge.</p>
+<h2>Retained-best replay</h2>
+<p>Three of four retained-best checkpoints reproduced their selected score exactly in fresh
+processes. Member <code>00001</code> was rejected by the strict replay gate. Its recorded best report was
+almost short-only and contained one flat and one long action; native RLlib and manual replay
+consistently changed the flat action to short while preserving the long action. The delta was
+<code>7.4030326e-06</code> in search score (<code>0.0007403</code> percentage points of net return).</p>
+<p>This is not evidence of meaningful edge. It is evidence that a decision near an action-logit tie
+was not checkpoint-stable. Exact parity remains the gate; future candidate reports must include
+the minimum top-two action-logit margin so restore-sensitive ties are visible before promotion.</p>
+<h2>Harness defect found by controls</h2>
+<p>The first control-panel invocation completed the flat evaluation but the outer collector rejected
+its artifact. Baseline runs namespace stable metrics by experiment, while the outer collector
+only understood the legacy flat stable directory. A red regression reproduced the mismatch and a
+narrow compatibility repair accepts the experiment-scoped layout while retaining the legacy
+fallback. The repaired control panel then completed all five arms. This reporting-only patch is
+kept outside the source-matched PBT pair until the exact-1-bp comparator closes.</p>
+<p>The failed run is retained as provenance and cannot contribute economic evidence. The repair is
+narrow: <code>ITraderEnv</code> still owns mutable training task overrides, the evaluation task panel remains
+unchanged, and no solver/reward/task semantics changed.</p>
+<p>After the matched PBT pair closed, the tested collector repair was restored to the working tree.
+It now resolves experiment-scoped baseline metrics first and retains the legacy flat-layout
+fallback. The source fingerprints of the two PBT arms therefore remain identical.</p>
+<h2>Controls, uncertainty, and cost-sensitivity decision</h2>
+<p>The causal arm&#39;s terminal action receipt is exactly the short-only control, episode for episode;
+its paired chronological-block delta is therefore identically zero. The exact-cost terminal
+receipt is exactly flat, so its paired delta to the flat control is also identically zero. These
+are stronger rejection statements than overlapping confidence intervals.</p>
+<p>No checkpoint survives all of non-flatness, directional-control uplift, and exact replay. The
+predeclared 0.5/1/2 bp replay and independent-population replication are therefore not spent on a
+non-candidate. They remain mandatory for the first future checkpoint that clears those earlier
+gates; omitting them here is a bounded-search stop, not a waived promotion requirement.</p>
+<h2>Autoresearch keep/reject ledger</h2>
+<table>
+<thead>
+<tr>
+<th>Factor or seam</th>
+<th>Decision</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>R0 + R4-v1 combined state</td>
+<td>keep as architecture baseline</td>
+<td>required control-state completion and prior paired attribution</td>
+</tr>
+<tr>
+<td>lower learning-rate search</td>
+<td>keep available</td>
+<td>exercised validly; insufficient by itself</td>
+</tr>
+<tr>
+<td>entropy-pressure mutation</td>
+<td>keep available</td>
+<td>exercised validly; did not prevent either basin</td>
+</tr>
+<tr>
+<td>causal cost staging</td>
+<td>keep as a curriculum factor</td>
+<td>preserved activity through 1 bp, unlike exact-cost-from-start</td>
+</tr>
+<tr>
+<td>exact 1 bp from update zero</td>
+<td>reject as the default curriculum for this baseline</td>
+<td>all four terminal policies became flat</td>
+</tr>
+<tr>
+<td>causal-arm economic candidate</td>
+<td>reject</td>
+<td>equals short-only and one apparent incremental best fails replay parity</td>
+</tr>
+<tr>
+<td>exact-cost economic candidate</td>
+<td>reject</td>
+<td>flat, zero turnover, no eligible trained checkpoint</td>
+</tr>
+<tr>
+<td>new masked/position/time PBT populations</td>
+<td>reject for this goal</td>
+<td>would confound state attribution with independent search luck</td>
+</tr>
+<tr>
+<td>independent population and 0.5/1/2 bp stress</td>
+<td>stop before launch</td>
+<td>no candidate cleared the earlier gates</td>
+</tr>
+<tr>
+<td>R4-v2 or additional solver-state features</td>
+<td>defer</td>
+<td>outside the frozen factor boundary</td>
+</tr>
+</tbody></table>
+<h2>Validation record</h2>
+<ul>
+<li>New-panel schema and all 32 symbol/horizon eligibility checks: pass.</li>
+<li>Frozen-loadout contract: red before files existed, then green.</li>
+<li>Focused run/config/PBT/environment/checkpoint suite before launch: 155 passed.</li>
+<li>Reward-override compatibility regression: red on <code>foreach_worker</code>, then green on the group-level
+environment seam; neighboring training/PBT/environment suite: 136 passed.</li>
+<li>Experiment-scoped baseline collector regression: red on the legacy-only lookup, then green on
+scoped-first/legacy-fallback lookup; focused experiment/training/PBT tests: 150 passed.</li>
+<li>Both terminal PBT gates: pass with four members, six exploits, 18 exact receipts, and six
+verified restore lineages each.</li>
+<li>Exact-cost retained-best and terminal replay: four of four exact in each selection mode.</li>
+<li>Repository healthcheck: Ray 2.58.0, Gymnasium 1.2.2, PyArrow 17.0.0, PyTorch 2.3.1 CPU.</li>
+<li>GitNexus: stale relative to the dirty experimental tree and used only as advisory evidence.</li>
+</ul>
+<h2>Final decision and next boundary</h2>
+<p>This goal closes without an economic winner. PBT, sampled-step scheduling, causal reward
+delivery, retention, lineage, replay, and aggregate reporting are now mechanically valid. The
+negative result is model/search behavior: the causal arm finds the January panel&#39;s short-only
+direction, while exact cost from update zero finds flat.</p>
+<p>Preserve R0 unchanged for historical parity and preserve <code>R0 + R4-v1</code> as the
+architecture-qualified feed-forward baseline. Do not claim that R4-v1 passed the economic gate,
+that the market is fully observed, or that causal staging created conditional alpha. After review
+of this dirty tree, the next representation boundary is the predeclared clean <code>R1</code> versus
+<code>R1 + R4-v1</code> comparison, with a matched Ray-2.58 R0 control and the same attribution rules.
+R4-v2 remains deferred.</p>
+<p>Key evidence:</p>
+<ul>
+<li><a href="solver-state-r4-v1-causal-forensics-2026-09-29.html">checkpoint-level causal/PBT forensics</a></li>
+<li><a href="solver-state-r4-v1-actor-robustness-2026-09-29-evidence/terminal_gate_summary.json">terminal mechanical gates</a></li>
+<li><a href="solver-state-r4-v1-actor-robustness-2026-09-29-evidence/matched_cost_comparison/summary.json">matched causal-versus-exact comparison</a></li>
+<li><a href="solver-state-r4-v1-actor-robustness-2026-09-29-evidence/matched_cost_comparison/ablation_compare.png">net-return trajectories</a></li>
+<li><a href="solver-state-r4-v1-actor-robustness-2026-09-29-evidence/matched_cost_comparison/ablation_compare_validation_sharpe.png">Sharpe trajectories</a></li>
+<li><a href="solver-state-r4-v1-actor-robustness-2026-09-29-evidence/matched_cost_comparison/ablation_compare_action_fractions.png">action fractions</a></li>
+<li><a href="solver-state-r4-v1-actor-robustness-2026-09-29-evidence/matched_cost_comparison/ablation_compare_diagnostics.png">PPO diagnostics</a></li>
+<li><a href="solver-state-r4-v1-actor-robustness-2026-09-29-evidence/causal_cost_pbt/replay_best/">causal retained-best replay</a></li>
+<li><a href="solver-state-r4-v1-actor-robustness-2026-09-29-evidence/exact_1bp_pbt/replay_best/">exact-cost retained-best replay</a></li>
+<li><a href="solver-state-r4-v1-actor-robustness-2026-09-29-evidence/exact_1bp_pbt/replay_terminal/">exact-cost terminal replay</a></li>
+</ul>
+</article></main></body></html>

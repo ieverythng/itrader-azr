@@ -1,12 +1,14 @@
 # iTrader Architecture Entry Point
 
-Last updated: 2026-09-25
-Branch snapshot: `agent/Watson-dev` with the uncommitted dataset-v2 implementation round
-Status: **active working architecture; recurrence and trunk/head design pending grill-me review**
+Last reconciled: 2026-10-01
+Branch snapshot: `agent/Watson-dev` with the uncommitted R4-v1 implementation/evidence round
+Status: **active working architecture; R0 + R4-v1 is architecture-qualified but economically unpromoted, and R1-R3 remain unimplemented**
 
 This is the compact compatibility entrypoint. Detailed architecture is in
 `docs/architecture/itrader_system_architecture.md` (+ `.html`); phase ordering is
-in `docs/plans/itrader_masterplan.md` (+ `.html`).
+in `docs/plans/itrader_masterplan.md` (+ `.html`); research identities and
+evidence navigation are in
+`docs/research/itrader_research_dashboard.md` (+ `.html`).
 
 ## Implemented baseline
 

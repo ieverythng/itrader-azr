@@ -1,0 +1,1288 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Imperfect-information self-play and learning-progress curricula for iTrader</title>
+  <style>
+    :root {
+      --ink: #162332;
+      --muted: #5f6f7f;
+      --line: #d6e0e7;
+      --paper: #f7fafb;
+      --panel: #ffffff;
+      --navy: #102b3f;
+      --teal: #0e7c7b;
+      --teal-soft: #dff3f1;
+      --amber: #a35c00;
+      --amber-soft: #fff1d7;
+      --code: #eef3f6;
+      --shadow: 0 12px 36px rgba(16, 43, 63, 0.10);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Segoe UI, Inter, Helvetica Neue, Arial, sans-serif;
+      font-size: 16px;
+      line-height: 1.62;
+    }
+    .hero {
+      color: #fff;
+      background:
+        radial-gradient(circle at 82% 18%, rgba(31, 190, 178, .24), transparent 28rem),
+        linear-gradient(135deg, #0b2235, #123f52 58%, #0d6e6d);
+      padding: 4.5rem max(5vw, 1.25rem) 3.5rem;
+    }
+    .hero-inner { max-width: 1120px; margin: 0 auto; }
+    .eyebrow {
+      margin: 0 0 .8rem;
+      color: #9ee8df;
+      font-size: .78rem;
+      font-weight: 750;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      max-width: 960px;
+      margin: 0;
+      font-size: clamp(2rem, 5vw, 4rem);
+      line-height: 1.08;
+      letter-spacing: -.035em;
+    }
+    .hero p { max-width: 820px; margin: 1.3rem 0 0; color: #d8eaf0; font-size: 1.08rem; }
+    .badges { display: flex; flex-wrap: wrap; gap: .6rem; margin-top: 1.6rem; }
+    .badge {
+      border: 1px solid rgba(255,255,255,.26);
+      border-radius: 999px;
+      background: rgba(255,255,255,.10);
+      padding: .42rem .78rem;
+      font-size: .82rem;
+      font-weight: 650;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(220px, 285px) minmax(0, 880px);
+      gap: 2.4rem;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 2.5rem 1.4rem 5rem;
+      align-items: start;
+    }
+    .toc {
+      position: sticky;
+      top: 1.2rem;
+      max-height: calc(100vh - 2.4rem);
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 1rem 1rem 1.2rem;
+    }
+    .toc-title { margin: 0 0 .7rem; color: var(--navy); font-size: .78rem; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; }
+    .toc ul { list-style: none; margin: 0; padding: 0; }
+    .toc li { margin: 0; }
+    .toc a { display: block; border-radius: 7px; color: var(--muted); padding: .3rem .42rem; font-size: .82rem; line-height: 1.25; text-decoration: none; }
+    .toc a:hover { color: var(--teal); background: var(--teal-soft); }
+    .toc-level-3 a { padding-left: 1.1rem; font-size: .76rem; }
+    article {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: clamp(1.3rem, 4vw, 3.3rem);
+    }
+    article > h1:first-child { display: none; }
+    h2, h3 { color: var(--navy); scroll-margin-top: 1rem; }
+    h2 { margin: 3.2rem 0 1rem; border-top: 1px solid var(--line); padding-top: 2.2rem; font-size: 1.75rem; line-height: 1.2; }
+    h2:first-of-type { margin-top: 0; border-top: 0; padding-top: 0; }
+    h3 { margin: 2.1rem 0 .7rem; font-size: 1.25rem; line-height: 1.28; }
+    .anchor { opacity: 0; margin-left: .45rem; color: var(--teal); font-size: .8em; text-decoration: none; }
+    h2:hover .anchor, h3:hover .anchor { opacity: 1; }
+    p { margin: .8rem 0 1rem; }
+    a { color: #08706f; text-underline-offset: .16em; }
+    strong { color: #173a50; }
+    code {
+      border-radius: 5px;
+      background: var(--code);
+      padding: .12em .35em;
+      font-family: Cascadia Code, Consolas, ui-monospace, monospace;
+      font-size: .9em;
+    }
+    pre { overflow: auto; border-left: 4px solid var(--teal); border-radius: 8px; background: #102431; color: #e9f4f5; padding: 1rem; }
+    pre code { background: transparent; padding: 0; color: inherit; }
+    blockquote { margin: 1.3rem 0; border-left: 4px solid var(--teal); background: var(--teal-soft); padding: .45rem 1.1rem; color: #294b55; }
+    .math { overflow-x: auto; margin: 1.25rem 0; border: 1px solid #b9d8d5; border-radius: 10px; background: #edf8f7; padding: .85rem 1rem; text-align: center; }
+    .math code { background: transparent; white-space: pre-wrap; }
+    table { display: block; width: 100%; overflow-x: auto; border-collapse: collapse; margin: 1.25rem 0 1.8rem; font-size: .89rem; }
+    th, td { min-width: 8.5rem; border: 1px solid var(--line); padding: .65rem .72rem; text-align: left; vertical-align: top; }
+    th { color: #fff; background: var(--navy); font-weight: 700; }
+    tr:nth-child(even) td { background: #f4f8fa; }
+    ul, ol { padding-left: 1.45rem; }
+    li { margin: .3rem 0; }
+    hr { margin: 2.5rem 0; border: 0; border-top: 1px solid var(--line); }
+    .notice { margin: 0 0 1.7rem; border-left: 5px solid var(--amber); border-radius: 9px; background: var(--amber-soft); padding: .9rem 1rem; color: #5b3a0a; }
+    footer { max-width: 1240px; margin: 0 auto; padding: 0 1.4rem 2.5rem; color: var(--muted); font-size: .78rem; }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .toc { position: static; max-height: none; }
+    }
+    @media (prefers-color-scheme: dark) {
+      :root { --ink: #dce8ee; --muted: #a8bac4; --line: #314854; --paper: #0c161d; --panel: #12222c; --navy: #b8eced; --teal: #6bd1c9; --teal-soft: #163b3c; --amber: #f5ae43; --amber-soft: #3e2c13; --code: #20333e; --shadow: none; }
+      strong { color: #c9f0f0; }
+      th { color: #e9f4f5; background: #173d4d; }
+      tr:nth-child(even) td { background: #152832; }
+      pre { background: #081117; }
+      blockquote { color: #c7dedf; }
+      .notice { color: #f2d4a3; }
+    }
+    @media print {
+      body { background: #fff; color: #111; font-size: 10pt; }
+      .hero { padding: 1.2rem; background: #173849 !important; print-color-adjust: exact; }
+      .hero h1 { font-size: 24pt; }
+      .layout { display: block; max-width: none; padding: 0; }
+      .toc { display: none; }
+      article { border: 0; box-shadow: none; padding: 1.2rem; }
+      h2, h3 { break-after: avoid; }
+      table, pre, blockquote { break-inside: avoid; }
+      .anchor { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">iTrader research review · 1 October 2026</p>
+      <h1>Imperfect-information self-play and learning-progress curricula</h1>
+      <p>What Ataraxos Stratego and zero-data self-play can—and cannot—contribute to the existing iTrader research program.</p>
+      <div class="badges">
+        <span class="badge">R4-v2 unchanged</span>
+        <span class="badge">POMDP ≠ backward causation</span>
+        <span class="badge">PF · WM · TTS remain separate</span>
+        <span class="badge">Research design, not executed evidence</span>
+      </div>
+    </div>
+  </header>
+  <main class="layout">
+    <nav class="toc" aria-label="Table of contents">
+      <p class="toc-title">Contents</p>
+      <ul><li class="toc-level-2"><a href="#executive-decision">Executive decision</a></li>
+<li class="toc-level-2"><a href="#source-basis-and-reproducibility-boundary">Source basis and reproducibility boundary</a></li>
+<li class="toc-level-3"><a href="#ataraxos">Ataraxos</a></li>
+<li class="toc-level-3"><a href="#self-play-pretraining-with-zero-data">Self-Play Pretraining with Zero Data</a></li>
+<li class="toc-level-2"><a href="#the-two-mechanisms-are-not-the-same-kind-of-self-play">The two mechanisms are not the same kind of self-play</a></li>
+<li class="toc-level-2"><a href="#formal-causality-correction">Formal causality correction</a></li>
+<li class="toc-level-2"><a href="#ataraxos-what-the-system-actually-does">Ataraxos: what the system actually does</a></li>
+<li class="toc-level-3"><a href="#1-two-policy-value-processes-trained-in-tandem">1. Two policy/value processes trained in tandem</a></li>
+<li class="toc-level-3"><a href="#2-engineered-information-state-not-learned-temporal-recurrence">2. Engineered information state, not learned temporal recurrence</a></li>
+<li class="toc-level-3"><a href="#3-dynamically-damped-ppo-like-learning">3. Dynamically damped PPO-like learning</a></li>
+<li class="toc-level-3"><a href="#4-separate-belief-network-trained-after-the-final-policy">4. Separate belief network trained after the final policy</a></li>
+<li class="toc-level-3"><a href="#5-test-time-search-refines-only-the-current-decision">5. Test-time search refines only the current decision</a></li>
+<li class="toc-level-3"><a href="#6-opponent-modelling-is-limited">6. Opponent modelling is limited</a></li>
+<li class="toc-level-3"><a href="#7-scale-and-evidence">7. Scale and evidence</a></li>
+<li class="toc-level-2"><a href="#self-play-pretraining-with-zero-data-what-it-actually-does">Self-Play Pretraining with Zero Data: what it actually does</a></li>
+<li class="toc-level-3"><a href="#1-co-evolving-program-generator-and-byte-learner">1. Co-evolving program generator and byte learner</a></li>
+<li class="toc-level-3"><a href="#2-exact-learning-progress-reward">2. Exact learning-progress reward</a></li>
+<li class="toc-level-3"><a href="#3-generator-optimization-and-curriculum-memory">3. Generator optimization and curriculum memory</a></li>
+<li class="toc-level-3"><a href="#4-evidence-and-limits">4. Evidence and limits</a></li>
+<li class="toc-level-3"><a href="#5-it-cannot-rediscover-all-pretraining-facts">5. It cannot rediscover all pretraining facts</a></li>
+<li class="toc-level-2"><a href="#itrader-system-facts-that-constrain-the-transfer">iTrader system facts that constrain the transfer</a></li>
+<li class="toc-level-2"><a href="#why-stratego-is-not-a-direct-market-analogue">Why Stratego is not a direct market analogue</a></li>
+<li class="toc-level-2"><a href="#all-wings-placement-matrix">All-wings placement matrix</a></li>
+<li class="toc-level-2"><a href="#recommended-separately-named-ablations">Recommended separately named ablations</a></li>
+<li class="toc-level-3"><a href="#a-atx-ema-eval-v0-lowest-risk-first-transfer">A. ATX-EMA-EVAL-v0 — lowest-risk first transfer</a></li>
+<li class="toc-level-3"><a href="#b-atx-adv-filter-v0-promising-but-high-risk">B. ATX-ADV-FILTER-v0 — promising but high-risk</a></li>
+<li class="toc-level-3"><a href="#c-atx-damp-sched-v0-low-prior-coordinated-schedule-test">C. ATX-DAMP-SCHED-v0 — low-prior coordinated schedule test</a></li>
+<li class="toc-level-3"><a href="#d-pf-pred-dist-v0-predictive-state-not-a-stratego-belief-clone">D. PF-PRED-DIST-v0 — predictive state, not a Stratego belief clone</a></li>
+<li class="toc-level-3"><a href="#e-azr-lp-direct-v0-repeated-direct-learning-progress-reference">E. AZR-LP-DIRECT-v0 — repeated direct learning-progress reference</a></li>
+<li class="toc-level-3"><a href="#f-azr-lp-grad-v0-validate-do-not-assume-gradient-alignment">F. AZR-LP-GRAD-v0 — validate, do not assume, gradient alignment</a></li>
+<li class="toc-level-3"><a href="#g-azr-qd-replay-v0-typed-fresh-mutate-replay-curriculum">G. AZR-QD-REPLAY-v0 — typed fresh/mutate/replay curriculum</a></li>
+<li class="toc-level-3"><a href="#h-atx-tts-diag-v0-defer-test-time-search">H. ATX-TTS-DIAG-v0 — defer test-time search</a></li>
+<li class="toc-level-2"><a href="#bounded-autoresearch-ladder">Bounded autoresearch ladder</a></li>
+<li class="toc-level-3"><a href="#global-objective-and-invariants">Global objective and invariants</a></li>
+<li class="toc-level-3"><a href="#autoresearch-decision-rule">Autoresearch decision rule</a></li>
+<li class="toc-level-2"><a href="#transferable-ideas-summarized">Transferable ideas, summarized</a></li>
+<li class="toc-level-3"><a href="#strong-transfers">Strong transfers</a></li>
+<li class="toc-level-3"><a href="#conditional-transfers">Conditional transfers</a></li>
+<li class="toc-level-2"><a href="#non-transferable-assumptions-and-explicit-rejections">Non-transferable assumptions and explicit rejections</a></li>
+<li class="toc-level-2"><a href="#open-questions-that-must-be-answered-before-implementation">Open questions that must be answered before implementation</a></li>
+<li class="toc-level-2"><a href="#recommended-order">Recommended order</a></li></ul>
+    </nav>
+    <article>
+      <div class="notice"><strong>Scope lock:</strong> this report surveys orthogonal ablations across the existing R, C, S, optimizer, proposer, predictive-state, world-model, and search axes. It does not redesign or overwrite R4-v2.</div>
+      <h1 id="imperfect-information-self-play-and-learning-progress-curricula-for-itrader">Imperfect-information self-play and learning-progress curricula for iTrader<a class="anchor" href="#imperfect-information-self-play-and-learning-progress-curricula-for-itrader" aria-label="Link to this section">#</a></h1>
+<p>Date: 2026-10-01</p>
+<p>Status: research artifact; design-only; no implementation, architecture promotion,
+training launch, or final-test access is authorized by this document</p>
+<p>Scope: primary-source review of Ataraxos and <em>Self-Play Pretraining with Zero
+Data</em>, followed by a seam-preserving map into the registered iTrader research
+wings. The two source mechanisms are intentionally kept separate.</p>
+<h2 id="executive-decision">Executive decision<a class="anchor" href="#executive-decision" aria-label="Link to this section">#</a></h2>
+<p>There are useful ideas here, but the headline is narrower than “turn trading into
+Stratego self-play.” The existing R-series sequence remains first. Around that
+fixed sequence, the strongest transfers are:</p>
+<ol>
+<li><strong>Zero-data self-play -&gt; proposer curriculum:</strong> once one solver recipe is
+frozen and repeatable, test whether a validated <code>TaskSpec</code> is useful by the
+<em>learning progress it induces in that solver</em>, then add fresh/replay/mutation
+and quality-diversity controls. This is the cleanest route toward a real
+co-adaptive AZR-inspired loop.</li>
+<li><strong>Ataraxos -&gt; bounded PPO/evaluation controls:</strong> first audit the resolved
+entropy, KL, clipping, critic, and advantage contracts; then compare raw versus
+EMA checkpoints. Coordinated schedules and absolute-advantage filtering are
+candidates, not presumed cures. They remain optimizer/evaluation factors, not
+new solver architectures.</li>
+<li><strong>Ataraxos belief/search -&gt; new PF, WM, and TTS research axes:</strong> a causal,
+calibrated conditional distribution over future market outcomes may be useful,
+but it is not the same object as Stratego&#39;s posterior over currently existing
+hidden pieces. Test-time search is deferred until an independently validated
+generative market scenario model exists.</li>
+</ol>
+<p>The following are <strong>not</strong> justified:</p>
+<ul>
+<li>literal opponent self-play against historical OHLCV;</li>
+<li>treating the market as a two-player zero-sum game;</li>
+<li>adding a raw action tape to Family <code>00</code> merely because Stratego uses move
+history;</li>
+<li>conditioning decisions on realized future bars or future actions;</li>
+<li>calling a forward-return classifier a POMDP belief state;</li>
+<li>feeding future-derived regime tags into the solver;</li>
+<li>redesigning R4-v2 around Ataraxos.</li>
+</ul>
+<p>R4-v2&#39;s identity is frozen for this review: it is the separately named nonlinear
+joint-fusion factor already defined by the project. The current workspace still
+records its implementation/evidence status as deferred, while the user reports it
+as staged in the active parallel work. That is status drift to reconcile, not
+permission to reinterpret the design. This report neither changes that status nor
+proposes a different R4-v2. R4-v1 remains the endogenous portfolio-state factor;
+it does not make the external market fully observed.
+<a href="../../architecture.md">Active architecture</a>, <a href="../../architecture/itrader_system_architecture.md">system architecture</a>,
+<a href="../../plans/itrader_masterplan.md">masterplan</a></p>
+<h2 id="source-basis-and-reproducibility-boundary">Source basis and reproducibility boundary<a class="anchor" href="#source-basis-and-reproducibility-boundary" aria-label="Link to this section">#</a></h2>
+<h3 id="ataraxos">Ataraxos<a class="anchor" href="#ataraxos" aria-label="Link to this section">#</a></h3>
+<ul>
+<li>Samuel Sokota et al., “Scalable decision-making for games of imperfect
+information,” <em>Nature</em> 658, 55–59, published 30 September 2026.
+<a href="https://www.nature.com/articles/s41586-026-11036-y">Version of record</a></li>
+<li><a href="https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41586-026-11036-y/MediaObjects/41586_2026_11036_MOESM1_ESM.pdf">Official supplementary information</a></li>
+<li>Official source reviewed at commit
+<a href="https://github.com/AtaraxosAI/stratego/tree/92db29e8ffc323b1b8a2804b5c3f84695d036b05"><code>92db29e8ffc323b1b8a2804b5c3f84695d036b05</code></a>.
+The repository contains the CUDA Stratego simulator, policy training, belief
+training, search code, and final policy checkpoints. Its README requires Linux
+and CUDA 11.8; the demo is reported at 10–20 seconds per iteration with 128
+environments on an RTX A6000. <a href="https://github.com/AtaraxosAI/stratego">Official repository</a></li>
+</ul>
+<h3 id="self-play-pretraining-with-zero-data">Self-Play Pretraining with Zero Data<a class="anchor" href="#self-play-pretraining-with-zero-data" aria-label="Link to this section">#</a></h3>
+<ul>
+<li>Aditya Cowsik et al., “Self-Play Pretraining with Zero Data,” arXiv:2609.30063v1,
+submitted 24 September 2026. It is explicitly presented as an initial proof of
+concept. <a href="https://arxiv.org/abs/2609.30063">Paper</a>,
+<a href="https://arxiv.org/html/2609.30063">full text</a></li>
+<li>Official release reviewed at commit
+<a href="https://github.com/nourya-aliz/self_play_pretraining/tree/2c25ed621e959020e1cc9ca1b1032115e85c3798"><code>2c25ed621e959020e1cc9ca1b1032115e85c3798</code></a>.
+The release includes figures, their data, scoring code, and learner checkpoints.
+Its own scoring README says the training code is not part of the release.
+Generator weights, generator optimizer state, and an end-to-end self-play
+training path are therefore unavailable from the official artifacts reviewed.
+<a href="https://github.com/nourya-aliz/self_play_pretraining">Repository</a>,
+<a href="https://github.com/nourya-aliz/self_play_pretraining/blob/2c25ed621e959020e1cc9ca1b1032115e85c3798/REPRODUCING.md">reproduction guide</a>,
+<a href="https://huggingface.co/nourya-cohen/solomonoff-paper">released learners</a></li>
+</ul>
+<p>All external technical claims below are grounded in those primary sources. Local
+iTrader status is grounded in current source, tests, active architecture, and
+project-state documents. The GitNexus index was stale during this review, so it
+was not used as authority.</p>
+<p>Machine-readable companions: <a href="stratego-pomdp-self-play-itrader-2026-10-01-evidence/source_snapshot.json">source snapshot</a>
+and <a href="stratego-pomdp-self-play-itrader-2026-10-01-evidence/experiment_matrix.json">experiment matrix</a>.</p>
+<h2 id="the-two-mechanisms-are-not-the-same-kind-of-self-play">The two mechanisms are not the same kind of self-play<a class="anchor" href="#the-two-mechanisms-are-not-the-same-kind-of-self-play" aria-label="Link to this section">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Ataraxos</th>
+<th>Self-Play Pretraining with Zero Data</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Learner&#39;s problem</td>
+<td>Act in an imperfect-information sequential game</td>
+<td>Predict the next byte in synthetic sequences</td>
+</tr>
+<tr>
+<td>“Other side”</td>
+<td>Another copy of the game policy, plus hidden opponent pieces</td>
+<td>A generator model that proposes executable programs</td>
+</tr>
+<tr>
+<td>Learner update</td>
+<td>Policy/value RL from self-play trajectories</td>
+<td>Ordinary next-byte cross-entropy</td>
+</tr>
+<tr>
+<td>Generator/proposer update</td>
+<td>Stratego setup policy receives game outcomes</td>
+<td>Program generator receives a learning-progress RL reward</td>
+</tr>
+<tr>
+<td>Hidden-state treatment</td>
+<td>Separate supervised posterior model over true hidden piece identities</td>
+<td>No POMDP belief model</td>
+</tr>
+<tr>
+<td>Test-time planning</td>
+<td>Belief samples + forced-action policy rollouts + one tabular policy update</td>
+<td>None</td>
+</tr>
+<tr>
+<td>Transferable iTrader seam</td>
+<td>PPO controls; later predictive-distribution/search research</td>
+<td>Offline <code>TaskSpec</code> curriculum and proposer feedback</td>
+</tr>
+<tr>
+<td>Non-transferable shortcut</td>
+<td>Market-as-opponent self-play</td>
+<td>Universal-machine-generated “market data” replacing real OHLCV</td>
+</tr>
+</tbody></table>
+<p>Calling both systems “self-play” is terminologically valid but architecturally
+misleading. Ataraxos improves a policy through games against itself. The zero-data
+paper implements a co-evolving teacher–student curriculum in which one model
+generates training examples for another.</p>
+<h2 id="formal-causality-correction">Formal causality correction<a class="anchor" href="#formal-causality-correction" aria-label="Link to this section">#</a></h2>
+<p>Let the causal history available at time $t$ be</p>
+<div class="math"><code>h_t=(o_{0:t}, a_{0:t-1}, r_{0:t-1}, e_{0:t}),</code></div>
+<p>where $e$ contains any causally available endogenous portfolio/accounting state.
+A deployable policy is</p>
+
+<div class="math"><code>a_t \sim \pi(\cdot\mid h_t, \tau),</code></div>
+<p>with task contract $\tau$. The current action can depend on causal history and an
+internal state computed from it. It cannot condition on the <em>realized</em> future
+bars, rewards, or actions $(o_{t+1:},r_{t:},a_{t+1:})$.</p>
+
+<p>Its value nevertheless integrates possible futures:</p>
+<div class="math"><code>Q^{\pi}(h_t,a_t)=
+\mathbb{E}_{\substack{o_{t+1:},a_{t+1:}\sim P,\pi}}
+\left[\sum_{k\geq 0}\gamma^k r_{t+k}\mid h_t,a_t\right].</code></div>
+<p>This is the precise sense in which later policy behaviour affects a present
+decision. The present action depends on a <em>distribution over possible future
+trajectories</em>, not on the future trajectory that will later be observed.</p>
+
+<p>Three state objects must remain distinct:</p>
+<ol>
+<li><strong>POMDP belief:</strong> $b_t(z)=P(z_t=z\mid h_t)$, a posterior over a currently
+latent state under an explicit latent-state model.</li>
+<li><strong>World model / predictive distribution:</strong>
+$P(o_{t+1:t+H}\mid h_t,a_{t:t+H-1})$, a distribution over future
+observations. For the present price-taking simulator, market bars do not
+become action-conditioned merely because portfolio PnL does.</li>
+<li><strong>Endogenous portfolio state:</strong> known causal variables such as current
+position and remaining horizon. R4-v1 exposes two such variables. They are not
+beliefs and not forecasts.</li>
+</ol>
+<p>An exact Bayesian belief can be a Markov information state for a specified
+POMDP, but Ataraxos does not demonstrate that its learned approximation makes an
+arbitrary domain exactly Markov. It uses a large engineered information state for
+the policy and a separate approximate posterior only when performing search.</p>
+<h2 id="ataraxos-what-the-system-actually-does">Ataraxos: what the system actually does<a class="anchor" href="#ataraxos-what-the-system-actually-does" aria-label="Link to this section">#</a></h2>
+<h3 id="1-two-policy-value-processes-trained-in-tandem">1. Two policy/value processes trained in tandem<a class="anchor" href="#1-two-policy-value-processes-trained-in-tandem" aria-label="Link to this section">#</a></h3>
+<p>Stratego has a private setup phase and an alternating-move phase. Ataraxos uses a
+decoder-only setup transformer and an encoder-only move transformer. It samples
+setups and moves directly from the corresponding networks during self-play. Setup
+choices determine the initial boards; completed-game outcomes update both setup
+and move processes. The authors chose the decomposition because the two phases are
+substantially different tasks, not because the setup network is a generic
+open-ended task proposer. <a href="https://www.nature.com/articles/s41586-026-11036-y#Sec9">Nature Methods</a></p>
+<p>The released move network is an eight-layer, 384-wide transformer. It produces
+move logits from a query–key product over board-cell embeddings and a categorical
+win/draw/loss value distribution. It is not recurrent.
+<a href="https://github.com/AtaraxosAI/stratego/blob/92db29e8ffc323b1b8a2804b5c3f84695d036b05/pyengine/networks/move_transformer.py#L18-L144">Move-network source</a></p>
+<h3 id="2-engineered-information-state-not-learned-temporal-recurrence">2. Engineered information state, not learned temporal recurrence<a class="anchor" href="#2-engineered-information-state-not-learned-temporal-recurrence" aria-label="Link to this section">#</a></h3>
+<p>The paper representation contains 455 current-board channels plus 32 recent-move
+channels. The current-board block includes own piece types, heuristic opponent
+type probabilities under uniform setup/move assumptions, hidden/empty/moved
+flags, progress toward draw limits, and accumulated threat, evade, adjacency,
+capture, death, protection, and starting-location information. Each recent move
+is a board plane with (-1) at its source and (+1) at its destination.
+<a href="https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41586-026-11036-y/MediaObjects/41586_2026_11036_MOESM1_ESM.pdf">Supplement, Section S2</a></p>
+<p>In source, 355 board-state planes and the separate piece-ID grid are combined by
+the feature orchestrator; the move policy selects the latest 32 movement planes.
+<a href="https://github.com/AtaraxosAI/stratego/blob/92db29e8ffc323b1b8a2804b5c3f84695d036b05/src/env/boardstate_channels.h">Channel registry</a>,
+<a href="https://github.com/AtaraxosAI/stratego/blob/92db29e8ffc323b1b8a2804b5c3f84695d036b05/pyengine/networks/feature_orchestration.py#L20-L118">feature orchestration</a></p>
+<p>The article is explicit that Ataraxos accesses history through features rather
+than learning across time directly. It reports that temporal attention or
+recurrence helped belief modelling under compute normalization, but did not
+produce an analogous out-of-the-box compute-normalized policy improvement due to
+runtime/memory cost and interaction with advantage filtering. This is evidence
+against using Ataraxos as an argument that iTrader should replace its R-series
+definitions with a recurrent Stratego clone. <a href="https://www.nature.com/articles/s41586-026-11036-y#Sec24">Opportunities for improvement</a></p>
+<h3 id="3-dynamically-damped-ppo-like-learning">3. Dynamically damped PPO-like learning<a class="anchor" href="#3-dynamically-damped-ppo-like-learning" aria-label="Link to this section">#</a></h3>
+<p>The move objective combines:</p>
+<ul>
+<li>clipped policy improvement with ratio range ([0.8,1.2]);</li>
+<li>reverse KL from current policy to the data-collection policy, coefficient
+(0.1);</li>
+<li>reverse KL to a “magnet” policy;</li>
+<li>categorical value cross-entropy;</li>
+<li>gradient norm clipping and an annealed Adam learning rate.</li>
+</ul>
+<p>The Nature paper and supplement report a magnet that first selects a movable
+piece uniformly and then a legal move for that piece uniformly. It is not a
+no-op or safety policy. The pinned public checkout differs: its default selects
+uniformly over legal actions, while piece-first sampling is a non-default branch,
+and the reviewed release does not evidence a final-run override. Paper-reported
+and released-code magnets must therefore remain distinct provenance claims. The
+regularization coefficient and learning rate decay by power laws. The released defaults include
+(lambda_{return}=0.8), (lambda_{advantage}=0.5), PPO clip (0.2),
+EMA (0.999), advantage-filter quantile (0.75), magnitude floor (0.01), and
+one training epoch for moves.
+<a href="https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41586-026-11036-y/MediaObjects/41586_2026_11036_MOESM1_ESM.pdf">Supplement, Tables S6–S7</a>,
+<a href="https://github.com/AtaraxosAI/stratego/blob/92db29e8ffc323b1b8a2804b5c3f84695d036b05/pyengine/core/rl.py#L47-L70">RL configuration and loss</a>,
+<a href="https://github.com/AtaraxosAI/stratego/blob/92db29e8ffc323b1b8a2804b5c3f84695d036b05/pyengine/core/rl.py#L543-L585">loss implementation</a>,
+<a href="https://github.com/AtaraxosAI/stratego/blob/92db29e8ffc323b1b8a2804b5c3f84695d036b05/pyengine/utils/helper.py#L20-L36">magnet helper</a></p>
+<p>The absolute-advantage filter retains only positions at or above both the batch&#39;s
+75th percentile and the fixed 0.01 floor. With non-tied advantages it retains
+roughly the upper quarter, and the fixed floor can reduce that further; ties can
+retain more. It is not merely a low-confidence-label filter.
+<a href="https://github.com/AtaraxosAI/stratego/blob/92db29e8ffc323b1b8a2804b5c3f84695d036b05/pyengine/core/buffer.py#L194-L247">Buffer source</a></p>
+<p>For iTrader&#39;s current three always-legal actions, a <em>uniform</em> Ataraxos-style
+magnet is not a new loss:</p>
+<div class="math"><code>\mathrm{KL}(\pi\,\|\,U_3)=\log 3-H(\pi).</code></div>
+<p>Minimizing it is entropy maximization up to an additive constant. iTrader already
+anneals entropy, clips PPO ratios and gradients, and searched multiple entropy
+schedules. The source-derived novelty worth testing is the <em>coordination</em> of
+update size, behavior-policy KL, and regularization strength, not relabelling the
+existing entropy term as a magnet.</p>
+
+<h3 id="4-separate-belief-network-trained-after-the-final-policy">4. Separate belief network trained after the final policy<a class="anchor" href="#4-separate-belief-network-trained-after-the-final-policy" aria-label="Link to this section">#</a></h3>
+<p>Ataraxos trains the belief model on every position in trajectories generated by
+the final self-play setup and move policies. Given the acting player&#39;s information
+state, it teacher-forces an autoregressive prediction of the true opponent hidden
+piece types. Ground truth exists because the simulator knows the complete board.
+Dropout is used to improve generalization to policies unlike self-play, including
+humans. <a href="https://www.nature.com/articles/s41586-026-11036-y#Sec14">Nature belief modelling</a></p>
+<p>The reported Stratego belief network is a transformer encoder plus autoregressive
+transformer decoder, not the policy&#39;s recurrent memory. Its reported size is
+57.1M parameters. The repository also contains temporal and LSTM belief variants,
+but their presence in source must not be mistaken for the reported final
+configuration. <a href="https://github.com/AtaraxosAI/stratego/blob/92db29e8ffc323b1b8a2804b5c3f84695d036b05/pyengine/networks/belief_transformer.py#L25-L152">Belief source</a>,
+<a href="https://github.com/AtaraxosAI/stratego/blob/92db29e8ffc323b1b8a2804b5c3f84695d036b05/pyengine/belief/belief.py#L210-L251">belief loss</a>,
+<a href="https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41586-026-11036-y/MediaObjects/41586_2026_11036_MOESM1_ESM.pdf">Supplement, Tables S8 and S11</a></p>
+<h3 id="5-test-time-search-refines-only-the-current-decision">5. Test-time search refines only the current decision<a class="anchor" href="#5-test-time-search-refines-only-the-current-decision" aria-label="Link to this section">#</a></h3>
+<p>For each move, the reported Stratego search:</p>
+<ol>
+<li>samples hidden-piece configurations from the learned posterior;</li>
+<li>forces each legal root action under sampled configurations;</li>
+<li>performs 1,000 depth-40 rollouts, with the blueprint move policy controlling
+both players after the forced move;</li>
+<li>averages the leaf value predictions into action-value estimates;</li>
+<li>takes one tabular magnetic-mirror-descent-like update of the current action
+distribution, regularized to the magnet and blueprint; and</li>
+<li>samples the played move from that updated distribution.</li>
+</ol>
+<p>The reported reverse-KL coefficients are 0.002 to the magnet and 0.02 to the
+blueprint policy. The update changes only the current tabular decision; it does
+not fine-tune the network. <a href="https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41586-026-11036-y/MediaObjects/41586_2026_11036_MOESM1_ESM.pdf">Supplement, Section S3.7</a>,
+<a href="https://github.com/AtaraxosAI/stratego/blob/92db29e8ffc323b1b8a2804b5c3f84695d036b05/pyengine/core/search.py#L120-L178">search source</a>,
+<a href="https://github.com/AtaraxosAI/stratego/blob/92db29e8ffc323b1b8a2804b5c3f84695d036b05/pyengine/core/search.py#L180-L279">rollouts</a>,
+<a href="https://github.com/AtaraxosAI/stratego/blob/92db29e8ffc323b1b8a2804b5c3f84695d036b05/pyengine/core/search.py#L431-L454">policy update</a></p>
+<h3 id="6-opponent-modelling-is-limited">6. Opponent modelling is limited<a class="anchor" href="#6-opponent-modelling-is-limited" aria-label="Link to this section">#</a></h3>
+<p>Ataraxos does <strong>not</strong> learn or adapt an explicit model of the current human
+opponent&#39;s policy. It uses its self-play blueprint for both players in rollouts.
+The belief approximates the hidden-state posterior induced by self-play policy
+trajectories; dropout is the reported defence against out-of-distribution play.
+The 20-game human opponent was explicitly told the bot would not adapt. Any
+proposal for online market-regime adaptation is therefore a new iTrader
+hypothesis, not a feature reproduced from Ataraxos.
+<a href="https://www.nature.com/articles/s41586-026-11036-y">Nature search method and evaluation</a></p>
+<h3 id="7-scale-and-evidence">7. Scale and evidence<a class="anchor" href="#7-scale-and-evidence" aria-label="Link to this section">#</a></h3>
+<p>The Stratego RL run used 16 H100s for one week; belief training used 4 H100s for
+four days. The paper reports 163M completed games, 208B environment steps, 8.56M
+move-network gradient steps, and 99.5K setup-network gradient steps. Each GPU ran
+1,536 environments and generated 202 moves between updates.
+<a href="https://www.nature.com/articles/s41586-026-11036-y#Sec16">Training information</a>,
+<a href="https://media.springernature.com/original/springer-static/esm/art%3A10.1038%2Fs41586-026-11036-y/MediaObjects/41586_2026_11036_MOESM1_ESM.pdf">Supplement, Table S3</a></p>
+<p>The headline human result is 15 wins, 1 loss, and 4 draws against Pim Niemeijer;
+the World Championship demo produced 38 wins and 2 losses. The paper properly
+notes that human games across the series were not independent and identically
+distributed, so its binomial calculation is conditional rather than a clean iid
+test. Cross-game evidence covers Barrage Stratego, Hanabi, and dou dizhu, which is
+strong evidence that the general design pattern is not confined to one two-player
+zero-sum game. It is not evidence of trading profitability.</p>
+<p>The ablations are informative but conditional on the final configuration. The
+paper states that remaining hyperparameters were not retuned for each ablated
+system. Three-seed comparisons find material effects from learning-rate annealing,
+regularization annealing, and advantage filtering; EMA has similar or better mean
+performance with lower cross-seed variation. Those results justify isolated
+iTrader ablations, not wholesale hyperparameter copying.
+<a href="https://www.nature.com/articles/s41586-026-11036-y#Sec22">Ablation caveat and EMA result</a></p>
+<h2 id="self-play-pretraining-with-zero-data-what-it-actually-does">Self-Play Pretraining with Zero Data: what it actually does<a class="anchor" href="#self-play-pretraining-with-zero-data-what-it-actually-does" aria-label="Link to this section">#</a></h2>
+<h3 id="1-co-evolving-program-generator-and-byte-learner">1. Co-evolving program generator and byte learner<a class="anchor" href="#1-co-evolving-program-generator-and-byte-learner" aria-label="Link to this section">#</a></h3>
+<p>Both networks are independently parameterized Llama-style decoder transformers
+initialized from scratch. Each round:</p>
+<ol>
+<li>the generator samples programs in an augmented Brainf*ck-like, Turing-complete
+language;</li>
+<li>a bounded universal machine executes each program with a random input tape;</li>
+<li>the learner takes a next-byte cross-entropy step on the outputs; and</li>
+<li>the generator takes an RL step toward programs aligned with the learner&#39;s
+learning trajectory, plus reward-weighted supervised distillation.</li>
+</ol>
+<p>This is not a game-state POMDP, belief-state learner, or future-action planner.
+Its long horizon is a horizon over learner updates and accumulated curricula.
+<a href="https://arxiv.org/html/2609.30063#S2">Algorithm</a></p>
+<h3 id="2-exact-learning-progress-reward">2. Exact learning-progress reward<a class="anchor" href="#2-exact-learning-progress-reward" aria-label="Link to this section">#</a></h3>
+<p>At round $e$, the paper defines</p>
+<div class="math"><code>p(e)=\lfloor e/2\rfloor,\qquad
+\Delta\theta_e=\theta_{p(e)}-\theta_e,</code></div>
+<p>and rewards candidate output $y_i$ by</p>
+
+<div class="math"><code>r_i=\left|
+\left\langle
+\nabla_\theta\mathcal L(y_i;\theta_e),
+P_e\odot\Delta\theta_e
+\right\rangle
+\right|,
+\qquad
+P_e=\frac{\mathrm{lr}}{\sqrt{\hat v_e}+\epsilon}.</code></div>
+<p>It is an absolute, AdamW-preconditioned gradient-alignment score. Forward-mode
+automatic differentiation avoids materializing a full gradient for every
+candidate. The intent is to reject both already-mastered examples, which have
+small gradients, and hard-but-unlearnable noise, whose gradients do not align
+with demonstrated learner progress. <a href="https://arxiv.org/html/2609.30063#S2.SS2">Reward and implementation description</a></p>
+
+<p>The growing half-history lookback outperformed one-step alignment and realized
+one-step loss delta in the paper&#39;s 1M-parameter, four-seed ablation. Shuffling
+scores across programs and negating the reward also degraded results. The signed
+form was slightly better on some individual datasets and worse on most, so the
+absolute value is supported within this study but is not a universal rule for a
+PPO trading solver. <a href="https://arxiv.org/html/2609.30063#A6">Reward ablations</a></p>
+<h3 id="3-generator-optimization-and-curriculum-memory">3. Generator optimization and curriculum memory<a class="anchor" href="#3-generator-optimization-and-curriculum-memory" aria-label="Link to this section">#</a></h3>
+<p>The generator uses KL-regularized expected reward against a fixed short-program
+prior, batch-normalized GRPO-style advantages, and sequence-level importance
+ratios for off-policy replay. It also uses reward-weighted supervised fine-tuning
+of positively rewarded programs. <a href="https://arxiv.org/html/2609.30063#S2.SS2">Generator objective</a></p>
+<p>Its pool combines:</p>
+<ul>
+<li>fresh generator samples;</li>
+<li>local single-token mutations of positively rewarded programs; and</li>
+<li>replayed programs from previous rounds, re-executed with fresh random tapes.</li>
+</ul>
+<p>A MAP-Elites-style archive partitions programs by length and dynamic loop depth,
+retaining multiple strong examples per niche rather than only one global elite.
+Stored reward decays because usefulness changes as the learner changes.
+<a href="https://arxiv.org/html/2609.30063#A7">Pool construction</a></p>
+<h3 id="4-evidence-and-limits">4. Evidence and limits<a class="anchor" href="#4-evidence-and-limits" aria-label="Link to this section">#</a></h3>
+<p>The adaptive generator scales more favourably than a fixed prior over the same
+program space. It discovers arithmetic, Fibonacci, geometric, quadratic, and
+cubic sequence families much earlier than the reported uniform sampling control,
+and its learners exhibit in-context behaviour on six held-out synthetic tasks.
+For each endpoint <em>T</em>, the fixed-corpus control mixes data from 16 generator
+snapshots spaced through training up to <em>T</em>, then trains a fresh learner. Later
+endpoint-indexed snapshot mixtures train fresh learners more effectively, which
+is important evidence that improvement is in the curriculum rather than only in
+a co-adapted learner.
+<a href="https://arxiv.org/html/2609.30063#S3">Empirical results</a></p>
+<p>The paper&#39;s domain-specific PCFG baseline is stronger on text and code, while the
+adaptive universal generator transfers more broadly across several non-language
+modalities. That is direct evidence against replacing iTrader&#39;s typed market task
+grammar with a universal program language merely because the latter is more
+general.</p>
+<p>The released model ladder spans about 98K to 24.4M parameters, uses 4,096-token
+contexts, and runs to 8,192 self-play rounds. The paper&#39;s maximum budget is
+34.36B learner tokens. Its published “effective compute” axis counts learner
+parameters, 1,536 programs per round, context length, rounds, and ensemble seeds;
+it does not fully price generator optimization, execution, reward JVPs, or
+hyperparameter search. Hardware and wall-clock cost are not specified well enough
+to reconstruct total end-to-end expense.
+<a href="https://arxiv.org/html/2609.30063#S3.SS1">Scaling recipe</a>,
+<a href="https://github.com/nourya-aliz/self_play_pretraining/blob/2c25ed621e959020e1cc9ca1b1032115e85c3798/figures/table2_scaling_exponents/scaling_analysis.py">official scaling code</a></p>
+<p>Natural data supplies no gradient updates during self-play, but DCLM text and DNA
+validation loss are used to select hyperparameters. The “zero data” experiment
+therefore has limited evaluation-driven leakage at the research-procedure level.
+In the later pre-pretraining experiment, the clearest demonstrated benefit is
+faster natural-data learning; the terminal loss gap narrows and the comparison
+does not charge the initial self-play compute.
+<a href="https://arxiv.org/html/2609.30063#S3.SS1">Scaling recipe and pre-pretraining</a></p>
+<h3 id="5-it-cannot-rediscover-all-pretraining-facts">5. It cannot rediscover all pretraining facts<a class="anchor" href="#5-it-cannot-rediscover-all-pretraining-facts" aria-label="Link to this section">#</a></h3>
+<p>The paper explicitly says universal pretraining cannot recover contingent
+information: facts about a particular world must enter through interaction with
+that world. A universal program space may expose copying, recursion, hierarchy,
+arithmetic, and other reusable structure. It cannot identify which possible world
+contains a particular earnings release, law, news event, or historical price
+path. Longer self-play does not solve this identifiability problem.
+<a href="https://arxiv.org/html/2609.30063#S6">Discussion</a></p>
+<p>For iTrader, real, chronological OHLCV remains indispensable contingent evidence.
+The proposer may change which validated tasks are sampled; it must not invent
+market outcomes and present them as historical evidence.</p>
+<h2 id="itrader-system-facts-that-constrain-the-transfer">iTrader system facts that constrain the transfer<a class="anchor" href="#itrader-system-facts-that-constrain-the-transfer" aria-label="Link to this section">#</a></h2>
+<ul>
+<li><code>TaskSpec</code> is the canonical offline task/problem contract.</li>
+<li><code>ITraderEnv</code> owns causal market-window assembly, task-conditioned reset,
+target-position transitions, and reward context.</li>
+<li><code>RewardEngine</code> owns finite solver reward components.</li>
+<li><code>Discrete(3)</code> means target positions short, flat, and long. It is not a
+Stratego move set and <code>flat</code> is not the online <code>WAIT</code> decision.</li>
+<li>Family <code>00</code> is the only enabled learned family. <code>01</code>/<code>02</code> are bootstrap
+contracts, <code>03</code> is trade management, and <code>04</code> is abstention/unsuitable regime.</li>
+<li>Historical replay is presently price-taking: solver actions change position,
+costs, and PnL, not the recorded market path.</li>
+<li>R4-v1 supplies known endogenous position and remaining-horizon state. It does
+not infer latent market causes.</li>
+<li>The online authority chain remains <code>MarketFramer -&gt; CandidateTask(TaskSpec +
+optional ExecutionIntent) + WAIT -&gt; solver -&gt; DecisionGate -&gt; RiskEngine -&gt;
+Executor -&gt; DecisionRecord</code>; a <code>CandidateTask</code> may carry a validated optional
+<code>ExecutionIntent</code>, while broker and execution semantics stay in the online
+contracts and never in <code>TaskSpec</code>.</li>
+<li><code>train_AZR.py</code> currently creates a validated task pool and hands it to PPO once;
+it is not a co-adaptive proposer/solver loop.</li>
+</ul>
+<p>The latest solver evidence also limits what an optimizer transplant may claim.
+Exact 1 bp from update zero converged to all-flat, while causal cost staging
+converged to the January panel&#39;s short-only control. At the informative 77,832-
+step checkpoint, greedy replay was 99.358% short even though mean action
+probabilities were broad (40.18% / 27.30% / 32.52%) and categorical entropy was
+1.08234 versus the three-action maximum of 1.09861. Mean explained variance rose
+only to 0.0376, and <code>clip_fraction</code> is missing/NaN in all 320 captured reports.
+This is not evidence that “more entropy” is the missing ingredient. It is a
+reason to repair the critic/clip/advantage diagnostics before advantage filtering
+or a coordinated damping claim. <a href="solver-state-r4-v1-causal-forensics-2026-09-29.md#ppo-and-critic-interpretation">Current causal forensics</a></p>
+<p>Current source adds six implementation prerequisites:</p>
+<ul>
+<li><code>train_solo_V2.py</code> still selects <code>solver_mlp_film</code>; R1–R3 remain design cells,
+not executable recurrent challengers.</li>
+<li>the registered legacy LSTM consumes the unsplit full observation and returns
+its incoming recurrent state unchanged; <code>batch_mode=&quot;complete_episodes&quot;</code> does
+not by itself supply correct BPTT, masking, or state lifecycle;</li>
+<li>frozen-checkpoint evaluation calls <code>compute_single_action</code> without owning and
+passing recurrent state, so R2 evidence would be invalid until replay becomes
+state-aware;</li>
+<li>each environment currently owns a process-local task pool, and weighted
+sampling with <code>batch_size=1</code> reduces to random because elite/recent counts floor
+to zero; and</li>
+<li>episode realization mutates seed/start before callback hashing, while feedback
+remains in-memory, so a stable proposal UID and centralized versioned evidence
+are prerequisites for curriculum learning; and</li>
+<li>the current proposer retry counter advances only after a returned task, so
+repeated backend exceptions require a bounded-failure contract before any
+co-adaptive loop.</li>
+</ul>
+<p>These are seam blockers, not arguments for changing R4-v2.</p>
+<p>These boundaries come from the <a href="../../architecture.md">active architecture</a>,
+<a href="../../architecture/itrader_system_architecture.md">system architecture</a>, and
+<a href="../../plans/itrader_masterplan.md">masterplan</a>.</p>
+<h2 id="why-stratego-is-not-a-direct-market-analogue">Why Stratego is not a direct market analogue<a class="anchor" href="#why-stratego-is-not-a-direct-market-analogue" aria-label="Link to this section">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Stratego property</th>
+<th>Current iTrader property</th>
+<th>Consequence</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Two strategic agents alter one shared state</td>
+<td>Historical prices are exogenous to the solver</td>
+<td>No literal market-opponent self-play</td>
+</tr>
+<tr>
+<td>Hidden piece identities exist now and are known to the simulator</td>
+<td>“Regime” is a chosen latent abstraction; future returns are not a hidden label existing in the simulator</td>
+<td>A return classifier is predictive, not the same supervised posterior</td>
+</tr>
+<tr>
+<td>Actions reveal opponent information and change the board</td>
+<td>Past target positions add no exogenous market information, but can determine omitted endogenous accounting variables</td>
+<td>Prefer explicit sufficient accounting state; do not copy a 32-action history block by analogy</td>
+</tr>
+<tr>
+<td>Exact rules provide counterfactual rollouts</td>
+<td>Only one historical future is recorded; a learned scenario model would be approximate</td>
+<td>Replaying the realized future is an offline counterfactual diagnostic, not online search</td>
+</tr>
+<tr>
+<td>Zero-sum terminal win/draw/loss</td>
+<td>Dense, cost-aware, continuous trading reward</td>
+<td>Categorical game value and equilibrium claims do not transfer directly</td>
+</tr>
+<tr>
+<td>Policy rollouts control both players</td>
+<td>Solver cannot control future bars</td>
+<td>Blueprint rollouts require an independently validated exogenous world model</td>
+</tr>
+<tr>
+<td>Setup policy changes the initial game distribution</td>
+<td>Proposer can select tasks/windows but cannot change history</td>
+<td>Map only to curriculum selection, never synthetic historical truth</td>
+</tr>
+</tbody></table>
+<p>The current Family <code>00</code> environment can evaluate all three target positions on
+the same <em>past</em> future path for diagnostics or teacher construction because the
+market path is exogenous. It cannot expose that path to the deployed policy or
+call the resulting hindsight choice an online search result.</p>
+<h2 id="all-wings-placement-matrix">All-wings placement matrix<a class="anchor" href="#all-wings-placement-matrix" aria-label="Link to this section">#</a></h2>
+<p>Provisional labels below are experiment names, not additions to the canonical
+roadmap. They prevent borrowed ideas from silently taking over existing IDs.</p>
+<table>
+<thead>
+<tr>
+<th>iTrader wing / seam</th>
+<th>Ataraxos placement</th>
+<th>Zero-data placement</th>
+<th>Decision</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>R0 MLP-FiLM</strong></td>
+<td>May serve as a fixed solver control for optimizer-only factors</td>
+<td>Fixed learner recipe for curriculum attribution</td>
+<td>Preserve unchanged</td>
+</tr>
+<tr>
+<td><strong>R1 reset-every-step window LSTM</strong></td>
+<td>No direct redesign; Ataraxos policy itself is feature-history transformer, not recurrent</td>
+<td>None</td>
+<td>Preserve identity; no insertion</td>
+</tr>
+<tr>
+<td><strong>R2a/R2c recurrent LSTM and CARRY/RESET</strong></td>
+<td>The existing <code>R2c-CARRY + R4-v1</code> versus <code>R2c-RESET + R4-v1</code> control is iTrader&#39;s clean carried-memory attribution; it does not establish a POMDP belief model, and Ataraxos does not establish recurrent-policy advantage</td>
+<td>None</td>
+<td>Preserve identities; complete native lifecycle/replay mechanics first</td>
+</tr>
+<tr>
+<td><strong>R2b init-only, R2d value-only, R3 GRU</strong></td>
+<td>No clean source-derived change</td>
+<td>None</td>
+<td>No insertion</td>
+</tr>
+<tr>
+<td><strong>R4-v1 portfolio state</strong></td>
+<td>Distinct from belief; already fixes known endogenous aliases</td>
+<td>None</td>
+<td>Preserve; no insertion</td>
+</tr>
+<tr>
+<td><strong>R4-v2 joint fusion</strong></td>
+<td>No redesign. Belief/search does not belong in joint fusion</td>
+<td>None</td>
+<td>Frozen identity; user reports it staged elsewhere while this checkout still marks implementation/evidence deferred</td>
+</tr>
+<tr>
+<td><strong>R-series value head</strong></td>
+<td>Optional future distributional-return factor inspired by categorical value, separately named <code>ATX-DIST-VALUE-v0</code></td>
+<td>None</td>
+<td>Defer until scalar-critic diagnostics justify it</td>
+</tr>
+<tr>
+<td><strong>PPO optimizer/training</strong></td>
+<td>Formula/config audit, then <code>ATX-EMA-EVAL-v0</code>; <code>ATX-ADV-FILTER-v0</code> and <code>ATX-DAMP-SCHED-v0</code> only under isolated controls</td>
+<td>Learner recipe must be frozen when scoring curriculum progress</td>
+<td>Clean placement, but no presumed basin cure</td>
+</tr>
+<tr>
+<td><strong>PBT</strong></td>
+<td>Would confound the schedules being tested</td>
+<td>Changing optimizer trajectory invalidates a learning-progress reward</td>
+<td>Disable during attribution; only reopen after fixed-recipe evidence</td>
+</tr>
+<tr>
+<td><strong>C0/C1/shuffled-C1</strong></td>
+<td>No insertion; these remain the registered causal feature/summary controls</td>
+<td>None</td>
+<td>Preserve unchanged</td>
+</tr>
+<tr>
+<td><strong>PF predictive-state axis (new)</strong></td>
+<td><code>PF-PRED-DIST-v0</code> estimates calibrated future distributions; it is not a supervised posterior over a true hidden market board</td>
+<td>None</td>
+<td>Evaluate after the existing R and C controls; cross later as <code>accepted solver × PF1</code></td>
+</tr>
+<tr>
+<td><strong>WM world-model axis (new)</strong></td>
+<td>Required to generate conditional future paths before deployable search exists</td>
+<td>None</td>
+<td>Validate separately; historical prices remain action-invariant under the present price-taker contract</td>
+</tr>
+<tr>
+<td><strong>TTS search axis (new)</strong></td>
+<td>Belief/scenario samples, branch-safe rollouts, and a stateless current-root logit update</td>
+<td>None</td>
+<td>Defer until PF/WM and blueprint calibration pass; replay/shadow only</td>
+</tr>
+<tr>
+<td><strong>S-series CLM/Jev</strong></td>
+<td>No direct belief/search insertion</td>
+<td>Learning-progress task selection may later choose S training examples, but only after native S controls</td>
+<td>Keep independent; do not bundle</td>
+</tr>
+<tr>
+<td><strong>Family 00 directional</strong></td>
+<td>Raw action history is redundant as <em>exogenous market</em> evidence; it may proxy omitted holding age, cost basis, turnover, or drawdown</td>
+<td>Curriculum can select validated tasks/windows</td>
+<td>Prefer explicit sufficient accounting state and matched controls</td>
+</tr>
+<tr>
+<td><strong>Families 01/02</strong></td>
+<td>No claim before the bootstrap contracts become executable</td>
+<td>Typed task mutation may later cover them</td>
+<td>Defer</td>
+</tr>
+<tr>
+<td><strong>Family 03 trade management</strong></td>
+<td>Explicit position/accounting sufficient statistics are more defensible than a raw action tape</td>
+<td>Curriculum only after state/reward contract exists</td>
+<td>Defer; do not infer state from OHLCV</td>
+</tr>
+<tr>
+<td><strong>Family 04 / WAIT</strong></td>
+<td>Ataraxos magnet is not an abstention policy</td>
+<td>A proposer may include validated no-trade tasks later</td>
+<td>Preserve WAIT as distinct online outcome</td>
+</tr>
+<tr>
+<td><strong>TaskSpec / validation</strong></td>
+<td>No hidden-piece fields or broker semantics added</td>
+<td>Typed proposal, mutation, validation, hashing, and replay belong here</td>
+<td>Strong clean placement for curriculum substrate</td>
+</tr>
+<tr>
+<td><strong>RewardEngine</strong></td>
+<td>No Stratego win/loss transplant; PPO training controls stay outside reward semantics</td>
+<td>Learning progress is proposer reward, not solver economic reward</td>
+<td>Preserve unchanged</td>
+</tr>
+<tr>
+<td><strong>Proposer / AZR loop</strong></td>
+<td>Setup/move co-training motivates explicit two-process feedback, but market history stays external</td>
+<td><code>AZR-LP-DIRECT-v0</code>, then <code>AZR-LP-GRAD-v0</code>, plus <code>AZR-QD-REPLAY-v0</code></td>
+<td>Strongest zero-data transfer</td>
+</tr>
+<tr>
+<td><strong>CapabilityProfile / evidence</strong></td>
+<td>Calibrated predictive-distribution and search diagnostics may be recorded, never inferred from logits alone</td>
+<td>Holds task/checkpoint-specific uplift evidence for curriculum</td>
+<td>Clean supporting seam</td>
+</tr>
+<tr>
+<td><strong>CandidateTask / ExecutionIntent / DecisionRecord</strong></td>
+<td>Search may score a candidate but cannot mint broker semantics or bypass the gate</td>
+<td>Proposer utility has no execution authority</td>
+<td>Preserve explicit online contracts; keep them out of <code>TaskSpec</code></td>
+</tr>
+<tr>
+<td><strong>MarketFramer</strong></td>
+<td>May eventually consume calibrated causal predictive distributions</td>
+<td>No universal-program generator online</td>
+<td>Defer; replay/shadow only after validation</td>
+</tr>
+<tr>
+<td><strong>DecisionGate/RiskEngine/Executor</strong></td>
+<td>Search output cannot bypass deterministic controls</td>
+<td>No proposer authority</td>
+<td>Preserve unchanged</td>
+</tr>
+<tr>
+<td><strong>Market-JEPA</strong></td>
+<td>A future world/representation model could one day enable scenario rollouts, but Ataraxos does not validate that model</td>
+<td>Universal pretraining is separate</td>
+<td>Explicitly out of this experiment round</td>
+</tr>
+<tr>
+<td><strong>Simulator/performance engineering</strong></td>
+<td>CUDA/vectorized reset/history design is relevant only after profiling identifies rollout bottlenecks</td>
+<td>None</td>
+<td>Defer; measure before porting</td>
+</tr>
+</tbody></table>
+<h2 id="recommended-separately-named-ablations">Recommended separately named ablations<a class="anchor" href="#recommended-separately-named-ablations" aria-label="Link to this section">#</a></h2>
+<h3 id="a-atx-ema-eval-v0-lowest-risk-first-transfer">A. <code>ATX-EMA-EVAL-v0</code> — lowest-risk first transfer<a class="anchor" href="#a-atx-ema-eval-v0-lowest-risk-first-transfer" aria-label="Link to this section">#</a></h3>
+<p>Maintain an EMA shadow of solver parameters and evaluate raw and EMA policies at
+identical checkpoint steps on the identical held-out panel. Training continues
+from the raw actor; EMA is not silently restored into PBT or treated as another
+training seed.</p>
+<p>Question: does EMA reduce cross-seed/checkpoint variance or improve replay-valid
+economic metrics without hiding action collapse?</p>
+<p>Required evidence: exact raw/EMA checkpoint lineage, net return, Sharpe, turnover,
+short/flat/long frequencies, logit margins, block uncertainty, and fresh-process
+replay. This can often be added with no additional sampled environment steps,
+only evaluation and storage cost.</p>
+<h3 id="b-atx-adv-filter-v0-promising-but-high-risk">B. <code>ATX-ADV-FILTER-v0</code> — promising but high-risk<a class="anchor" href="#b-atx-adv-filter-v0-promising-but-high-risk" aria-label="Link to this section">#</a></h3>
+<p>This must follow the critic/advantage telemetry repair. Mean explained variance
+near 0.038 makes top-|advantage| selection capable of selecting critic error or
+volatility outliers rather than informative transitions. Compare three arms: all
+valid PPO samples, a top-|advantage| subset, and an equal-retained-count random
+subset. Do not combine the filter with a new LR schedule, recurrence, S-series
+head, or proposer.</p>
+<p>Log at minimum:</p>
+<ul>
+<li>raw versus retained samples;</li>
+<li>threshold and retained fraction by action, position, horizon, symbol, and
+chronological block, volatility, reward scale, and cost stage;</li>
+<li>positive/negative advantage balance;</li>
+<li>clip fraction, KL, entropy, gradient norm, critic loss, and policy/value drift;</li>
+<li>net, Sharpe, turnover, and action collapse.</li>
+</ul>
+<p>The central trading risk is selection bias: rare profitable or risk-reducing
+events can be discarded if their estimated advantages are noisy or small. Report
+both equal sampled-environment-step comparisons (sample efficiency) and equal
+retained-gradient-example or optimizer-FLOP/wall-clock comparisons (compute
+efficiency). Normalize or stratify thresholds across tasks rather than letting
+reward scale decide which task contributes updates.</p>
+<h3 id="c-atx-damp-sched-v0-low-prior-coordinated-schedule-test">C. <code>ATX-DAMP-SCHED-v0</code> — low-prior coordinated schedule test<a class="anchor" href="#c-atx-damp-sched-v0-low-prior-coordinated-schedule-test" aria-label="Link to this section">#</a></h3>
+<p>First produce an exact formula/config receipt. iTrader already anneals entropy,
+clips PPO ratios and gradients, and PBT searched multiple entropy schedules. Its
+causal arm retained high stochastic entropy while greedy actions became
+short-only, so dynamic damping is an unproven factor rather than the obvious cure.</p>
+<p>Under a fixed solver and with PBT off, screen learning-rate schedule only and
+regularization schedule only. Test a predeclared coupled schedule only if the
+isolated results justify it. Record the direction/reference of every KL term.</p>
+<p>Do not create a uniform-magnet arm: with three always-legal actions it is exactly
+the entropy loss up to a constant. A non-uniform, state-dependent stay or flat
+prior is a new iTrader objective. “Stay” depends on current position and is
+distinct from “flat”; either prior would require its own separately justified
+experiment and may change switching/turnover.</p>
+<h3 id="d-pf-pred-dist-v0-predictive-state-not-a-stratego-belief-clone">D. <code>PF-PRED-DIST-v0</code> — predictive state, not a Stratego belief clone<a class="anchor" href="#d-pf-pred-dist-v0-predictive-state-not-a-stratego-belief-clone" aria-label="Link to this section">#</a></h3>
+<p>Keep C0, C1, and shuffled-C1 unchanged. On a separate PF axis, train a causal
+conditional distribution over exogenous future-bar quantities such as returns,
+realized volatility, and liquidity/spread proxies. Inputs use only $h_t$; targets
+may use later bars on the training partition because they are labels, never
+observation features.</p>
+<p>Action- or policy-dependent net PnL and drawdown belong to a separate outcome-
+model contract conditioned on current accounting state, candidate action, and a
+fixed subsequent policy/action sequence. They are not labels determined by
+$h_t$ alone.</p>
+<p>Evaluate continuous targets with CRPS/quantile coverage and categorical targets
+with chronological NLL/Brier score, plus reliability and sharpness against
+climatology and simple causal baselines. Freeze the solver for the first test.
+Call this a predictive distribution unless an explicit latent state and
+transition/observation model justify the term “belief.” Cross it later as
+<code>accepted solver × PF1</code>; here <code>PF0</code> means the matched solver without predictive
+features and <code>PF1</code> means that solver with the accepted frozen predictive
+distribution. Do not rename C-series or R4-v2.</p>
+<h3 id="e-azr-lp-direct-v0-repeated-direct-learning-progress-reference">E. <code>AZR-LP-DIRECT-v0</code> — repeated direct learning-progress reference<a class="anchor" href="#e-azr-lp-direct-v0-repeated-direct-learning-progress-reference" aria-label="Link to this section">#</a></h3>
+<p>For each validated candidate <code>TaskSpec</code>:</p>
+<ol>
+<li>clone a fixed solver checkpoint and optimizer state;</li>
+<li>perform one small, equal-compute update on candidate-specific causal data;</li>
+<li>evaluate pre/post change on an independent chronological capability panel;</li>
+<li>record cost-aware uplift and adverse changes; and</li>
+<li>discard the clone.</li>
+</ol>
+<p>This expensive micro-update is a noisy local intervention/reference estimate of
+whether the task helped <em>that solver checkpoint</em>, not oracle truth. Repeat it
+across rollout seeds and report confidence intervals. The record key must include
+task hash, stable proposal UID, solver and behavior-policy checkpoint digests,
+optimizer profile, rollout-batch digest, code/data partition hashes, seed, and
+panel identity because task utility is nonstationary.</p>
+<h3 id="f-azr-lp-grad-v0-validate-do-not-assume-gradient-alignment">F. <code>AZR-LP-GRAD-v0</code> — validate, do not assume, gradient alignment<a class="anchor" href="#f-azr-lp-grad-v0-validate-do-not-assume-gradient-alignment" aria-label="Link to this section">#</a></h3>
+<p>Only after the repeated direct reference is stable, test whether cheap task
+scores predict it:</p>
+<ul>
+<li>signed and absolute optimizer-preconditioned gradient alignment;</li>
+<li>task loss/difficulty;</li>
+<li>current return or solve rate;</li>
+<li>gradient norm and gradient sketches;</li>
+<li>random and score-shuffled controls.</li>
+</ul>
+<p>PPO makes the language-model formula non-portable: policy gradients depend on
+stochastic rollouts and estimated advantages; clipping changes the local
+objective; value, entropy, and auxiliary losses point in different directions;
+and task-dependent reward scale can dominate norms. Pin the behavior policy and
+rollout batch, then score policy-head, value-head, and shared-trunk gradients
+separately before considering a combined score. Absolute alignment can reward
+movement in an economically harmful direction. Use repeated held-out economic
+uplift as the reference before closing the proposer loop.</p>
+<h3 id="g-azr-qd-replay-v0-typed-fresh-mutate-replay-curriculum">G. <code>AZR-QD-REPLAY-v0</code> — typed fresh/mutate/replay curriculum<a class="anchor" href="#g-azr-qd-replay-v0-typed-fresh-mutate-replay-curriculum" aria-label="Link to this section">#</a></h3>
+<p>Use a typed <code>TaskSpec</code> grammar, deterministic validation, and a quality-diversity
+archive. Potential archive descriptors include family, horizon, cost band, causal
+regime-summary bucket, symbol group, and difficulty/uplift band. Mutation changes
+only permitted typed fields and must never invent an OHLCV path.</p>
+<p>Run a <code>Fixed-QD</code> control first: the same fresh/replay/mutation machinery without
+adaptive utility scores. This isolates diversity and replay from learning-progress
+selection. For each proposer endpoint, build a fixed corpus by mixing pinned
+snapshots spaced through proposer training up to that endpoint, then train fresh,
+identically initialized solvers. This mirrors the paper&#39;s strongest
+co-adaptation control more closely than sampling only the latest proposer.</p>
+<h3 id="h-atx-tts-diag-v0-defer-test-time-search">H. <code>ATX-TTS-DIAG-v0</code> — defer test-time search<a class="anchor" href="#h-atx-tts-diag-v0-defer-test-time-search" aria-label="Link to this section">#</a></h3>
+<p>Ataraxos search needs (a) a posterior or predictive distribution over unresolved
+state, (b) a fast counterfactual simulator, and (c) a calibrated blueprint value.
+iTrader already has exact deterministic position/cost/PnL transitions <em>given a
+price path</em>. It lacks a validated generative future-market transition model, a
+well-defined supervised belief target, and a blueprint/value calibrated on
+generated histories. A realized historical future may be used only for an
+explicit offline hindsight ceiling.</p>
+<p>Before any learned-market search is admissible, a scenario model must pass:</p>
+<ul>
+<li>strict causal input and train-only fitting;</li>
+<li>proper-scoring-rule improvement over simple baselines;</li>
+<li>multi-horizon calibration, coverage, tail, and regime-shift checks;</li>
+<li>independence from the sealed final test;</li>
+<li>common random scenario seeds across all three root actions;</li>
+<li>uncertainty propagation through position/cost accounting; and</li>
+<li>evidence that solver/value rankings remain calibrated under model-generated
+rather than real histories.</li>
+</ul>
+<p>With only three root actions, enumerate all three. Every branch must clone
+position, remaining horizon, recurrent/PF state, reward normalizer, equity,
+max-equity, drawdown, turnover, <code>TaskSpec</code>, and reward context rather than mutate a
+shared state. The Ataraxos root operation is a stateless current-decision logit
+update, not online neural-weight fine-tuning.</p>
+<p>Even then, run search only in offline replay/shadow. The selected target position
+still passes <code>DecisionGate -&gt; RiskEngine -&gt; Executor</code>; solver <code>flat</code> remains
+distinct from online <code>WAIT</code>, and search has no execution authority.</p>
+<h2 id="bounded-autoresearch-ladder">Bounded autoresearch ladder<a class="anchor" href="#bounded-autoresearch-ladder" aria-label="Link to this section">#</a></h2>
+<p>This ladder estimates and gates research loops; it is not authorization to run
+them. One <strong>screening-run unit (SRU)</strong> is one fixed 12-update, two-seed arm. Under
+the recent 4,800-sample/update contract that is 115,200 sampled environment
+steps. A two-seed screen can reject but cannot promote. If the accepted frozen
+recipe uses a different batch size, recompute the ledger rather than preserving
+the number.</p>
+<h3 id="global-objective-and-invariants">Global objective and invariants<a class="anchor" href="#global-objective-and-invariants" aria-label="Link to this section">#</a></h3>
+<p>Primary evidence remains held-out chronological exact-1-bp net return and
+Sharpe, paired block-aware uplift, strongest static-direction control, turnover,
+and the existing 98% near-flat veto. A policy that is at least 98% short or long
+is not automatically rejected, but it must beat the matching static-direction
+control and demonstrate conditional state dependence. Fresh replay, lineage,
+finite metrics, and no sealed-test access are mandatory. Each loop changes one
+factor. PBT is off until factor attribution closes.</p>
+<table>
+<thead>
+<tr>
+<th>Gate</th>
+<th>Experiment</th>
+<th align="right">Initial budget</th>
+<th>Continue only if</th>
+<th>Hard stop</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>G0</code> formula/config receipt</td>
+<td>Resolve LR, entropy, every KL direction/reference, PPO clip, gradient clip, critic/advantage telemetry, and exact fresh-panel replay</td>
+<td align="right">No training</td>
+<td>Receipt is source- and checkpoint-backed; clip fraction and advantage distributions are trustworthy</td>
+<td>Any lineage, panel, cost, formula, or replay ambiguity</td>
+</tr>
+<tr>
+<td><code>G1</code> recurrent mechanics</td>
+<td>Correct native recurrent selection/lifecycle, masks, last-valid state, episode reset, and state-aware replay</td>
+<td align="right">Tests and deterministic smoke</td>
+<td>Exact train/eval/checkpoint state parity</td>
+<td>Any state leak, invalid mask, reset error, or stateless recurrent replay</td>
+</tr>
+<tr>
+<td><code>G2a</code> declared R screen</td>
+<td>matched R0, clean R1, and R1 + R4-v1</td>
+<td align="right">3 SRU = 345,600 steps</td>
+<td>Mechanics pass and at least one challenger remains measurable</td>
+<td>Do not reinterpret a screen as promotion</td>
+</tr>
+<tr>
+<td><code>G2b</code> memory screen</td>
+<td><code>R2c-RESET + R4-v1</code> vs <code>R2c-CARRY + R4-v1</code></td>
+<td align="right">2 SRU = 230,400 steps</td>
+<td>CARRY has paired signal with valid state norms/masks</td>
+<td>Stop for lifecycle failure or no memory-specific signal</td>
+</tr>
+<tr>
+<td><code>G2c</code> R extension</td>
+<td>Extend a surviving matched R comparison to 40 updates and three seeds</td>
+<td align="right">2-arm comparison = 1,152,000 steps; 3 arms = 1,728,000</td>
+<td>Survives held-out 1 bp gates, direction controls, replay, then 2 bp stress</td>
+<td>Do not extend multiple losers or mix optimizer factors into R attribution</td>
+</tr>
+<tr>
+<td><code>G3</code> EMA</td>
+<td><code>ATX-EMA-EVAL-v0</code>: raw vs EMA at identical snapshots</td>
+<td align="right">~0 extra solver steps; evaluation only</td>
+<td>Lower variance or better paired economics without hidden collapse and with exact lineage</td>
+<td>EMA only wins by changing evaluation mode, checkpoint, or exposure</td>
+</tr>
+<tr>
+<td><code>G4</code> schedule screen</td>
+<td>baseline, LR-schedule-only, regularization-schedule-only</td>
+<td align="right">3 SRU = 345,600 steps</td>
+<td>An isolated factor has paired signal; only then predeclare a coupled schedule</td>
+<td>Existing entropy term is relabelled, PBT confounds the test, or KL/clip becomes unstable</td>
+</tr>
+<tr>
+<td><code>G5</code> filtering screen</td>
+<td>all samples, top-</td>
+<td align="right">advantage</td>
+<td>, and equal-count random subset</td>
+<td>3 SRU = 345,600 steps</td>
+</tr>
+<tr>
+<td><code>G6a</code> direct uplift reference</td>
+<td>24 tasks × 2 fixed checkpoints × 2 rollout seeds × one 4,800-step micro-update</td>
+<td align="right">460,800 steps + evaluation</td>
+<td>Repeated pre/post ranking is more stable than difficulty and intervals are usable</td>
+<td>Panel noise, reward scale, or optimizer/behavior-policy mismatch dominates</td>
+</tr>
+<tr>
+<td><code>G6b</code> gradient surrogate</td>
+<td>Score the same pinned batches with policy/value/trunk signed and absolute alignment, difficulty, shuffle, and random</td>
+<td align="right">Gradient/evaluation compute</td>
+<td>Rank association is positive per seed and pooled interval excludes zero</td>
+<td>Any sealed-test use or score wins only through scale/norm</td>
+</tr>
+<tr>
+<td><code>G7a</code> fixed QD</td>
+<td>fixed sampler vs <code>Fixed-QD</code></td>
+<td align="right">2 SRU = 230,400 steps</td>
+<td>Coverage improves without economic loss at equal accepted solver steps/data</td>
+<td>More proposals but unequal solver compute or eligible data</td>
+</tr>
+<tr>
+<td><code>G7b</code> adaptive curriculum</td>
+<td>Add one direct or validated-surrogate selector plus shuffled-score control, reusing valid fixed controls</td>
+<td align="right">At most 2 additional SRU per screen</td>
+<td>Beats shuffled and fixed on fresh solver seeds</td>
+<td>Panel specialization, task collapse, or compute-ledger overrun</td>
+</tr>
+<tr>
+<td><code>G8</code> PF distribution</td>
+<td>Train-only supervised PF baselines first; solver cross uses no-PF, PF, zero-PF, and shuffled-PF</td>
+<td align="right">Supervised budget reported separately; policy screen maximum 691,200 steps</td>
+<td>Proper scores/calibration pass on new chronology, then PF adds economic value</td>
+<td>Leakage, uncalibrated tails, or zero/shuffle ties the claimed gain</td>
+</tr>
+<tr>
+<td><code>G9</code> WM/TTS</td>
+<td>Hindsight ceiling, then WM validity, then frozen search off/on in replay/shadow</td>
+<td align="right">No PPO spend until PF/WM and blueprint calibration pass</td>
+<td>Learned scenarios beat simple baselines and search beats equal-compute controls</td>
+<td>Current recommendation: defer deployable search</td>
+</tr>
+</tbody></table>
+<p>Do not launch the full curriculum factorial. The staged ladder caps spend by
+requiring a repeated direct-uplift reference and fixed-QD controls to work before
+adaptive surrogates receive solver-scale training. Environment steps, retained
+learner examples, optimizer FLOPs/wall-clock, proposal calls, and evaluation cost
+remain separate ledgers.</p>
+<h3 id="autoresearch-decision-rule">Autoresearch decision rule<a class="anchor" href="#autoresearch-decision-rule" aria-label="Link to this section">#</a></h3>
+<p>Every completed loop must emit exactly one of:</p>
+<ul>
+<li><strong>accept for replication:</strong> passed causal/mechanical and economic screen gates;</li>
+<li><strong>reject:</strong> failed a predeclared gate with valid evidence; or</li>
+<li><strong>defer:</strong> measurement or prerequisite is invalid, with the missing contract
+named explicitly.</li>
+</ul>
+<p>Do not turn “promising training curve,” critic fit, predictive accuracy, Elo-like
+internal score, or proposer novelty into an economic promotion claim.</p>
+<h2 id="transferable-ideas-summarized">Transferable ideas, summarized<a class="anchor" href="#transferable-ideas-summarized" aria-label="Link to this section">#</a></h2>
+<h3 id="strong-transfers">Strong transfers<a class="anchor" href="#strong-transfers" aria-label="Link to this section">#</a></h3>
+<ul>
+<li>keep task generation and task solving as distinct processes with explicit
+feedback and independently auditable state;</li>
+<li>use learning progress rather than raw difficulty as a curriculum target;</li>
+<li>compare adaptive curricula to matched fixed distributions over the same typed
+task space;</li>
+<li>retain fresh, replayed, and mutated tasks while explicitly protecting diversity;</li>
+<li>evaluate later proposer checkpoints by the value of frozen corpora to fresh
+learners;</li>
+<li>isolate EMA, advantage filtering, and dynamic damping as PPO factors;</li>
+<li>use a separate calibrated predictive model only when its target and causal
+meaning are explicit;</li>
+<li>refine only the present action distribution during eventual search, leaving
+network weights and deterministic online authorities untouched.</li>
+</ul>
+<h3 id="conditional-transfers">Conditional transfers<a class="anchor" href="#conditional-transfers" aria-label="Link to this section">#</a></h3>
+<ul>
+<li>action/history features only when they carry causal information not already in
+the observation or explicit portfolio state;</li>
+<li>distributional value only after critic diagnostics justify a separate value
+experiment;</li>
+<li>GPU simulator redesign only after profiling shows simulator/reset/history
+materialization is the bottleneck;</li>
+<li>learned test-time search only after a causal scenario generator and calibrated
+blueprint exist.</li>
+</ul>
+<h2 id="non-transferable-assumptions-and-explicit-rejections">Non-transferable assumptions and explicit rejections<a class="anchor" href="#non-transferable-assumptions-and-explicit-rejections" aria-label="Link to this section">#</a></h2>
+<ul>
+<li><strong>Reject market-as-player:</strong> market data is not another copy of the solver.</li>
+<li><strong>Reject zero-sum equivalence:</strong> trading reward is not a symmetric terminal game
+outcome.</li>
+<li><strong>Reject “future actions determine the present” literally:</strong> only a policy-
+induced distribution over possible futures enters value.</li>
+<li><strong>Reject belief/world-model conflation:</strong> posterior latent state, future
+prediction, and known portfolio state are different objects.</li>
+<li><strong>Reject future leakage:</strong> realized future bars, labels, or future-derived
+<code>regime_tags</code> never enter the online observation.</li>
+<li><strong>Reject raw 32-action copy:</strong> present Family <code>00</code> target actions do not reveal
+exogenous market state in historical price-taking replay.</li>
+<li><strong>Reject direct search today:</strong> one realized future path is not a generative
+counterfactual market simulator.</li>
+<li><strong>Reject universal synthetic market replacement:</strong> contingent market facts must
+come from real observations.</li>
+<li><strong>Reject one-shot multi-factor adoption:</strong> damping, filtering, EMA, belief,
+proposer learning, S-series, recurrence, and R4-v2 stay separately attributable.</li>
+<li><strong>Reject logits as capability:</strong> <code>CapabilityProfile</code> requires empirical held-out
+evidence.</li>
+</ul>
+<h2 id="open-questions-that-must-be-answered-before-implementation">Open questions that must be answered before implementation<a class="anchor" href="#open-questions-that-must-be-answered-before-implementation" aria-label="Link to this section">#</a></h2>
+<ol>
+<li>Which frozen solver recipe/checkpoint will serve as the learner for
+<code>AZR-LP-DIRECT-v0</code> after current R-series attribution closes?</li>
+<li>What is the smallest independent capability panel that measures genuine
+transfer rather than improvement on the candidate task itself?</li>
+<li>Should proposer utility be signed economic uplift, a constrained vector of
+net/Sharpe/turnover/drawdown, or a Pareto admission rule? Absolute gradient
+alignment must not decide this policy question implicitly.</li>
+<li>Can task-gradient sketches predict direct micro-update uplift across solver
+checkpoints and seeds after normalizing reward scale?</li>
+<li>Which typed mutation fields preserve task validity and chronological
+eligibility without turning start index or seed into an identity shortcut?</li>
+<li>What QD descriptors promote meaningful curriculum coverage rather than merely
+filling bins?</li>
+<li>Is the current critic demonstrably miscalibrated enough to justify a
+distributional value experiment?</li>
+<li>What latent variable, if any, would make “market belief” a well-defined
+posterior rather than a renamed forecast?</li>
+<li>Can any future market scenario model beat simple causal baselines under
+multi-horizon proper scores, tail coverage, and regime shift before being used
+for action search?</li>
+<li>What total wall-clock, proposal, JVP, evaluation, and solver-step cost is
+acceptable per unit of curriculum uplift?</li>
+</ol>
+<h2 id="recommended-order">Recommended order<a class="anchor" href="#recommended-order" aria-label="Link to this section">#</a></h2>
+<ol>
+<li>Close <code>G0</code>: repair/capture critic, clip-fraction, advantage, KL, action-margin,
+and exact fresh-panel replay receipts.</li>
+<li>Make recurrent lifecycle and evaluation state-correct; this is a mechanics
+prerequisite, not a new solver wing.</li>
+<li>Finish the fixed R-series boundary—matched R0, clean R1, and R1 + R4-v1—then
+run the existing <code>R2c-RESET + R4-v1</code> versus <code>R2c-CARRY + R4-v1</code> memory
+attribution, without modifying R4-v2&#39;s fixed design.</li>
+<li>Add <code>ATX-EMA-EVAL-v0</code> as an evaluation-only experiment.</li>
+<li>Only with trustworthy critic/advantage telemetry, run the LR/regularization
+schedule arms and the all/random/top-|advantage| filter arms separately on the
+frozen accepted solver recipe, with PBT off.</li>
+<li>Build <code>AZR-LP-DIRECT-v0</code> on a tiny validated <code>TaskSpec</code> set and test whether
+repeated local learning progress is measurable at all.</li>
+<li>Validate gradient-alignment surrogates against that direct reference before
+training an adaptive proposer.</li>
+<li>Add fixed quality-diversity replay before adaptive quality-diversity selection.</li>
+<li>Keep C0/C1/shuffled-C1 intact; develop PF as a separate calibrated axis, cross
+an accepted PF model with a solver, and measure the hindsight-search ceiling
+before paying to build a world model.</li>
+<li>Validate WM separately. Leave learned TTS and Market-JEPA deferred and
+independent until their own causal generative-model evidence exists;
+shadow-mode TTS is last.</li>
+</ol>
+<p>The architectural opportunity is real: a fast numerical solver, a typed
+non-LLM proposer, and a measured learning-progress curriculum could form a far
+more complete AZR-inspired loop. The disciplined route is to use Ataraxos for
+training-control and later search principles, use the zero-data paper for
+curriculum credit assignment, and refuse the tempting but false equivalence
+between a hidden-piece game and historical financial markets.</p>
+
+    </article>
+  </main>
+  <footer>Rendered from the Markdown source at 2026-10-01T12:43:03.954Z. Markdown remains the review source of truth.</footer>
+</body>
+</html>

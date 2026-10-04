@@ -20,6 +20,11 @@
       "type": "string",
       "minLength": 1
     },
+    "minimum_free_memory_gb": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Fail closed before each sequential variant when free physical RAM is below this GiB floor."
+    },
     "common_args": {
       "$ref": "#/$defs/trainArgs",
       "description": "CLI args shared across variants (without leading --)."
@@ -106,6 +111,20 @@
           "type": "string",
           "enum": ["raw", "market_relative_v1"]
         },
+        "solver_state_mode": {
+          "type": "string",
+          "enum": [
+            "off",
+            "masked",
+            "position",
+            "time",
+            "both"
+          ]
+        },
+        "solver_state_residual_init": {
+          "type": "string",
+          "enum": ["random_v1", "zero_v1"]
+        },
         "observation_filter": {
           "type": "string",
           "enum": ["NoFilter", "MeanStdFilter"]
@@ -115,6 +134,10 @@
         "pbt_burn_in": { "type": "integer", "minimum": 0 },
         "pbt_synch": { "type": "boolean" },
         "pbt_promotion_eligible": { "type": "boolean" },
+        "pbt_selection_mode": {
+          "type": "string",
+          "enum": ["raw_net", "nonflat_net", "promotion"]
+        },
         "pbt_selection_min_sharpe": { "type": "number" },
         "pbt_selection_max_flat_action_fraction": {
           "type": "number",

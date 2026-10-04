@@ -2,6 +2,29 @@
 
 Use this folder for reproducible ablations with config-driven runs.
 
+## Rebuild the experiment browser
+
+The repository-owned experiment browser is generated from provenance metadata
+in `docs/research/experiment_registry.json` and authoritative experiment summary
+JSON. Rebuild it after registering a completed experiment:
+
+```bash
+python -m itrader.scripts.experiments.render_experiment_browser
+```
+
+This writes `docs/research/itrader_experiment_browser.html`. Add an adapter only
+when an authoritative summary has a genuinely new shape; do not copy metrics
+into the registry or edit the generated HTML. The browser's comparison gate
+checks runtime, dataset, panel, cost, representation, curriculum, PBT, and seed
+scope plus authoritative dataset, evaluation-panel, and metric-contract
+identities before calling two experiment families directly comparable. A
+missing identity is reported as unknown and blocks a direct-comparability claim.
+The schema owns the complete factor and metric-unit vocabularies. Unknown
+factors or units, duplicate JSON keys, non-finite values, incomplete records,
+malformed action fractions, or mismatched paired artifacts stop the build. A
+historical pair without producer IDs can prove artifact parity only; future
+replay producers must stamp their identity when writing the receipt.
+
 ## Run an A/B experiment
 
 ```bash
@@ -63,6 +86,10 @@ Each variant also generates individual plots in the configured `results_root`
 (or `~/ray_results` when omitted):
 
 - `<results_root>/_stable_metrics/<trial_dir_name>/plots/`
+
+Set top-level `minimum_free_memory_gb` to fail closed before each sequential
+variant when host RAM falls below the declared floor. The runner logs the
+observed free physical memory before launch.
 
 Multi-member variants contribute one series per trial. The primary metric is
 explicit in the loadout; Phase A performance studies use
@@ -171,6 +198,35 @@ Sharpe replay. The final chronological test remains sealed until selection is
 frozen.
 
 See `schemas/ablation.schema.json` for the supported shape and defaults.
+
+The staged R4-v1-min diagnostic is
+`configs/phase_a_r4_v1_min_2x2_smoke_20260925.json`. It compares a
+parameter-matched `[0, 0]` control, position only, remaining-horizon fraction
+only, and both fields in the same fixed two-value solver-state block. All four
+cells use fixed exact 1 bp `net_return`, PBT disabled, and the same dataset-v2
+RTH/crossed-panel contract. `solver_state_mode` defaults to `off`; the diagnostic
+uses `masked`, `position`, `time`, and `both`. It does not enable previous-action
+inputs or a cost schedule.
+
+The blocking follow-up is
+`configs/phase_a_r4_v1_blocking_4x3_20260925.json`: the same four fixed-width
+arms crossed with training seeds 20260924–20260926, 12 updates, terminal cadence,
+evaluation-improvement retention, and a 2 GiB inter-cell RAM hard stop. Its
+primary replay and state-diagnostic evidence must use
+`--checkpoint-selection terminal`; best-of-trajectory checkpoints are secondary.
+
+The architecture-qualified replication is
+`configs/phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925.json`. It keeps the
+same four-arm/three-seed fixed design, increases exposure to 40 updates, moves
+evaluation to the predeclared disjoint December-2025 panel, and uses
+`solver_state_residual_init=zero_v1` so nonzero state arms preserve the R0
+update-zero policy/value. The default remains `random_v1` for historical
+checkpoint compatibility. This run is non-PBT and is not an economic promotion
+by construction. The completed run and exact terminal replay are frozen under
+`docs/artifacts/research/solver-state-r4-v1-replication-plan-2026-09-25-evidence/`.
+Combined state passed relative paired net attribution but failed the absolute
+economic gate and near-flat ceiling; the loadout must not be cited as a promoted
+solver.
 
 ## Collect a completed paused-arm restart without retraining
 

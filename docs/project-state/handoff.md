@@ -1,5 +1,122 @@
 # Handoff
 
+## 2026-10-04 — GRILL R1 capacity and curriculum coordination
+
+- Added six source-grounded planning acceptance criteria to the readiness doc:
+  semantic feature/time layout, fixed Q15 computation, untrained-control selector,
+  protected architecture overrides, no carried state, and explicit NoFilter /
+  market_relative_v1 / zero_v1. No new design factor or implementation claim.
+
+- GRILL reports human acceptance of Q15 LSTM(5,156) + Linear(156,256)/ReLU,
+  the full R0/R0+R4-v1/R1/R1+R4-v1 matrix, and Q17 compressed cost curriculum.
+- Shared actor/critic encoder/FiLM remains a recommendation awaiting the human
+  answer in GRILL. Budget and numerical compressed boundaries are not finalized.
+- Actual-module count: R0 179,268; shared-path R1 proposal 178,324 (-0.527%);
+  unchanged R4-v1 width-8 residual adds 48 to either. Forward shapes checked.
+- Keep 1 bp evaluation fixed, sampled-step cost boundaries explicit and the
+  original entropy and historical cost schedules unchanged.
+- Five review blockers plus clip-fraction and process-identity seams remain
+  open. No performance launch. See `r1-development-readiness.md` (+ HTML).
+
+## 2026-10-03 — Fresh review and R1 development preparation
+
+- Reviewer default is now GPT-6.1 Sol at MAX, with a different-model second
+  reviewer for high-risk changes. `REVIEW.md` owns the contract.
+- Read `r1-development-readiness.md` before implementation. It traces missing
+  clip fraction to the installed legacy PPO loss, specifies process-attributed
+  replay receipts, and identifies the model selector/window-state tests.
+- Include R0 + R4-v1 in the next matched fixed-recipe study, yielding the full
+  encoder-by-solver-state 2 x 2 under each named cost curriculum.
+- G0 byte parity is established; the earlier process-independence claim below
+  is historical and cannot be independently verified from its receipts.
+- No new training, commit, staging, push or artifact deletion in this pass.
+
+## 2026-10-03 — Experiment evidence navigation consolidated
+
+- Open `docs/research/itrader_experiment_browser.html` for searchable runs,
+  members, checkpoints, evidence, and explicit comparison-factor differences.
+- Add future completed experiments to
+  `docs/research/experiment_registry.json`, then run
+  `python -m itrader.scripts.experiments.render_experiment_browser`.
+- Registry entries contain metadata and pointers only. Add a source adapter for
+  a new authoritative-summary shape; do not edit generated HTML or copy metrics
+  into the registry.
+- Legacy dashboards remain linked, immutable evidence snapshots.
+
+## 2026-10-03 — G0 closed; R1 fixed-recipe attribution is next
+
+- Replayed member `00002` at 77,832, 92,384, 102,040, 106,968, and 194,368
+  steps on a new outcome-uninspected November-2025 8x4 RTH panel. The override
+  remains validation-only, preserves panel cardinality, and fails on overlap.
+- Two clean Ray-2.58 processes produced byte-identical episode/reward and
+  per-step action/logit traces for every checkpoint.
+- No checkpoint passed economics on the fresh panel. The least-negative
+  102,040-step checkpoint reached -0.22822% net and -0.00620 Sharpe with an
+  effectively anchor-invariant 75/0/25 short/flat/long mix. The 106,968-step and
+  terminal checkpoints were pure short and economically identical.
+- R0 + R4-v1 remains the architecture-qualified feed-forward baseline without
+  economic promotion. Do not repeat same-panel PBT. Next implement/test clean
+  R1 and compare fixed-recipe Ray-2.58 R0 / R1 / R1 + R4-v1.
+- Keep fixed 1 bp and causal `0 -> 0.25 -> 0.5 -> 1 bp` staging as explicit
+  matched curriculum factors. Keep PBT off during representation attribution.
+- G0 evidence and dashboard data are under
+  `docs/artifacts/research/solver-state-r4-v1-causal-forensics-2026-09-29-evidence/g0_fresh_panel/`.
+
+## 2026-10-01 — Research documentation consolidated
+
+- Start research navigation at
+  `docs/research/itrader_research_dashboard.md` or its self-contained HTML
+  dashboard. It distinguishes implementation status from evidence status and
+  aligns every axis to the canonical masterplan without replacing it.
+- R/C/S retain stable identities. Stratego-derived ATX/PF/WM/TTS/AZR names are
+  registered as provisional experiments only. Market-JEPA remains a separate,
+  non-concrete Phase-D line.
+- The complete dated evidence catalog is now
+  `docs/artifacts/research/README.md`; R4-v1 reports remain a chronological chain
+  rather than being merged or moved.
+- Active-doc drift was corrected for the completed actor-robustness stop, the
+  Ray-2.58 forward runtime, the implemented/qualified R4-v1 state, and existing
+  online-contract scaffolds. R4-v2 parallel-branch status still needs direct
+  inspection; its design was not changed.
+- Validation: local-link, HTML structure, dashboard JavaScript, and UTF-8 checks
+  passed; healthcheck passed; all 297 tests passed; file-scoped pre-commit passed.
+  GitNexus remained stale (`1d5ba82` versus `c13af18`) and its status helper
+  could not invoke `python3`, so direct source and active docs were used.
+
+## 2026-09-29 — R4-v1 actor-robustness P0 closed
+
+- Completed matched four-member/40-update Ray-2.58 PBT arms on a new crossed
+  January-2026 panel with combined position-plus-remaining-horizon state.
+- Both arms passed strict PBT mechanics with six exploits, 18 exact restore
+  receipts, six verified lineages, and four complete terminal members.
+- Causal `0 -> 0.25 -> 0.5 -> 1 bp` staging preserved activity, but all members
+  converged to short-only and exactly tied the matched short-only control at
+  `+0.441611%` net / `0.024455` Sharpe. A marginal report from member `00001`
+  failed exact replay near an action boundary and is rejected.
+- Exact 1 bp from update zero converged all members to flat. Terminal replays
+  reproduced zero return, Sharpe, and turnover exactly. PBT continued mutating,
+  so this is a valid negative curriculum/model result.
+- Restored the tested experiment-scoped baseline collector lookup only after the
+  source-matched pair completed. No solver, task, reward, or data semantics were
+  changed by that reporting repair.
+- Keep R0 immutable for parity and R0 + R4-v1 as the architecture-qualified FF
+  baseline; do not claim economic promotion. A checkpoint-level follow-up found
+  all 81 positive-net/Sharpe reports at least 98.014% short. Member `00002` at
+  77,832 steps remained high-entropy but had narrow greedy logit margins and
+  repeated the same one-action replay mismatch. Do not repeat full PBT on the
+  January panel. Finish the fresh-panel checkpoint/logit diagnostic, then open
+  matched fixed-recipe R0, clean R1, and separately named R1 + R4-v1 cells.
+  Carry causal staging as an explicit factor and run PBT only after
+  representation attribution. Keep R4-v2 deferred.
+- Fixed a report-provenance omission for static optimization costs: completed
+  exact-arm training/evaluation configs both prove 1 bp delivery, while future
+  reports now persist the static value instead of presenting a missing field as
+  zero.
+- Audit and plots:
+  `docs/artifacts/research/solver-state-r4-v1-actor-robustness-2026-09-29.md`
+  and
+  `docs/artifacts/research/solver-state-r4-v1-causal-forensics-2026-09-29.md`.
+
 ## 2026-09-25 — R0 + R4-v1 architecture qualification and replication
 
 - R0 remains the immutable state-free parity control. `R0 + R4-v1` is the

@@ -5,7 +5,9 @@ repos:
       - id: check-merge-conflict
       - id: check-yaml
       - id: end-of-file-fixer
+        exclude: ^docs/(artifacts/.*-evidence|audits/.*/evidence)/
       - id: trailing-whitespace
+        exclude: ^docs/(artifacts/.*-evidence|audits/.*/evidence)/
 
   - repo: local
     hooks:

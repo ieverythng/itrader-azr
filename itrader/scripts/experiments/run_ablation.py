@@ -15,6 +15,18 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import pandas as pd
+import psutil
+
+
+_BOOLEAN_OPTIONAL_ARGS = {
+    "auto_plot_on_end",
+    "checkpoint_consistent_evaluation",
+    "pbt_promotion_eligible",
+    "pbt_synch",
+    "resume",
+    "resume_rewind_to_checkpoint",
+    "stream_jump_on_wrap",
+}
 
 
 @dataclass
@@ -28,15 +40,63 @@ class VariantResult:
     report_df: pd.DataFrame
 
 
+def ensure_minimum_free_memory(
+    minimum_free_gb: float,
+    *,
+    available_bytes: int | None = None,
+) -> float:
+    """Fail closed before an ablation cell when host RAM is below its floor."""
+    minimum = float(minimum_free_gb)
+    if not math.isfinite(minimum) or minimum < 0.0:
+        raise ValueError("minimum_free_memory_gb must be finite and nonnegative")
+    available = (
+        int(psutil.virtual_memory().available)
+        if available_bytes is None
+        else int(available_bytes)
+    )
+    available_gb = available / 1024**3
+    print(
+        f"[AB] Free physical memory: {available_gb:.2f} GiB "
+        f"(hard stop: {minimum:.2f} GiB)"
+    )
+    if available_gb < minimum:
+        raise RuntimeError(
+            f"Free physical memory {available_gb:.2f} GiB is below the "
+            f"{minimum:.2f} GiB hard stop"
+        )
+    return available_gb
+
+
+def select_variants(
+    variants: list[dict[str, Any]],
+    requested_ids: list[str],
+) -> list[dict[str, Any]]:
+    """Select named arms from one canonical loadout in its declared order."""
+    available_ids = [str(variant["id"]) for variant in variants]
+    if len(available_ids) != len(set(available_ids)):
+        raise ValueError("Ablation loadout contains duplicate variant identifiers")
+    if len(requested_ids) != len(set(requested_ids)):
+        raise ValueError("Duplicate variant requested")
+    if not requested_ids:
+        return variants
+
+    requested = set(requested_ids)
+    available = set(available_ids)
+    unknown = sorted(requested - available)
+    if unknown:
+        raise ValueError(f"Unknown variant requested: {', '.join(unknown)}")
+    return [variant for variant in variants if str(variant["id"]) in requested]
+
+
 def _to_cli_args(arg_map: dict[str, Any]) -> list[str]:
     out: list[str] = []
     for k, v in arg_map.items():
         key = f"--{k}"
         if isinstance(v, bool):
-            if k == "stream_jump_on_wrap":
-                out.append(key if v else "--no-stream_jump_on_wrap")
-            elif v:
+            if v:
                 out.append(key)
+            elif k in _BOOLEAN_OPTIONAL_ARGS:
+                out.append(f"--no-{k}")
             continue
         out.extend([key, str(v)])
     return out
@@ -77,7 +137,12 @@ def collect_variant_results(
     multiple = len(trial_dirs) > 1
     results: list[VariantResult] = []
     for trial_dir in trial_dirs:
-        stable_trial_dir = stable_root / trial_dir.name
+        scoped_stable_dir = stable_root / experiment_name / trial_dir.name
+        stable_trial_dir = (
+            scoped_stable_dir
+            if scoped_stable_dir.is_dir()
+            else stable_root / trial_dir.name
+        )
         stable_report_csv = stable_trial_dir / "report_rows.csv"
         stable_metrics_jsonl = stable_trial_dir / "metrics_full.jsonl"
         if not stable_report_csv.exists() or stable_report_csv.stat().st_size == 0:
@@ -177,11 +242,16 @@ def write_metric_comparison(
 
 def _series_label(series_id: str) -> str:
     variant, separator, trial = series_id.partition(":")
-    reward = (
-        "1 bp net" if variant.startswith("net_return")
-        else "PnL linear" if variant.startswith("pnl_linear")
-        else variant
-    )
+    if variant.startswith("net_return_0bp"):
+        reward = "0 bp learn / 1 bp eval"
+    elif variant.startswith("net_return_staged"):
+        reward = "staged learn / 1 bp eval"
+    elif variant.startswith("net_return"):
+        reward = "1 bp net"
+    elif variant.startswith("pnl_linear"):
+        reward = "PnL linear"
+    else:
+        reward = variant
     member = re.search(r"_(\d{5})_\d+_seed=", trial) if separator else None
     return f"{reward} · {int(member.group(1)):02d}" if member else reward
 
@@ -280,13 +350,27 @@ def _plot_action_fractions(metric_dfs: dict[str, pd.DataFrame], out_png: Path) -
 
 
 def evaluate_promotion(results: list[VariantResult], contract: dict[str, Any]) -> dict[str, Any]:
-    """Apply explicit terminal gates relative to the strongest named baseline."""
+    """Apply explicit terminal and durability gates against named baselines."""
     net_metric = "evaluation/net_return_mean"
     sharpe_metric = "evaluation/net_sharpe_per_sqrt_bar_mean"
+    flat_metric = "evaluation/custom_metrics/act_flat_frac_mean"
     baseline_ids = set(contract.get("baseline_variants", []))
     candidate_ids = set(contract.get("candidate_variants", []))
     minimum_delta = float(contract.get("min_net_return_delta", 0.0))
     minimum_sharpe = float(contract.get("min_net_sharpe_per_sqrt_bar", 0.0))
+    configured_sharpe_delta = contract.get("min_net_sharpe_delta")
+    minimum_sharpe_delta = (
+        None if configured_sharpe_delta is None else float(configured_sharpe_delta)
+    )
+    minimum_streak = int(contract.get("min_consecutive_passing_reports", 1))
+    if minimum_streak < 1:
+        raise ValueError("min_consecutive_passing_reports must be positive")
+    configured_flat_ceiling = contract.get("max_flat_action_fraction")
+    maximum_flat_fraction = (
+        None if configured_flat_ceiling is None else float(configured_flat_ceiling)
+    )
+    if maximum_flat_fraction is not None and not 0.0 <= maximum_flat_fraction <= 1.0:
+        raise ValueError("max_flat_action_fraction must be between 0 and 1")
     require_positive = bool(contract.get("require_positive_net_return", True))
 
     def terminal(result: VariantResult, metric: str) -> float:
@@ -303,6 +387,15 @@ def evaluate_promotion(results: list[VariantResult], contract: dict[str, Any]) -
     if not baseline_scores:
         raise RuntimeError("Promotion contract produced no finite baseline terminal scores")
     baseline_net = max(baseline_scores)
+    baseline_sharpes = [
+        terminal(result, sharpe_metric)
+        for result in results
+        if result.variant_id in baseline_ids
+    ]
+    baseline_sharpes = [score for score in baseline_sharpes if math.isfinite(score)]
+    if not baseline_sharpes:
+        raise RuntimeError("Promotion contract produced no finite baseline terminal Sharpes")
+    baseline_sharpe = max(baseline_sharpes)
 
     candidates = []
     for result in results:
@@ -310,7 +403,9 @@ def evaluate_promotion(results: list[VariantResult], contract: dict[str, Any]) -
             continue
         net_return = terminal(result, net_metric)
         sharpe = terminal(result, sharpe_metric)
+        flat_fraction = terminal(result, flat_metric)
         delta = net_return - baseline_net
+        sharpe_delta = sharpe - baseline_sharpe
         failures = []
         if not math.isfinite(net_return) or delta < minimum_delta:
             failures.append("net_return_delta_below_gate")
@@ -318,13 +413,64 @@ def evaluate_promotion(results: list[VariantResult], contract: dict[str, Any]) -
             failures.append("net_return_not_positive")
         if not math.isfinite(sharpe) or sharpe <= minimum_sharpe:
             failures.append("sharpe_below_gate")
+        if minimum_sharpe_delta is not None and (
+            not math.isfinite(sharpe_delta) or sharpe_delta < minimum_sharpe_delta
+        ):
+            failures.append("sharpe_delta_below_gate")
+        if maximum_flat_fraction is not None and (
+            not math.isfinite(flat_fraction) or flat_fraction > maximum_flat_fraction
+        ):
+            failures.append("flat_action_fraction_above_gate")
+
+        passing_reports = 0
+        net_series = pd.to_numeric(result.report_df.get(net_metric), errors="coerce")
+        sharpe_series = pd.to_numeric(result.report_df.get(sharpe_metric), errors="coerce")
+        flat_series = (
+            pd.to_numeric(result.report_df[flat_metric], errors="coerce")
+            if flat_metric in result.report_df
+            else pd.Series(float("nan"), index=result.report_df.index)
+        )
+        for row_net, row_sharpe, row_flat in zip(
+            reversed(net_series), reversed(sharpe_series), reversed(flat_series)
+        ):
+            row_delta = float(row_net) - baseline_net
+            row_sharpe_delta = float(row_sharpe) - baseline_sharpe
+            row_passes = (
+                math.isfinite(row_delta)
+                and row_delta >= minimum_delta
+                and (not require_positive or float(row_net) > 0.0)
+                and math.isfinite(float(row_sharpe))
+                and float(row_sharpe) > minimum_sharpe
+                and (
+                    minimum_sharpe_delta is None
+                    or (
+                        math.isfinite(row_sharpe_delta)
+                        and row_sharpe_delta >= minimum_sharpe_delta
+                    )
+                )
+                and (
+                    maximum_flat_fraction is None
+                    or (
+                        math.isfinite(float(row_flat))
+                        and float(row_flat) <= maximum_flat_fraction
+                    )
+                )
+            )
+            if not row_passes:
+                break
+            passing_reports += 1
+        if passing_reports < minimum_streak:
+            failures.append("passing_streak_below_gate")
         candidates.append(
             {
                 "variant_id": result.variant_id,
                 "series_id": result.series_id,
                 "net_return": net_return,
                 "net_sharpe_per_sqrt_bar": sharpe,
+                "flat_action_fraction": flat_fraction,
                 "net_return_delta": delta,
+                "net_sharpe_delta": sharpe_delta,
+                "trailing_passing_reports": passing_reports,
                 "promoted": not failures,
                 "failures": failures,
             }
@@ -335,8 +481,12 @@ def evaluate_promotion(results: list[VariantResult], contract: dict[str, Any]) -
         "baseline_variants": sorted(baseline_ids),
         "candidate_variants": sorted(candidate_ids),
         "baseline_net_return": baseline_net,
+        "baseline_net_sharpe_per_sqrt_bar": baseline_sharpe,
         "min_net_return_delta": minimum_delta,
         "min_net_sharpe_per_sqrt_bar": minimum_sharpe,
+        "min_net_sharpe_delta": minimum_sharpe_delta,
+        "min_consecutive_passing_reports": minimum_streak,
+        "max_flat_action_fraction": maximum_flat_fraction,
         "require_positive_net_return": require_positive,
         "candidates": candidates,
     }
@@ -346,6 +496,13 @@ def main() -> None:
     ap = argparse.ArgumentParser(description="Run reproducible start-index ablations.")
     ap.add_argument("config_json", help="Path to ablation config JSON")
     ap.add_argument("--out-dir", help="Optional output directory for comparison artifacts")
+    ap.add_argument(
+        "--variant",
+        action="append",
+        default=[],
+        metavar="ID",
+        help="Run or collect only a named variant; repeat to select multiple arms",
+    )
     ap.add_argument("--collect-only", action="store_true", help="Report completed experiments without training")
     ap.add_argument("--run-tag", help="Existing ablation run tag (required with --collect-only)")
     ap.add_argument(
@@ -365,9 +522,10 @@ def main() -> None:
     run_tag = args.run_tag if args.collect_only else f"{run_name}_{datetime.now():%Y%m%d_%H%M%S}"
     common_args = dict(cfg.get("common_args", {}))
     primary_metric = str(cfg.get("primary_metric", "evaluation/net_return_mean"))
-    variants = list(cfg.get("variants", []))
-    if len(variants) < 2:
-        raise RuntimeError("Config must provide at least two variants")
+    minimum_free_memory_gb = float(cfg.get("minimum_free_memory_gb", 0.0))
+    variants = select_variants(list(cfg.get("variants", [])), args.variant)
+    if not variants:
+        raise RuntimeError("Config must provide at least one variant")
 
     experiment_overrides: dict[str, str] = {}
     for assignment in args.variant_experiment:
@@ -407,6 +565,7 @@ def main() -> None:
                 raise RuntimeError(f"Trial count differs from completed run: {experiment_name}")
             results.extend(collected)
         else:
+            ensure_minimum_free_memory(minimum_free_memory_gb)
             results.extend(_run_variant(
                 python_exe,
                 module,

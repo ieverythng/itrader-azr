@@ -1,7 +1,11 @@
 # Recurrent Solver + FiLM Ablation
 
-Last updated: 2026-09-12
-Status: **design contract; implementation pending; no recurrent result**
+Last reconciled: 2026-10-03
+Status: **focused R-series identity/design ledger; R1-R3 remain unimplemented**
+
+Parent registry: [iTrader Research Dashboard](itrader_research_dashboard.md).
+The dashboard owns current status and evidence navigation; the
+[masterplan](../plans/itrader_masterplan.md) owns experiment order and promotion.
 
 This document is the active R-series provenance and experiment proposal. It
 preserves the original identities from `git show 4732a98:docs/research/recurrent-solver-ablation.md`;
@@ -69,7 +73,8 @@ that path does not implement task concatenation. The identity-centred form
 | R2c | True recurrent LSTM + FiLM per step | **Active candidate; unimplemented** | Original per-step identity; placement/order remains open pending grill-me review |
 | R2d | Init + per-step FiLM on value head only | **Deferred** | Requires matched policy/value placement |
 | R3 | True recurrent GRU + per-step FiLM | **Planned later** | Cell type/compute comparison |
-| R4-v1 | Winning head plus explicit solver-state features on matched FF/recurrent cells | **Planned, versioned** | Observability study, not historical R4 |
+| R4-v1 | Exact `[position, remaining_horizon_fraction]` state on matched FF/recurrent cells | **Implemented in the working tree; architecture-qualified with R0; economically unpromoted** | Observability study, not recurrence or historical R4 |
+| R4-v2 | Centered nonlinear market/task × solver-state late fusion after task FiLM | **Deferred/absent on this checkout; reportedly staged elsewhere, not yet reconciled** | Fixed joint-fusion identity; not PF, belief, WM, or TTS |
 
 Migration note: `bec5c77` simplified the matrix and called per-step FiLM R2b;
 that label maps to original R2c. An older init-oriented R4 maps conceptually
@@ -159,10 +164,11 @@ A newest-bar model may use:
 Do not present warmup as extra prediction data, and do not count repeated
 overlapping observation bars as new environment timesteps.
 
-The current source lock is Ray/RLlib 2.9.0, Gymnasium 0.28.1, Python 3.11.
-The former Phase B Ray 2.47.1 line is historical and not the active API
-authority. Do not invent `recurrent_policy=True`, `shuffle_sequences=False`, or
-other flags without verifying the pinned version's native API.
+The current forward source lock is Ray/RLlib 2.58.0, Gymnasium 1.2.2, Python
+3.11. Ray 2.9 is a frozen historical reproduction profile under
+`itrader/compat/ray29/`; the former Phase B Ray 2.47.1 line is also historical.
+Do not invent `recurrent_policy=True`, `shuffle_sequences=False`, or other flags
+without verifying the Ray-2.58 native API used by the forward R-series.
 
 Before any recurrent result, specify and test:
 
@@ -238,20 +244,29 @@ verification and report accepted timesteps, rejected tasks, generation calls,
 tokens/latency, total compute, costs, turnover, and drawdown. Do not substitute
 this study for R-series solver attribution.
 
-## Experiment order and promotion gates (proposal)
+## Current experiment order and promotion boundary
 
-The following order is an experiment proposal pending the user's grill-me review:
-1. R0 alignment/reward controls.
-2. R1 explicit split and window encoder; correct and measurable is sufficient to
-   proceed, even if it does not win.
-3. R2a native recurrence lifecycle.
-4. R2c readout FiLM and `R2c-CARRY`/`R2c-RESET`.
-5. Optional `R2c-precell`, R2b, R2d, and R3, each with named matched controls.
-6. R4-v1 explicit state features matched across FF/recurrent controls.
-7. Run the proposer/reference-buffer study as a separate experimental axis.
-   Phase B also includes online/replay/shadow work; its infrastructure and
-   validation can proceed alongside the offline track. Any deployment gate
-   is separate from this proposed recurrence experiment order.
+R4-v1 is no longer a future step: its feed-forward implementation, replication,
+actor-robustness search, and causal forensics are complete. It remains
+architecture-qualified but economically unpromoted. The masterplan's current
+order is:
+
+1. **completed:** close the bounded fresh-panel telemetry and exact-replay
+   receipt; all five member-`00002` checkpoints reproduced across two processes
+   but failed fresh-panel net-return and Sharpe promotion;
+2. compare fixed-recipe matched R0, clean R1, and separately named
+   `R1 + R4-v1`; correct and measurable is sufficient for R1 to proceed;
+3. implement R2a native recurrence lifecycle;
+4. implement the selected R2c placement and run otherwise-identical
+   `R2c-CARRY`/`R2c-RESET`;
+5. consider optional `R2c-precell`, R2b, R2d, and R3 only with named matched
+   controls; and
+6. keep proposer, C-series, S-series, reward, optimizer, and replay/shadow work
+   as separately attributable axes.
+
+PBT stays off during clean representation attribution. Do not run another
+same-panel R0 + R4-v1 population or use R4-v2 to absorb unrelated state,
+predictive, world-model, or search hypotheses.
 
 No recurrent head becomes default until lifecycle tests, matched train-from-
 scratch seeds, held-out chronological evaluation, state/compute evidence, and

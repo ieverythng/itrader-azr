@@ -40,6 +40,11 @@ Apply a behavior-preserving cleanup pass that favors simpler control flow, clear
 - If there are no tests, add focused tests only where they materially reduce risk.
 - Summarize what changed, what was intentionally left alone, and any residual risks.
 
+### 5. Hand off independent review
+- Finish the writer's self-check, then hand the completed diff to an independent reviewer under the repository's [REVIEW.md](../../../REVIEW.md).
+- Apply that contract in full. It is the sole owner of reviewer freshness, primary/default model selection and fallback, high-risk different-model review, and fix-review requirements.
+- The deslop pass is neither an independent review nor approval of its own changes.
+
 ## Preferred Transformations
 
 - Collapse repeated condition trees into one helper or lookup table.

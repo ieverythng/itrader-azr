@@ -1,5 +1,85 @@
 # Decisions
 
+## 2026-10-03 — Close G0 without promotion and enter fixed-recipe R1 attribution
+
+- Decision: close the member-`00002` checkpoint-only diagnostic and proceed to
+  matched Ray-2.58 R0 / clean R1 / `R1 + R4-v1` representation attribution.
+- Evidence: five retained unexploited checkpoints replayed twice on one
+  predeclared non-overlapping November-2025 8x4 RTH panel. Episode/reward and
+  per-step action/logit outputs were byte-identical across clean processes.
+- Economic result: every fresh-panel mean net return and Sharpe was negative.
+  The least-negative 102,040-step checkpoint reached -0.22822% net and -0.00620
+  Sharpe with an approximately 75/0/25 short/flat/long mix repeated across all
+  anchors. The 106,968-step and terminal policies were pure short.
+- Interpretation: causal staging produced real, deterministic transients on the
+  January panel, but not portable conditional edge. Preserve R0 + R4-v1 as the
+  architecture-qualified feed-forward baseline without economic promotion.
+- Next boundary: freeze the lower-LR recipe across R0, clean R1, and R1 + R4-v1.
+  Cross fixed 1 bp and causal staging explicitly; do not hide curriculum inside
+  an R identity. Keep PBT off until fixed-recipe representation attribution is
+  complete.
+- Evidence navigation: use the generated experiment browser for concrete
+  run/member/checkpoint search and comparison-factor checks. Its registry owns
+  provenance metadata and pointers only; source summaries own metric values,
+  and dated dashboards stay immutable.
+
+## 2026-10-01 — Canonical research registry without replacing the masterplan
+
+- Decision: use `docs/research/itrader_research_dashboard.md` (+ `.html`) as the
+  canonical registry of research identities, controls, dependencies, evidence
+  status, and open decisions.
+- Authority boundary: `docs/plans/itrader_masterplan.md` remains authoritative
+  for cross-phase order and promotion; active architecture owns invariants;
+  source/tests/config own implementation truth; dated artifacts remain evidence.
+- Taxonomy: R, C, and S are stable research wings. ATX/PF/WM/TTS and the new AZR
+  labels are provisional experiments until separately accepted. Reward, cost,
+  task families, data, platform, and online contracts remain orthogonal axes or
+  seams rather than new solver wings.
+- Organization: preserve dated reports/evidence in place and organize them
+  through the dashboard and categorized artifact index. This avoids breaking
+  provenance links and historical snapshot citations.
+- Drift recorded, not hidden: actor robustness is complete/rejected; Ray 2.58 is
+  forward authority; R4-v2 keeps its fixed joint-fusion identity while the
+  reported parallel staging remains unverified on this checkout.
+
+## 2026-09-29 — Stop same-panel R0 + R4-v1 PBT and freeze R1 attribution recipe
+
+- Decision: do not launch another full R0 + R4-v1 PBT population against the
+  January development panel. Run only the bounded fresh-panel transient/logit
+  diagnostic, then proceed to fixed-recipe R1 attribution.
+- Why: causal staging materially preserved activity and increased positive
+  reports, but all 81 jointly positive reports were at least 98.014% short and
+  the terminal result exactly tied short-only. The unexploited 77,832-step
+  checkpoint combined 99.36% greedy short actions with high entropy and narrow
+  top-two margins, then repeated the one-action replay mismatch.
+- Consequence: freeze member `00002`'s lower-LR unexploited recipe across matched
+  Ray-2.58 R0, clean R1, and R1 + R4-v1. Keep causal cost staging as an explicit
+  matched factor; do not silently embed it in R1 and do not re-open PBT until the
+  representation comparison is complete.
+- Instrumentation boundary: add all-equal/all-ineligible PBT exhaustion,
+  candidate logit margins, training-block causal attribution, and valid PPO
+  clip-fraction capture. The static optimization-cost reporting omission is
+  fixed for future evidence and does not change the completed exact-cost result.
+
+## 2026-09-29 — Close R4-v1 actor robustness without economic promotion
+
+- Decision: retain `R0 + R4-v1` as the architecture-qualified feed-forward
+  baseline, retain R0 unchanged for parity, and close the bounded actor search
+  without an economic winner.
+- Why: both four-member/40-update arms passed strict PBT lineage mechanics. The
+  causal-cost population became exactly short-only and tied the strongest
+  directional control; the exact-1-bp population became exactly flat. The one
+  marginal causal report above short-only failed exact checkpoint replay.
+- Keep: lower-learning-rate and entropy search ranges, causal cost staging as a
+  named curriculum factor, exact provenance, near-flat/turnover guards, and the
+  December fixed-recipe state-arm attribution reference.
+- Reject/defer: exact 1 bp from update zero as the default curriculum, economic
+  promotion, a new independent population, 0.5/1/2-bp stress on a non-candidate,
+  independently searched mask arms, and R4-v2.
+- Next boundary: after code review, compare clean R1 with matched Ray-2.58 R0 and
+  keep `R1 + R4-v1` separately named so recurrence and observability remain
+  attributable.
+
 ## 2026-09-25 — Close the R4-v1 replication without economic promotion
 
 - Decision: retain `R0 + R4-v1` as the architecture-qualified Phase A

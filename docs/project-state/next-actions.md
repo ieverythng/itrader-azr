@@ -1,6 +1,32 @@
 # Next Actions
 
-Last updated: 2026-09-25
+Last updated: 2026-10-04
+
+Use the [iTrader Research Dashboard](../research/itrader_research_dashboard.md)
+for wing identity and dependency context; this file owns the ordered operational
+queue. Register completed comparison cells in the
+[experiment registry](../research/experiment_registry.json) and regenerate the
+[Experiment Browser](../research/itrader_experiment_browser.html); never copy
+metrics into the registry.
+
+## Immediate R1 development preparation
+
+Use [R1 development readiness](r1-development-readiness.md) for the source-grounded
+diagnostics, replay identity, model selector and window-encoder acceptance tests.
+The [fresh independent review](../artifacts/research/r1-readiness-independent-review-2026-10-03.md)
+records concrete replay, attribution/control and donor-digest blockers to repair.
+The proposed representation study now includes four cells: R0, R0 + R4-v1,
+R1, and R1 + R4-v1, each under explicit exact-cost and causal-staging factors.
+This completes the encoder-by-solver-state comparison. GRILL confirms the
+four-cell matrix, 5-to-156 window LSTM with 256-wide projection, and compressed
+sampled-step cost curriculum. Sharing, panel/seeds, exact cost boundaries and
+budget still need the GRILL declaration before launch. Close the review blockers,
+learner clip-fraction and verified replay receipts first; no R1 implementation
+or new training run is claimed by this preparation pass.
+The readiness contract also contains six GRILL acceptance checks: semantic
+observation layout, exact Q15 formula, selectors including untrained controls,
+override protection, empty-state lifecycle, and explicit preprocessing/zero-init
+parity for non-PBT cells. These are planning requirements, not executed R1 tests.
 
 ## Dataset-v2 Phase A reset
 
@@ -49,13 +75,30 @@ Last updated: 2026-09-25
    small local-worker probe. Root dependencies now target Ray 2.58; Ray 2.9 is a
    frozen reproduction profile under `itrader/compat/ray29/`. Keep every result
    runtime-labelled because stochastic PPO trajectories are not seed-identical.
-6. **Next after review — start a bounded R-series challenger:** keep dataset-v2
-   RTH partitions, family 00 tasks, random/generated proposer, crossed panel,
-   seeds, cost schedules, compute budget, PBT cadence, and gates identical. Make
-   R1 the only changed factor and treat it as a reset-every-step chronological
-   window-encoder/shape control, not proof that recurrent memory helps. Proceed
-   to native stateful R2 only after lifecycle, masking, reset, checkpoint/replay,
-   and finite forward/backward tests pass.
+6. **Done — checkpoint-only G0 closure; next is the fixed-recipe R1 screen:**
+   the January actor-robustness forensics
+   found 81 jointly positive causal reports, but all were at least 98.014% short
+   and the terminal population exactly tied short-only. Do not spend another
+   same-panel R0 + R4-v1 PBT population. Five unexploited member-`00002`
+   checkpoints were replayed twice on a predeclared non-overlapping November
+   2025 panel with per-anchor actions and top-two logit/probability margins.
+   All action/reward traces reproduced exactly, but every checkpoint had
+   negative fresh-panel net return and Sharpe. The least-negative 102,040-step
+   checkpoint scored -0.22822% net/-0.00620 Sharpe and repeated essentially the
+   same 75/0/25 action mix at every anchor. Freeze the lower-LR recipe across
+   matched Ray-2.58 R0, R0 + R4-v1, clean R1, and R1 + R4-v1 cells. Keep
+   dataset-v2 RTH partitions, family 00 tasks,
+   random/generated proposer, seeds, compute, and evidence gates identical.
+   Carry causal cost staging as one explicit matched ablation factor rather
+   than silently making it part of R1. PBT follows representation attribution.
+   Treat R1 as a reset-every-step chronological window-encoder/shape control,
+   not proof that recurrent memory helps. Proceed to native stateful R2 only
+   after lifecycle, masking, reset, checkpoint/replay, and finite
+   forward/backward tests pass.
+   Require future replay receipts to stamp distinct producer/run identifiers at
+   creation time. The G0 browser verifies paired artifact, result, and panel-hash
+   parity, but correctly leaves independent-process provenance unknown for the
+   historical receipts.
 7. **P1 after representation selection:** move selection to predeclared non-overlapping chronological
    blocks. Require positive 1 bp net and Sharpe, aggregate uplift over flat and
    the strongest matched directional control, paired block evidence, exact
@@ -172,12 +215,16 @@ Last updated: 2026-09-25
    and counterfactual diagnostics are frozen. Combined state passed relative net
    attribution but failed absolute promotion and the near-flat gate. Preserve R0
    for parity and `R0 + R4-v1` for forward FF training.
-16. **Next P0 — actor robustness on R0 + R4-v1:** use a bounded, matched search
-   over lower learning rates, entropy pressure, and causal 0→cost staging. Keep
-   the fresh chronology fixed only for this predeclared development comparison;
-   retain every best eligible checkpoint; reject near-flat or excessive-turnover
-   policies; replay against flat/long/short/random/untrained controls. Do not add
-   new state features or R4-v2 in this search.
+16. **Completed — actor robustness on R0 + R4-v1; no economic promotion:** two
+   matched four-member/40-update PBT arms passed strict mechanics. Causal
+   `0 -> 0.25 -> 0.5 -> 1 bp` staging converged all members to the exact
+   short-only control (`+0.441611%` net, `0.024455` Sharpe); exact 1 bp from
+   update zero converged all members to flat. The only marginal causal best did
+   not replay exactly. Keep causal staging available, reject exact-1-bp-from-zero
+   as the default curriculum for this baseline, and do not spend independent
+   population or 0.5/1/2-bp promotion runs without a surviving candidate.
+   Preserve the December masked/position/time/both run as the attribution
+   reference; do not search each state mask independently.
 17. Run the separate proposer study: rule/random control, frozen LLM, frozen LLM
     plus solver-feedback/reference selection, then adaptive proposer. Include
     frozen-versus-adaptive reference-buffer factor, cost-aware verifier, accepted

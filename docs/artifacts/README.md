@@ -5,8 +5,10 @@ useful as evidence but should not compete with active architecture and plan docs
 
 ## Research
 
-- `research/` contains imported HTML references for Neural Workbench, AB object
-  theory, LoRA/adapters/PPO/GAE/RLVR, and Market-JEPA.
+- [`research/`](research/README.md) contains the categorized dated-report and
+  evidence catalog as well as imported reference-only material. The active
+  [research dashboard](../research/itrader_research_dashboard.md) owns current
+  wing identity and status; the artifact catalog owns provenance navigation.
 
 Use these materials as design context. Durable iTrader decisions should be
 folded into `docs/architecture/itrader_system_architecture.md` or

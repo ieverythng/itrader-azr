@@ -287,8 +287,10 @@
     <p class="source-note">Source: <a href="sharpe-reward-design.md">sharpe-reward-design.md</a></p>
     <article class="markdown-content">
 <h1 id="sharpe-aware-reward-design">Sharpe-Aware Reward Design</h1>
-<p>Last updated: 2026-09-12
-Status: <strong>experimental challengers; <code>pnl_linear</code> remains the only proven/default reward</strong></p>
+<p>Last reconciled: 2026-10-01<br>
+Status: <strong>focused reward-axis design; <code>pnl_linear</code> remains the default, <code>net_return</code> is an implemented challenger, and Sharpe variants remain experimental</strong></p>
+<p>Parent registry: <a href="itrader_research_dashboard.html">iTrader Research Dashboard</a>.
+Reward changes remain independent of R/C/S representation decisions.</p>
 <h2 id="decision-summary">Decision summary</h2>
 <p>The reward seam is independent of recurrent architecture. Keep <code>pnl_linear</code> as
 the family <code>00</code> default. <code>sharpe_only</code> and <code>pnl_sharpe</code> are challengers that

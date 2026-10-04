@@ -1,9 +1,80 @@
 # Current State
 
-Last updated: 2026-09-25
+Last updated: 2026-10-03
 Branch: `agent/Watson-dev`
-Baseline HEAD: `0894116`; this dataset-v2 implementation/evidence round is the
-next reviewable delivery on `agent/Watson-dev`
+Baseline HEAD: `c13af18`; the current R4-v1 experiment/code/docs round remains
+unstaged and uncommitted for review on `agent/Watson-dev`
+
+Research-wing identities and cross-wing dependencies are indexed in the
+[iTrader Research Dashboard](../research/itrader_research_dashboard.md); this
+file remains the checkout/experiment-state authority.
+Concrete run/member/checkpoint evidence is searchable in the generated
+[Experiment Browser](../research/itrader_experiment_browser.html). Its
+[registry](../research/experiment_registry.json) stores comparison metadata and
+source pointers; authoritative summaries remain the metric source of truth.
+
+## R0 + R4-v1 actor-robustness P0 closed
+
+Next preparation is specified in [R1 development readiness](r1-development-readiness.md):
+learner-produced clipping diagnostics, process-attributed verified replay,
+explicit model selection and reset-per-decision window encoding. The planned
+study includes matched R0 + R4-v1 alongside R0, R1 and R1 + R4-v1. These are
+preparation requirements, not an implemented R1 or an authorized economic promotion.
+
+The January-2026 combined-state search completed two matched four-member,
+40-update synchronous-PBT arms on one Ray-2.58 source fingerprint. Both passed
+strict mechanics: six exploits, 18 exact restore receipts, six verified
+generation lineages, four complete members, and no stale or invalid provenance.
+
+The causal `0 -> 0.25 -> 0.5 -> 1 bp` arm ended with all four members exactly
+short-only at `+0.441611%` net and `0.024455` Sharpe per square-root bar. That is
+identical to the matched short-only control, so it is directional exposure rather
+than demonstrated conditional edge. One marginally better retained report failed
+exact replay by `7.4e-06` in search score near an action-logit tie.
+
+The exact-1-bp-from-update-zero arm ended with all four members exactly flat at
+zero return, Sharpe, and turnover. All four terminal replays were exact. PBT
+mutated throughout, so this is a model/curriculum basin rather than a dead search
+harness. No checkpoint cleared non-flatness, directional-control uplift, and
+exact replay; independent-seed and 0.5/1/2-bp promotion spending therefore
+stopped at the declared gate.
+
+Preserve state-free R0 for parity and `R0 + R4-v1` as the
+architecture-qualified feed-forward baseline, without economic promotion. The
+forensic follow-up found 81 jointly positive causal reports, but all were at
+least 98.014% short. At the 77,832-step checkpoint, greedy actions were 99.36%
+short even though mean action probabilities remained 40.18% / 27.30% / 32.52%
+and entropy was 1.0823; 1.76% of steps had a top-two logit margin below 0.01.
+That checkpoint repeated the same one-action replay mismatch as the marginal
+best. Causal staging therefore remains an explicit matched curriculum factor,
+not proof of conditional alpha. Do not run another full population on the same
+January panel. The bounded G0 closure diagnostic is now complete: five exact
+member-`00002` checkpoints at 77,832, 92,384, 102,040, 106,968, and 194,368
+steps were replayed twice on a predeclared non-overlapping November-2025 8x4
+RTH panel. Every episode/reward trace and every per-step action/logit trace
+matched byte-for-byte across the retained artifact pairs. All five fresh-panel mean net
+returns and Sharpes were negative. The least-negative checkpoint was 102,040
+steps at -0.22822% net and -0.00620 Sharpe; its approximately 75/0/25
+short/flat/long episode-weighted mix was nearly identical at every anchor.
+The 106,968-step and terminal checkpoints were pure short and economically
+identical. This closes R0 + R4-v1 as architecture-qualified but economically
+unpromoted. Open clean Ray-2.58 R1 beside matched R0, R0 + R4-v1 and a separately named
+`R1 + R4-v1` cell using the frozen lower-LR recipe. Keep fixed 1 bp and causal
+staging as explicit matched curriculum factors. PBT follows fixed-recipe
+representation attribution. R4-v2 remains deferred.
+
+The canonical browser independently verifies the paired artifact hashes,
+receipt metrics, and panel hashes. It does not elevate the historical
+`two_process_identity` source field into independent producer provenance,
+because those receipts did not record distinct producer/run identifiers. Future
+R1 replay receipts must stamp producer identity at creation time; this
+qualification does not alter G0's negative economic decision.
+
+Static exact-cost reports also exposed a provenance-label defect: the training
+task configuration correctly used 1 bp, but report rows omitted the static cost
+field and aggregate output displayed zero. A test-first repair now resolves
+both scheduled and static optimization costs for future reports; completed
+reward delivery and economic results are unchanged.
 
 ## R0 + R4-v1 architecture gate closed
 
@@ -17,9 +88,9 @@ critic most strongly.
 No arm is economically promoted: all mean returns and Sharpes remain below the
 long-only control, Sharpe uplift is not seed-consistent, and seed 20260926
 collapsed above the 98% flat ceiling. R0 remains the immutable parity control;
-`R0 + R4-v1` is the architecture-qualified forward FF baseline. The next P0 is
-a bounded actor-robustness search over learning rate, entropy pressure, and
-causal cost staging with retained-best replay. R4-v2 remains deferred.
+`R0 + R4-v1` is the architecture-qualified forward FF baseline. Its bounded
+actor-robustness search is now complete and economically rejected. R4-v2 remains
+deferred.
 
 ## Ray 2.58 platform gate accepted
 
@@ -149,8 +220,9 @@ reward head.
 - `train_solo_V2.py` selects `SolverMLPFiLM` directly.
 - `ITraderEnv` emits chronological flattened OHLCV window plus task embedding.
 - `TaskSpec` is canonical; `RewardEngine` owns reward calculation.
-- `pnl_linear` is the only proven/default reward; Sharpe variants remain
-  experimental.
+- `pnl_linear` remains the historical/default reward; `net_return` is an
+  implemented challenger, while Sharpe variants remain experimental. None is an
+  economically promoted solver recipe.
 - `train_AZR.py` generates/validates a task pool and hands it to solver training.
   This is bootstrap, not a co-adaptive AZR loop.
 - Only source family `00` is enabled. Families `01`/`02` are bootstrap contracts;
@@ -395,8 +467,10 @@ IDs.
 - preserve the failed R4-v1 economic promotion decision while using
   `R0 + R4-v1` as the architecture-qualified forward FF baseline. R0 remains the
   immutable parity control. The December-2025 `zero_v1` replication is complete;
-  next work is a bounded actor-robustness search on the qualified baseline and
-  remains separate from recurrent representation controls;
+  the bounded actor-robustness search and causal forensics are also complete and
+  economically rejected. The fresh-panel checkpoint/logit diagnostic is closed;
+  open fixed-recipe matched R0, R0 + R4-v1, clean R1, and `R1 + R4-v1` cells next. Keep these
+  separate from R2 carry/reset attribution;
 - chronological held-out validation/final test and cost-aware metrics.
 
 A zero-state probe is an OOD diagnostic, not a causal memory proof. Any

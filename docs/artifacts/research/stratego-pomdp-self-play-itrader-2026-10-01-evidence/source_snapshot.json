@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-10-01",
+  "purpose": "Primary-source and local-repository provenance for the Ataraxos/Stratego, imperfect-information, and self-play curriculum applicability study.",
+  "itrader": {
+    "branch": "agent/Watson-dev",
+    "head": "c13af18ae60520dfc4e0a1b0992c2ef3db49634e",
+    "working_tree": "dirty; pre-existing solver, evidence, documentation, and environment changes were preserved",
+    "knowledge_graph": {
+      "status": "stale",
+      "indexed_commit_short": "1d5ba82",
+      "authority_used": "current source, tests, active architecture, and masterplan"
+    },
+    "architecture_anchors": [
+      "docs/architecture.md",
+      "docs/architecture/itrader_system_architecture.md",
+      "docs/plans/itrader_masterplan.md",
+      "docs/research/recurrent-solver-ablation.md",
+      "docs/artifacts/research/solver-state-r4-v1-actor-robustness-2026-09-29.md",
+      "docs/artifacts/research/solver-state-r4-v1-causal-forensics-2026-09-29.md",
+      "docs/artifacts/research/system-one-clm-jev-trading-ablation-2026-09-24.md"
+    ]
+  },
+  "ataraxos": {
+    "repository": "https://github.com/AtaraxosAI/stratego",
+    "commit": "92db29e8ffc323b1b8a2804b5c3f84695d036b05",
+    "commit_date": "2026-02-18T15:59:28-05:00",
+    "license": "MIT",
+    "local_read_only_checkout": "_external/AtaraxosAI-stratego",
+    "arxiv_paper": {
+      "title": "Superhuman AI for Stratego Using Self-Play Reinforcement Learning and Test-Time Search",
+      "url": "https://arxiv.org/abs/2511.07312",
+      "version": "v1",
+      "submitted": "2025-11-10"
+    },
+    "nature_paper": {
+      "title": "Scalable decision-making for games of imperfect information",
+      "url": "https://www.nature.com/articles/s41586-026-11036-y",
+      "doi": "10.1038/s41586-026-11036-y",
+      "published": "2026-09-30",
+      "volume": 658,
+      "pages": "55-59"
+    },
+    "magnet_provenance": {
+      "paper_reported": "sample a movable piece uniformly, then one of that piece's legal moves uniformly",
+      "pinned_code_default": "uniform over all legal actions via uniform_magnet=true",
+      "final_run_override_evidence": "not found in the reviewed release; paper and code claims are kept distinct"
+    },
+    "inspected_source_files": [
+      "pyengine/core/rl.py",
+      "pyengine/core/buffer.py",
+      "pyengine/core/search.py",
+      "pyengine/belief/belief.py",
+      "pyengine/networks/belief_transformer.py",
+      "pyengine/networks/feature_orchestration.py",
+      "pyengine/networks/move_transformer.py",
+      "pyengine/networks/temporal_belief_transformer.py",
+      "pyengine/utils/helper.py",
+      "src/env/boardstate_channels.h",
+      "scripts/train/rl_main.py",
+      "scripts/train/belief_main.py",
+      "pretrained/final_run/train.log"
+    ]
+  },
+  "self_play_pretraining": {
+    "paper": {
+      "title": "Self-Play Pretraining with Zero Data",
+      "arxiv": "https://arxiv.org/abs/2609.30063",
+      "version": "v1",
+      "submitted": "2026-09-24"
+    },
+    "official_repository": "https://github.com/nourya-aliz/self_play_pretraining",
+    "official_repository_commit": "2c25ed621e959020e1cc9ca1b1032115e85c3798",
+    "official_checkpoints": "https://huggingface.co/nourya-cohen/solomonoff-paper",
+    "release_boundary": "learner checkpoints and evaluation/figure code are public; generator weights, optimizer states, and self-play training code are not in the release as inspected",
+    "fixed_corpus_control": "for each endpoint T, mix data from 16 generator snapshots spaced through training up to T, then train a fresh learner"
+  },
+  "scope_constraints": [
+    "R4-v2 remains the already-defined nonlinear market/task by solver-state joint-fusion factor and is not redesigned.",
+    "TaskSpec remains the canonical static task contract.",
+    "Historical OHLCV remains external contingent evidence; zero-data self-play is not claimed for market facts.",
+    "Risk and execution remain deterministic shell responsibilities.",
+    "No current or proposed experiment may observe realized future bars at decision time."
+  ]
+}
