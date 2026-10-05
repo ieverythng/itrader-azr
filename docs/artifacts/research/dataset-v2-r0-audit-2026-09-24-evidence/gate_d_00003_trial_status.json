@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "trial_id": "35bc1_00003",
+  "trial_name": "training_fn_ITraderEnv_35bc1_00003",
+  "trial_dir": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231_no_cost_post_restore_gate_d\\training_fn_ITraderEnv_35bc1_00003_3_seed=959228_2026-09-24_04-32-38",
+  "stable_trial_dir": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\_stable_metrics\\training_fn_ITraderEnv_35bc1_00003_3_seed=959228_2026-09-24_04-32-38",
+  "git_commit": "891fcaa2ba2200d0affe2c97a6d9ada592dbcfaa",
+  "source_tree_fingerprint": {
+    "git_commit": "891fcaa2ba2200d0affe2c97a6d9ada592dbcfaa",
+    "algorithm": "sha256(sorted relative-path TAB file-sha256 LF)",
+    "python_file_count": 82,
+    "source_tree_sha256": "9374f7710665a4c557de9784a33909265592ea70ee25b21b9094caf30a66e7de"
+  },
+  "config_hash": "5a535be3fdb8ee752264ea847320e4fa3b061ad7b2c308a8433653fbc31419cc",
+  "dataset_path": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\data\\datasets\\dataset_v2_20220103_20260922_alpaca_sip_split\\bars",
+  "dataset_sha256": "20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9",
+  "status": "completed",
+  "last_iteration": 35,
+  "pbt_progress_steps": 170416
+}

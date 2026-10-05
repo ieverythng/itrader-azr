@@ -3,7 +3,9 @@
 This directory is intentionally independent of the repository root lock. It was
 the migration acceptance environment used before Ray 2.58 was promoted into the
 authoritative root `pyproject.toml` and `uv.lock`; it remains a reproducible
-fixture for reviewing that resolution.
+fixture for reviewing that resolution. It is an environment profile, not the
+source namespace for ModelV2/TorchPolicy adapters; those live under
+`../rllib_legacy/`.
 
 Create or refresh the compatibility environment from the repository root:
 

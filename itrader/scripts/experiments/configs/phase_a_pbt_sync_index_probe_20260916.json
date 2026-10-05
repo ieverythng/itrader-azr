@@ -1,0 +1,58 @@
+{
+  "name": "phaseA_pbt_sync_index_probe",
+  "python_exe": ".venv/Scripts/python.exe",
+  "train_module": "itrader.rl_lib.train.train_solo_V2",
+  "primary_metric": "evaluation/net_return_mean",
+  "common_args": {
+    "cpu_only": true,
+    "workers": 2,
+    "timeout_hours": 1,
+    "window": 60,
+    "seed": 20260913,
+    "train_batch_size": 4800,
+    "sgd_minibatch_size": 128,
+    "num_sgd_iter": 1,
+    "data_path": "itrader/data/ohlcv.parquet",
+    "results_root": "itrader/scripts/experiments/configs/outputs/phase_a_pbt_sync_index_probe_20260916/ray",
+    "task_pool_path": "",
+    "p_pool": 0.0,
+    "task_horizons": "96,128,160,200",
+    "task_reward_ids": "net_return",
+    "start_idx_mode": "stream_worker",
+    "ret_norm_reset": "stream",
+    "observation_transform": "market_relative_v1",
+    "observation_filter": "NoFilter",
+    "stream_stride": 0,
+    "stream_jump_every_episodes": 5,
+    "stream_jump_on_wrap": true,
+    "pbt_interval": 5,
+    "pbt_burn_in": 5,
+    "pbt_synch": true,
+    "checkpoint_interval": 5,
+    "evaluation_interval": 1,
+    "evaluation_num_episodes": 16,
+    "evidence_cost_bps": 1.0,
+    "optimization_cost_bps": 1.0,
+    "net_return_reward_scale": 1000.0,
+    "split_fractions": "0.7,0.15,0.15",
+    "split_purge_rows": 200,
+    "auto_plot_on_end": false
+  },
+  "variants": [
+    {
+      "id": "sync_index_probe",
+      "args": {
+        "pbt": true,
+        "pop": 4,
+        "iters": 12
+      }
+    },
+    {
+      "id": "solo_harness_control",
+      "args": {
+        "pbt_synch": false,
+        "iters": 1
+      }
+    }
+  ]
+}

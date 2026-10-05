@@ -1,480 +1,33 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="A living architecture atlas for the iTrader RLVR proposer-solver research system.">
-  <title>iTrader Architecture Atlas</title>
-  <style>
-    :root {
-      --ink: #17221b;
-      --muted: #637067;
-      --paper: #f3f0e8;
-      --paper-deep: #e9e4d8;
-      --night: #101a15;
-      --night-soft: #1a2921;
-      --line: rgba(23, 34, 27, .14);
-      --green: #1e7a4d;
-      --green-bright: #72e6a7;
-      --blue: #176c85;
-      --amber: #b76a1a;
-      --red: #a94a3f;
-      --cream: #fffaf0;
-      --shadow: 0 22px 70px rgba(28, 38, 31, .12);
-    }
-
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
-    body {
-      margin: 0;
-      color: var(--ink);
-      background:
-        linear-gradient(rgba(23, 34, 27, .035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(23, 34, 27, .035) 1px, transparent 1px),
-        var(--paper);
-      background-size: 32px 32px;
-      font-family: "Avenir Next", "Segoe UI", sans-serif;
-    }
-
-    a { color: inherit; }
-    code { font-family: "SFMono-Regular", Menlo, Consolas, monospace; }
-    .shell { width: min(1240px, calc(100% - 40px)); margin: 0 auto; }
-
-    .topbar {
-      position: sticky;
-      top: 0;
-      z-index: 20;
-      border-bottom: 1px solid rgba(255,255,255,.09);
-      color: #edf8ef;
-      background: rgba(16, 26, 21, .92);
-      backdrop-filter: blur(18px);
-    }
-    .topbar-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      min-height: 62px;
-      gap: 24px;
-    }
-    .brand { font-size: 13px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
-    .brand span { color: var(--green-bright); }
-    nav { display: flex; gap: 18px; overflow-x: auto; scrollbar-width: none; }
-    nav a { color: #b9c9bf; font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; }
-    nav a:hover { color: var(--green-bright); }
-    .progress { position: absolute; inset: auto 0 0; height: 2px; background: var(--green-bright); transform: scaleX(0); transform-origin: left; }
-
-    .hero {
-      position: relative;
-      overflow: hidden;
-      min-height: 700px;
-      color: #f4f7f2;
-      background:
-        radial-gradient(circle at 78% 22%, rgba(114, 230, 167, .19), transparent 25rem),
-        radial-gradient(circle at 18% 100%, rgba(39, 134, 157, .2), transparent 32rem),
-        var(--night);
-    }
-    .hero::after {
-      content: "";
-      position: absolute;
-      width: 520px;
-      height: 520px;
-      right: -170px;
-      bottom: -310px;
-      border: 1px solid rgba(114,230,167,.3);
-      border-radius: 50%;
-      box-shadow: 0 0 0 70px rgba(114,230,167,.03), 0 0 0 140px rgba(114,230,167,.02);
-    }
-    .hero-inner { position: relative; z-index: 1; padding: 102px 0 78px; }
-    .kicker { color: var(--green-bright); font-size: 12px; font-weight: 900; letter-spacing: .2em; text-transform: uppercase; }
-    h1 {
-      max-width: 1020px;
-      margin: 18px 0 24px;
-      font-family: Iowan Old Style, Baskerville, Georgia, serif;
-      font-size: clamp(54px, 8.5vw, 112px);
-      font-weight: 500;
-      letter-spacing: -.055em;
-      line-height: .88;
-    }
-    .hero-copy { max-width: 760px; color: #bbcbbf; font-family: Charter, Georgia, serif; font-size: clamp(19px, 2vw, 25px); line-height: 1.55; }
-    .hero-meta { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 36px; }
-    .pill { padding: 9px 13px; border: 1px solid rgba(255,255,255,.15); border-radius: 999px; color: #d9e5dc; font-size: 12px; font-weight: 800; letter-spacing: .04em; }
-    .hero-map { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 68px; }
-    .hero-node { position: relative; min-height: 150px; padding: 18px; border: 1px solid rgba(255,255,255,.1); border-radius: 18px; background: rgba(255,255,255,.045); }
-    .hero-node:not(:last-child)::after { content: "→"; position: absolute; right: -11px; top: 61px; z-index: 2; color: var(--green-bright); font-weight: 900; }
-    .hero-node small { display: block; margin-bottom: 30px; color: #6f8b79; font-size: 10px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }
-    .hero-node strong { display: block; margin-bottom: 7px; color: #f5faf6; font-size: 16px; }
-    .hero-node span { color: #9eb2a4; font-size: 13px; line-height: 1.45; }
-
-    main { padding: 82px 0 120px; }
-    section { scroll-margin-top: 84px; }
-    .section-head { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: end; margin: 0 0 30px; }
-    .section-no { color: var(--green); font-size: 12px; font-weight: 900; letter-spacing: .18em; text-transform: uppercase; }
-    h2 { margin: 8px 0 0; font-family: Iowan Old Style, Baskerville, Georgia, serif; font-size: clamp(38px, 5vw, 64px); font-weight: 500; letter-spacing: -.035em; line-height: 1; }
-    .section-lede { margin: 0; color: var(--muted); font-family: Charter, Georgia, serif; font-size: 18px; line-height: 1.6; }
-    .rule { height: 1px; margin: 78px 0; background: var(--line); }
-
-    .legend { display: flex; flex-wrap: wrap; gap: 10px; margin: 28px 0 38px; }
-    .status { display: inline-flex; align-items: center; gap: 7px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 999px; background: rgba(255,255,255,.4); font-size: 11px; font-weight: 900; letter-spacing: .05em; text-transform: uppercase; }
-    .status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
-    .implemented { color: var(--green); }
-    .contract { color: var(--blue); }
-    .building { color: var(--amber); }
-    .future { color: var(--red); }
-
-    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; }
-    .card { grid-column: span 4; padding: 24px; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,.5); }
-    .card.span-6 { grid-column: span 6; }
-    .card.span-8 { grid-column: span 8; }
-    .card.span-12 { grid-column: span 12; }
-    .card.dark { color: #edf8ef; border-color: transparent; background: var(--night-soft); box-shadow: var(--shadow); }
-    .card.accent { background: #dcece2; }
-    .card.warm { background: #f2dfc5; }
-    .card h3 { margin: 10px 0 12px; font-size: 21px; line-height: 1.2; }
-    .card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
-    .card.dark p { color: #aec0b4; }
-    .card ul { margin: 14px 0 0; padding-left: 18px; color: var(--muted); font-size: 14px; line-height: 1.65; }
-    .card.dark ul { color: #aec0b4; }
-    .label { color: var(--green); font-size: 10px; font-weight: 900; letter-spacing: .15em; text-transform: uppercase; }
-    .dark .label { color: var(--green-bright); }
-
-    .flow { padding: 28px; border-radius: 22px; color: #f0f7f2; background: var(--night); box-shadow: var(--shadow); }
-    .flow-title { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; margin-bottom: 22px; }
-    .flow-title h3 { margin: 0; font-size: 25px; }
-    .flow-title span { color: #7e9988; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; }
-    .track { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
-    .step { position: relative; min-height: 122px; padding: 15px; border-radius: 14px; background: rgba(255,255,255,.055); border: 1px solid rgba(255,255,255,.08); }
-    .step:not(:last-child)::after { content: "›"; position: absolute; right: -7px; top: 45px; z-index: 2; color: var(--green-bright); font-size: 22px; }
-    .step b { display: block; margin-bottom: 10px; color: var(--green-bright); font-size: 13px; }
-    .step span { color: #a9bbae; font-size: 12px; line-height: 1.45; }
-    .flow-note { margin: 18px 0 0; color: #8fa498; font-size: 13px; line-height: 1.55; }
-
-    .contract-row { display: grid; grid-template-columns: 160px 1fr 170px; gap: 20px; align-items: center; padding: 19px 0; border-top: 1px solid var(--line); }
-    .contract-row:last-child { border-bottom: 1px solid var(--line); }
-    .contract-row code { color: var(--green); font-weight: 800; }
-    .contract-row p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.5; }
-    .contract-owner { color: #89958d; font-size: 11px; font-weight: 800; text-align: right; text-transform: uppercase; letter-spacing: .08em; }
-
-    .formula { margin: 0; padding: 28px; overflow-x: auto; border-radius: 18px; color: #ddf8e6; background: #0d1712; font-family: "SFMono-Regular", Menlo, monospace; font-size: 14px; line-height: 1.75; }
-    .formula em { color: var(--green-bright); font-style: normal; }
-
-    .family-strip { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
-    .family { min-height: 170px; padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: rgba(255,255,255,.48); }
-    .family b { display: block; margin-bottom: 26px; color: var(--green); font-size: 28px; }
-    .family strong { display: block; margin-bottom: 8px; }
-    .family span { color: var(--muted); font-size: 12px; line-height: 1.45; }
-
-    .phase-line { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-    .phase { min-height: 310px; padding: 24px; border-radius: 18px; color: #edf5ef; background: var(--night-soft); }
-    .phase:nth-child(2) { background: #1b5038; }
-    .phase:nth-child(3) { color: var(--ink); background: #d5e7dc; }
-    .phase:nth-child(4) { color: var(--ink); background: #eed8bb; }
-    .phase-id { font-family: Iowan Old Style, Georgia, serif; font-size: 58px; line-height: 1; opacity: .35; }
-    .phase h3 { margin: 22px 0 12px; font-size: 20px; }
-    .phase p, .phase li { color: inherit; opacity: .72; font-size: 13px; line-height: 1.55; }
-    .phase ul { padding-left: 18px; }
-
-    .principles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; overflow: hidden; border: 1px solid var(--line); border-radius: 20px; background: var(--line); }
-    .principle { min-height: 180px; padding: 25px; background: var(--cream); }
-    .principle b { display: block; color: var(--green); font-family: Iowan Old Style, Georgia, serif; font-size: 32px; font-weight: 500; }
-    .principle p { color: var(--muted); font-size: 13px; line-height: 1.55; }
-
-    .footer { padding: 54px 0; color: #9bb0a2; background: var(--night); }
-    .footer-inner { display: flex; justify-content: space-between; gap: 30px; align-items: end; }
-    .footer strong { display: block; margin-bottom: 8px; color: #eef7f0; font-family: Iowan Old Style, Georgia, serif; font-size: 30px; font-weight: 500; }
-    .footer p { max-width: 700px; margin: 0; font-size: 13px; line-height: 1.6; }
-    .updated { color: var(--green-bright); font-size: 11px; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; }
-
-    .reveal { opacity: 0; transform: translateY(18px); transition: opacity .55s ease, transform .55s ease; }
-    .reveal.visible { opacity: 1; transform: none; }
-
-    @media (max-width: 980px) {
-      .hero-map, .track, .family-strip, .phase-line { grid-template-columns: repeat(2, 1fr); }
-      .hero-node:not(:last-child)::after, .step:not(:last-child)::after { display: none; }
-      .card { grid-column: span 6; }
-      .card.span-8 { grid-column: span 12; }
-      .principles { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 680px) {
-      .shell { width: min(100% - 28px, 1240px); }
-      nav { display: none; }
-      .hero { min-height: auto; }
-      .hero-inner { padding: 72px 0 58px; }
-      .hero-map, .track, .family-strip, .phase-line, .principles, .section-head { grid-template-columns: 1fr; }
-      .hero-node { min-height: 120px; }
-      .card, .card.span-6, .card.span-8 { grid-column: span 12; }
-      .contract-row { grid-template-columns: 1fr; gap: 7px; }
-      .contract-owner { text-align: left; }
-      .flow-title, .footer-inner { display: block; }
-      .updated { display: block; margin-top: 24px; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      .reveal { opacity: 1; transform: none; transition: none; }
-    }
-  </style>
-<style>
-    /* Faithful Markdown companion fallback */
-    .markdown-companion { max-width: 1100px; margin: 0 auto; padding: 2rem; }
-    .markdown-companion .source-note { margin: 0 0 1rem; }
-    .markdown-source { white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 4; }
-  </style>
-
-  <style>
-    .markdown-companion {
-      width: min(960px, calc(100% - 40px));
-      margin: 0 auto;
-      padding: 42px 0 72px;
-    }
-    .markdown-companion .source-note {
-      margin: 0 auto 24px;
-      max-width: 860px;
-      color: var(--muted, #59616d);
-      font-size: 0.9rem;
-    }
-    .markdown-companion .source-note a {
-      color: var(--blue, #205b91);
-    }
-    .markdown-companion .markdown-content {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: clamp(24px, 5vw, 56px);
-      color: var(--ink, #18201c);
-      background: var(--panel, #fff);
-      border: 1px solid var(--line, #cbd2cc);
-      border-radius: 12px;
-      box-shadow: 0 12px 32px rgba(24, 32, 28, 0.08);
-    }
-    .markdown-companion .markdown-content h1,
-    .markdown-companion .markdown-content h2,
-    .markdown-companion .markdown-content h3,
-    .markdown-companion .markdown-content h4 {
-      max-width: none;
-      margin: 1.6em 0 0.65em;
-      color: var(--ink, #18201c);
-      font-family: Georgia, serif;
-      font-weight: 700;
-      letter-spacing: normal;
-      line-height: 1.2;
-    }
-    .markdown-companion .markdown-content h1 {
-      margin-top: 0;
-      font-size: clamp(2rem, 5vw, 3rem);
-    }
-    .markdown-companion .markdown-content h2 { font-size: clamp(1.45rem, 3vw, 2rem); }
-    .markdown-companion .markdown-content h3 { font-size: 1.25rem; }
-    .markdown-companion .markdown-content p,
-    .markdown-companion .markdown-content li,
-    .markdown-companion .markdown-content td,
-    .markdown-companion .markdown-content th {
-      color: var(--muted, #59616d);
-    }
-    .markdown-companion .markdown-content p,
-    .markdown-companion .markdown-content ul,
-    .markdown-companion .markdown-content ol,
-    .markdown-companion .markdown-content blockquote,
-    .markdown-companion .markdown-content table {
-      margin-top: 0.8em;
-      margin-bottom: 0.8em;
-    }
-    .markdown-companion .markdown-content pre {
-      overflow-x: auto;
-      padding: 16px;
-      color: #eef5f0;
-      background: #1b2720;
-      border-left: 4px solid var(--green, #176b49);
-      border-radius: 4px;
-      line-height: 1.5;
-    }
-    .markdown-companion .markdown-content code {
-      overflow-wrap: anywhere;
-    }
-    .markdown-companion .markdown-content table {
-      display: table;
-      width: 100%;
-      overflow: visible;
-      border-collapse: collapse;
-    }
-    .markdown-companion .markdown-content img {
-      max-width: 100%;
-      height: auto;
-    }
-  </style>
-
-  <style>
-    .markdown-companion {
-      width: min(960px, calc(100% - 40px));
-      margin: 0 auto;
-      padding: 42px 0 72px;
-    }
-    .markdown-companion .source-note {
-      margin: 0 auto 24px;
-      max-width: 860px;
-      color: var(--muted, #59616d);
-      font-size: 0.9rem;
-    }
-    .markdown-companion .source-note a {
-      color: var(--blue, #205b91);
-    }
-    .markdown-companion .markdown-content {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: clamp(24px, 5vw, 56px);
-      color: var(--ink, #18201c);
-      background: var(--panel, #fff);
-      border: 1px solid var(--line, #cbd2cc);
-      border-radius: 12px;
-      box-shadow: 0 12px 32px rgba(24, 32, 28, 0.08);
-    }
-    .markdown-companion .markdown-content h1,
-    .markdown-companion .markdown-content h2,
-    .markdown-companion .markdown-content h3,
-    .markdown-companion .markdown-content h4 {
-      max-width: none;
-      margin: 1.6em 0 0.65em;
-      color: var(--ink, #18201c);
-      font-family: Georgia, serif;
-      font-weight: 700;
-      letter-spacing: normal;
-      line-height: 1.2;
-    }
-    .markdown-companion .markdown-content h1 {
-      margin-top: 0;
-      font-size: clamp(2rem, 5vw, 3rem);
-    }
-    .markdown-companion .markdown-content h2 { font-size: clamp(1.45rem, 3vw, 2rem); }
-    .markdown-companion .markdown-content h3 { font-size: 1.25rem; }
-    .markdown-companion .markdown-content p,
-    .markdown-companion .markdown-content li,
-    .markdown-companion .markdown-content td,
-    .markdown-companion .markdown-content th {
-      color: var(--muted, #59616d);
-    }
-    .markdown-companion .markdown-content p,
-    .markdown-companion .markdown-content ul,
-    .markdown-companion .markdown-content ol,
-    .markdown-companion .markdown-content blockquote,
-    .markdown-companion .markdown-content table {
-      margin-top: 0.8em;
-      margin-bottom: 0.8em;
-    }
-    .markdown-companion .markdown-content pre {
-      overflow-x: auto;
-      padding: 16px;
-      color: #eef5f0;
-      background: #1b2720;
-      border-left: 4px solid var(--green, #176b49);
-      border-radius: 4px;
-      line-height: 1.5;
-    }
-    .markdown-companion .markdown-content code {
-      overflow-wrap: anywhere;
-    }
-    .markdown-companion .markdown-content table {
-      display: table;
-      width: 100%;
-      overflow: visible;
-      border-collapse: collapse;
-    }
-    .markdown-companion .markdown-content img {
-      max-width: 100%;
-      height: auto;
-    }
-  </style>
-
-  <style>
-    .markdown-companion {
-      width: min(960px, calc(100% - 40px));
-      margin: 0 auto;
-      padding: 42px 0 72px;
-    }
-    .markdown-companion .source-note {
-      margin: 0 auto 24px;
-      max-width: 860px;
-      color: var(--muted, #59616d);
-      font-size: 0.9rem;
-    }
-    .markdown-companion .source-note a {
-      color: var(--blue, #205b91);
-    }
-    .markdown-companion .markdown-content {
-      max-width: 860px;
-      margin: 0 auto;
-      padding: clamp(24px, 5vw, 56px);
-      color: var(--ink, #18201c);
-      background: var(--panel, #fff);
-      border: 1px solid var(--line, #cbd2cc);
-      border-radius: 12px;
-      box-shadow: 0 12px 32px rgba(24, 32, 28, 0.08);
-    }
-    .markdown-companion .markdown-content h1,
-    .markdown-companion .markdown-content h2,
-    .markdown-companion .markdown-content h3,
-    .markdown-companion .markdown-content h4 {
-      max-width: none;
-      margin: 1.6em 0 0.65em;
-      color: var(--ink, #18201c);
-      font-family: Georgia, serif;
-      font-weight: 700;
-      letter-spacing: normal;
-      line-height: 1.2;
-    }
-    .markdown-companion .markdown-content h1 {
-      margin-top: 0;
-      font-size: clamp(2rem, 5vw, 3rem);
-    }
-    .markdown-companion .markdown-content h2 { font-size: clamp(1.45rem, 3vw, 2rem); }
-    .markdown-companion .markdown-content h3 { font-size: 1.25rem; }
-    .markdown-companion .markdown-content p,
-    .markdown-companion .markdown-content li,
-    .markdown-companion .markdown-content td,
-    .markdown-companion .markdown-content th {
-      color: var(--muted, #59616d);
-    }
-    .markdown-companion .markdown-content p,
-    .markdown-companion .markdown-content ul,
-    .markdown-companion .markdown-content ol,
-    .markdown-companion .markdown-content blockquote,
-    .markdown-companion .markdown-content table {
-      margin-top: 0.8em;
-      margin-bottom: 0.8em;
-    }
-    .markdown-companion .markdown-content pre {
-      overflow-x: auto;
-      padding: 16px;
-      color: #eef5f0;
-      background: #1b2720;
-      border-left: 4px solid var(--green, #176b49);
-      border-radius: 4px;
-      line-height: 1.5;
-    }
-    .markdown-companion .markdown-content code {
-      overflow-wrap: anywhere;
-    }
-    .markdown-companion .markdown-content table {
-      display: table;
-      width: 100%;
-      overflow: visible;
-      border-collapse: collapse;
-    }
-    .markdown-companion .markdown-content img {
-      max-width: 100%;
-      height: auto;
-    }
-  </style>
-</head>
-<body>
-  <main class="markdown-companion">
-    <p class="source-note">Source: <a href="itrader_system_architecture.md">itrader_system_architecture.md</a></p>
-    <article class="markdown-content"><h1>iTrader System Architecture</h1>
-<p>Last updated: 2026-09-12
-Branch snapshot: <code>agent/Watson-dev</code> at <code>bec5c77</code>
-Status: <strong>active working architecture; recurrence and trunk/head design pending grill-me review</strong></p>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>iTrader System Architecture</title><style>:root{color-scheme:light;--ink:#18201d;--muted:#5c6762;--line:#ccd3cf;--paper:#fbfcfa;--wash:#eef2ef;--accent:#1f6651}*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:16px/1.55 Georgia,serif}main{max-width:1120px;margin:32px auto;background:var(--paper);padding:48px 58px 64px;border:1px solid var(--line)}h1,h2,h3{line-height:1.2}h2{margin-top:40px;padding-top:18px;border-top:1px solid var(--line)}table{width:100%;border-collapse:collapse;margin:18px 0 24px;font-size:.9rem}th,td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}th{background:#e8eeea}tbody tr:nth-child(even){background:#f4f6f4}code{font:.9em Consolas,monospace;background:#edf0ee;padding:1px 4px}pre{overflow:auto;background:#edf0ee;padding:14px}a{color:var(--accent)}img{max-width:100%;height:auto;border:1px solid var(--line)}@media(max-width:760px){main{margin:0;padding:28px 18px}table{display:block;overflow:auto}}</style></head><body><main><h1>iTrader System Architecture</h1>
+<p>Last reconciled: 2026-10-05
+Branch snapshot: <code>feat(R)/Ray_upgrade</code>, sourced from the dirty <code>agent/Watson-dev</code> tree
+Status: <strong>active working architecture; R0 + R4-v1 is architecture-qualified but economically unpromoted, and R1-R3 remain unimplemented</strong></p>
+<p>Research identities and evidence status are indexed in the
+<a href="../research/itrader_research_dashboard.md">iTrader Research Dashboard</a>; the
+<a href="../plans/itrader_masterplan.md">masterplan</a> remains the phase-order and
+promotion authority.</p>
 <h2>1. Source-grounded runtime</h2>
+<p>Current active platform: Ray 2.58.0 using only RLModule/Learner/EnvRunner.
+<code>SolverMLPFiLMTensorCore</code> owns framework-neutral PyTorch math; the native module,
+Learner diagnostics, restore reconciliation, inference, and active trainer are
+separate native adapters. No <code>rllib_api_stack</code> switch or ModelV2/Policy fallback
+exists in the active training path. Ray 2.58 legacy adapters and historical
+recipes are isolated under <code>itrader/compat/rllib_legacy/</code>;
+<code>itrader/compat/ray29/</code> is the distinct Ray 2.9 runtime reproduction profile.
+This is mechanical platform work only; it does not establish four-cell
+representation parity, economic promotion, or R1 implementation. See the
+<a href="../artifacts/research/ray-native-stack-implementation-2026-10-05.md">native-stack implementation note</a>
+and <a href="../artifacts/research/ray-native-stack-iteration-2026-10-05.md">migration iteration record</a>.</p>
+See <a href="../project-state/r1-development-readiness.md">R1 readiness</a> for ownership,
+the accepted Q15/Q18 model contract, Q19 selection and Q20 budgets. R1 remains
+unimplemented; Q21 two-tier evaluation is accepted, with fresh-panel construction
+and execution gates still pending. This migration is isolated from supervised
+compatibility controls and does not change their scientific order.</p>
 <p>The implemented offline path is:</p>
 <pre><code class="language-text">historical OHLCV parquet
 -&gt; ITraderEnv
 -&gt; chronological flattened market window + task embedding
--&gt; SolverMLPFiLM
+-&gt; SolverMLPFiLMTensorCore -&gt; SolverMLPFiLMTorchRLModule
 -&gt; PPO/GAE update
 -&gt; EpisodeEvidence -&gt; held-out metrics, stable provenance, capability report
 </code></pre>
@@ -486,21 +39,24 @@ selector.</li>
 <li><code>itrader/envs/itrader_env.py</code> owns rolling-window assembly, task-conditioned
 reset, episode state, and reward context.</li>
 <li><code>itrader/rl_lib/tasks/spec.py</code> owns <code>TaskSpec</code>.</li>
-<li><code>itrader/models/solver_mlp_film.py</code> owns the active FiLM baseline.</li>
+<li><code>itrader/models/solver_mlp_film_core.py</code> owns the PyTorch-only FiLM math;
+<code>itrader/models/ray_native.py</code> hosts it as a native RLModule.</li>
 <li><code>itrader/rl_lib/train/train_AZR.py</code> generates a task pool then launches the
 solver: this is bootstrap handoff, not co-adaptive AZR training.</li>
 </ul>
 <h2>2. Observation and conditioning contract</h2>
 <p>The current observation is:</p>
-<pre><code class="language-text">obs_t = [price_window_flat(T * F) | task_embedding(D)]
+<pre><code class="language-text">obs_t = [price_window_flat(T * F) | task_embedding(D) | optional solver_state(S)]
 price_window = reshape(price_window_flat, T, F)
 newest_bar = price_window[-1]
 </code></pre>
-<p>The environment fills the window chronologically. A candidate model must split
-these dimensions explicitly; inferring <code>F</code> from the full observation width is
-invalid once <code>D</code> is appended. The legacy <code>SolverLSTMModel</code> does exactly that and
-is both shape-incompatible for the usual <code>T=30,F=5,D=32</code> layout and non-stateful.</p>
-<p>The active <code>SolverMLPFiLM</code> implementation is source-defined as:</p>
+<p>The environment fills the window chronologically. R0 uses <code>S=0</code>; R4-v1 uses the
+fixed <code>S=2</code> block. A candidate model must split these dimensions explicitly;
+inferring <code>F</code> from the full observation width is invalid once conditioning or
+solver state is appended. The historical <code>SolverLSTMModel</code> under
+<code>itrader/compat/rllib_legacy/models/</code> does exactly that and is both
+shape-incompatible for the usual <code>T=30,F=5,D=32</code> layout and non-stateful.</p>
+<p>The active PyTorch solver core is source-defined as:</p>
 <pre><code class="language-text">hidden = MLP(price_window_flat)
 (gamma_raw, beta) = task_projection(task_embedding)
 gamma = tanh(gamma_raw)
@@ -531,6 +87,81 @@ Training samples only <code>train</code>; PBT evaluates with <code>explore=False
 validation seed. The final <code>test</code> partition is reserved for post-selection.
 Annualized Sharpe is optional and requires an explicit periods-per-year contract;
 the invariant metric is the unannualized per-square-root-bar value.</p>
+<p>An evaluation run may load one explicit, content-hashed <code>TaskSpec</code> panel. Its
+task count must equal <code>evaluation_num_episodes</code>, each task must own <code>start_idx</code>,
+and reset uses those starts instead of sampler-generated identities. The current
+P0 crosses eight starts with all four horizons so task horizon cannot identify a
+different market path. This is a development-panel correction, not a substitute
+for independent chronological validation.</p>
+<p>Promotion-oriented PBT uses synchronous scheduling and a target-owned
+cumulative sampled-environment-step clock. Every report writes an immutable
+stable sidecar checkpoint before <code>session.report</code>; Tune receives only
+cadence/terminal checkpoints. Donor selection must resolve an exact
+<code>pbt_progress_steps</code> match or fail closed. RLlib iteration and actor-local
+<code>timesteps_total</code> can change with lineage restoration and are not authoritative
+population-exposure clocks.</p>
+<p>An exploit is accepted only through a generation-bound chain: the scheduler&#39;s
+selected donor path/digest, exactly one target restore receipt with that digest,
+a later target report carrying the same restore generation/exploit ID, and a
+same-generation retained target checkpoint. Historical event schemas require an
+explicit legacy inspection mode and cannot satisfy a new-arm gate.</p>
+<p>Native custom episode metrics use explicit <code>__sum</code> and <code>__count</code> leaves,
+reduced by sum and projected to means only at the report boundary. This preserves
+episode-weighted results across EnvRunners with unequal episode counts. Native
+PBT progress consumes Ray&#39;s <code>env_runners.num_env_steps_sampled</code> delta rather
+than a legacy counter or configured batch-size fallback. Resource selection
+configures <code>num_gpus_per_learner</code>, including explicit zero for CPU runs. The
+native observation path declares <code>NoFilter</code> and rejects the old inert
+<code>MeanStdFilter</code> setting.</p>
+<p>Checkpoint authority is keyed by explicit <code>api_stack_id</code>, never inferred from
+available files. Ray 2.58 native checkpoints require RLModule
+<code>module_state.pkl</code>; ModelV2/TorchPolicy compatibility checkpoints retain a
+distinct policy-state schema. The stack ID is recorded in run/trial identity,
+indexes, restore receipts, and best-checkpoint provenance. Replay requires the
+index, resolved manifest, and resolved config to agree on the stack before digest
+verification. Solver identity remains structural; stack and observation schema
+belong to run/checkpoint provenance.</p>
+<h3>Dataset-v2 authority and session contract</h3>
+<p>The historical-data path is a deep module with one public outcome—an immutable,
+content-addressed snapshot—and provider-specific pagination/retry details hidden
+behind an adapter:</p>
+<pre><code class="language-text">AlpacaHistoricalDataClient
+  -&gt; retained raw gzip response pages + build_request.json
+  -&gt; split-adjusted Parquet partitions (session/symbol/year) + manifest.json
+  -&gt; in-memory DuckDB catalog/query
+  -&gt; projected, predicate-filtered pandas frame
+  -&gt; ITraderEnv / DataPartition
+</code></pre>
+<p>Parquet is authoritative. DuckDB is a catalog/query engine, not a mutable source
+of truth. The current v2 snapshot records provider, feed, adjustment, time zone,
+symbols, bounds, session counts, schema version, retrieval time, usage
+classification, missing-bar policy, raw-page hashes, and a content hash. Raw
+pages and manifests are written atomically. Credentials
+are read from ignored environment variables and must never enter manifests or
+experiment artifacts.</p>
+<p><code>ITraderEnv</code> owns only the requested market slice and observation assembly. It
+does not fetch network data. <code>DataPartition</code> respects configured boundary
+columns and exact one-minute continuity so an episode cannot bridge an overnight
+gap, session transition, missing interval, or early close. Phase A selects
+<code>regular</code>; pre-market and after-hours are retained for a predeclared Phase B
+ablation. Dividend accounting remains a future explicit cashflow seam in
+environment evidence/reward, not an implicit price rewrite.</p>
+<h3>Platform migration gate</h3>
+<p>Ray 2.58 is the accepted forward R-series runtime; Ray 2.9 is a frozen historical
+reproduction profile. The original migration gate passed both then-current full
+suites, deterministic initialization/control, synchronous exploit/restore lineage
+and fresh replay. The subsequent
+<a href="../artifacts/research/ray258-historical-optimizer-audit-2026-10-05.md">optimizer audit</a>
+found effective-setting drift despite successful checkpoint transfer. Current
+compatibility repairs have scoped independent approval; the suite after the
+fixed-run entropy-schedule addition passed 406 tests on Ray 2.58. The active
+native migration is a distinct platform change and does not establish PBT search
+effectiveness or economic promotion. Stochastic rollout remains runtime-labelled;
+R1 must run beside a Ray-2.58 R0 control. Do not treat the native migration as a
+representation-study result. Its synthetic integration coverage is distinct at
+two levels: a real Algorithm train/save/restore/inference test and a subprocess
+through the official CLI/Tune path that checks native run identity, reporting,
+and persisted module-state checkpoint structure.</p>
 <h2>Phase B architecture decision status</h2>
 <p>Phase B covers both offline/curriculum work and online replay/shadow work. A
 shared recurrent trunk with family-specific policy/value heads is a proposed
@@ -541,6 +172,11 @@ these choices until the ongoing grill-me review confirms them.</p>
 <p><code>RewardEngine</code> remains the environment-owned solver reward seam. It is not a
 mandatory learned reward head, and reward computation must not be silently
 conflated with policy/value-head design.</p>
+<p>Ordering is explicit: platform parity first; R1/R2 representation and lifecycle
+controls second; causal C0/C1/shuffled-C1 only after a stable R-series contract;
+and System-One/CLM/Jev S-series work only after the solver interface, platform,
+and evidence contract are frozen. C and S are named independent factors, not
+ways to rescue an R-series result.</p>
 <p>The historical identities below preserve the original file at commit <code>4732a98</code>.
 They are design names, not current CLI flags, and do not settle the architecture.</p>
 <table>
@@ -552,12 +188,11 @@ They are design names, not current CLI flags, and do not settle the architecture
 <th>Status and purpose</th>
 </tr>
 </thead>
-<tbody>
-<tr>
+<tbody><tr>
 <td>R0</td>
 <td><code>SolverMLPFiLM</code></td>
 <td>None</td>
-<td><strong>Implemented/default control</strong></td>
+<td><strong>Implemented; immutable parity control</strong></td>
 </tr>
 <tr>
 <td>R1</td>
@@ -597,12 +232,11 @@ They are design names, not current CLI flags, and do not settle the architecture
 </tr>
 <tr>
 <td>R4-v1</td>
-<td>Explicit solver-state features on matched FF + recurrent cells</td>
+<td>Explicit position + remaining-horizon state on matched cells</td>
 <td>Cell-dependent</td>
-<td>Planned; versioned observability study, not historical R4</td>
+<td>Architecture-qualified with R0 as the forward FF baseline; 4x3x40 replication complete, economic promotion failed</td>
 </tr>
-</tbody>
-</table>
+</tbody></table>
 <p>Migration note: the simplified <code>bec5c77</code> docs called per-step FiLM R2b; that
 label maps to original R2c. The former init-oriented R4 maps to original R2b.
 The current R4 label is retained only as <code>R4-v1</code> for the matched state-feature
@@ -639,8 +273,7 @@ and zero-state results with that distinction.</p>
 <th>Interpretation</th>
 </tr>
 </thead>
-<tbody>
-<tr>
+<tbody><tr>
 <td>Input concat (R2a)</td>
 <td>Cell input</td>
 <td>Raw <code>(h,c)</code></td>
@@ -670,8 +303,7 @@ and zero-state results with that distinction.</p>
 <td>Matched raw state</td>
 <td>Deferred until policy/value placement and capacity are matched</td>
 </tr>
-</tbody>
-</table>
+</tbody></table>
 <p>For any placement, state the complete task path before attributing causality. A
 post-cell/readout FiLM path is only a readout-only claim when no other task path
 (such as concat) reaches the cell. If task concatenation reaches the cell, the
@@ -693,12 +325,11 @@ bar) or with a <strong>causal initial-window warmup</strong> (feed prior bars se
 before scoring the first action). The warmup is input processing, not extra
 future information. Repeating overlapping observation bars as separate
 chronological steps is invalid.</p>
-<p>The pinned source stack is Ray/RLlib 2.58.0 with Gymnasium 1.2.2 from
-<code>pyproject.toml</code>/<code>uv.lock</code>. R0 explicitly uses the legacy ModelV2/RolloutWorker
-stack while the native RLModule/EnvRunner/Learner/ConnectorV2 path is parity
-gated. Future recurrent implementation must use the native contract only after
-that gate; the old Ray 2.9/2.47 lines are historical. Do not invent
-<code>recurrent_policy=True</code> or other flags.</p>
+<p>The current forward stack is Ray/RLlib 2.58.0 with Gymnasium 1.2.2 from
+<code>pyproject.toml</code>/<code>uv.lock</code>; <code>itrader/compat/ray29/</code> preserves the historical
+reproduction profile. The old <code>phase_b_plan.md</code> Ray 2.47.1 line is historical
+ordering, not an active lock. Do not invent <code>recurrent_policy=True</code> or other
+flags. Use the native recurrent model/state contract of the accepted platform.</p>
 <p>Required lifecycle semantics:</p>
 <ul>
 <li>define state ordering and shapes for <code>(h,c)</code>;</li>
@@ -717,18 +348,34 @@ proof that hidden rollout state was restored.</li>
 <p><code>batch_mode=&quot;complete_episodes&quot;</code> describes collection boundaries. It does not
 imply recurrent state handling or full-episode backpropagation.</p>
 <h2>6. Solver-state observability</h2>
-<p>The current policy observation does not include position, previous action,
-realized reward, unrealized PnL, or episode progress. OHLCV-only recurrence cannot
-reconstruct sampled actions, fills, or position exactly. For <code>R4-v1</code>, define the
-field order, normalization, timing, and terminal semantics, then append identical
-explicit fields to a feed-forward R0 control and the recurrent comparison. Never
-add them only to recurrence and call the result a memory gain.</p>
+<p>State-free R0 does not include position, prior actions, episode accounting, or
+progress. OHLCV-only recurrence cannot reconstruct sampled actions, fills, or
+position exactly. <code>R4-v1-min</code> fixes the auxiliary order as
+<code>[position, remaining_horizon_fraction]</code>, including reset and terminal semantics,
+and appends it through a separate bias-free residual branch. The blocking
+three-seed 4x3 FF gate is replay-valid. Time-only passed the relative net-return
+factor gate, but no arm passed the absolute economic gate.</p>
+<p>The complete connector is nevertheless architecture-qualified with R0 as the
+forward <code>R0 + R4-v1</code> feed-forward baseline because it removes the known
+endogenous action-cost and finite-horizon alias. R0 remains the immutable parity
+control, and this does not constitute economic promotion or full observability of
+the market. New replication uses zero-initialized final residual heads to preserve
+the update-zero R0 policy/value. The completed 4x3x40 replication found a
+seed-consistent positive terminal net delta for combined state and a positive
+pooled seed-then-anchor interval, but not control superiority or seed-consistent
+Sharpe; one seed collapsed near-flat. R1 must retain both state-free and
+explicitly named <code>R1 + R4-v1</code> cells.</p>
+<p>Episode PnL, cost basis, unrealized/realized PnL, position age, accumulated
+turnover, drawdown, and market-session time are registered future causal factors.
+They enter only with explicit accounting, reset, reward/transition dependency,
+and inference-availability contracts. Market/task × state nonlinear late fusion
+is reserved for separately named R4-v2.</p>
 <h2>7. AZR-inspired proposer/solver boundary</h2>
 <p>The local AZR v2 source supports a useful but bounded analogy: proposal and
 solving, deterministic validation, task/reference buffers, and role-specific
 feedback. Eq. 4 is <code>0</code> when observed solve rate <code>p</code> is <code>0</code> or <code>1</code>, otherwise
 <code>1-p</code>; it is asymmetric and is not a symmetric 50% peak or measured pre/post
-learning uplift. The source's Table 2 averages are AZR coding/math results, not
+learning uplift. The source&#39;s Table 2 averages are AZR coding/math results, not
 iTrader returns.</p>
 <p>iTrader intentionally differs: historical OHLCV is external data; a language
 model may propose tasks while numerical PPO solves them; <code>train_AZR.py</code> is a
@@ -769,11 +416,20 @@ measurable matched evaluation; it need not win before R2 is tested.</li>
 held-out chronological slices, with stable state norms, valid sequence masks,
 and recorded compute/memory cost.</li>
 <li>R3 waits for a meaningful LSTM result.</li>
-<li>R4-v1 requires identical explicit state features in FF and recurrent cells.</li>
+<li>R4-v1-min is implemented and replay-valid on FF. Its fresh 4x3x40 replication
+found a relative combined-state net effect but failed absolute promotion. The
+subsequent actor-robustness PBT, checkpoint forensics, and two-process
+fresh-panel G0 diagnostic are complete and economically rejected. The G0
+checkpoints have byte-identical paired artifacts but historical receipts lack
+producer identities. All had negative fresh-panel net return and Sharpe.
+Next work compares matched R0, R0 + R4-v1, clean R1, and separately named
+<code>R1 + R4-v1</code>, with causal staging retained as an explicit matched curriculum
+factor. R4-v2 remains a distinct later joint-fusion factor.</li>
+</ul>
+<p>Implementation prerequisites and tests are specified in
+<a href="../project-state/r1-development-readiness.md">R1 development readiness</a>.</p>
+<ul>
 <li>No recurrent cell becomes operational guidance from an unimplemented design,
 a zero-state probe, PPO logits/value scores, or a training-only curve.</li>
 </ul>
-</article>
-  </main>
-</body>
-</html>
+</main></body></html>

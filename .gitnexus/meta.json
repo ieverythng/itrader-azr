@@ -1,13 +1,13 @@
 {
-  "repoPath": "/Users/juanbendek/repos/itrader-azr",
-  "lastCommit": "1d5ba82ba6f3e0d0b86b26d263afa0aeae86b44c",
-  "indexedAt": "2026-06-17T17:19:43.061Z",
+  "repoPath": "C:\\Users\\Admin\\.codex\\worktrees\\3054\\itrader-azr",
+  "lastCommit": "1033dc4433abea325cba56229537e6fffe4bf7d0",
+  "indexedAt": "2026-10-05T14:02:06.803Z",
   "stats": {
-    "files": 189,
-    "nodes": 1996,
-    "edges": 3202,
-    "communities": 61,
-    "processes": 91,
+    "files": 823,
+    "nodes": 2968,
+    "edges": 7101,
+    "communities": 147,
+    "processes": 195,
     "embeddings": 0
   }
 }

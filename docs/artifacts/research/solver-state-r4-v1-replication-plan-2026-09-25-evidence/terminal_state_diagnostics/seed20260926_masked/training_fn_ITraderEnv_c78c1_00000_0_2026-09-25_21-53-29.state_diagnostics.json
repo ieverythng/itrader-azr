@@ -1,0 +1,167 @@
+{
+  "schema_version": 2,
+  "trial": "training_fn_ITraderEnv_c78c1_00000_0_2026-09-25_21-53-29",
+  "checkpoint": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-1-dec2025-4x3-40-20260925\\_stable_metrics\\training_fn_ITraderEnv_c78c1_00000_0_2026-09-25_21-53-29\\checkpoints\\iter_000040_201313814430",
+  "checkpoint_selection": "terminal",
+  "solver_state_mode": "masked",
+  "observation_schema": {
+    "observation_schema_id": "r4_v1_min",
+    "base_obs_dim": 332,
+    "solver_state_dim": 2,
+    "agent_obs_dim": 334
+  },
+  "episode_count": 32,
+  "diagnostics": {
+    "step_count": 4672,
+    "action_order": [
+      "short",
+      "flat",
+      "long"
+    ],
+    "overall": {
+      "step_count": 4672,
+      "action_fractions": [
+        0.0,
+        1.0,
+        0.0
+      ],
+      "mean_action_probabilities": [
+        0.009612952257860035,
+        0.9845140764690371,
+        0.0058729712731037205
+      ],
+      "switching_fraction": 0.0,
+      "policy_entropy_mean": 0.08639792700595611,
+      "value_prediction_mean": -0.26829538675190956,
+      "value_prediction_std": 0.07372112800311438
+    },
+    "by_prior_position": {
+      "flat": {
+        "step_count": 4672,
+        "action_fractions": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "mean_action_probabilities": [
+          0.009612952257860035,
+          0.9845140764690371,
+          0.0058729712731037205
+        ],
+        "switching_fraction": 0.0,
+        "policy_entropy_mean": 0.08639792700595611,
+        "value_prediction_mean": -0.26829538675190956,
+        "value_prediction_std": 0.07372112800311438
+      }
+    },
+    "by_remaining_time_bin": {
+      "q4_early": {
+        "step_count": 1168,
+        "action_fractions": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "mean_action_probabilities": [
+          0.00897172807081142,
+          0.9856463519085922,
+          0.0053819200205958055
+        ],
+        "switching_fraction": 0.0,
+        "policy_entropy_mean": 0.08093649952068684,
+        "value_prediction_mean": -0.2759326554145919,
+        "value_prediction_std": 0.08032068519022316
+      },
+      "q3": {
+        "step_count": 1168,
+        "action_fractions": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "mean_action_probabilities": [
+          0.00937435405788121,
+          0.9849115307522177,
+          0.0057141151899007675
+        ],
+        "switching_fraction": 0.0,
+        "policy_entropy_mean": 0.0846699676429547,
+        "value_prediction_mean": -0.2631630578639675,
+        "value_prediction_std": 0.07504219983221368
+      },
+      "q2": {
+        "step_count": 1168,
+        "action_fractions": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "mean_action_probabilities": [
+          0.010084517345503538,
+          0.9837751803356476,
+          0.006140302318850244
+        ],
+        "switching_fraction": 0.0,
+        "policy_entropy_mean": 0.0898645392040135,
+        "value_prediction_mean": -0.2697138669836807,
+        "value_prediction_std": 0.06895260088162661
+      },
+      "q1_terminal": {
+        "step_count": 1168,
+        "action_fractions": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "mean_action_probabilities": [
+          0.010021209557243985,
+          0.9837232428796882,
+          0.006255547563068114
+        ],
+        "switching_fraction": 0.0,
+        "policy_entropy_mean": 0.09012070165616942,
+        "value_prediction_mean": -0.2643719667453982,
+        "value_prediction_std": 0.06928159553319463
+      }
+    }
+  },
+  "counterfactual_state_sensitivity": {
+    "step_count": 4672,
+    "both_vs_observed": {
+      "argmax_change_fraction": 0.0,
+      "mean_logit_l2_delta": 0.0,
+      "mean_logit_max_abs_delta": 0.0,
+      "mean_abs_value_delta": 0.0
+    },
+    "masked_vs_observed": {
+      "argmax_change_fraction": 0.0,
+      "mean_logit_l2_delta": 0.0,
+      "mean_logit_max_abs_delta": 0.0,
+      "mean_abs_value_delta": 0.0
+    },
+    "position_flipped_vs_observed": {
+      "argmax_change_fraction": 0.0,
+      "mean_logit_l2_delta": 0.0,
+      "mean_logit_max_abs_delta": 0.0,
+      "mean_abs_value_delta": 0.0
+    },
+    "position_only_vs_observed": {
+      "argmax_change_fraction": 0.0,
+      "mean_logit_l2_delta": 0.0,
+      "mean_logit_max_abs_delta": 0.0,
+      "mean_abs_value_delta": 0.0
+    },
+    "time_mirrored_vs_observed": {
+      "argmax_change_fraction": 0.0,
+      "mean_logit_l2_delta": 0.0,
+      "mean_logit_max_abs_delta": 0.0,
+      "mean_abs_value_delta": 0.0
+    },
+    "time_only_vs_observed": {
+      "argmax_change_fraction": 0.0,
+      "mean_logit_l2_delta": 0.0,
+      "mean_logit_max_abs_delta": 0.0,
+      "mean_abs_value_delta": 0.0
+    }
+  }
+}

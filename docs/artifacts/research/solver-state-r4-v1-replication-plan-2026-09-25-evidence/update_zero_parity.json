@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "solver_state_residual_init": "zero_v1",
+  "dataset_sha256": "20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9",
+  "evaluation_panel_sha256": "2ea6f8a81bbf60b2ce4646c27779dfdf5febbd79c7a926a918f542aef5b1910f",
+  "evaluation_seed": 31260943,
+  "arms": ["off", "masked", "position", "time", "both"],
+  "all_arm_episode_receipts_identical_within_seed": true,
+  "seeds": {
+    "20260924": {
+      "episodes_sha256": "9ad3af831b20707e1643b420027b20287243cd2974bf9679c7b471b2aaf112e8",
+      "net_return": -0.002151573436466933,
+      "sharpe_per_sqrt_bar": -0.049357535095106236,
+      "turnover": 2.0
+    },
+    "20260925": {
+      "episodes_sha256": "af316b09c68ef1525159fdb5870e0a7e343c024cc0530fb77f4f2818f69cb3a2",
+      "net_return": -0.00006358906127148066,
+      "sharpe_per_sqrt_bar": -0.01915687918488724,
+      "turnover": 2.0
+    },
+    "20260926": {
+      "episodes_sha256": "da53da48b1ad60bee4741244e0c21ca924173e8a7e0e7603b266633f6ed8ed49",
+      "net_return": 0.00019007432115611834,
+      "sharpe_per_sqrt_bar": -0.01172646809407881,
+      "turnover": 4.25
+    }
+  },
+  "deterministic_controls": {
+    "flat": {"net_return": 0.0, "sharpe_per_sqrt_bar": 0.0, "turnover": 0.0},
+    "long": {"net_return": 0.0017515734364669327, "sharpe_per_sqrt_bar": 0.04088923419363058, "turnover": 2.0},
+    "short": {"net_return": -0.002151573436466933, "sharpe_per_sqrt_bar": -0.049357535095106236, "turnover": 2.0}
+  },
+  "interpretation": "Zero-initialized residual heads preserve the complete update-zero episode/action receipts for R0/off and every fixed-width R4 arm under each seed. This is initialization parity, not trained economic performance."
+}

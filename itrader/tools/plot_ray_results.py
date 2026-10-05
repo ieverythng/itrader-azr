@@ -143,7 +143,13 @@ def pick_x_axis(df: pd.DataFrame) -> str | None:
     """
     Pick a robust x-axis column. Falls back to index when none are present.
     """
-    for c in ("training_iteration", "iteration", "iterations_since_restore", "time_total_s"):
+    for c in (
+        "pbt_progress_steps",
+        "training_iteration",
+        "iteration",
+        "iterations_since_restore",
+        "time_total_s",
+    ):
         if c in df.columns:
             return c
     return None

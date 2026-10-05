@@ -1,10 +1,10 @@
 # itrader/rl_lib/train_solo.py
 
 import argparse
+import copy
 import csv
-import hashlib
-import inspect
 import json
+import math
 import os
 import shutil
 import subprocess
@@ -14,31 +14,42 @@ from pathlib import Path
 
 import numpy as np
 import ray
-from ray import train, tune
-from ray.air import session
-from ray.rllib.algorithms.ppo import PPO, PPOConfig
-from ray.rllib.models import ModelCatalog
-from ray.tune.schedulers import PopulationBasedTraining
+from ray import tune
 from ray.tune.search.basic_variant import BasicVariantGenerator
 from ray.tune.stopper import TimeoutStopper
 from ray.tune import PlacementGroupFactory
 from ray.train import Checkpoint
-try:
-    from ray.tune.logger import UnifiedLogger
-except ImportError:
-    UnifiedLogger = None
-
 # your env & model imports
-from itrader.envs.itrader_env import ITraderEnv
-from itrader.models.solver_lstm import SolverLSTMModel
-from itrader.models.solver_MLP import SolverMLPModel
-from itrader.models.solver_mlp_film import SolverMLPFiLM
+from itrader.envs.itrader_env import (
+    ITraderEnv,
+    resolve_solver_state_mode,
+    solver_state_observation_contract,
+)
 from itrader.rl_lib.tasks.families import DEFAULT_BAR_RESOLUTION
+from itrader.rl_lib.train.ray_native_config import NATIVE_API_STACK_ID
 from itrader.rl_lib.tasks.rewards import RewardEngine
 from itrader.rl_lib.tasks.samplers import TaskSampler00
+from itrader.rl_lib.tasks.spec import TaskSpec
 from itrader.rl_lib.callbacks.auto_plotter import AutoPlotterCallback
-from itrader.rl_lib.callbacks.ps_metrics import PSMetrics
-from itrader.rl_lib.train.pbt_contract import constrain_trial_config
+from itrader.rl_lib.callbacks.metrics_contract import mean_from_totals
+from itrader.rl_lib.callbacks.ps_metrics_native import NativePSMetrics
+from itrader.rl_lib.evaluation.provenance import (
+    canonical_json_sha256,
+    checkpoint_sha256,
+    dataset_sha256 as _dataset_sha256,
+    source_tree_fingerprint,
+)
+from itrader.rl_lib.train.pbt_contract import (
+    PBTProgressClock,
+    checkpoint_retention_decision,
+    constrain_trial_config,
+    crossed_interval,
+    economic_search_score,
+    economic_selection_score,
+    parse_step_schedule,
+    scheduled_value,
+)
+from itrader.rl_lib.train.pbt_scheduler import SeededPopulationBasedTraining
 
 from gymnasium.envs.registration import EnvSpec
 
@@ -49,26 +60,84 @@ DEFAULT_TASK_HORIZONS = [96, 128, 160, 200]
 DEFAULT_TURNOVER_W_CHOICES = [0.0, 0.0005, 0.001, 0.002]
 DEFAULT_DD_W_RANGE = (0.0, 0.04)
 BASE_METRIC_COLUMNS = [
+    "pbt_progress_steps",
+    "training/optimization_cost_bps",
     "training/optimization_reward_mean",
     "training/net_return_mean",
     "evaluation/net_return_mean",
     "evaluation/net_sharpe_per_sqrt_bar_mean",
+    "evaluation/economic_search_score",
+    "evaluation/economic_selection_score",
     "episode_len_mean",
     "policy_loss",
     "value_loss",
     "entropy",
+    "approx_kl",
+    "clip_fraction",
+    "explained_variance",
 ]
 PBT_PRIMARY_METRIC = "evaluation/net_return_mean"
+PBT_SEARCH_METRIC = "evaluation/economic_search_score"
+PBT_PROMOTION_METRIC = "evaluation/economic_selection_score"
+PBT_ENTROPY_SCHEDULES = [
+    [[0, 0.0], [96_000, 0.0], [240_000, 0.0]],
+    [[0, 0.001], [96_000, 0.0005], [240_000, 0.0]],
+    [[0, 0.005], [96_000, 0.002], [240_000, 0.0005]],
+    [[0, 0.01], [96_000, 0.005], [240_000, 0.001]],
+]
+def _optimizer_key(name: str) -> str:
+    """Map stable CLI option names to Ray's native PPO config vocabulary."""
+    return {
+        "sgd_minibatch_size": "minibatch_size",
+        "num_sgd_iter": "num_epochs",
+        "lambda": "lambda_",
+        "entropy_coeff_schedule": "entropy_coeff",
+        "train_batch_size": "train_batch_size_per_learner",
+    }.get(name, name)
+
+
 PBT_MUTATIONS = {
-    "lr": tune.loguniform(1e-5, 5e-3),
+    "lr": tune.loguniform(5e-6, 3e-4),
+    "entropy_coeff": PBT_ENTROPY_SCHEDULES,
     "clip_param": [0.1, 0.2, 0.3],
-    "lambda": [0.90, 0.95, 0.97],
+    "lambda_": [0.90, 0.95, 0.97],
     "gamma": [0.98, 0.99, 0.995],
-    "sgd_minibatch_size": [128, 256, 512],
-    "num_sgd_iter": [10, 20, 30],
+    _optimizer_key("sgd_minibatch_size"): [128, 256, 512],
+    _optimizer_key("num_sgd_iter"): [10, 20, 30],
     "vf_clip_param": [5.0, 10.0, 20.0],
     "vf_loss_coeff": [0.5, 1.0, 2.0],
 }
+
+
+def _pbt_learning_rate_bounds(args) -> tuple[float, float]:
+    lower = float(getattr(args, "pbt_lr_min", 5e-6))
+    upper = float(getattr(args, "pbt_lr_max", 3e-4))
+    if (
+        not math.isfinite(lower)
+        or not math.isfinite(upper)
+        or lower <= 0.0
+        or upper <= lower
+    ):
+        raise ValueError("pbt_lr_min and pbt_lr_max must be finite, positive, and ordered")
+    return lower, upper
+
+
+def _pbt_mutations(args) -> dict:
+    lower, upper = _pbt_learning_rate_bounds(args)
+    return {**PBT_MUTATIONS, "lr": tune.loguniform(lower, upper)}
+
+
+def _pbt_mutation_manifest(args) -> dict:
+    """Serialize the resolved PBT search space without process-local reprs."""
+    lower, upper = _pbt_learning_rate_bounds(args)
+    return {
+        **{key: value for key, value in PBT_MUTATIONS.items() if key != "lr"},
+        "lr": {
+            "distribution": "loguniform",
+            "lower": lower,
+            "upper": upper,
+        },
+    }
 
 
 def _cli_metric_columns(action_dim: int) -> list[str]:
@@ -87,6 +156,7 @@ def _cli_metric_columns(action_dim: int) -> list[str]:
 
 def _task_sampler_config(args) -> dict:
     task_pool_path = str(getattr(args, "task_pool_path", "") or "").strip()
+    reward_ids = _parse_task_reward_ids(getattr(args, "task_reward_ids", ""))
     cfg = {
         "window_size": args.window,
         "n_features": 5,
@@ -95,7 +165,7 @@ def _task_sampler_config(args) -> dict:
         "seed": int(args.seed),
         "bar_resolution": DEFAULT_BAR_RESOLUTION,
         "horizons": _parse_task_horizons(getattr(args, "task_horizons", "")),
-        "reward_ids": _parse_task_reward_ids(getattr(args, "task_reward_ids", "")),
+        "reward_ids": reward_ids,
         "turnover_w_choices": DEFAULT_TURNOVER_W_CHOICES,
         "dd_modes": ["delta"],
         "dd_w_range": DEFAULT_DD_W_RANGE,
@@ -105,7 +175,48 @@ def _task_sampler_config(args) -> dict:
     if task_pool_path:
         cfg["task_pool_path"] = task_pool_path
         cfg["p_pool"] = float(getattr(args, "p_pool", 0.7))
+    if "net_return" in reward_ids:
+        cost_schedule = parse_step_schedule(
+            getattr(args, "optimization_cost_schedule", "")
+        )
+        configured_cost = getattr(args, "optimization_cost_bps", None)
+        cost_bps = (
+            cost_schedule[0][1]
+            if cost_schedule
+            else float(configured_cost)
+            if configured_cost is not None
+            else float(getattr(args, "evidence_cost_bps", 1.0))
+        )
+        cfg["reward_params_by_id"] = {
+            "net_return": {
+                "cost_bps": cost_bps,
+                "reward_scale": float(getattr(args, "net_return_reward_scale", 1000.0)),
+            }
+        }
     return cfg
+
+
+def _training_optimization_cost_bps(
+    config: dict,
+    *,
+    completed_steps: int,
+) -> float | None:
+    """Resolve the cost used by the training reward for report provenance."""
+    schedule = config.get("optimization_cost_schedule", ())
+    if schedule:
+        return float(scheduled_value(schedule, completed_steps))
+
+    configured_cost = config.get("optimization_cost_bps")
+    if configured_cost is not None:
+        return float(configured_cost)
+
+    task_sampler = config.get("env_config", {}).get("task_sampler", {})
+    reward_params = task_sampler.get("reward_params_by_id", {}).get(
+        "net_return",
+        {},
+    )
+    static_cost = reward_params.get("cost_bps")
+    return None if static_cost is None else float(static_cost)
 
 
 def _parse_task_horizons(value) -> list[int]:
@@ -157,39 +268,81 @@ def _pbt_intervals(args) -> tuple[int, int]:
 
 
 def _model_config(args) -> dict:
-    return {
-        "custom_model": "solver_mlp_film",
+    from itrader.models.registry import validate_solver_selector
+
+    selector = str(getattr(args, "solver_model", "solver_mlp_film"))
+    validate_solver_selector(selector)
+    solver_state_mode = resolve_solver_state_mode(
+        getattr(args, "solver_state_mode", "off")
+    )
+    solver_state_dim = 0 if solver_state_mode == "off" else 2
+    model = {
+        "custom_model": selector,
         "custom_model_config": {
             "window_size": args.window,
             "t_embed_dim": DEFAULT_T_EMBED_DIM,
+            "solver_state_dim": solver_state_dim,
+            "solver_state_width": 8,
+            "solver_state_residual_init": str(
+                getattr(args, "solver_state_residual_init", "random_v1")
+            ),
             "fcnet_hiddens": DEFAULT_FCNET_HIDDENS,
             "conditioning": "film",
             "t_keep_p": 0.7,
             "t_proj": 64,
         },
     }
+    if getattr(args, "representation_profile", "legacy") == "r0_r1_v1":
+        from itrader.models.observation_contract import semantic_observation_contract
+
+        contract = semantic_observation_contract(solver_state_mode)
+        model["custom_model_config"].update({
+            **contract,
+            "window_size": int(args.window),
+            "observation_transform": getattr(args, "observation_transform", "raw"),
+            "observation_filter": getattr(args, "observation_filter", "NoFilter"),
+            "semantic_observation_contract": contract,
+        })
+    return model
 
 
-def _legacy_api_stack_settings() -> dict[str, bool]:
-    """Select ModelV2/RolloutWorker explicitly when Ray exposes both stacks."""
-    if not hasattr(PPOConfig, "api_stack"):
+def _observation_contract(args) -> dict[str, int | str]:
+    return solver_state_observation_contract(
+        window_size=int(args.window),
+        n_features=5,
+        task_embed_dim=DEFAULT_T_EMBED_DIM,
+        solver_state_mode=getattr(args, "solver_state_mode", "off"),
+    )
+
+
+def _observation_schema_manifest(config: dict) -> dict[str, int | str]:
+    keys = (
+        "observation_schema_id",
+        "base_obs_dim",
+        "solver_state_dim",
+        "agent_obs_dim",
+    )
+    train_env = config.get("env_config", {})
+    schema = {key: train_env[key] for key in keys if key in train_env}
+    if not schema:
         return {}
-    return {
-        "enable_rl_module_and_learner": False,
-        "enable_env_runner_and_connector_v2": False,
-    }
+    if len(schema) != len(keys):
+        raise ValueError("Training observation schema evidence is incomplete")
+    evaluation_env = config.get("evaluation_config", {}).get("env_config", {})
+    evaluation_schema = {key: evaluation_env.get(key) for key in keys}
+    if evaluation_schema != schema:
+        raise ValueError("Training and evaluation observation schemas must match")
+    return schema
 
 
 def _env_runner_gpu_settings(value: float) -> dict[str, float]:
-    """Bridge the Ray 2.9 worker key to the Ray 2.58 EnvRunner key."""
-    key = "num_gpus_per_env_runner" if hasattr(PPOConfig, "api_stack") else "num_gpus_per_worker"
-    return {key: value}
+    """Use the native EnvRunner resource key."""
+    return {"num_gpus_per_env_runner": value}
 
 
 def _evaluation_runner_settings(count: int) -> dict[str, int]:
-    """Bridge Ray's renamed evaluation worker/EnvRunner count."""
-    key = "evaluation_num_env_runners" if hasattr(PPOConfig, "api_stack") else "evaluation_num_workers"
-    return {key: count}
+    """Use the native evaluation EnvRunner count key."""
+    return {"evaluation_num_env_runners": count}
 
 
 def _first_non_none(*values):
@@ -201,24 +354,20 @@ def _first_non_none(*values):
 # ────────────────────────────────────────────────────────────────────────────────
 # 1) Ray init utilities + run metadata
 # ────────────────────────────────────────────────────────────────────────────────
-def init_ray(use_pbt_mode: bool):
+def init_ray(use_pbt_mode: bool, num_cpus: int | None = None):
     # PBT can run many trials; avoid a shared Prometheus port collision.
     init_kwargs = {} if use_pbt_mode else {"_metrics_export_port": 8888}
+    if num_cpus is not None:
+        init_kwargs["num_cpus"] = int(num_cpus)
     # The minimal Ray installation cannot host the dashboard. Attempting it
     # first spawns a partial Windows node and can leave ports unavailable for
     # the fallback startup, so reliability takes precedence for experiments.
     ray.init(**init_kwargs, include_dashboard=False)
 
 
-def _sha256_file(path: Path) -> str:
-    h = hashlib.sha256()
-    with path.open("rb") as fh:
-        while True:
-            chunk = fh.read(1024 * 1024)
-            if not chunk:
-                break
-            h.update(chunk)
-    return h.hexdigest()
+def _source_tree_fingerprint(repo_root: Path | None = None) -> dict[str, object]:
+    root = (repo_root or Path(__file__).resolve().parents[3]).resolve()
+    return source_tree_fingerprint(root)
 
 
 def _git_commit() -> str:
@@ -234,8 +383,84 @@ def _git_commit() -> str:
 
 
 def _config_hash(config: dict) -> str:
-    payload = json.dumps(config, sort_keys=True, separators=(",", ":"), default=str)
-    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+    return canonical_json_sha256(config)
+
+
+def _runtime_manifest() -> dict[str, str]:
+    """Capture the platform/dependency identity that produced run evidence."""
+    from itrader.rl_lib.evaluation.provenance import runtime_identity
+
+    return runtime_identity()
+
+
+def _comparison_config_hash(config: dict, dataset_hash: str) -> str:
+    """Hash behavior-affecting config while normalizing branch-local paths."""
+    comparable = copy.deepcopy(config)
+    comparable.pop("source_provenance", None)
+    comparable.pop("stable_metrics_root", None)
+    comparable.pop("pbt_experiment_name", None)
+    env_configs = [comparable.get("env_config", {})]
+    env_configs.append(comparable.get("evaluation_config", {}).get("env_config", {}))
+    for env_config in env_configs:
+        if "df_path" in env_config:
+            env_config["df_path"] = f"sha256:{dataset_hash}"
+    return _config_hash(comparable)
+
+
+def _evaluation_panel_sha256(config: dict) -> str:
+    tasks = config["evaluation_config"]["env_config"]["task_sampler"]["fixed_tasks"]
+    return canonical_json_sha256(tasks)
+
+
+def _freeze_run_provenance(config: dict, data_path: Path) -> dict[str, str]:
+    """Embed immutable source, data, and panel identities in a launch config."""
+    frozen = {
+        "dataset_sha256": _dataset_sha256(data_path),
+        "evaluation_panel_sha256": _evaluation_panel_sha256(config),
+    }
+    # Keep application provenance namespaced so PPO receives only supported
+    # evaluation settings.
+    config["frozen_provenance"] = frozen
+    config["provenance_enforced"] = True
+    return frozen
+
+
+def _assert_frozen_run_provenance(
+    config: dict,
+    *,
+    repo_root: Path | None = None,
+) -> dict[str, str]:
+    """Reject an actor start when launch-critical inputs changed in place."""
+    if not bool(config.get("provenance_enforced", False)):
+        return {}
+    expected_source = str(
+        (config.get("source_provenance") or {}).get("source_tree_sha256", "")
+    )
+    frozen = dict(config.get("frozen_provenance", {}) or {})
+    expected_dataset = str(
+        frozen.get("dataset_sha256") or config.get("dataset_sha256", "")
+    )
+    expected_panel = str(
+        frozen.get("evaluation_panel_sha256")
+        or config.get("evaluation_panel_sha256", "")
+    )
+    if not all((expected_source, expected_dataset, expected_panel)):
+        raise RuntimeError("Frozen run provenance is incomplete")
+
+    current_source = _source_tree_fingerprint(repo_root)["source_tree_sha256"]
+    current_dataset = _dataset_sha256(Path(str(config["env_config"]["df_path"])))
+    current_panel = _evaluation_panel_sha256(config)
+    if current_source != expected_source:
+        raise RuntimeError("Frozen run source tree changed before actor start")
+    if current_dataset != expected_dataset:
+        raise RuntimeError("Frozen run dataset changed before actor start")
+    if current_panel != expected_panel:
+        raise RuntimeError("Frozen run evaluation panel changed before actor start")
+    return {
+        "source_tree_sha256": current_source,
+        "dataset_sha256": current_dataset,
+        "evaluation_panel_sha256": current_panel,
+    }
 
 
 def _atomic_write_json(path: Path, payload: dict) -> None:
@@ -257,16 +482,55 @@ def _results_root(args) -> Path:
 
 
 def _build_fixed_evaluation_tasks(task_sampler_cfg: dict, panel_size: int) -> list[dict]:
-    """Materialize one immutable TaskSpec panel shared by every PBT member."""
+    """Materialize one immutable, task-balanced panel for every PBT member."""
     if panel_size <= 0:
         raise ValueError("evaluation_num_episodes must be positive")
     panel_cfg = {**task_sampler_cfg}
     panel_cfg.pop("fixed_tasks", None)
-    sampler = TaskSampler00(panel_cfg)
-    return [sampler.sample().to_dict() for _ in range(panel_size)]
+    panel_cfg.pop("task_pool_path", None)
+    panel_cfg["p_pool"] = 0.0
+    horizons = [int(value) for value in panel_cfg.get("horizons", DEFAULT_TASK_HORIZONS)]
+    reward_ids = [str(value) for value in panel_cfg.get("reward_ids", ["pnl_linear"])]
+    base_seed = int(panel_cfg.get("seed", 0))
+    tasks = []
+    for index in range(panel_size):
+        task_cfg = {
+            **panel_cfg,
+            "seed": base_seed + index * 104_729,
+            "horizons": [horizons[index % len(horizons)]],
+            "reward_ids": [reward_ids[(index // len(horizons)) % len(reward_ids)]],
+        }
+        tasks.append(TaskSampler00(task_cfg).sample().to_dict())
+    return tasks
+
+
+def _load_evaluation_task_panel(path: str | Path, panel_size: int) -> list[dict]:
+    """Load an immutable evaluation panel whose starts are part of the contract."""
+    panel_path = Path(path).expanduser().resolve(strict=True)
+    try:
+        payload = json.loads(panel_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Invalid evaluation task panel JSON: {panel_path}") from exc
+    tasks = payload.get("tasks") if isinstance(payload, dict) else payload
+    if not isinstance(tasks, list):
+        raise ValueError("evaluation task panel must be a list or an object with tasks")
+    if len(tasks) != panel_size:
+        raise ValueError(
+            "evaluation task panel size must equal evaluation_num_episodes: "
+            f"{len(tasks)} != {panel_size}"
+        )
+    normalized = [TaskSpec.from_dict(task).to_dict() for task in tasks]
+    if any(task.get("start_idx") is None for task in normalized):
+        raise ValueError("evaluation task panel tasks require explicit start_idx values")
+    return normalized
 
 
 def build_base_config(args, data_path: Path, use_pbt_mode: bool) -> dict:
+    if hasattr(args, "rllib_api_stack"):
+        raise ValueError(
+            "rllib_api_stack is retired; the active trainer always uses the native "
+            "Ray 2.58 RLModule/Learner/EnvRunner API"
+        )
     auto_plot_on_end = bool(getattr(args, "auto_plot_on_end", True))
     task_sampler_cfg = _task_sampler_config(args)
     _, checkpoint_interval = _pbt_intervals(args)
@@ -275,7 +539,45 @@ def build_base_config(args, data_path: Path, use_pbt_mode: bool) -> dict:
     evidence_periods = float(getattr(args, "evidence_periods_per_year", 0.0))
     purge_rows = int(getattr(args, "split_purge_rows", 0))
     evaluation_episodes = int(getattr(args, "evaluation_num_episodes", 8))
-    evaluation_seed = int(args.seed) + 10_000_019
+    configured_evaluation_seed = getattr(args, "evaluation_seed", None)
+    evaluation_seed = (
+        int(args.seed) + 10_000_019
+        if configured_evaluation_seed is None
+        else int(configured_evaluation_seed)
+    )
+    train_batch_size = int(getattr(args, "train_batch_size", 4800))
+    pbt_interval, _ = _pbt_intervals(args)
+    optimization_cost_schedule = parse_step_schedule(
+        getattr(args, "optimization_cost_schedule", "")
+    )
+    if optimization_cost_schedule and "net_return" not in task_sampler_cfg["reward_ids"]:
+        raise ValueError("optimization_cost_schedule requires the net_return reward")
+    source_provenance = {
+        "git_commit": _git_commit(),
+        **_source_tree_fingerprint(),
+    }
+    configured_checkpoint_evaluation = getattr(
+        args,
+        "checkpoint_consistent_evaluation",
+        None,
+    )
+    data_sessions = [
+        value.strip() for value in str(getattr(args, "data_sessions", "")).split(",") if value.strip()
+    ]
+    data_symbols = [
+        value.strip().upper()
+        for value in str(getattr(args, "data_symbols", "")).split(",")
+        if value.strip()
+    ]
+    episode_boundary_cols = [
+        value.strip()
+        for value in str(getattr(args, "episode_boundary_cols", "")).split(",")
+        if value.strip()
+    ]
+    solver_state_mode = resolve_solver_state_mode(
+        getattr(args, "solver_state_mode", "off")
+    )
+    observation_contract = _observation_contract(args)
 
     env_config = {
         "df_path": data_path.as_posix(),
@@ -286,35 +588,68 @@ def build_base_config(args, data_path: Path, use_pbt_mode: bool) -> dict:
         "stream_stride": args.stream_stride,
         "ret_norm_reset": args.ret_norm_reset,
         "observation_transform": str(getattr(args, "observation_transform", "raw")),
+        "solver_state_mode": solver_state_mode,
+        **observation_contract,
         "t_embed_mode": "concat",
         "t_scale": 1.0,
         "task_encoder_version": "semantic_v2",
         "data_split": "train",
+        "data_sessions": data_sessions,
+        "data_symbols": data_symbols,
+        "episode_boundary_cols": episode_boundary_cols,
+        "expected_bar_interval": str(getattr(args, "expected_bar_interval", "") or "") or None,
         "split_fractions": split_fractions,
         "split_purge_rows": purge_rows,
         "evidence_cost_bps": evidence_cost_bps,
         "evidence_periods_per_year": evidence_periods,
         "task_sampler": task_sampler_cfg,
     }
+    model_config = _model_config(args)
+    semantic = model_config["custom_model_config"].get("semantic_observation_contract")
+    if semantic is not None:
+        env_config.update({
+            "semantic_observation_contract": semantic,
+            "feature_cols": semantic["feature_cols"],
+            "observation_filter": str(getattr(args, "observation_filter", "NoFilter")),
+        })
     evaluation_task_sampler_cfg = {
         **task_sampler_cfg,
         "seed": evaluation_seed,
     }
-    evaluation_task_sampler_cfg["fixed_tasks"] = _build_fixed_evaluation_tasks(
-        evaluation_task_sampler_cfg,
-        evaluation_episodes,
-    )
+    evaluation_panel_path = str(
+        getattr(args, "evaluation_task_panel_path", "") or ""
+    ).strip()
+    if evaluation_panel_path:
+        evaluation_task_sampler_cfg["fixed_tasks"] = _load_evaluation_task_panel(
+            evaluation_panel_path,
+            evaluation_episodes,
+        )
+        evaluation_start_idx_mode = "task_spec"
+    else:
+        evaluation_task_sampler_cfg["fixed_tasks"] = _build_fixed_evaluation_tasks(
+            evaluation_task_sampler_cfg,
+            evaluation_episodes,
+        )
+        evaluation_start_idx_mode = "random_episode"
     evaluation_env_config = {
         **env_config,
         "data_split": "validation",
-        "start_idx_mode": "random_episode",
+        "start_idx_mode": evaluation_start_idx_mode,
         "ret_norm_reset": "episode",
         "task_sampler": evaluation_task_sampler_cfg,
+        "capture_replay_trace": True,
     }
 
-    return {
-        **_legacy_api_stack_settings(),
+    pbt_lr_min, pbt_lr_max = _pbt_learning_rate_bounds(args)
+    config = {
         "env": "ITraderEnv",
+        "solver_model": str(getattr(args, "solver_model", "solver_mlp_film")),
+        "representation_profile": str(getattr(args, "representation_profile", "legacy")),
+        "api_stack_id": NATIVE_API_STACK_ID,
+        "enable_rl_module_and_learner": True,
+        "enable_env_runner_and_connector_v2": True,
+        "source_provenance": source_provenance,
+        "optimization_cost_schedule": optimization_cost_schedule,
         "env_config": env_config,
         "evaluation_interval": int(getattr(args, "evaluation_interval", 1)),
         **_evaluation_runner_settings(0),
@@ -328,35 +663,44 @@ def build_base_config(args, data_path: Path, use_pbt_mode: bool) -> dict:
             "seed": evaluation_seed,
             "env_config": evaluation_env_config,
         },
-        # The legacy stack can evaluate before synchronising rollout filters.
         # PBT must rank the post-sync state that its checkpoint will contain.
-        "checkpoint_consistent_evaluation": bool(use_pbt_mode),
-        "model": _model_config(args),
-        # resources
-        "num_gpus": 1,
+        "checkpoint_consistent_evaluation": (
+            bool(use_pbt_mode)
+            if configured_checkpoint_evaluation is None
+            else bool(configured_checkpoint_evaluation)
+        ),
+        "model": model_config,
+        # Native resource selection replaces this CPU-safe default.
+        "num_gpus_per_learner": 0,
         **_env_runner_gpu_settings(0),
-        "num_workers": args.workers,
+        "num_env_runners": args.workers,
         # reproducibility
         "seed": int(args.seed),
         # core RL settings
         "framework": "torch",
         # swap callbacks for PBT to reduce collisions/overhead
-        "callbacks": (MetricsOnlyCallback if use_pbt_mode else CombinedCallback),
-        "observation_filter": str(getattr(args, "observation_filter", "MeanStdFilter")),
+        "callbacks": (
+            NativeMetricsOnlyCallback
+            if use_pbt_mode or not auto_plot_on_end
+            else NativeCombinedCallback
+        ),
+        "observation_filter": str(getattr(args, "observation_filter", "NoFilter")),
         "grad_clip": 10.0,
         "clip_param": float(getattr(args, "clip_param", 0.2)),
-        "lambda": float(getattr(args, "gae_lambda", 0.95)),
+        "lambda_": float(getattr(args, "gae_lambda", 0.95)),
         "vf_loss_coeff": float(getattr(args, "vf_loss_coeff", 1.0)),
-        # Stabilise exploration → exploitation
-        "entropy_coeff_schedule": [
+        # RLlib linearly interpolates entropy on its native sampled-step clock.
+        "entropy_coeff": [list(point) for point in parse_step_schedule(
+            getattr(args, "entropy_coeff_schedule", ""), name="entropy_coeff_schedule"
+        )] or [
             [0,        0.02],
             [200_000,  0.01],
             [800_000,  0.003],
         ],
-        "train_batch_size": int(getattr(args, "train_batch_size", 4800)),
+        "train_batch_size_per_learner": train_batch_size,
         "batch_mode": "complete_episodes",
-        "sgd_minibatch_size": int(getattr(args, "sgd_minibatch_size", 128)),
-        "num_sgd_iter": int(getattr(args, "num_sgd_iter", 30)),
+        "minibatch_size": int(getattr(args, "sgd_minibatch_size", 128)),
+        "num_epochs": int(getattr(args, "num_sgd_iter", 30)),
         "gamma": float(getattr(args, "gamma", 0.99)),
         "vf_clip_param": float(getattr(args, "vf_clip_param", 10.0)),
         "lr": float(getattr(args, "lr", 5e-5)),
@@ -366,32 +710,84 @@ def build_base_config(args, data_path: Path, use_pbt_mode: bool) -> dict:
         # pass the stop criterion to training_fn
         "stop_iters": args.iters,
         "checkpoint_interval": checkpoint_interval,
+        "pbt_synch": bool(
+            use_pbt_mode and getattr(args, "pbt_synch", False)
+        ),
+        "pbt_target_steps": int(args.iters) * train_batch_size,
+        "pbt_interval_steps": pbt_interval * train_batch_size,
+        "checkpoint_interval_steps": checkpoint_interval * train_batch_size,
         "stable_metrics_root": str(_results_root(args) / "_stable_metrics"),
+        "pbt_experiment_name": str(getattr(args, "experiment_name", EXPERIMENT_NAME)),
         "auto_plot_on_end": auto_plot_on_end,
+        "pbt_promotion_eligible": bool(
+            getattr(args, "pbt_promotion_eligible", False)
+        ),
+        "pbt_selection_mode": _pbt_selection_mode(args),
+        "pbt_selection_min_sharpe": float(
+            getattr(args, "pbt_selection_min_sharpe", 0.0)
+        ),
+        "pbt_selection_max_flat_action_fraction": float(
+            getattr(args, "pbt_selection_max_flat_action_fraction", 0.98)
+        ),
+        "pbt_lr_min": pbt_lr_min,
+        "pbt_lr_max": pbt_lr_max,
+        "resume_rewind_to_checkpoint": bool(
+            getattr(args, "resume_rewind_to_checkpoint", False)
+        ),
+        "restore_progress_steps": int(getattr(args, "restore_progress_steps", 0)),
+        "restore_progress_updates": int(
+            getattr(args, "restore_progress_updates", 0)
+        ),
     }
+    from itrader.models.registry import validate_representation_config
+
+    validate_representation_config(config)
+    return config
 
 
 def write_run_manifest(base_config: dict, args, data_path: Path):
+    from itrader.models.registry import model_identity
+
     run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     experiment_name = str(getattr(args, "experiment_name", EXPERIMENT_NAME))
+    source_provenance = dict(base_config.get("source_provenance", {}))
+    dataset_hash = _dataset_sha256(data_path)
     manifest = {
         "run_id": run_id,
+        "api_stack_id": str(base_config["api_stack_id"]),
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "experiment_name": experiment_name,
-        "git_commit": _git_commit(),
+        "runtime": _runtime_manifest(),
+        "git_commit": source_provenance.get("git_commit", _git_commit()),
+        "source_tree_fingerprint": source_provenance,
         "seed": int(args.seed),
+        "pbt_population_seed": _pbt_population_seed(args),
+        "resume_existing": bool(getattr(args, "resume", False)),
+        "resume_rewind_to_checkpoint": bool(
+            getattr(args, "resume_rewind_to_checkpoint", False)
+        ),
         "config_hash": _config_hash(base_config),
+        "solver_identity": model_identity(base_config),
+        "comparison_config_hash": _comparison_config_hash(base_config, dataset_hash),
+        "observation_schema": _observation_schema_manifest(base_config),
+        "evaluation_panel_sha256": _evaluation_panel_sha256(base_config),
         "dataset_path": str(data_path),
-        "dataset_sha256": _sha256_file(data_path),
+        "dataset_sha256": dataset_hash,
         "results_root": str(_results_root(args)),
         "start_idx_mode": args.start_idx_mode,
         "ret_norm_reset": args.ret_norm_reset,
         "is_pbt": bool(args.pbt or args.cpu_pbt),
         "is_cpu_pbt": bool(args.cpu_pbt),
-        "pbt_primary_metric": PBT_PRIMARY_METRIC if (args.pbt or args.cpu_pbt) else None,
+        "pbt_primary_metric": _pbt_metric_name(args) if (args.pbt or args.cpu_pbt) else None,
+        "pbt_time_attr": "pbt_progress_steps" if (args.pbt or args.cpu_pbt) else None,
         "pbt_interval": int(getattr(args, "pbt_interval", 3)),
+        "pbt_synch": bool(getattr(args, "pbt_synch", False)),
+        "pbt_interval_steps": int(getattr(args, "pbt_interval", 3))
+        * int(getattr(args, "train_batch_size", 4800)),
         "checkpoint_interval": int(getattr(args, "checkpoint_interval", 3)),
-        "pbt_mutations": {key: str(value) for key, value in PBT_MUTATIONS.items()},
+        "target_environment_steps": int(args.iters)
+        * int(getattr(args, "train_batch_size", 4800)),
+        "pbt_mutations": _pbt_mutation_manifest(args),
     }
     # Tune 2.9 can truncate files created in its experiment directory on
     # Windows. Repository-owned provenance therefore lives in a sibling root.
@@ -401,6 +797,24 @@ def write_run_manifest(base_config: dict, args, data_path: Path):
     _atomic_write_json(out_path, manifest)
     print(f"Run manifest written to: {out_path}")
     return manifest, out_path
+
+
+def _run_completion_status(
+    trials: list[dict],
+    *,
+    target_steps: int,
+) -> tuple[str, list[str]]:
+    """Reject Tune's TERMINATED label when the declared exposure was not reached."""
+    incomplete_trial_ids = []
+    for trial in trials:
+        last_result = trial.get("last_result") or {}
+        completed_steps = int(last_result.get("pbt_progress_steps", 0) or 0)
+        if completed_steps < int(target_steps):
+            incomplete_trial_ids.append(str(trial.get("trial_id", "")))
+    return (
+        ("completed" if not incomplete_trial_ids else "incomplete"),
+        incomplete_trial_ids,
+    )
 
 # ────────────────────────────────────────────────────────────────────────────────
 # 2) Environment factory (with proper .spec for TimeLimit)
@@ -417,125 +831,198 @@ tune.register_env("ITraderEnv", make_env)
 from ray.rllib.algorithms.callbacks import DefaultCallbacks
 
 
-class CombinedCallback(DefaultCallbacks):
+class NativeCombinedCallback(DefaultCallbacks):
     def __init__(self, plot_interval: int = 50):
         super().__init__()
-        self.ps_metrics = PSMetrics()
+        self.ps_metrics = NativePSMetrics()
         self.auto_plotter = AutoPlotterCallback(
             plot_interval=plot_interval,
             plot_at_end_of_loop=False,
         )
 
-    def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
-        return self.ps_metrics.on_episode_end(worker=worker, base_env=base_env, policies=policies, episode=episode, **kwargs)
+    def on_episode_end(self, *, episode, metrics_logger=None, env=None, env_runner=None, **kwargs):
+        return self.ps_metrics.on_episode_end(
+            episode=episode,
+            metrics_logger=metrics_logger,
+            env=env,
+            env_runner=env_runner,
+            **kwargs,
+        )
 
     def on_train_result(self, *, algorithm, result, **kwargs):
-        return self.auto_plotter.on_train_result(algorithm=algorithm, result=result, **kwargs)
+        self.ps_metrics.on_train_result(algorithm=algorithm, result=result)
+        return self.auto_plotter.on_train_result(
+            algorithm=algorithm,
+            result=result,
+            **kwargs,
+        )
 
-class MetricsOnlyCallback(DefaultCallbacks):
-    """Use for PBT to avoid plot/file collisions across many trials."""
+
+class NativeMetricsOnlyCallback(DefaultCallbacks):
+    """MetricsLogger adapter for native-stack PBT without plot/file collisions."""
+
     def __init__(self):
         super().__init__()
-        self.ps_metrics = PSMetrics()
+        self.ps_metrics = NativePSMetrics()
 
-    def on_episode_end(self, *, worker, base_env, policies, episode, **kwargs):
-        return self.ps_metrics.on_episode_end(worker=worker, base_env=base_env, policies=policies, episode=episode, **kwargs)
+    def on_episode_end(self, *, episode, metrics_logger=None, env=None, env_runner=None, **kwargs):
+        return self.ps_metrics.on_episode_end(
+            episode=episode,
+            metrics_logger=metrics_logger,
+            env=env,
+            env_runner=env_runner,
+            **kwargs,
+        )
+
+    def on_train_result(self, *, algorithm, result, **kwargs):
+        return self.ps_metrics.on_train_result(
+            algorithm=algorithm,
+            result=result,
+            **kwargs,
+        )
 
 #  ────────────────────────────────────────────────────────────────────────────────
 # 4) The “training function” for Tune
 #    This builds the PPOAlgo, loops train(), and reports key scalars
 # ────────────────────────────────────────────────────────────────────────────────
 def _extract_custom_metrics(result: dict) -> dict:
-    custom_metrics = result.get("custom_metrics")
-    if isinstance(custom_metrics, dict):
-        return custom_metrics
-    sampler_custom_metrics = result.get("sampler_results", {}).get("custom_metrics")
-    if isinstance(sampler_custom_metrics, dict):
-        return sampler_custom_metrics
-    env_runner_custom_metrics = result.get("env_runners", {}).get("custom_metrics")
-    return env_runner_custom_metrics if isinstance(env_runner_custom_metrics, dict) else {}
+    """Prefer native EnvRunner metrics; do not merge RLlib nestings."""
+    candidates = (
+        result.get("env_runners", {}).get("custom_metrics"),
+        result.get("custom_metrics"),
+    )
+    for custom_metrics in candidates:
+        if isinstance(custom_metrics, dict) and custom_metrics:
+            return custom_metrics
+    return {}
 
 
 def _numeric_custom_metric_items(custom_metrics: dict) -> list[tuple[str, float]]:
-    items: list[tuple[str, float]] = []
-    for key, value in custom_metrics.items():
-        if not isinstance(value, (int, float, np.floating, np.integer)):
-            continue
+    """Project native per-episode sums/counts into stable report means."""
+    metric_names: set[str] = set()
+    for key in custom_metrics:
         key_text = str(key)
-        if key_text.startswith(
-            ("act_", "rc_", "economic_", "optimization_", "family_", "horizon_", "regime_")
-        ) and key_text.endswith("_mean"):
-            items.append((key_text, float(value)))
+        if key_text.endswith("__sum"):
+            metric_names.add(key_text[:-5])
+        elif key_text.endswith("__count"):
+            metric_names.add(key_text[:-7])
+
+    items: list[tuple[str, float]] = []
+    for name in sorted(metric_names):
+        if not (
+            name.startswith(
+                ("act_", "rc_", "economic_", "optimization_", "family_", "horizon_", "regime_")
+            )
+            or name in {"success", "task_horizon"}
+        ):
             continue
-        if key_text in {"success_mean", "task_horizon_mean"}:
-            items.append((key_text, float(value)))
-    return sorted(items)
+        mean = mean_from_totals(custom_metrics, name, required=True)
+        items.append((f"{name}_mean", mean))
+    return items
 
 
 def _extract_report(result: dict, default_iteration: int) -> dict:
-    learner_stats = result["info"]["learner"]["default_policy"]["learner_stats"]
+    learner_stats = result.get("learners", {}).get("default_policy", {})
+    if not isinstance(learner_stats, dict):
+        learner_stats = {}
     training_custom = _extract_custom_metrics(result)
     evaluation_result = result.get("evaluation", {}) or {}
     evaluation_custom = _extract_custom_metrics(evaluation_result)
+    training_means = dict(_numeric_custom_metric_items(training_custom))
+    evaluation_means = dict(_numeric_custom_metric_items(evaluation_custom))
 
     def custom_value(metrics: dict, key: str):
-        return _first_non_none(metrics.get(f"{key}_mean"), metrics.get(key))
+        return metrics.get(f"{key}_mean")
 
-    optimization_reward = _first_non_none(
-        custom_value(training_custom, "optimization_reward"),
-        result.get("episode_reward_mean"),
-        result.get("env_runners", {}).get("episode_reward_mean"),
-    )
-    episode_len_mean = _first_non_none(
-        result.get("episode_len_mean"),
-        result.get("sampler_results", {}).get("episode_len_mean"),
-        result.get("env_runners", {}).get("episode_len_mean"),
-    )
+    def custom_number(means: dict, key: str) -> float:
+        value = custom_value(means, key)
+        return float(value) if value is not None else float("nan")
+
+    optimization_reward = custom_value(training_means, "optimization_reward")
+    episode_len_mean = result.get("env_runners", {}).get("episode_len_mean")
 
     report = {
         "training_iteration": int(result.get("training_iteration", default_iteration)),
         "time_this_iter_s": result.get("time_this_iter_s"),
         "time_total_s": result.get("time_total_s"),
-        "timesteps_total": result.get("timesteps_total"),
         "training/optimization_reward_mean": (
             float(optimization_reward) if optimization_reward is not None else float("nan")
         ),
-        "training/gross_return_mean": float(
-            custom_value(training_custom, "economic_gross_return") or 0.0
+        "training/gross_return_mean": custom_number(
+            training_means, "economic_gross_return"
         ),
-        "training/net_return_mean": float(
-            custom_value(training_custom, "economic_net_return") or 0.0
+        "training/net_return_mean": custom_number(
+            training_means, "economic_net_return"
         ),
-        "training/net_sharpe_per_sqrt_bar_mean": float(
-            custom_value(training_custom, "economic_net_sharpe_per_sqrt_bar") or 0.0
+        "training/net_sharpe_per_sqrt_bar_mean": custom_number(
+            training_means, "economic_net_sharpe_per_sqrt_bar"
         ),
-        "evaluation/optimization_reward_mean": float(
-            custom_value(evaluation_custom, "optimization_reward") or 0.0
+        "evaluation/optimization_reward_mean": custom_number(
+            evaluation_means, "optimization_reward"
         ),
-        "evaluation/gross_return_mean": float(
-            custom_value(evaluation_custom, "economic_gross_return") or 0.0
+        "evaluation/gross_return_mean": custom_number(
+            evaluation_means, "economic_gross_return"
         ),
-        "evaluation/net_return_mean": float(
-            custom_value(evaluation_custom, "economic_net_return") or 0.0
+        "evaluation/net_return_mean": custom_number(
+            evaluation_means, "economic_net_return"
         ),
-        "evaluation/net_sharpe_per_sqrt_bar_mean": float(
-            custom_value(evaluation_custom, "economic_net_sharpe_per_sqrt_bar") or 0.0
+        "evaluation/net_sharpe_per_sqrt_bar_mean": custom_number(
+            evaluation_means, "economic_net_sharpe_per_sqrt_bar"
         ),
         "episode_len_mean": float(episode_len_mean) if episode_len_mean is not None else float("nan"),
-        "policy_loss": float(learner_stats.get("policy_loss", 0.0)),
-        "value_loss": float(learner_stats.get("vf_loss", learner_stats.get("value_loss", 0.0))),
-        "entropy": float(learner_stats.get("entropy", 0.0)),
+        "policy_loss": float(learner_stats.get("policy_loss", float("nan"))),
+        "value_loss": float(learner_stats.get("vf_loss", float("nan"))),
+        "entropy": float(learner_stats.get("entropy", float("nan"))),
+        "approx_kl": float(learner_stats.get("mean_kl_loss", float("nan"))),
+        "clip_fraction": float(learner_stats.get("clip_fraction", float("nan"))),
+        "clip_fraction_clipped_count": learner_stats.get("clip_fraction_clipped_count"),
+        "clip_fraction_valid_count": learner_stats.get("clip_fraction_valid_count"),
+        "clip_fraction_version": learner_stats.get("clip_fraction_version"),
+        "clip_fraction_scope": learner_stats.get("clip_fraction_scope"),
+        "explained_variance": float(learner_stats.get("vf_explained_var", float("nan"))),
+        "total_loss": float(learner_stats.get("total_loss", float("nan"))),
+        "grad_norm": float(
+            learner_stats.get("gradients_default_optimizer_global_norm", float("nan"))
+        ),
+        "learning_rate": float(
+            learner_stats.get("default_optimizer_learning_rate", float("nan"))
+        ),
+        "kl_coeff": float(learner_stats.get("curr_kl_coeff", float("nan"))),
     }
     if report.get("time_this_iter_s"):
         report["iters_per_sec"] = 1.0 / max(float(report["time_this_iter_s"]), 1e-8)
 
-    for key, value in _numeric_custom_metric_items(training_custom):
+    for key, value in training_means.items():
         report[f"custom_metrics/{key}"] = value
-    for key, value in _numeric_custom_metric_items(evaluation_custom):
+    for key, value in evaluation_means.items():
         report[f"evaluation/custom_metrics/{key}"] = value
     for key in ("episode_len_mean", "iters_per_sec"):
         report.setdefault(key, float("nan"))
     return report
+
+
+def _pbt_metric_name(source) -> str:
+    mode = _pbt_selection_mode(source)
+    if mode == "nonflat_net":
+        return PBT_SEARCH_METRIC
+    if mode == "promotion":
+        return PBT_PROMOTION_METRIC
+    return PBT_PRIMARY_METRIC
+
+
+def _pbt_selection_mode(source) -> str:
+    if isinstance(source, dict):
+        promotion_eligible = bool(source.get("pbt_promotion_eligible", False))
+        configured = source.get("pbt_selection_mode", "raw_net")
+    else:
+        promotion_eligible = bool(getattr(source, "pbt_promotion_eligible", False))
+        configured = getattr(source, "pbt_selection_mode", "raw_net")
+    mode = "promotion" if promotion_eligible else str(configured or "raw_net")
+    if mode not in {"raw_net", "nonflat_net", "promotion"}:
+        raise ValueError(
+            "pbt_selection_mode must be raw_net, nonflat_net, or promotion"
+        )
+    return mode
 
 
 def _flatten_scalar_metrics(result: dict) -> dict:
@@ -554,6 +1041,13 @@ def _flatten_scalar_metrics(result: dict) -> dict:
                     float(value) if isinstance(value, (np.floating, np.integer)) else value
                 )
     return flat_metrics
+
+
+def _persisted_scalar_metrics(result: dict, report: dict) -> dict:
+    """Merge RLlib metrics with scalar values computed by the reporting seam."""
+    persisted = _flatten_scalar_metrics(result)
+    persisted.update(_flatten_scalar_metrics(report))
+    return persisted
 
 
 def _append_json_line(path: Path, payload: dict) -> None:
@@ -648,42 +1142,168 @@ def _rewind_iteration_artifacts(
         os.replace(temporary, path)
 
 
+def _rewind_resume_progress(
+    *,
+    progress: PBTProgressClock,
+    restored_iteration: int,
+    stable_trial_dir: Path,
+    local_metrics_path: Path,
+) -> dict[str, object]:
+    """Align an interrupted target clock with Tune's restored checkpoint.
+
+    This is deliberately opt-in. Ordinary PBT exploitation must preserve the
+    target-owned clock even when it restores an older donor iteration.
+    """
+    boundary = int(restored_iteration)
+    index_path = stable_trial_dir / "checkpoint_index.jsonl"
+    stable_metrics_path = stable_trial_dir / "metrics_full.jsonl"
+    report_path = stable_trial_dir / "report_rows.csv"
+
+    checkpoint_rows = [
+        json.loads(line)
+        for line in index_path.read_text(encoding="utf-8").splitlines()
+        if line
+    ]
+    checkpoint = next(
+        (
+            row
+            for row in reversed(checkpoint_rows)
+            if int(row.get("training_iteration", -1)) == boundary
+            and bool(row.get("reported_to_tune", False))
+        ),
+        None,
+    )
+    if checkpoint is None:
+        raise RuntimeError(
+            "Resume recovery requires a reported checkpoint-index row for "
+            f"restored iteration {boundary}"
+        )
+
+    metric_rows = [
+        json.loads(line)
+        for line in stable_metrics_path.read_text(encoding="utf-8").splitlines()
+        if line
+    ]
+    metric = next(
+        (
+            row
+            for row in reversed(metric_rows)
+            if int(row.get("training_iteration", -1)) == boundary
+        ),
+        None,
+    )
+    if metric is None:
+        raise RuntimeError(
+            "Resume recovery requires a stable metric row for "
+            f"restored iteration {boundary}"
+        )
+
+    checkpoint_steps = int(checkpoint["pbt_progress_steps"])
+    checkpoint_updates = int(metric["pbt_progress_updates"])
+    before = {
+        "training_iteration": boundary,
+        "pbt_progress_steps": int(progress.completed_steps),
+        "pbt_progress_updates": int(progress.updates),
+    }
+    if (
+        progress.completed_steps == checkpoint_steps
+        and progress.updates == checkpoint_updates
+    ):
+        return {"rewound": False, "before": before, "after": before}
+
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    snapshot_dir = stable_trial_dir / "_resume_recovery" / timestamp
+    snapshot_dir.mkdir(parents=True, exist_ok=False)
+    snapshot_sources = {
+        "pbt_progress.json": stable_trial_dir / "pbt_progress.json",
+        "stable_metrics_full.jsonl": stable_metrics_path,
+        "report_rows.csv": report_path,
+        "checkpoint_index.jsonl": index_path,
+        "trial_status.json": stable_trial_dir / "trial_status.json",
+        "local_metrics_full.jsonl": local_metrics_path,
+    }
+    for destination_name, source in snapshot_sources.items():
+        if source.exists():
+            shutil.copy2(source, snapshot_dir / destination_name)
+
+    _rewind_iteration_artifacts(
+        restored_iteration=boundary,
+        report_path=report_path,
+        jsonl_paths=[stable_metrics_path, local_metrics_path, index_path],
+    )
+    progress.completed_steps = checkpoint_steps
+    progress.updates = checkpoint_updates
+    progress.save(stable_trial_dir / "pbt_progress.json")
+    after = {
+        "training_iteration": boundary,
+        "pbt_progress_steps": checkpoint_steps,
+        "pbt_progress_updates": checkpoint_updates,
+    }
+    receipt = {
+        "schema_version": 1,
+        "rewound": True,
+        "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
+        "snapshot_dir": str(snapshot_dir),
+        "before": before,
+        "after": after,
+    }
+    _append_json_line(stable_trial_dir / "resume_recovery.jsonl", receipt)
+    return receipt
+
+
+def _seed_restored_progress(
+    progress: PBTProgressClock,
+    *,
+    restore_source: str | None,
+    progress_state_exists: bool,
+    configured_steps: int,
+    configured_updates: int,
+) -> bool:
+    """Seed a new recovery trial with the target exposure of its checkpoint."""
+    if not restore_source or progress_state_exists:
+        return False
+    steps = int(configured_steps)
+    updates = int(configured_updates)
+    if steps == 0 and updates == 0:
+        return False
+    if steps < 0 or steps >= progress.target_steps or updates < 0:
+        raise ValueError(
+            "restore progress must be nonnegative and below the target step budget"
+        )
+    progress.completed_steps = steps
+    progress.updates = updates
+    return True
+
+
 def _checkpoint_from_save_result(saved):
-    checkpoint_type = getattr(tune, "Checkpoint", Checkpoint)
     if isinstance(saved, str):
-        return checkpoint_type.from_directory(saved), saved
-    if isinstance(saved, checkpoint_type):
-        return saved, getattr(saved, "path", "Checkpoint")
+        return Checkpoint.from_directory(saved), saved
     if isinstance(saved, Checkpoint):
-        checkpoint_dir = saved.to_directory()
-        return checkpoint_type.from_directory(checkpoint_dir), checkpoint_dir
-    if hasattr(saved, "checkpoint") and saved.checkpoint is not None:
+        return saved, getattr(saved, "path", "Checkpoint")
+    if hasattr(saved, "checkpoint") and isinstance(saved.checkpoint, Checkpoint):
         checkpoint = saved.checkpoint
-        checkpoint_dir = getattr(checkpoint, "path", None) or checkpoint.to_directory()
-        return checkpoint_type.from_directory(checkpoint_dir), checkpoint_dir
+        return checkpoint, getattr(checkpoint, "path", "Checkpoint")
     return None, str(saved)
 
 
 def _trial_context_values() -> tuple[str, str, str]:
-    if hasattr(tune, "get_context"):
-        context = tune.get_context()
-        return context.get_trial_dir(), context.get_trial_id(), context.get_trial_name()
-    return session.get_trial_dir(), session.get_trial_id(), session.get_trial_name()
+    """Read the active trial identity from Ray 2.58's Tune context."""
+    context = tune.get_context()
+    return (
+        context.get_trial_dir(),
+        context.get_trial_id(),
+        context.get_trial_name(),
+    )
 
 
 def _incoming_tune_checkpoint():
-    if hasattr(tune, "get_checkpoint"):
-        return tune.get_checkpoint()
-    return train.get_checkpoint()
+    """Read the incoming checkpoint through Ray Tune's function API."""
+    return tune.get_checkpoint()
 
 
 def _report_to_tune(metrics: dict, checkpoint=None) -> None:
-    if hasattr(tune, "get_context"):
-        tune.report(metrics, checkpoint=checkpoint)
-    elif checkpoint is not None:
-        session.report(metrics, checkpoint=checkpoint)
-    else:
-        session.report(metrics)
+    """Report metrics and checkpoints through Ray Tune's function API."""
+    tune.report(metrics, checkpoint=checkpoint)
 
 
 def _copy_stable_checkpoint(
@@ -691,6 +1311,7 @@ def _copy_stable_checkpoint(
     *,
     stable_trial_dir: Path,
     training_iteration: int,
+    api_stack_id: str,
 ) -> Path:
     """Copy a checkpoint before Ray AIR takes ownership of its source path."""
     source = Path(checkpoint_dir)
@@ -700,16 +1321,209 @@ def _copy_stable_checkpoint(
         / f"iter_{int(training_iteration):06d}_{datetime.now(timezone.utc):%H%M%S%f}"
     )
     shutil.copytree(source, destination)
-    required = ("algorithm_state.pkl", "rllib_checkpoint.json")
-    invalid = [
-        name
-        for name in required
-        if not (destination / name).is_file()
-        or not (destination / name).stat().st_size
-    ]
-    if invalid:
-        raise RuntimeError(f"Stable checkpoint is incomplete: {', '.join(invalid)}")
+    try:
+        checkpoint_sha256(destination, api_stack_id=api_stack_id)
+    except ValueError as exc:
+        raise RuntimeError(f"Stable checkpoint is incomplete: {exc}") from exc
     return destination
+
+
+def _validate_pbt_restore_checkpoint(
+    checkpoint_dir: str | Path,
+    provenance: dict,
+) -> dict[str, object]:
+    """Prove a Tune restore copy is byte-identical to its selected donor."""
+    api_stack_id = str(provenance.get("api_stack_id", ""))
+    observed = checkpoint_sha256(checkpoint_dir, api_stack_id=api_stack_id)
+    expected = str(provenance.get("donor_checkpoint_sha256", ""))
+    if not expected or observed != expected:
+        raise RuntimeError(
+            "PBT restore checkpoint does not match selected donor checkpoint"
+        )
+    return {
+        "schema_version": 1,
+        "api_stack_id": api_stack_id,
+        "exploit_id": str(provenance.get("exploit_id", "")),
+        "observed_checkpoint_path": str(Path(checkpoint_dir).resolve()),
+        "observed_checkpoint_sha256": observed,
+        "expected_checkpoint_sha256": expected,
+        "digest_match": True,
+    }
+
+
+def _validate_tune_restore_checkpoint(
+    checkpoint_dir: str | Path,
+    provenance: dict,
+    *,
+    stable_trial_dir: Path,
+    target_trial_id: str,
+    restore_generation: int,
+    api_stack_id: str,
+) -> dict[str, object]:
+    """Distinguish a fresh exploit restore from an indexed target self-resume."""
+    if provenance and provenance.get("api_stack_id") != api_stack_id:
+        raise RuntimeError("PBT restore API stack does not match the active trainer")
+    observed = checkpoint_sha256(checkpoint_dir, api_stack_id=api_stack_id)
+    if not provenance:
+        return {
+            "schema_version": 1,
+            "receipt_kind": "tune_self_resume",
+            "api_stack_id": api_stack_id,
+            "observed_checkpoint_path": str(Path(checkpoint_dir).resolve()),
+            "observed_checkpoint_sha256": observed,
+            "expected_checkpoint_sha256": observed,
+            "digest_match": True,
+            "lineage_verified": False,
+        }
+
+    exploit_id = str(provenance.get("exploit_id", ""))
+    expected_target = str(provenance.get("target_trial_id", ""))
+    expected_donor = str(provenance.get("donor_checkpoint_sha256", ""))
+    if not exploit_id or not expected_target or expected_target != target_trial_id:
+        raise RuntimeError("PBT restore receipt target does not match the active Tune trial")
+
+    if expected_donor and observed == expected_donor:
+        receipt = _validate_pbt_restore_checkpoint(checkpoint_dir, provenance)
+        receipt.update(
+            {
+                "receipt_kind": "pbt_exploit",
+                "lineage_verified": True,
+            }
+        )
+        return receipt
+
+    prior_receipt_path = stable_trial_dir / "restore_receipts" / f"{exploit_id}.json"
+    try:
+        prior_receipt = json.loads(prior_receipt_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(
+            "PBT restore checkpoint does not match selected donor checkpoint"
+        ) from exc
+    prior_receipt_valid = (
+        prior_receipt.get("receipt_kind") == "pbt_exploit"
+        and prior_receipt.get("exploit_id") == exploit_id
+        and prior_receipt.get("target_trial_id") == target_trial_id
+        and prior_receipt.get("digest_match") is True
+        and prior_receipt.get("observed_checkpoint_sha256") == expected_donor
+        and prior_receipt.get("expected_checkpoint_sha256") == expected_donor
+    )
+    if not prior_receipt_valid:
+        raise RuntimeError("PBT restore checkpoint does not match selected donor checkpoint")
+
+    index_path = stable_trial_dir / "checkpoint_index.jsonl"
+    try:
+        indexed_rows = [
+            json.loads(line)
+            for line in index_path.read_text(encoding="utf-8").splitlines()
+            if line.strip()
+        ]
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(
+            "PBT restore checkpoint does not match selected donor checkpoint"
+        ) from exc
+    indexed_match = next(
+        (
+            row
+            for row in reversed(indexed_rows)
+            if row.get("trial_id") == target_trial_id
+                and row.get("api_stack_id") == api_stack_id
+                and row.get("checkpoint_sha256") == observed
+                and int(row.get("pbt_restore_generation", -1)) == int(restore_generation)
+                and row.get("pbt_parent_exploit_id") == exploit_id
+                and (
+                    row.get("reported_to_tune") is True
+                    or row.get("post_sync_evaluation") is True
+                )
+            ),
+        None,
+    )
+    if indexed_match is None:
+        raise RuntimeError("PBT restore checkpoint does not match selected donor checkpoint")
+
+    return {
+        "schema_version": 1,
+        "receipt_kind": "tune_self_resume",
+        "api_stack_id": api_stack_id,
+        "observed_checkpoint_path": str(Path(checkpoint_dir).resolve()),
+        "observed_checkpoint_sha256": observed,
+        "expected_checkpoint_sha256": observed,
+        "digest_match": True,
+        "lineage_verified": True,
+        "lineage_exploit_id": exploit_id,
+        "lineage_donor_checkpoint_sha256": expected_donor,
+        "indexed_training_iteration": indexed_match.get("training_iteration"),
+        "indexed_progress_steps": indexed_match.get("pbt_progress_steps"),
+    }
+
+
+def _update_best_checkpoint_record(
+    path: Path,
+    *,
+    metric: str,
+    report: dict,
+    stable_checkpoint: Path,
+    score: float,
+    economically_eligible: bool,
+    selection_scope: str = "reported_checkpoint_boundaries",
+    provenance: dict | None = None,
+) -> bool:
+    """Point to the best retained cadence checkpoint for fresh-process replay."""
+    candidate = float(score)
+    if not math.isfinite(candidate):
+        return False
+    existing_score = _best_checkpoint_score(path)
+    if candidate <= existing_score:
+        return False
+    payload = {
+        "schema_version": 1,
+        "metric": metric,
+        "score": candidate,
+        "economically_eligible": bool(economically_eligible),
+        "training_iteration": int(report["training_iteration"]),
+        "pbt_progress_steps": int(report.get("pbt_progress_steps", 0)),
+        "stable_checkpoint": str(stable_checkpoint),
+        "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
+        "selection_scope": selection_scope,
+        "requires_fresh_process_replay": True,
+    }
+    if provenance:
+        payload.update(provenance)
+    _atomic_write_json(path, payload)
+    return True
+
+
+def _checkpoint_selection_scope(
+    *,
+    report_to_tune: bool,
+    selection_score: float,
+) -> str:
+    """Describe why a best-checkpoint pointer was retained without overstating it."""
+    if report_to_tune:
+        return "reported_checkpoint_boundary"
+    if math.isfinite(float(selection_score)) and float(selection_score) > 0.0:
+        return "eligible_evaluation_improvement"
+    return "ineligible_evaluation_improvement_for_forensics"
+
+
+def _best_checkpoint_score(path: Path) -> float:
+    if not path.exists():
+        return float("-inf")
+    try:
+        return float(json.loads(path.read_text(encoding="utf-8"))["score"])
+    except (OSError, ValueError, TypeError, KeyError):
+        return float("-inf")
+
+
+def _report_checkpoint_with_index(
+    *,
+    index_path: Path,
+    record: dict,
+    report: dict,
+    checkpoint,
+) -> None:
+    """Persist checkpoint provenance before Tune can suspend the function."""
+    _append_json_line(index_path, record)
+    _report_to_tune(report, checkpoint=checkpoint)
 
 
 def _remaining_training_steps(current_iteration: int, stop_iteration: int) -> range:
@@ -718,33 +1532,31 @@ def _remaining_training_steps(current_iteration: int, stop_iteration: int) -> ra
     return range(remaining)
 
 
-def _env_runner_groups(algo):
+def _training_env_runner_group(algo):
+    """Return the required native training EnvRunner group."""
     training_group = getattr(algo, "env_runner_group", None)
-    evaluation_group = getattr(algo, "eval_env_runner_group", None)
     if training_group is None:
-        training_group = algo.workers
+        raise TypeError("Active PPO requires a native training EnvRunner group")
+    return training_group
+
+
+def _env_runner_groups(algo):
+    """Return the required native EnvRunner groups without legacy fallback."""
+    training_group = _training_env_runner_group(algo)
+    evaluation_group = getattr(algo, "eval_env_runner_group", None)
     if evaluation_group is None:
-        evaluation_group = algo.evaluation_workers
+        raise TypeError("Native checkpoint-consistent evaluation requires an evaluation EnvRunner group")
     return training_group, evaluation_group
 
 
-def _local_env_runner(group):
-    if hasattr(type(group), "local_env_runner"):
-        return group.local_env_runner
-    return group.local_worker()
-
-
-def deterministic_evaluate(algo) -> dict:
-    """Evaluate the current learner weights with exploration disabled."""
-    training_group, evaluation_group = _env_runner_groups(algo)
-    evaluation_group.foreach_policy(
-        lambda policy, _policy_id: policy.config.__setitem__("explore", False)
-    )
+def deterministic_evaluate(algo):
+    """Synchronize current training weights and run greedy held-out evaluation."""
+    _, evaluation_group = _env_runner_groups(algo)
     evaluation_group.sync_weights(
-        from_worker_or_learner_group=_local_env_runner(training_group)
+        from_worker_or_learner_group=algo.learner_group,
+        inference_only=True,
     )
-    result = algo.evaluate()
-    return result.get("evaluation", result)
+    return algo.evaluate()
 
 
 def train_with_checkpoint_consistent_evaluation(algo):
@@ -753,77 +1565,245 @@ def train_with_checkpoint_consistent_evaluation(algo):
     if "evaluation" not in result:
         return result
 
-    # Ray 2.9 Algorithm.restore() copies the training Policy config onto the
-    # evaluation Policy and can silently flip explore back to True.
-    evaluation = deterministic_evaluate(algo)
+    post_sync_result = deterministic_evaluate(algo)
+    evaluation = post_sync_result.get("evaluation", post_sync_result)
     if isinstance(evaluation, dict):
         result["evaluation"] = evaluation
     return result
 
 
+def _set_training_reward_overrides(algo, overrides: dict[str, float]) -> None:
+    """Update training environments without changing the evaluation task panel."""
+    training_group = _training_env_runner_group(algo)
+
+    def update_runner(env_runner):
+        vector_env = getattr(env_runner, "env", None)
+        if vector_env is None:
+            raise RuntimeError("Native EnvRunner does not expose its vectorized training env")
+        # Ray 2.58 wraps the Gymnasium VectorEnv in DictInfoToList. VectorWrapper
+        # exposes the wrapped vector env as `.env`, whose `call` method dispatches
+        # through each sub-env's wrapper chain to the ITraderEnv method.
+        wrapped_vector_env = getattr(vector_env, "env", vector_env)
+        call_each = getattr(wrapped_vector_env, "call", None)
+        if not callable(call_each):
+            raise RuntimeError("Native EnvRunner vector env does not support per-env calls")
+        updated = call_each("set_task_sampler_overrides", overrides)
+        if not updated:
+            raise RuntimeError("Native EnvRunner has no training envs to update")
+
+    training_group.foreach_env_runner(update_runner)
+
+
 def training_fn(config):
+    from itrader.models.registry import validate_representation_config
+
+    validate_representation_config(config)
+    _assert_frozen_run_provenance(config)
     # Always use Tune trial dir as the single source of truth for ALL outputs.
     trial_dir_raw, trial_id, trial_name = _trial_context_values()
     trial_dir = Path(trial_dir_raw)
+    stable_root = Path(
+        str(
+            config.get(
+                "stable_metrics_root",
+                Path.home() / "ray_results" / "_stable_metrics",
+            )
+        )
+    )
+    stable_trial_dir = stable_root / trial_dir.name
 
-    # Force RLlib's UnifiedLogger to write into the Tune trial dir (prevents PPO_ITraderEnv_* dirs).
-    def logger_creator(cfg):
-        # Keep RLlib logger artifacts isolated from Tune's own progress files.
-        rllib_dir = trial_dir / "rllib"
-        rllib_dir.mkdir(parents=True, exist_ok=True)
-        return UnifiedLogger(cfg, str(rllib_dir), loggers=None)
-    algo_kwargs = {"config": config}
-    if UnifiedLogger is not None:
-        algo_kwargs["logger_creator"] = logger_creator
-    algo = PPO(**algo_kwargs)
+    from itrader.rl_lib.train.ray_native_config import build_native_ppo_config
+
+    from itrader.rl_lib.train.ray_native_ppo import DiagnosticPPO
+
+    algo = DiagnosticPPO(config=build_native_ppo_config(config))
 
     # --- Restore for PBT exploit/explore (weight inheritance) ---------------
     ckpt = _incoming_tune_checkpoint()
     requested_restore = str(config.get("restore_ckpt", "") or "").strip()
+    pbt_restore_provenance = dict(config.get("pbt_restore_provenance", {}) or {})
+    restore_generation = int(config.get("pbt_restore_generation", 0) or 0)
+    parent_exploit_id = str(pbt_restore_provenance.get("exploit_id", ""))
     restore_source = None
+    restore_receipt = None
     if requested_restore:
+        if pbt_restore_provenance:
+            raise RuntimeError(
+                "Manual --restore_ckpt cannot impersonate a PBT exploit receipt"
+            )
         algo.restore(requested_restore)
         restore_source = requested_restore
         print(f"Restored checkpoint from --restore_ckpt: {requested_restore}")
     elif ckpt is not None:
         restore_dir = ckpt.to_directory()
+        restore_receipt = _validate_tune_restore_checkpoint(
+            restore_dir,
+            pbt_restore_provenance,
+            stable_trial_dir=stable_trial_dir,
+            target_trial_id=trial_id,
+            restore_generation=restore_generation,
+            api_stack_id=str(config["api_stack_id"]),
+        )
         algo.restore(restore_dir)
         restore_source = restore_dir
         print(f"Restored checkpoint from Tune checkpoint: {restore_dir}")
+    elif pbt_restore_provenance:
+        raise RuntimeError("PBT restore provenance is present without a Tune checkpoint")
+
+    if restore_source:
+        from itrader.models.registry import validate_native_restored_model
+
+        validate_native_restored_model(algo, config)
 
 
     checkpoint_interval = int(config.get("checkpoint_interval", 3))
     full_metrics_path = trial_dir / "rllib" / "metrics_full.jsonl"
     full_metrics_path.parent.mkdir(parents=True, exist_ok=True)
-    stable_root = Path(str(config.get("stable_metrics_root", Path.home() / "ray_results" / "_stable_metrics")))
-    stable_trial_dir = stable_root / trial_dir.name
     stable_trial_dir.mkdir(parents=True, exist_ok=True)
     stable_metrics_path = stable_trial_dir / "metrics_full.jsonl"
     stable_report_csv = stable_trial_dir / "report_rows.csv"
     trial_status_path = stable_trial_dir / "trial_status.json"
-    if restore_source:
-        _rewind_iteration_artifacts(
+    progress_state_path = stable_trial_dir / "pbt_progress.json"
+    target_steps = int(
+        config.get(
+            "pbt_target_steps",
+            int(config["stop_iters"])
+            * int(config.get("train_batch_size_per_learner", 4800)),
+        )
+    )
+    progress_state_exists = progress_state_path.exists()
+    progress = PBTProgressClock.load(progress_state_path, target_steps=target_steps)
+    if _seed_restored_progress(
+        progress,
+        restore_source=restore_source,
+        progress_state_exists=progress_state_exists,
+        configured_steps=int(config.get("restore_progress_steps", 0)),
+        configured_updates=int(config.get("restore_progress_updates", 0)),
+    ):
+        progress.save(progress_state_path)
+    if restore_source and bool(config.get("resume_rewind_to_checkpoint", False)):
+        _rewind_resume_progress(
+            progress=progress,
             restored_iteration=int(getattr(algo, "iteration", 0)),
-            report_path=stable_report_csv,
-            jsonl_paths=[
-                full_metrics_path,
-                stable_metrics_path,
-                stable_trial_dir / "checkpoint_index.jsonl",
-            ],
+            stable_trial_dir=stable_trial_dir,
+            local_metrics_path=full_metrics_path,
+        )
+    if restore_source:
+        from itrader.rl_lib.train.ppo_native_restore import (
+            reconcile_native_ppo_after_restore,
+        )
+
+        learning_settings = reconcile_native_ppo_after_restore(
+            algo,
+            config,
+            progress_steps=progress.completed_steps,
+        )
+        learning_settings.update(
+            {
+                "schedule_application_scope": "first_update_after_restore_at_target_progress",
+                "subsequent_schedule_clock": "rllib_native_sampled_env_steps",
+            }
+        )
+        if restore_receipt is None:
+            restore_receipt = {
+                "schema_version": 1,
+                "receipt_kind": "manual_restore",
+                "api_stack_id": config["api_stack_id"],
+                "observed_checkpoint_path": str(Path(restore_source).resolve()),
+                "observed_checkpoint_sha256": checkpoint_sha256(
+                    restore_source, api_stack_id=str(config["api_stack_id"])
+                ),
+                "lineage_verified": False,
+            }
+        restore_receipt["learning_settings_reconciliation"] = learning_settings
+    if restore_receipt is not None:
+        if pbt_restore_provenance:
+            expected_target = str(pbt_restore_provenance.get("target_trial_id", ""))
+            if expected_target and expected_target != trial_id:
+                raise RuntimeError(
+                    "PBT restore receipt target does not match the active Tune trial"
+                )
+        restore_receipt.update(
+            {
+                "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
+                "target_trial_id": trial_id,
+                "target_trial_name": trial_name,
+                "restore_generation": restore_generation,
+                "parent_exploit_id": parent_exploit_id or None,
+                "target_clock_at_restore": int(progress.completed_steps),
+                "target_updates_at_restore": int(progress.updates),
+                "donor_checkpoint_path": pbt_restore_provenance.get(
+                    "donor_checkpoint_path"
+                ),
+                "donor_trial_id": pbt_restore_provenance.get("donor_trial_id"),
+                "donor_progress_steps": pbt_restore_provenance.get(
+                    "donor_progress_steps"
+                ),
+                "source_tree_sha256": str(
+                    (config.get("source_provenance") or {}).get(
+                        "source_tree_sha256",
+                        "",
+                    )
+                ),
+                "dataset_sha256": str(
+                    (config.get("frozen_provenance") or {}).get(
+                        "dataset_sha256",
+                        config.get("dataset_sha256", ""),
+                    )
+                ),
+                "evaluation_panel_sha256": str(
+                    (config.get("frozen_provenance") or {}).get(
+                        "evaluation_panel_sha256",
+                        config.get("evaluation_panel_sha256", ""),
+                    )
+                ),
+            }
+        )
+        receipt_prefix = "manual_restore" if requested_restore else "self_resume"
+        receipt_name = (
+            f"{parent_exploit_id}.json"
+            if restore_receipt.get("receipt_kind") == "pbt_exploit"
+            else f"{receipt_prefix}_{restore_generation:04d}_{datetime.now(timezone.utc):%H%M%S%f}.json"
+        )
+        _atomic_write_json(
+            stable_trial_dir / "restore_receipts" / receipt_name,
+            restore_receipt,
         )
     data_path = Path(str(config["env_config"]["df_path"]))
+    source_provenance = dict(config.get("source_provenance", {}))
+    dataset_hash = _dataset_sha256(data_path)
     trial_identity = {
         "schema_version": 1,
+        "api_stack_id": str(config["api_stack_id"]),
+        "runtime": _runtime_manifest(),
         "trial_id": trial_id,
         "trial_name": trial_name,
         "trial_dir": str(trial_dir),
         "stable_trial_dir": str(stable_trial_dir),
-        "git_commit": _git_commit(),
+        "git_commit": source_provenance.get("git_commit", _git_commit()),
+        "source_tree_fingerprint": source_provenance,
         "config_hash": _config_hash(config),
+        "comparison_config_hash": _comparison_config_hash(config, dataset_hash),
+        "observation_schema": _observation_schema_manifest(config),
+        "solver_identity": validate_representation_config(config),
+        "evaluation_panel_sha256": _evaluation_panel_sha256(config),
         "dataset_path": str(data_path),
-        "dataset_sha256": _sha256_file(data_path),
+        "dataset_sha256": dataset_hash,
+        "pbt_restore_generation": restore_generation,
+        "pbt_parent_exploit_id": parent_exploit_id or None,
     }
-    _atomic_write_json(stable_trial_dir / "resolved_config.json", {**trial_identity, "config": config})
+    generation_label = (
+        f"generation_{restore_generation:04d}_{parent_exploit_id[:12]}"
+        if parent_exploit_id
+        else f"generation_{restore_generation:04d}_initial"
+    )
+    config_snapshot_path = stable_trial_dir / "resolved_configs" / f"{generation_label}.json"
+    resolved_payload = {**trial_identity, "config": config}
+    _atomic_write_json(config_snapshot_path, resolved_payload)
+    _atomic_write_json(
+        stable_trial_dir / "resolved_config.json",
+        {**resolved_payload, "config_snapshot": str(config_snapshot_path)},
+    )
     _append_json_line(
         stable_trial_dir / "config_history.jsonl",
         {
@@ -831,29 +1811,109 @@ def training_fn(config):
             "recorded_at_utc": datetime.now(timezone.utc).isoformat(),
             "event": "checkpoint_restore" if restore_source else "initial_start",
             "restored_iteration": int(getattr(algo, "iteration", 0)),
+            "pbt_progress_steps": progress.completed_steps,
             "restore_source": restore_source,
+            "restore_generation": restore_generation,
+            "parent_exploit_id": parent_exploit_id or None,
+            "api_stack_id": str(config["api_stack_id"]),
+            "config_snapshot": str(config_snapshot_path),
             "config": config,
         },
     )
-    _atomic_write_json(trial_status_path, {**trial_identity, "status": "running", "last_iteration": 0})
+    _atomic_write_json(
+        trial_status_path,
+        {
+            **trial_identity,
+            "status": "running",
+            "last_iteration": int(getattr(algo, "iteration", 0)),
+            "pbt_progress_steps": progress.completed_steps,
+        },
+    )
 
     current_iteration = int(getattr(algo, "iteration", 0))
     last_iteration = current_iteration
-    for _ in _remaining_training_steps(current_iteration, config["stop_iters"]):
+    train_batch_size = int(config.get("train_batch_size_per_learner", 4800))
+    checkpoint_interval_steps = int(
+        config.get(
+            "checkpoint_interval_steps",
+            int(config.get("checkpoint_interval", 3)) * train_batch_size,
+        )
+    )
+    while progress.remaining:
+        cost_schedule = config.get("optimization_cost_schedule", ())
+        optimization_cost_bps = _training_optimization_cost_bps(
+            config,
+            completed_steps=progress.completed_steps,
+        )
+        if cost_schedule:
+            _set_training_reward_overrides(
+                algo,
+                {"cost_bps": optimization_cost_bps},
+            )
         if config.get("checkpoint_consistent_evaluation", False):
             res = train_with_checkpoint_consistent_evaluation(algo)
         else:
             res = algo.train()
         report = _extract_report(res, last_iteration + 1)
         last_iteration = int(report["training_iteration"])
+        previous_progress = progress.completed_steps
+        sampled_steps = progress.advance(res)
+        report["pbt_progress_steps"] = progress.completed_steps
+        report["pbt_progress_updates"] = progress.updates
+        report["pbt_restore_generation"] = restore_generation
+        report["pbt_parent_exploit_id"] = parent_exploit_id
+        report["env_steps_this_update"] = sampled_steps
+        if optimization_cost_bps is not None:
+            report["training/optimization_cost_bps"] = optimization_cost_bps
+        report[PBT_PROMOTION_METRIC] = economic_selection_score(
+            net_return=report["evaluation/net_return_mean"],
+            net_sharpe=report["evaluation/net_sharpe_per_sqrt_bar_mean"],
+            flat_action_fraction=report.get(
+                "evaluation/custom_metrics/act_flat_frac_mean",
+                1.0,
+            ),
+            min_net_sharpe=float(config.get("pbt_selection_min_sharpe", 0.0)),
+            max_flat_action_fraction=float(
+                config.get("pbt_selection_max_flat_action_fraction", 0.98)
+            ),
+        )
+        report[PBT_SEARCH_METRIC] = economic_search_score(
+            net_return=report["evaluation/net_return_mean"],
+            flat_action_fraction=report.get(
+                "evaluation/custom_metrics/act_flat_frac_mean",
+                1.0,
+            ),
+            max_flat_action_fraction=float(
+                config.get("pbt_selection_max_flat_action_fraction", 0.98)
+            ),
+        )
+        progress.save(progress_state_path)
 
         checkpoint = None
         ckpt_label = None
         stable_checkpoint = None
-        should_checkpoint = checkpoint_interval > 0 and last_iteration % checkpoint_interval == 0
-        if should_checkpoint:
+        stable_checkpoint_digest = None
+        cadence_due = (
+            checkpoint_interval > 0
+            and crossed_interval(
+                previous_progress,
+                progress.completed_steps,
+                checkpoint_interval_steps,
+            )
+        )
+        terminal_due = checkpoint_interval > 0 and not progress.remaining
+        best_checkpoint_path = stable_trial_dir / "best_checkpoint.json"
+        retention = checkpoint_retention_decision(
+            cadence_due=cadence_due,
+            terminal_due=terminal_due,
+            selection_score=float(report[PBT_PROMOTION_METRIC]),
+            current_best_score=_best_checkpoint_score(best_checkpoint_path),
+            synchronous_pbt=bool(config.get("pbt_synch", False)),
+        )
+        retained_as_best = False
+        if retention.retain_stable:
             # Never reuse a mutable checkpoint directory. Tune may copy the
-            # artifact after session.report returns, and PBT must receive an
+            # artifact after tune.report returns, and PBT must receive an
             # immutable snapshot of the state whose metrics it ranked.
             ckpt_root = trial_dir / "rllib_checkpoints"
             ckpt_root.mkdir(parents=True, exist_ok=True)
@@ -866,11 +1926,52 @@ def training_fn(config):
                 ckpt_label,
                 stable_trial_dir=stable_trial_dir,
                 training_iteration=last_iteration,
+                api_stack_id=str(config["api_stack_id"]),
+            )
+            stable_checkpoint_digest = checkpoint_sha256(
+                stable_checkpoint, api_stack_id=str(config["api_stack_id"])
+            )
+            from itrader.rl_lib.evaluation.replay_evidence import evaluation_payload_from_result
+
+            evaluation_payload_digest = evaluation_payload_from_result(res, int(config["evaluation_duration"]))
+            retained_as_best = _update_best_checkpoint_record(
+                best_checkpoint_path,
+                metric=_pbt_metric_name(config),
+                report=report,
+                stable_checkpoint=stable_checkpoint,
+                score=float(report.get(_pbt_metric_name(config), float("nan"))),
+                economically_eligible=float(report[PBT_PROMOTION_METRIC]) > 0.0,
+                selection_scope=_checkpoint_selection_scope(
+                    report_to_tune=retention.report_to_tune,
+                    selection_score=float(report[PBT_PROMOTION_METRIC]),
+                ),
+                provenance={
+                    "schema_version": 2,
+                    "api_stack_id": str(config["api_stack_id"]),
+                    "trial_id": trial_id,
+                    "pbt_progress_updates": int(report["pbt_progress_updates"]),
+                    "pbt_restore_generation": restore_generation,
+                    "pbt_parent_exploit_id": parent_exploit_id or None,
+                    "checkpoint_sha256": stable_checkpoint_digest,
+                    "evaluation_payload_sha256": evaluation_payload_digest,
+                    "config_hash": trial_identity["config_hash"],
+                    "comparison_config_hash": trial_identity[
+                        "comparison_config_hash"
+                    ],
+                    "observation_schema": trial_identity["observation_schema"],
+                    "source_tree_sha256": str(
+                        source_provenance.get("source_tree_sha256", "")
+                    ),
+                    "dataset_sha256": dataset_hash,
+                    "evaluation_panel_sha256": trial_identity[
+                        "evaluation_panel_sha256"
+                    ],
+                    "config_snapshot": str(config_snapshot_path),
+                },
             )
 
         # Persist scalar-only flattened metrics for robust plotting fallback.
-        full = _flatten_scalar_metrics(res)
-        full["training_iteration"] = report["training_iteration"]
+        full = _persisted_scalar_metrics(res, report)
         _append_json_line(full_metrics_path, full)
         _append_json_line(stable_metrics_path, full)
         _append_report_row(stable_report_csv, dict(report))
@@ -880,25 +1981,75 @@ def training_fn(config):
                 **trial_identity,
                 "status": "running",
                 "last_iteration": report["training_iteration"],
+                "pbt_progress_steps": report["pbt_progress_steps"],
                 "last_report": report,
             },
         )
 
         # --- Checkpointing for PBT (so exploit can copy weights) ------------
+        checkpoint_record = None
         if checkpoint is not None:
-            _report_to_tune(report, checkpoint=checkpoint)
-            _append_json_line(
-                stable_trial_dir / "checkpoint_index.jsonl",
-                {
-                    "training_iteration": report["training_iteration"],
-                    "tune_checkpoint": str(ckpt_label),
-                    "stable_checkpoint": str(stable_checkpoint),
-                    "reported_to_tune": True,
-                    "post_sync_evaluation": bool(config.get("checkpoint_consistent_evaluation", False)),
-                },
+            checkpoint_record = {
+                "schema_version": 2,
+                "api_stack_id": str(config["api_stack_id"]),
+                "trial_id": trial_id,
+                "training_iteration": report["training_iteration"],
+                "pbt_progress_steps": report["pbt_progress_steps"],
+                "pbt_progress_updates": report["pbt_progress_updates"],
+                "pbt_restore_generation": restore_generation,
+                "pbt_parent_exploit_id": parent_exploit_id or None,
+                "tune_checkpoint": str(ckpt_label),
+                "stable_checkpoint": str(stable_checkpoint),
+                "checkpoint_sha256": stable_checkpoint_digest,
+                "evaluation_payload_sha256": evaluation_payload_digest,
+                "config_hash": trial_identity["config_hash"],
+                "comparison_config_hash": trial_identity[
+                    "comparison_config_hash"
+                ],
+                "observation_schema": trial_identity["observation_schema"],
+                "source_tree_sha256": str(
+                    source_provenance.get("source_tree_sha256", "")
+                ),
+                "dataset_sha256": dataset_hash,
+                "evaluation_panel_sha256": trial_identity[
+                    "evaluation_panel_sha256"
+                ],
+                "selection_metric": _pbt_metric_name(config),
+                "selection_score": float(
+                    report.get(_pbt_metric_name(config), float("nan"))
+                ),
+                "config_snapshot": str(config_snapshot_path),
+                "reported_to_tune": retention.report_to_tune,
+                "retained_as_best": retained_as_best,
+                "post_sync_evaluation": bool(
+                    config.get("checkpoint_consistent_evaluation", False)
+                ),
+            }
+        if checkpoint is not None and retention.report_to_tune:
+            _report_checkpoint_with_index(
+                index_path=stable_trial_dir / "checkpoint_index.jsonl",
+                record=checkpoint_record,
+                report=report,
+                checkpoint=checkpoint,
             )
-            print(f"Immutable checkpoint saved @ iter {last_iteration}: {ckpt_label}")
+            print(
+                "Immutable checkpoint saved "
+                f"@ env steps {progress.completed_steps} / RLlib iter {last_iteration}: {ckpt_label}"
+            )
         else:
+            if checkpoint_record is not None:
+                _append_json_line(
+                    stable_trial_dir / "checkpoint_index.jsonl",
+                    checkpoint_record,
+                )
+                print(
+                    (
+                        "Eligible best checkpoint retained "
+                        if float(report[PBT_PROMOTION_METRIC]) > 0.0
+                        else "Best ineligible checkpoint retained for forensic replay "
+                    )
+                    + f"@ env steps {progress.completed_steps} / RLlib iter {last_iteration}: {ckpt_label}"
+                )
             _report_to_tune(report)
 
     if bool(config.get("auto_plot_on_end", True)):
@@ -930,42 +2081,52 @@ def training_fn(config):
             **trial_identity,
             "status": "completed",
             "last_iteration": last_iteration,
+            "pbt_progress_steps": progress.completed_steps,
         },
     )
     algo.stop()
 # ────────────────────────────────────────────────────────────────────────────────
 # 5) Entrypoint: assemble Tune config & kick off the experiment
 # ────────────────────────────────────────────────────────────────────────────────
-def _register_models() -> None:
-    ModelCatalog.register_custom_model("solver_lstm_v2", SolverLSTMModel)
-    ModelCatalog.register_custom_model("solver_mlp", SolverMLPModel)
-    ModelCatalog.register_custom_model("solver_mlp_film", SolverMLPFiLM)
-
-
 def _resources_per_trial(args, base_config: dict) -> PlacementGroupFactory:
+    requested_workers = int(args.workers)
+    if requested_workers < 0:
+        raise ValueError("workers must be non-negative")
+
     if args.cpu_pbt or bool(getattr(args, "cpu_only", False)):
+        rollout_workers = min(requested_workers, 4)
         base_config.update({
-            "num_gpus": 0,
-            "num_workers": max(2, min(args.workers, 4)),
+            "num_gpus_per_learner": 0,
+            "num_env_runners": rollout_workers,
         })
         return PlacementGroupFactory(
-            [{"CPU": 1}] + [{"CPU": 1}] * base_config["num_workers"]
+            [{"CPU": 1}] + [{"CPU": 1}] * rollout_workers
         )
 
     base_config.update({
-        "num_gpus": 1,
-        "num_workers": args.workers,
+        "num_gpus_per_learner": 1,
+        "num_env_runners": requested_workers,
     })
     return PlacementGroupFactory(
-        [{"GPU": 1, "CPU": 1}] + [{"CPU": 1}] * base_config["num_workers"]
+        [{"GPU": 1, "CPU": 1}] + [{"CPU": 1}] * requested_workers
     )
 
 
 def _apply_best_params(base_config: dict, best: dict) -> None:
+    if base_config.get("representation_profile") == "r0_r1_v1":
+        current_model = base_config["model"]
+        requested_model = best.get("model", {})
+        changed = any(current_model.get(key) != value for key, value in requested_model.items() if key != "custom_model_config")
+        changed |= any(current_model.get("custom_model_config", {}).get(key) != value
+                       for key, value in requested_model.get("custom_model_config", {}).items())
+        protected = ("solver_model", "representation_profile", "observation_filter", "env_config", "evaluation_config")
+        changed |= any(key in best and best[key] != base_config.get(key) for key in protected)
+        if changed:
+            raise ValueError("Best-parameter overrides cannot change fixed-recipe architecture or observation semantics")
     for key in [
-        "lr", "clip_param", "lambda", "gamma",
-        "sgd_minibatch_size", "num_sgd_iter",
-        "vf_clip_param", "vf_loss_coeff", "train_batch_size",
+        "lr", "clip_param", "lambda_", "gamma", "entropy_coeff",
+        "minibatch_size", "num_epochs",
+        "vf_clip_param", "vf_loss_coeff", "train_batch_size_per_learner",
     ]:
         if key in best:
             base_config[key] = best[key]
@@ -979,93 +2140,95 @@ def _apply_best_params(base_config: dict, best: dict) -> None:
         base_config["env_config"]["task_sampler_overrides"] = task_sampler_overrides
 
 
-def _trial_training_seed(config) -> int:
-    return int(config["seed"])
+def _trial_training_seed(spec) -> int:
+    return int(spec.config["seed"])
+
+
+def _pbt_population_seed(args) -> int:
+    configured = getattr(args, "pbt_population_seed", None)
+    return int(args.seed if configured is None else configured)
 
 
 def _configure_pbt_population(base_config: dict, args) -> None:
     """Configure diverse training seeds with a matched validation stream."""
     for key in PBT_MUTATIONS:
         base_config.pop(key, None)
-    base_seed = int(args.seed)
+    base_seed = _pbt_population_seed(args)
     base_config["seed"] = tune.randint(base_seed, base_seed + 1_000_000)
     base_config["env_config"]["task_sampler"]["seed"] = tune.sample_from(_trial_training_seed)
 
 
-def _build_pbt_scheduler(args) -> PopulationBasedTraining:
+def _build_pbt_scheduler(args) -> SeededPopulationBasedTraining:
     perturbation_interval, _ = _pbt_intervals(args)
-    return PopulationBasedTraining(
-        time_attr="training_iteration",
-        metric=PBT_PRIMARY_METRIC,
+    train_batch_size = int(getattr(args, "train_batch_size", 4800))
+    selection_mode = _pbt_selection_mode(args)
+    return SeededPopulationBasedTraining(
+        random_seed=_pbt_population_seed(args),
+        require_positive_donor=selection_mode == "promotion",
+        # This trial-owned clock survives donor checkpoint restores. RLlib's
+        # training_iteration does not and caused repeated late perturbations.
+        time_attr="pbt_progress_steps",
+        metric=_pbt_metric_name(args),
         mode="max",
-        perturbation_interval=perturbation_interval,
-        burn_in_period=float(getattr(args, "pbt_burn_in", perturbation_interval)),
+        perturbation_interval=perturbation_interval * train_batch_size,
+        burn_in_period=float(
+            getattr(args, "pbt_burn_in", perturbation_interval) * train_batch_size
+        ),
         quantile_fraction=0.25,
         resample_probability=0.25,
-        hyperparam_mutations=PBT_MUTATIONS,
+        hyperparam_mutations=_pbt_mutations(args),
         custom_explore_fn=constrain_trial_config,
         log_config=True,
         require_attrs=True,
-        synch=False,
+        # Synchronous ordering ensures upper donors checkpoint before lower
+        # trials exploit at a perturbation boundary.
+        synch=bool(getattr(args, "pbt_synch", False)),
     )
 
 
-def _tune_objective_kwargs(use_pbt_mode: bool) -> dict[str, str]:
-    # PBT owns metric/mode; duplicating them at tune.run is rejected by Ray.
+def _tune_objective_kwargs(use_pbt_mode: bool, args=None) -> dict[str, str]:
+    # The scheduler owns the objective when present; otherwise Tune needs it.
     if use_pbt_mode:
         return {}
-    return {"metric": PBT_PRIMARY_METRIC, "mode": "max"}
+    return {"metric": _pbt_metric_name(args), "mode": "max"}
 
 
 def _tune_storage_kwargs(results_root: Path) -> dict[str, str]:
-    """Use Ray's supported Tune storage keyword without changing the path contract."""
-    key = "storage_path" if "storage_path" in inspect.signature(tune.run).parameters else "local_dir"
-    return {key: str(results_root)}
+    """Route Tune output through Ray 2.58's storage interface."""
+    return {"storage_path": str(results_root)}
 
 
 def _trial_output_path(trial) -> str:
-    if hasattr(type(trial), "local_path"):
+    """Read a trial output path from Ray 2.58's Trial contract."""
+    try:
         return str(trial.local_path)
-    return str(trial.logdir)
-
-
-def _validate_pbt_observation_contract(config: dict, use_pbt_mode: bool) -> None:
-    """Fail closed when legacy-stack PBT depends on filter state across restores."""
-    if not use_pbt_mode:
-        return
-    if config.get("observation_filter") != "NoFilter":
-        raise ValueError(
-            "Legacy-stack PBT requires observation_filter=NoFilter; MeanStdFilter "
-            "checkpoint restores do not reproduce the ranked evaluation policy"
-        )
-    train_transform = config.get("env_config", {}).get("observation_transform")
-    eval_transform = (
-        config.get("evaluation_config", {}).get("env_config", {}).get("observation_transform")
-    )
-    if train_transform != "market_relative_v1" or eval_transform != train_transform:
-        raise ValueError(
-            "PBT with NoFilter requires the matched market_relative_v1 observation transform"
-        )
+    except AttributeError as exc:
+        raise TypeError("Ray 2.58 Tune Trial must expose local_path") from exc
 
 
 def main(args):
     use_pbt_mode = bool(args.pbt or args.cpu_pbt)
-    init_ray(use_pbt_mode=use_pbt_mode)
+    configured_ray_cpus = int(getattr(args, "ray_num_cpus", 0))
+    init_ray(
+        use_pbt_mode=use_pbt_mode,
+        num_cpus=(configured_ray_cpus or None),
+    )
 
     data_path = Path(args.data_path).expanduser()
-    if not data_path.is_file():
-        raise FileNotFoundError(f"Parquet not found ➜ {data_path}")
+    if not data_path.exists() or not (data_path.is_file() or data_path.is_dir()):
+        raise FileNotFoundError(f"Parquet dataset not found ➜ {data_path}")
     data_path = data_path.resolve(strict=True)
     if args.restore_ckpt:
         ckpt_path = Path(args.restore_ckpt).expanduser()
         if not ckpt_path.exists():
             raise FileNotFoundError(f"Restore checkpoint path does not exist ➜ {ckpt_path}")
-
-    _register_models()
+    elif int(getattr(args, "restore_progress_steps", 0)) or int(
+        getattr(args, "restore_progress_updates", 0)
+    ):
+        raise ValueError("restore progress requires --restore_ckpt")
 
     # shared RLlib config
     base_config = build_base_config(args=args, data_path=data_path, use_pbt_mode=use_pbt_mode)
-    _validate_pbt_observation_contract(base_config, use_pbt_mode)
     if use_pbt_mode and int(getattr(args, "evaluation_interval", 1)) <= 0:
         raise ValueError("PBT requires held-out evaluation_interval > 0")
     pbt = _build_pbt_scheduler(args)
@@ -1090,6 +2253,12 @@ def main(args):
     if args.restore_ckpt:
         base_config["restore_ckpt"] = args.restore_ckpt
 
+    from itrader.models.registry import validate_representation_config
+
+    validate_representation_config(base_config)
+
+    _freeze_run_provenance(base_config, data_path)
+
     run_manifest, run_manifest_path = write_run_manifest(
         base_config=base_config,
         args=args,
@@ -1108,7 +2277,11 @@ def main(args):
             num_samples=(args.pop if use_pbt_mode else 1),
             resources_per_trial=resources,
             stop=TimeoutStopper(args.timeout_hours * 3600),
-            search_alg=(BasicVariantGenerator(random_state=int(args.seed)) if use_pbt_mode else None),
+            search_alg=(
+                BasicVariantGenerator(random_state=_pbt_population_seed(args))
+                if use_pbt_mode
+                else None
+            ),
             config=base_config,
             **_tune_storage_kwargs(_results_root(args)),
             progress_reporter=tune.CLIReporter(
@@ -1118,7 +2291,8 @@ def main(args):
             ),
             reuse_actors=False,
             max_failures=3,
-            **_tune_objective_kwargs(use_pbt_mode),
+            **({"resume": "AUTO"} if bool(getattr(args, "resume", False)) else {}),
+            **_tune_objective_kwargs(use_pbt_mode, args),
         )
         trials = [
             {
@@ -1129,9 +2303,19 @@ def main(args):
             }
             for trial in analysis.trials
         ]
+        completion_status, incomplete_trial_ids = _run_completion_status(
+            trials,
+            target_steps=int(run_manifest["target_environment_steps"]),
+        )
         _atomic_write_json(
             run_status_path,
-            {**run_manifest, "status": "completed", "trial_count": len(trials), "trials": trials},
+            {
+                **run_manifest,
+                "status": completion_status,
+                "trial_count": len(trials),
+                "incomplete_trial_ids": incomplete_trial_ids,
+                "trials": trials,
+            },
         )
     except Exception as exc:
         _atomic_write_json(
@@ -1144,9 +2328,10 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--iters",     type=int, default=200)
+    parser.add_argument("--iters", type=int, default=200, help="Nominal PPO-update budget; converted to a sampled-environment-step target")
     parser.add_argument("--window",    type=int, default=30)
     parser.add_argument("--workers", type=int, default=6)
+    parser.add_argument("--ray_num_cpus", type=int, default=0, help="Optional CPU capacity exposed to the local Ray node; 0 uses Ray's host default")
     parser.add_argument("--gamma", type=float, default=0.99)
     parser.add_argument("--lambda", dest="gae_lambda", type=float, default=0.95, help="GAE lambda")
     parser.add_argument("--lr", type=float, default=5e-5)
@@ -1162,6 +2347,11 @@ if __name__ == "__main__":
     parser.add_argument("--pop", type=int, default=10, help="Population size if --pbt")
     parser.add_argument("--timeout_hours", type=int, default=5, help="Global timeout for the whole run")
     parser.add_argument("--restore_ckpt", type=str, default="", help="Path to an RLlib checkpoint_XXXXXX dir to restore from")
+    parser.add_argument("--restore_progress_steps", type=int, default=0, help="Target-owned sampled steps represented by --restore_ckpt for a new recovery trial")
+    parser.add_argument("--restore_progress_updates", type=int, default=0, help="Target-owned PPO update count represented by --restore_ckpt for a new recovery trial")
+    parser.add_argument("--resume", action=argparse.BooleanOptionalAction, default=False, help="Resume the existing Tune experiment with the same name and results root")
+    parser.add_argument("--resume_rewind_to_checkpoint", action=argparse.BooleanOptionalAction, default=False, help="On Tune resume only, rewind target-owned progress and metrics to the restored target checkpoint")
+    parser.add_argument("--checkpoint_consistent_evaluation", action=argparse.BooleanOptionalAction, default=None, help="Force post-train weight sync and deterministic evaluation, including checkpoint recovery runs")
     parser.add_argument("--best_params_json", type=str, default="", help="Path to params.json from best PBT trial (optional)")
     parser.add_argument("--start_idx_mode", type=str, default="random_episode", choices=["random_episode", "stream_worker", "task_spec"], help="Episode start index policy for env resets")
     parser.add_argument("--stream_jump_every_episodes", type=int, default=0, help="For stream_worker: random jump cadence in episodes (0 disables)")
@@ -1169,7 +2359,11 @@ if __name__ == "__main__":
     parser.add_argument("--stream_stride", type=int, default=0, help="For stream_worker: stride in rows between consecutive episodes (0 uses horizon)")
     parser.add_argument("--ret_norm_reset", type=str, default="episode", choices=["episode", "stream"], help="Reset reward normalization every episode or only when stream changes")
     parser.add_argument("--observation_transform", type=str, default="raw", choices=["raw", "market_relative_v1"], help="Deterministic market observation transform")
-    parser.add_argument("--observation_filter", type=str, default="MeanStdFilter", choices=["NoFilter", "MeanStdFilter"], help="RLlib observation filter; legacy-stack PBT requires NoFilter")
+    parser.add_argument("--solver_state_mode", type=str, default="off", choices=["off", "masked", "position", "time", "both"], help="Fixed two-value solver-state diagnostic mask")
+    parser.add_argument("--solver_state_residual_init", type=str, default="random_v1", choices=["random_v1", "zero_v1"], help="Initialization profile for the R4-v1 actor/value residual heads")
+    parser.add_argument("--observation_filter", type=str, default="NoFilter", choices=["NoFilter"], help="Native RLlib stack uses explicit unnormalized observations")
+    parser.add_argument("--solver_model", default="solver_mlp_film", choices=["solver_mlp_film", "solver_window_lstm_film"])
+    parser.add_argument("--representation_profile", default="legacy", choices=["legacy", "r0_r1_v1"])
     parser.add_argument("--task_pool_path", type=str, default="", help="Optional JSONL task pool path for sampler")
     parser.add_argument("--p_pool", type=float, default=0.7, help="Probability of sampling from task pool when configured")
     parser.add_argument("--task_horizons", type=str, default="", help="Comma-separated task horizons; empty uses the Phase A defaults")
@@ -1177,12 +2371,24 @@ if __name__ == "__main__":
     parser.add_argument("--experiment_name", type=str, default="Phase_A", help="Ray Tune experiment folder name under ~/ray_results")
     parser.add_argument("--results_root", type=str, default="", help="Optional Ray/stable artifact root; defaults to ~/ray_results")
     parser.add_argument("--auto_plot_on_end", action=argparse.BooleanOptionalAction, default=True, help="Generate plots automatically at trial end")
-    parser.add_argument("--pbt_interval", type=int, default=3, help="PBT exploit/explore cadence in training iterations")
-    parser.add_argument("--pbt_burn_in", type=int, default=3, help="Iterations before the first PBT exploit/explore")
-    parser.add_argument("--checkpoint_interval", type=int, default=3, help="Checkpoint cadence; must equal --pbt_interval")
+    parser.add_argument("--pbt_interval", type=int, default=3, help="PBT cadence in PPO updates; converted to sampled environment steps")
+    parser.add_argument("--pbt_burn_in", type=int, default=3, help="PPO updates before first PBT event; converted to sampled environment steps")
+    parser.add_argument("--pbt_synch", action=argparse.BooleanOptionalAction, default=False, help="Synchronize PBT boundaries so upper donors checkpoint before lower trials exploit")
+    parser.add_argument("--pbt_promotion_eligible", action=argparse.BooleanOptionalAction, default=False, help="Rank positive-net, positive-Sharpe, non-all-flat PBT donors ahead of ineligible donors, then rank by net return")
+    parser.add_argument("--pbt_selection_mode", choices=["raw_net", "nonflat_net", "promotion"], default="raw_net", help="PBT donor ranking: raw net, non-flat net search, or strict promotion eligibility; the promotion-eligible flag selects promotion mode")
+    parser.add_argument("--pbt_selection_min_sharpe", type=float, default=0.0, help="Strict held-out Sharpe floor for promotion-eligible PBT selection")
+    parser.add_argument("--pbt_selection_max_flat_action_fraction", type=float, default=0.98, help="Exclusive all-flat ceiling for promotion-eligible PBT selection")
+    parser.add_argument("--pbt_lr_min", type=float, default=5e-6, help="Inclusive lower bound for PBT learning-rate sampling and mutation")
+    parser.add_argument("--pbt_lr_max", type=float, default=3e-4, help="Inclusive upper bound for PBT learning-rate sampling and mutation")
+    parser.add_argument("--checkpoint_interval", type=int, default=3, help="Checkpoint cadence in PPO updates; must equal --pbt_interval")
     parser.add_argument("--evaluation_interval", type=int, default=1, help="Run held-out evaluation every N training iterations")
     parser.add_argument("--evaluation_num_episodes", type=int, default=8, help="Deterministic validation episodes per evaluation")
+    parser.add_argument("--evaluation_task_panel_path", default="", help="Optional predeclared JSON panel with explicit TaskSpec start_idx values")
     parser.add_argument("--evidence_cost_bps", type=float, default=1.0, help="Explicit per-turnover evaluation cost in basis points")
+    parser.add_argument("--optimization_cost_bps", type=float, default=None, help="Cost embedded by net_return tasks; defaults to --evidence_cost_bps")
+    parser.add_argument("--optimization_cost_schedule", type=str, default="", help="Comma-separated sampled-step:cost-bps curriculum for net_return tasks")
+    parser.add_argument("--entropy_coeff_schedule", type=str, default="", help="Comma-separated step:entropy-coefficient points; RLlib interpolates on its native sampled-step clock. Empty preserves the historical default; PBT may mutate it.")
+    parser.add_argument("--net_return_reward_scale", type=float, default=1000.0, help="Constant PPO scale for net_return tasks")
     parser.add_argument("--evidence_periods_per_year", type=float, default=0.0, help="Optional stated annualization periods; 0 reports per-sqrt-bar Sharpe only")
     parser.add_argument("--split_fractions", type=str, default="0.7,0.15,0.15", help="Chronological train,validation,test fractions")
     parser.add_argument("--split_purge_rows", type=int, default=200, help="Rows purged on each side of split boundaries")
@@ -1190,6 +2396,12 @@ if __name__ == "__main__":
         "--data_path",
         default="itrader/data/ohlcv.parquet",
     )
+    parser.add_argument("--data_sessions", type=str, default="", help="Comma-separated Parquet session partitions to load")
+    parser.add_argument("--data_symbols", type=str, default="", help="Comma-separated symbol partitions to load")
+    parser.add_argument("--episode_boundary_cols", type=str, default="", help="Columns that episodes may not cross")
+    parser.add_argument("--expected_bar_interval", type=str, default="", help="Required timestamp cadence within episodes, e.g. 1min")
     parser.add_argument("--seed", type=int, default=1234, help="Global run seed for RLlib and task sampler")
+    parser.add_argument("--evaluation_seed", type=int, default=None, help="Optional fixed validation seed, independent of the training/member seed")
+    parser.add_argument("--pbt_population_seed", type=int, default=None, help="Optional PBT initialization/search seed; evaluation starts remain governed by --seed")
     args = parser.parse_args()
     main(args)

@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "review_steps": 192000,
+  "expected_members": 4,
+  "strict_lineage_required": true,
+  "arms": {
+    "both_causal_cost": {
+      "experiment_name": "phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_065425_both_causal_cost",
+      "decision": "pass",
+      "run_status": "completed",
+      "members_at_review": 4,
+      "exploit_count": 6,
+      "exact_receipt_count": 18,
+      "verified_lineage_receipt_count": 6,
+      "invalid_receipts": [],
+      "lineage_pending": [],
+      "lineage_problems": [],
+      "terminal_net_return": 0.00441610962571723,
+      "terminal_sharpe_per_sqrt_bar": 0.024454575774072233,
+      "terminal_action": "short_only",
+      "terminal_steps": [195320, 194456, 194368, 195560]
+    },
+    "both_exact_1bp": {
+      "experiment_name": "phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_074623_both_exact_1bp",
+      "decision": "pass",
+      "run_status": "completed",
+      "members_at_review": 4,
+      "exploit_count": 6,
+      "exact_receipt_count": 18,
+      "verified_lineage_receipt_count": 6,
+      "invalid_receipts": [],
+      "lineage_pending": [],
+      "lineage_problems": [],
+      "terminal_net_return": 0.0,
+      "terminal_sharpe_per_sqrt_bar": 0.0,
+      "terminal_action": "flat_only",
+      "terminal_steps": [194944, 194912, 194360, 194840]
+    }
+  }
+}

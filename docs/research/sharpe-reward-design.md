@@ -1,7 +1,10 @@
 # Sharpe-Aware Reward Design
 
-Last updated: 2026-09-12
-Status: **experimental challengers; `pnl_linear` remains the only proven/default reward**
+Last reconciled: 2026-10-01
+Status: **focused reward-axis design; `pnl_linear` remains the default, `net_return` is an implemented challenger, and Sharpe variants remain experimental**
+
+Parent registry: [iTrader Research Dashboard](itrader_research_dashboard.md).
+Reward changes remain independent of R/C/S representation decisions.
 
 ## Decision summary
 

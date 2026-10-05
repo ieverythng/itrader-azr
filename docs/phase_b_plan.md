@@ -3,6 +3,13 @@
 Date: February 24, 2026
 Status: **historical ordering; Phase B includes offline and replay/shadow tracks; solver choices remain under review**
 
+> **Historical plan notice:** use the
+> [canonical masterplan](plans/itrader_masterplan.md) for current phase order,
+> the [research dashboard](research/itrader_research_dashboard.md) for wing
+> status, and `pyproject.toml` plus active environment documentation for runtime
+> authority. The Ray-2.9 lock below is retained only as the plan's historical
+> snapshot; Ray 2.58 is the accepted forward R-series runtime.
+
 This document records the original concrete Phase B milestone order. The current
 scope is broader than the historical slice: Phase B includes offline/curriculum
 work and online replay/shadow validation. Live broker execution remains out of
@@ -71,7 +78,7 @@ The old target line below is retained as history only:
 historical proposal: Ray/RLlib 2.47.1, Gymnasium >=0.29
 ```
 
-The pre-migration lock captured by this plan was:
+The plan's then-current lock was:
 
 ```text
 Python >=3.11,<3.12
@@ -80,11 +87,11 @@ gymnasium == 0.28.1
 setuptools == 69.5.1
 ```
 
-That block is the pre-migration reproduction baseline. The active source lock is
-now Ray/RLlib 2.58.0, Gymnasium 1.2.2, and PyArrow 17.0.0. See
-`docs/environment_strategy.md` and the dated Ray migration audit. R0 remains on
-the explicit legacy API stack until the native RLModule/EnvRunner port passes its
-separate parity gate.
+The current forward authority is Ray 2.58 with Ray 2.9 retained only for frozen
+historical reproduction. `docs/environment_strategy.md` and the root dependency
+manifests record the Windows workstation/WSL boundary and active lock. New R
+experiments must use a matched Ray-2.58 R0 control; native RLlib modernization is
+a separately named factor.
 
 ## Execution order
 

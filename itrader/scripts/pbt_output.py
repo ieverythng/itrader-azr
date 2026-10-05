@@ -261,7 +261,7 @@ def main():
         print("\nRestore hint (RLlib):")
         print("  from ray.rllib.algorithms.algorithm import Algorithm")
         print("  algo = Algorithm.from_checkpoint(r'...path_to_checkpoint...')")
-        print("  # then algo.evaluate() or algo.get_policy().")
+        print("  # then algo.evaluate() or inspect the native module with algo.get_module().")
     else:
         print("No checkpoint directory was detected for the best row. Check your checkpointing settings/patterns.")
 

@@ -1,11 +1,13 @@
 # Solver Recurrence Assessment (historical evidence, non-executable)
 
-Last updated: 2026-09-12
+Last reconciled: 2026-10-01
 Status: **superseded as implementation recipe; retained as provenance and constraints**
 
 This file records the earlier assessment. The active R-series provenance and
-experiment proposal is `docs/research/recurrent-solver-ablation.md`; do not copy
-an executable recipe or treat the proposal as settled architecture.
+experiment proposal is `docs/research/recurrent-solver-ablation.md`, while the
+current status registry is `docs/research/itrader_research_dashboard.md`; do not
+copy an executable recipe or treat this historical proposal as settled
+architecture.
 
 ## Branch reality
 
@@ -15,7 +17,9 @@ infers feature width from `flat_dim // window`; with appended task embedding thi
 is incompatible with the current `[T*F | task_embedding]` contract. It discards
 LSTM state and returns incoming state unchanged.
 
-Therefore R1, R2a, R2b, R2c, R2d, R3, and R4-v1 are design cells only. Model
+At this assessment's snapshot, R1, R2a, R2b, R2c, R2d, R3, and R4-v1 were design
+cells only. R4-v1 has since been implemented in the working tree and qualified
+with R0, but failed economic promotion; R1-R3 remain unimplemented. Model
 registration is not model selection; `train_solo_V2.py` still selects R0.
 
 ## Durable conclusions

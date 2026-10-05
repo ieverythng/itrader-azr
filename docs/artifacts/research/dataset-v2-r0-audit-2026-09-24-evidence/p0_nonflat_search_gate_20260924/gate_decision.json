@@ -1,0 +1,74 @@
+{
+  "decision": "stop",
+  "exact_receipt_count": 3,
+  "expected_members": 4,
+  "experiment_name": "v2p0_nonflat_search_sync30_20260924_154148_early_staged_cost",
+  "exploit_count": 3,
+  "free_gb": 63.25080108642578,
+  "invalid_receipts": [],
+  "lineage_pending": [
+    {
+      "exploit_id": "16292293a8d4f69f64adaea41e89bfcef40c72c6a437cc40c85f86f477586997",
+      "reason": "lineage is awaiting restore receipt and first post-restore report"
+    }
+  ],
+  "lineage_problems": [],
+  "members": [
+    {
+      "at_review": true,
+      "exact_checkpoint": true,
+      "net_return": 0.0005785450278411775,
+      "pbt_progress_steps": 97864,
+      "report_count": 20,
+      "sharpe_per_sqrt_bar": -0.01557886167750216,
+      "status": "running",
+      "trial_id": "b5ac0_00000"
+    },
+    {
+      "at_review": true,
+      "exact_checkpoint": true,
+      "net_return": 0.0005785450278411775,
+      "pbt_progress_steps": 102248,
+      "report_count": 21,
+      "sharpe_per_sqrt_bar": -0.01557886167750216,
+      "status": "running",
+      "trial_id": "b5ac0_00001"
+    },
+    {
+      "at_review": true,
+      "exact_checkpoint": true,
+      "net_return": 0.0005785450278411775,
+      "pbt_progress_steps": 97704,
+      "report_count": 20,
+      "sharpe_per_sqrt_bar": -0.01557886167750216,
+      "status": "running",
+      "trial_id": "b5ac0_00002"
+    },
+    {
+      "at_review": true,
+      "exact_checkpoint": true,
+      "net_return": 0.0005785450278411775,
+      "pbt_progress_steps": 97656,
+      "report_count": 20,
+      "sharpe_per_sqrt_bar": -0.01557886167750216,
+      "status": "running",
+      "trial_id": "b5ac0_00003"
+    }
+  ],
+  "members_at_review": 4,
+  "minimum_exploits": 2,
+  "minimum_free_gb": 20.0,
+  "missing_receipts": [],
+  "observed_members": 4,
+  "pending": [],
+  "reasons": [
+    "1 lineage event(s) awaiting restore evidence"
+  ],
+  "results_root": "C:\\itrader-ray\\v2p0-nonflat-search-sync30-20260924",
+  "review_steps": 96000,
+  "run_status": "completed",
+  "schema_version": 2,
+  "stale_targets": [],
+  "strict_lineage_required": true,
+  "verified_lineage_receipt_count": 2
+}

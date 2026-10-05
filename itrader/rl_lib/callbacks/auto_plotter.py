@@ -5,16 +5,14 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+from ray import tune
 from ray.rllib.algorithms.callbacks import DefaultCallbacks
-
-
-_TRIAL_MARKER_FILES = ("progress.csv", "result.json", "params.json", "metrics_full.jsonl")
 
 
 class AutoPlotterCallback(DefaultCallbacks):
     """
     Safe, headless auto-plotter that never interrupts training.
-    - Detects the trial dir from `result["logdir"]` or Algorithm.logdir.
+    - Detects the trial directory from Ray 2.58's Tune context.
     - Calls tools/plot_ray_results.py inside the trial dir.
     - Swallows all exceptions (prints warnings instead).
     """
@@ -58,69 +56,16 @@ class AutoPlotterCallback(DefaultCallbacks):
         except (TypeError, ValueError, OSError, subprocess.SubprocessError) as e:
             print(f"[AutoPlotter] Suppressed plotting error in on_train_result: {e}")
 
-    @staticmethod
-    def _looks_like_trial_dir(p: Path) -> bool:
-        return (
-            any((p / name).exists() for name in _TRIAL_MARKER_FILES)
-            or any((p / "rllib" / name).exists() for name in _TRIAL_MARKER_FILES)
-        )
-
-    @staticmethod
-    def _trial_mtime(p: Path) -> float:
-        for name in _TRIAL_MARKER_FILES:
-            for fp in (p / name, p / "rllib" / name):
-                if fp.exists():
-                    return fp.stat().st_mtime
-        return p.stat().st_mtime
-
-    def _trial_dir(self, algorithm, result: Dict[str, Any]) -> Optional[Path]:
-        """Resolve the Ray Tune trial directory robustly. Prioritizes Phase_A paths."""
-        # 0) Prefer Ray AIR session trial dir (most reliable when using session.report)
+    def _trial_dir(self) -> Optional[Path]:
+        """Resolve the current function-trainable directory from Tune context."""
         try:
-            from ray.air import session
-            td = session.get_trial_dir()
-            if td:
-                p = Path(td)
-                if p.exists() and self._looks_like_trial_dir(p):
-                    return p
-        except Exception:
-            pass
-
-        # 1) result has logdir (preferred)
-        try:
-            if "logdir" in result and result["logdir"]:
-                p = Path(result["logdir"])
-                if p.exists() and self._looks_like_trial_dir(p):
-                    return p
-        except Exception:
-            pass
-
-        # 2) Algorithm.logdir
-        try:
-            if hasattr(algorithm, "logdir") and algorithm.logdir:
-                p = Path(algorithm.logdir)
-                if p.exists() and self._looks_like_trial_dir(p):
-                    return p
-        except Exception:
-            pass
-
-        # 3) Fallback: scan top-level experiment dirs and pick the most recent trial.
-        try:
-            base = Path.home() / "ray_results"
-            if base.exists():
-                # Check only top-level experiment dirs to avoid deep rglob scans.
-                top_level = [d for d in base.iterdir() if d.is_dir()]
-                all_candidates = []
-                for exp_dir in top_level:
-                    for trial_dir in exp_dir.iterdir():
-                        if trial_dir.is_dir() and self._looks_like_trial_dir(trial_dir):
-                            all_candidates.append(trial_dir)
-                if all_candidates:
-                    return max(all_candidates, key=self._trial_mtime)
-        except OSError:
-            pass
-
-        return None
+            raw_trial_dir = tune.get_context().get_trial_dir()
+        except RuntimeError:
+            return None
+        if not raw_trial_dir:
+            return None
+        trial_dir = Path(raw_trial_dir)
+        return trial_dir if trial_dir.is_dir() else None
 
     @staticmethod
     def _stable_trial_dir(trial_dir: Path) -> Path:
@@ -158,7 +103,7 @@ class AutoPlotterCallback(DefaultCallbacks):
 
     def _generate_plots(self, algorithm, result: Dict[str, Any]):
         try:
-            trial_dir = self._trial_dir(algorithm, result)
+            trial_dir = self._trial_dir()
             if not trial_dir:
                 print("[AutoPlotter] Warning: could not resolve trial directory; skipping plots.")
                 return

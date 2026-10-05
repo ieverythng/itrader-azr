@@ -1,0 +1,22 @@
+{
+  "dataset_id": "dataset_v2_20220103_20260922_alpaca_sip_split",
+  "content_sha256": "fac41f6d42f8c5b1eac739755667bb38407461f82c168d7955de26bb2e5fb79c",
+  "rows": 10370064,
+  "unique_symbol_timestamp_rows": 10370064,
+  "duplicate_symbol_timestamp_rows": 0,
+  "ohlc_invariant_failures": 0,
+  "negative_volume_rows": 0,
+  "flat_ohlc_rows": 1551950,
+  "flat_ohlc_fraction": 0.14965770801390522,
+  "regular_session_rows": 5515061,
+  "pre_market_rows": 2829443,
+  "after_hours_rows": 2025560,
+  "regular_daily_bar_count": {
+    "min": 203,
+    "median": 390,
+    "max": 390,
+    "mean": 388.1659
+  },
+  "trading_dates_per_symbol": 1184,
+  "note": "The retained raw calendar response includes 2026-09-23, but the immutable bar snapshot intentionally ends at the last fully complete all-session date, 2026-09-22."
+}

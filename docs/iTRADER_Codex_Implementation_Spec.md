@@ -4,6 +4,13 @@
 ## Decision state: User grill-me review ongoing; architecture and order below are proposals unless explicitly marked source-defined.
 ## Intent: High-level implementation plan only. Preserve existing working pieces wherever possible.
 
+> **2026-10-01 reconciliation:** this remains a proposal document. `TaskSpec`,
+> `ExecutionIntent`, `CandidateTask`, `CapabilityProfile`, `DecisionRecord`, and
+> the family registry now exist as source scaffolds; that does not make
+> `MarketFramer`, capability calibration, `DecisionGate`, `RiskEngine`, or
+> `Executor` operational. Use `plans/itrader_masterplan.md` for current order and
+> `research/itrader_research_dashboard.md` for research-wing status.
+
 ---
 
 # 0. PRIMARY OBJECTIVE
@@ -180,7 +187,7 @@ Responsibilities later:
 Do not overload it with full broker semantics.
 Introduce additional contracts for online execution and capability tracking.
 
-## 4.2 New contracts to add
+## 4.2 Contract inventory (source scaffolds now present)
 
 ### A. `TaskSpec`
 Purpose:
@@ -977,7 +984,9 @@ distinctly but share a deterministic validation stream and fixed rollout batch;
 mutations are bounded and checkpoint/perturbation cadence is aligned. Active
 metrics rewind on exploit restore while append-only config history retains
 lineage. Atomic manifests/status/config/checkpoint/metric artifacts outside Tune
-are authoritative on the accepted Ray 2.58 legacy-stack path on Windows.
+remain the evidence authority. Ray 2.9 is the historical reproduction profile
+for the results described here; Ray 2.58 is the accepted forward R-series
+runtime.
 
 This closes the engineering seam, not the performance gate. Baseline-controlled
 multi-seed overnight training, cost scenarios, block-aware uncertainty, and one

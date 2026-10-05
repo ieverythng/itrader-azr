@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "recorded_at_local": "2026-09-24T14:42:00+02:00",
+  "launch_state": "authorized_by_active_phase_a_goal",
+  "experiment_basis": {
+    "rejected_experiment": "v2p0_cost_sync60_20260924_141609_no_cost",
+    "rejected_gate_steps": 96000,
+    "rejected_gate_decision": "stop",
+    "rejected_gate_exploit_count": 0,
+    "rejected_gate_skipped_exploits": 3,
+    "reason": "No member simultaneously achieved positive 1 bp net return and positive mean per-episode Sharpe. The canonical staged arm remains zero-cost until the rejected gate and was therefore not launched."
+  },
+  "challenger": {
+    "config": "itrader/scripts/experiments/configs/phase_a_r0_dataset_v2_p0_early_cost_low_lr_sync_30_20260924.json",
+    "config_file_sha256": "03d36486b0e027a3e64031fccd6517aa5ea3c3e8b325b6e5fc0a31a090daff5c",
+    "variant": "early_staged_cost",
+    "population": 4,
+    "target_updates": 30,
+    "review_steps": 96000,
+    "pbt_interval_updates": 5,
+    "pbt_burn_in_updates": 10,
+    "pbt_synchronous": true,
+    "pbt_population_seed": 924025,
+    "pbt_learning_rate_bounds": [0.000005, 0.00006],
+    "optimization_cost_schedule": [[0, 0.0], [24000, 0.25], [48000, 0.5], [72000, 1.0]],
+    "evidence_cost_bps": 1.0,
+    "start_idx_mode": "stream_worker",
+    "task_family": "00",
+    "proposer": "random/generated",
+    "sessions": ["regular"]
+  },
+  "frozen_evidence": {
+    "dataset_sha256": "20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9",
+    "evaluation_panel_sha256": "2314a55ceac6aceed575203d91daa0d1468fcd88158ff4d0839751c3b8b36b9f",
+    "evaluation_panel_file_sha256": "fcebe56d878a80c905488301ee880ebf782f4bc9c802b238fd9d2c1ce1284155",
+    "source_tree_sha256": "c3d89d73e08a86c5f776247bc515f1b0dbe12edc45c268fe2f95471307e85671",
+    "source_python_file_count": 87
+  },
+  "validation": {
+    "ablation_schema": "pass",
+    "focused_launch_tests": {
+      "command": ".venv/Scripts/python.exe -m pytest -q itrader/tests/test_train_config.py itrader/tests/test_pbt_scheduler.py itrader/tests/test_inspect_pbt_gate.py itrader/tests/test_run_ablation.py",
+      "result": "105 passed"
+    },
+    "git_diff_check": "pass",
+    "ray_processes_before_launch": 0,
+    "free_c_gib_before_launch": 64.025
+  },
+  "continuation_gate": {
+    "expected_members": 4,
+    "minimum_genuine_exploits": 2,
+    "strict_generation_bound_lineage": true,
+    "minimum_free_c_gib": 20,
+    "required_evidence": "finite and non-empty",
+    "on_stop": "terminate the arm; do not launch exact_1bp automatically",
+    "on_pass": "continue only this arm to 30 updates, then replay and analyze retained candidates"
+  },
+  "launch_command": ".venv/Scripts/python.exe -m itrader.scripts.experiments.run_ablation itrader/scripts/experiments/configs/phase_a_r0_dataset_v2_p0_early_cost_low_lr_sync_30_20260924.json --variant early_staged_cost"
+}

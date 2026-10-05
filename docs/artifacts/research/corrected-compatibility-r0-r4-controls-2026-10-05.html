@@ -1,0 +1,297 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Corrected Compatibility R0/R4 Controls</title><style>:root{color-scheme:light;--ink:#18201d;--muted:#5c6762;--line:#ccd3cf;--paper:#fbfcfa;--wash:#eef2ef;--accent:#1f6651}*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:16px/1.55 Georgia,serif}main{max-width:1120px;margin:32px auto;background:var(--paper);padding:48px 58px 64px;border:1px solid var(--line)}h1,h2,h3{line-height:1.2}h2{margin-top:40px;padding-top:18px;border-top:1px solid var(--line)}table{width:100%;border-collapse:collapse;margin:18px 0 24px;font-size:.9rem}th,td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}th{background:#e8eeea}tbody tr:nth-child(even){background:#f4f6f4}code{font:.9em Consolas,monospace;background:#edf0ee;padding:1px 4px}pre{overflow:auto;background:#edf0ee;padding:14px}a{color:var(--accent)}img{max-width:100%;height:auto;border:1px solid var(--line)}@media(max-width:760px){main{margin:0;padding:28px 18px}table{display:block;overflow:auto}}</style></head><body><main><h1>Corrected-compatibility R0 / R0 + R4-v1 controls</h1>
+<p>Date: 2026-10-05 (Europe/Madrid). Status: terminal replay held after a supervision-launcher failure; no evaluation or study results; artifacts preserved.
+Supervisor: GPT-6 Luna at xhigh, delegated within the current research chat.
+Source branch remains dirty; no staging, commit, push or artifact deletion.</p>
+<h2>Latest coordination update</h2>
+<p>The user permits a 1 GiB runtime RAM floor for a resumed supervised replay. This
+supersedes the earlier 2 GiB runtime floor below for future attempts only; no new
+startup threshold was specified, so do not infer a change to the previously
+declared 5 GiB launch guard. The supervisor reports that the terminal replay is
+held after a launcher failure, no evaluation ran, and its artifacts are
+preserved. Resolve the supervision harness before resuming; this is not an
+economic failure or a completed smoke.</p>
+<p>At about 13:43 UTC a separate migration CLI E2E test launched Ray and completed
+one synthetic Tune update. That timing plausibly matches the unowned Ray driver
+process observed by the supervisor, but process IDs were not independently
+mapped. The test shut Ray down; a later check found no remaining Python/Ray
+processes. Do not attribute its run artifacts or evaluation metrics to these
+compatibility controls.</p>
+<h2>Resumed smoke and bounded correction</h2>
+<p>The human freed RAM and resumed the supervised run. Attempt 01 (launcher PID
+34200) failed before training/evaluation/checkpoint creation: the builder checks
+checkpoint/PBT cadence even with PBT off. Smoke specified checkpoint interval 1
+but omitted PBT interval, whose CLI default was 3. The study similarly declared
+checkpoint interval 4 without the matching PBT interval. Earlier schema/CLI-only
+review did not exercise this complete builder path.</p>
+<p>Both loadouts now declare equal cadence explicitly (smoke 1/1, study 4/4); PBT
+remains disabled. A fresh focused Sol 6.1/MAX review executed actual ablation CLI
+serialization, production argparse and full <code>build_base_config</code> for all ten
+cells. Removing the fix reproduces rejection in all ten; fixed cells build with
+the intended settings. New regression coverage passes both loadouts. Nine
+focused tests passed; the earlier 406-test/pre-commit result predates this
+test-only Python increment and must not be relabelled a new full-suite result.</p>
+<p>Attempt 01 logs are preserved under the output root&#39;s <code>_supervision_smoke</code>.
+Its process tree exited; no owned Ray workers remained. It produced no economic
+evidence. Attempt 02 launched at 10:44:57 Europe/Madrid, PID 6600, with 6.40 GiB
+available RAM. Logs are <code>_supervision_smoke_attempt02/{stdout,stderr}.log</code>; output
+is isolated in <code>smoke_attempt02_summary</code>. Both smoke cells must pass before the
+eight-cell study is authorized. Stop on the previously declared critical gates.</p>
+<p>Revised prelaunch identities, superseding only the original preflight hashes below:</p>
+<ul>
+<li>Smoke JSON: <code>a6ee572995d610f445614be9aa58811ecb37118b90a4dd64d50003e7c3c32bb8</code>.</li>
+<li>Study JSON: <code>246ceb79af9d6e85482363ed0f4e3d3812590868031feb0482ac92402ea52264</code>.</li>
+<li>Python tree (104 files, new regression test): <code>b2739469a5a601aceb95b69e19d5f08ce44e8b8763b94300ebb7ea4f79234e95</code>.</li>
+<li>Dataset/panel hashes are unchanged and were canonically rechecked before launch.</li>
+</ul>
+<p>The later human-approved Q21 protocol governs the future complete 16-cell
+representation screen, not this separate development bridge. Fresh-panel
+construction/enforcement remain pending. No R1 code or native API integration
+is authorized by this smoke.</p>
+<h2>Scope and interpretation</h2>
+<p>The human authorized fresh matched controls after the reviewed Ray 2.58
+compatibility repairs. This supersedes the previous session&#39;s deferral. Stop
+before R1 implementation and before native RLModule/Learner/EnvRunner migration.
+Use the official ablation pipeline, not an isolated replacement trainer.</p>
+<p>R0 and R0 + R4-v1 differ only in explicit position/remaining-horizon state.
+The intended comparison keeps MLP-FiLM, Family 00, dataset-v2 RTH,
+random/generated tasks, stream_worker and local-worker topology fixed.
+PBT is disabled: this is representation-baseline measurement, <strong>not a new
+PBT search or proof that exploit/explore is economically effective</strong>.</p>
+<p>The final loadout, paired seeds, panel identity, effective optimizer fields,
+source/dataset hashes, wall-time/resource limits and replay paths must be
+recorded before launch. Inspect the existing development panel only; no new
+selection panel or sealed final-test access while Q21 remains pending.</p>
+<h2>Comparison declaration</h2>
+<p>The study loadout is
+<code>itrader/scripts/experiments/configs/phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005.json</code>.
+Smoke probes are separate from the eight study cells in
+<code>phase_a_corrected_ray258_r0_r4v1_fixed_smoke_20261005.json</code> in the same directory.
+The output root is
+<code>C:/Users/Admin/ray_results/corrected-compat-r0-r4v1-20261005</code>; no old run is
+overwritten or resumed as if it were a corrected-stack control.</p>
+<table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Declaration</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Representation</td>
+<td><code>solver_mlp_film</code>, state <code>off</code> versus <code>both</code>, <code>zero_v1</code> residual, strict <code>r0_r1_v1</code> profile</td>
+</tr>
+<tr>
+<td>Training seeds</td>
+<td>Paired <code>20260924</code>, <code>20260925</code></td>
+</tr>
+<tr>
+<td>Development evaluation</td>
+<td>January 2026 crossed 8-anchor x 4-horizon panel, seed <code>32260943</code>, 32 episodes every update</td>
+</tr>
+<tr>
+<td>Training cost</td>
+<td>Exact 1 bp versus compressed causal 0 / 0.25 / 0.5 / 1 bp at 0 / 14,400 / 28,800 / 43,200 sampled steps</td>
+</tr>
+<tr>
+<td>Evaluation cost</td>
+<td>Exact 1 bp throughout; not the current training-stage cost</td>
+</tr>
+<tr>
+<td>Optimizer</td>
+<td>Native 30 epochs, minibatch 128; LR <code>7.151674865214668e-6</code></td>
+</tr>
+<tr>
+<td>PPO/GAE</td>
+<td>Gamma 0.99, lambda 0.9, clip 0.1, value loss coefficient 2, value clip 20</td>
+</tr>
+<tr>
+<td>Entropy</td>
+<td>Native RLlib linear schedule <code>(0,.005), (96000,.002), (240000,.0005)</code>; no compressed entropy clock</td>
+</tr>
+<tr>
+<td>Budget</td>
+<td>12 updates / 57,600 nominal sampled steps per cell; complete-episode overshoot recorded, not an exact exposure cap</td>
+</tr>
+<tr>
+<td>Topology</td>
+<td>Sequential single-member cells, CPU, local workers (<code>workers=0</code>), PBT off</td>
+</tr>
+<tr>
+<td>Global bound</td>
+<td>At most two hours under active supervision; this global cap is not encoded in the loadout. One-hour configured per-cell timeout remains a fallback</td>
+</tr>
+</tbody></table>
+<p>This is a new matched-development screen, not reproduction of the historical
+self-resume entropy spikes or a fresh-panel generalization test. The compressed
+cost curriculum is an explicit changed factor. Cost staging is piecewise
+constant on the target-owned step clock; entropy is linearly interpolated on
+RLlib&#39;s native sampled-step clock. Do not conflate their scheduling semantics.</p>
+<p>Preflight exposed a missing fixed-run entropy override. The narrow correction
+adds <code>--entropy_coeff_schedule</code> to the existing builder/loadout seam, reuses
+schedule parsing and preserves omitted-argument defaults. A failing builder
+test reproduced the ignored recipe before the patch. Afterward 106 focused
+configuration and real synthetic PPO/checkpoint/replay tests passed, followed
+by 406 full-suite tests and a successful serialized all-files pre-commit run.
+Independent review is required before launch; its scope is the schedule/loadout
+increment, not a claim of completed economic validation.
+No R1 implementation or training-algorithm change is part of that correction.</p>
+<p>GPT-6 Astra/MAX independently approved the increment and prospective loadouts.
+Its actual CLI/schema/serialization and installed-Ray interpolation probes
+confirmed entropy <code>.005</code> at step 0, <code>.0032</code> at 57,600, <code>.002</code> at 96,000 and
+<code>.0005</code> at/after 240,000. Base comparison used isolated production expressions
+because the saved <code>d3eb4c5</code> trainer has a pre-existing indentation error. The
+separate GPT-6.1 Sol/MAX review also returned <code>VERDICT: APPROVE</code>. It executed
+actual CLI serialization/parsing for all ten declared cells, schema/type probes,
+default-preservation checks and startup guard boundary checks: 4.999 GiB rejects,
+5.0 and 5.001 GiB accept. Neither reviewer launched training. All five REVIEW.md
+design principles were reported OK by both reviewers.</p>
+<h2>Historical versus corrected evidence</h2>
+<table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>What remains supported</th>
+<th>What must not be inferred</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Historical economic curves</td>
+<td>Observed outcomes of the actual saved policies, subject to their original replay/data qualifications</td>
+<td>What the intended or repaired recipe would have achieved</td>
+</tr>
+<tr>
+<td>Recorded PBT events</td>
+<td>Config mutation requests and observed checkpoint transfers where their receipts validate</td>
+<td>That all requested settings reached policy loss, GAE or Adam</td>
+</tr>
+<tr>
+<td>Fixed-recipe runs</td>
+<td>PPO activity and policy behavior under their actual effective settings</td>
+<td>Intended epoch/minibatch settings from obsolete aliases alone</td>
+</tr>
+<tr>
+<td>Corrected fresh controls</td>
+<td>Prospective matched evidence once complete and replayed</td>
+<td>Economic promotion, causal explanation of every prior basin, or full native-API parity</td>
+</tr>
+</tbody></table>
+<p>The bounded <a href="ray258-historical-optimizer-audit-2026-10-05.md">historical audit</a>
+found effective 30 epochs / minibatch 128 in ten sampled Ray 2.58 terminals,
+donor-setting divergence in five exploited targets, and six member-00002
+self-resume entropy resets. The magnitude of lost search effectiveness is not
+known without a matched experiment. It is not correct to retroactively erase
+the returns or assert that correcting PBT necessarily improves profitability.</p>
+<h2>Supervision and stop policy</h2>
+<ul>
+<li>Startup guard: at least 5 GiB available physical RAM; stop the owned probe
+before availability falls below 2 GiB. These are conservative operational
+bounds, not a measured guarantee that this workload fits. Initial preflight
+samples ranged from 2.45 to 4.48 GiB; later checks reached 1.57 GiB and
+recovered to approximately 3.3 GiB, still below the startup gate. Launch
+remains on resource hold. The 2 GiB runtime floor requires active supervision;
+only the 5 GiB pre-variant check is enforced by the ablation runner. No other
+application has been stopped. Keep full dataset coverage unchanged.
+Final availability was about 4.88 GiB at 03:38 Europe/Madrid, still below
+the guard; this is not a background-running or automatically queued experiment.</li>
+<li>The prior local-worker Ray-2.58 acceptance probe bottomed at 2.34 GiB free;
+the full RTH input contains 5,515,061 rows (about 1,210 MB loaded). Historical
+minimum free memory alone does not establish today&#39;s startup requirement.
+Disk headroom was approximately C: 67.5, D: 95.3 and E: 184.6 GiB.</li>
+<li>Freeze the declared source before training; do not patch a running cell.</li>
+<li>Check actual effective native epoch/minibatch/LR fields, clip counts and finite
+PPO metrics, cost-stage application, target-owned step progress, full panel
+coverage, non-empty checkpoint/provenance artifacts and deterministic replay.</li>
+<li>Run cells sequentially within measured memory and storage headroom.</li>
+<li>Stop this experiment on critical contract/provenance errors, non-finite
+training, failed replay, unexpected resource pressure or bounded-budget
+exhaustion. Preserve failed attempts; never overwrite them with a retry.</li>
+<li>Stop only processes owned by this experiment. Do not stop unrelated Ray,
+WSL, games, research agents or user applications.</li>
+<li>Supervisor escalates faults to the parent agent and returns a summary in this
+chat. Independent review of closure remains separate from economic judgment.</li>
+</ul>
+<h2>Output and next boundary</h2>
+<p>Luna&#39;s preflight handback: both loadouts pass schema and CLI-name validation;
+all eight study cells have matched declared factors, and the two smoke cells
+are isolated. No experiment process was launched, no unrelated process was
+stopped, and there is no return/Sharpe/checkpoint result from this round.</p>
+<h3>Prelaunch identities</h3>
+<p>These are preflight identities, not producer receipts or completed-run evidence.
+Recheck them before launch or later continuation; source includes the dirty
+Python tree and untracked modules, not only the Git revision.</p>
+<table>
+<thead>
+<tr>
+<th>Artifact</th>
+<th>SHA-256</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Study loadout file</td>
+<td><code>574d13fea74a0752f871e4d01d10796653c1a94047d6c062fa22fb70d3fa2130</code></td>
+</tr>
+<tr>
+<td>Smoke loadout file</td>
+<td><code>d9e3651a5fbbae3c71d225697a24710910525c512abe2284d85702c3794739b9</code></td>
+</tr>
+<tr>
+<td>January development panel file</td>
+<td><code>0401993d22fef1bc69712f1b8022d0f363e80779af6bc58189ee979bdf2198b5</code></td>
+</tr>
+<tr>
+<td>Dataset bars tree, recomputed from bytes</td>
+<td><code>20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9</code></td>
+</tr>
+<tr>
+<td>Dataset manifest file</td>
+<td><code>4c6202883a46cbe5bfbf4986003dcd1eb05b3738ac2d48eeb42d9a57fe974ca5</code></td>
+</tr>
+<tr>
+<td>Runtime Python source tree (104 files, includes tests)</td>
+<td><code>0716db3fa292c3a84a8a2029895402b5e3f84ba8444ccfe7224eabbc0ae390c2</code></td>
+</tr>
+</tbody></table>
+<p>The panel&#39;s expected dataset digest matches the recomputed bars-tree digest.
+The output root resolves through the existing <code>ray_results</code> junction onto
+<code>D:/iTRADER-offload/active/ray_results</code>; no new storage migration was performed.</p>
+<p>Once resource and review gates pass, from the repository root:</p>
+<pre><code class="language-powershell">&amp; .venv/Scripts/python.exe itrader/scripts/experiments/run_ablation.py itrader/scripts/experiments/configs/phase_a_corrected_ray258_r0_r4v1_fixed_smoke_20261005.json
+</code></pre>
+<p>Inspect both smoke outputs, actual optimizer settings, panel coverage, replay,
+memory low-water and throughput before approving the eight-cell study command:</p>
+<pre><code class="language-powershell">&amp; .venv/Scripts/python.exe itrader/scripts/experiments/run_ablation.py itrader/scripts/experiments/configs/phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005.json
+</code></pre>
+<p>At the original preflight, these commands were recorded but not yet executed;
+the supervised attempt-04 training and terminal-replay outcomes are summarized
+in the closeout below. Do not run either unattended: the resource floor and
+global wall-time stop need an active supervisor. The January panel remains
+inspected development data; Q21 and final-test gates remain pending. GitNexus
+was stale (<code>1d5ba82</code> versus then-current <code>d3eb4c5</code>); direct source/tests were
+used at preflight.</p>
+<p>Record terminal and retained-checkpoint return, Sharpe per square-root bar,
+turnover, action fractions, critic/PPO diagnostics, actual sampled steps and
+cost curriculum. Keep economic returns unscaled; do not call the PPO reward
+scale a normalized return. Add official comparison plots/evidence to the
+research browser only when actual artifacts exist.</p>
+<p>After these controls, implement/test R1 separately, then run matched R1 and
+R1 + R4-v1 on the same corrected compatibility stack. The native Ray 2.58
+platform cutover is complete on the isolated migration branch; a future
+four-cell scientific qualification must use that active native stack and keep
+runtime identity explicit rather than treating the old-stack outcomes as native
+parity evidence.</p>
+<h2>Supervisor closeout update — 2026-10-05</h2>
+<p>All eight attempt-04 training cells completed their 12 updates by about 13:30
+Madrid. In the first terminal-replay attempt, cells 4--7 passed, then cell 8
+was proactively stopped at 1.198 GiB free RAM, below the 1.25 GiB stop threshold
+but above the human-approved 1 GiB hard runtime floor. That cell-8 replay was
+preserved and excluded; no evaluation result was attributed to it.</p>
+<p>After the user-requested WSL shutdown, a separate fresh cell-8 replay retry
+completed successfully, together with witnessed repeats of cells 1--3. The final
+accepted set is eight retained checkpoints times 32 episodes, or 256 fresh
+replay episodes, independently accepted for replay parity. No training was
+resumed or rerun during closeout. Economic/fresh-panel promotion remains
+unapproved. These compatibility-control results are separate from validation of
+the isolated native migration; no owned Ray job processes remained after
+closeout. The earlier launcher-hold and first cell-8 replay-stop notes are
+preserved as intermediate events, not current status.</p>
+</main></body></html>

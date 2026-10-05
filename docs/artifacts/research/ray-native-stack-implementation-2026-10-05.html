@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ray 2.58 Native RLlib Stack Migration</title>
+  <style>
+    :root{color-scheme:light;--ink:#18201d;--muted:#5c6762;--line:#ccd3cf;--paper:#fbfcfa;--wash:#eef2ef;--accent:#1f6651}
+    *{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:16px/1.55 Georgia,serif}
+    main{max-width:980px;margin:32px auto;background:var(--paper);padding:44px 54px 60px;border:1px solid var(--line)}
+    h1,h2{line-height:1.2}h2{margin-top:34px;padding-top:16px;border-top:1px solid var(--line)}
+    code{font:.9em Consolas,monospace;background:#edf0ee;padding:1px 4px}a{color:var(--accent)}
+    @media(max-width:760px){main{margin:0;padding:28px 18px}}
+  </style>
+</head>
+<body><main>
+  <h1>Ray 2.58 Native RLlib Stack Migration</h1>
+  <p>Date: 2026-10-05<br>Branch: <code>feat(R)/Ray_upgrade</code></p>
+  <p>Source: isolated feature worktree populated from the dirty <code>agent/Watson-dev</code>
+  working tree at commit <code>d3eb4c517075b1b85506f5500a9a5552d6186e3f</code>.
+  The imported Python snapshot was SHA-256 verified as
+  <code>b2739469a5a601aceb95b69e19d5f08ce44e8b8763b94300ebb7ea4f79234e95</code>
+  before native-stack edits; the live Watson checkout was not modified.</p>
+  <p><strong>Status: active training is native-only on this branch; historical legacy
+  adapters/recipes are separated for explicit parity. Four-cell scientific
+  qualification and economic promotion remain pending.</strong></p>
+  <h2>Scope and implementation</h2>
+  <p>The authoritative package migration remains Ray/RLlib 2.58.0, Gymnasium 1.2.2,
+  and PyArrow 17.0.0. This work does not introduce an additional Ray version or
+  unnecessary pandas, NumPy, or PyTorch upgrades. <code>uv.lock</code> is imported
+  from the dirty Watson source snapshot.</p>
+  <p>The active trainer always selects the Ray 2.58 RLModule/Learner/EnvRunner
+  stack; there is no <code>rllib_api_stack</code> selector or ModelV2/TorchPolicy
+  fallback. The shared solver math is a PyTorch-only core, hosted by the native
+  RLModule. Historical ModelV2/TorchPolicy adapters and Ray 2.58 legacy recipes
+  are isolated in <code>itrader/compat/rllib_legacy/</code>; Ray 2.9 remains a
+  separate runtime profile in <code>itrader/compat/ray29/</code>. The native adapter
+  supports <code>solver_mlp_film</code> only and fails closed on other solver selectors
+  or Ray versions. <code>TaskSpec</code>,
+  <code>ITraderEnv</code>, <code>RewardEngine</code>, and online risk/execution seams
+  are unchanged.</p>
+  <ul>
+    <li>TorchRLModule forwards share the existing MLP-FiLM parameter layout and support PPO value prediction; the PyTorch-only core owns the shared trunk/state value readout used by the native <code>ValueFunctionAPI</code>.</li>
+    <li>Stable repository experiment inputs map to Ray's native Learner field names before RLlib configuration.</li>
+    <li>SingleAgentEpisode/MetricsLogger callbacks preserve project evidence and metric names; callbacks, reporting, and replay share one validated <code>sum</code>/<code>count</code> mean reducer.</li>
+    <li>Learner-side clipping diagnostics use the same forward pass as PPO loss.</li>
+    <li>Checkpoint inference, model identity, target-setting reconciliation, optimizer-moment preservation, and evaluation synchronization have native paths.</li>
+    <li>Both native replay entrypoints use one checkpoint replay-input contract that verifies actual checkpoint/data bytes and frozen source-panel identity before Ray starts.</li>
+  </ul>
+  <h2>Bounded validation</h2>
+  <p>A synthetic parquet integration test exercises one real PPO update, learner
+  diagnostics and metrics, checkpoint save/restore, deterministic action replay,
+  changed-target donor restore reconciliation, and checkpoint-consistent
+evaluation synchronization for R0 and R4-v1 state modes. Module tests compare
+PyTorch-core/native logits and values and check native optimizer configuration.
+A separate real-Ray subprocess test invokes the official trainer CLI/Tune path
+for one update and checks completed run status, native stack identity, persisted
+reporting, and RLModule checkpoint structure. Both use synthetic data and are
+included in the repository test suite; full command and results are in the
+companion iteration record.</p>
+  <p>This is mechanical compatibility evidence only: no economic improvement,
+  full-data readiness, PBT search effectiveness, or promotion is established.
+  R1 remains unimplemented and the R0, R0 + R4-v1, R1, R1 + R4-v1 four-cell
+comparison is pending. The native migration is not an economic or representation
+result.</p>
+  <p>The pre-cutover feature-worktree suite completed with 416 passing tests.
+  Required dependencies passed the healthcheck on Python 3.11.13, Ray 2.58.0,
+  Gymnasium 1.2.2, PyArrow 17.0.0, and CPU Torch 2.3.1. Optional
+  <code>llama_cpp</code> and <code>transformers</code> are not installed here.</p>
+  <h2>Runtime notes</h2>
+  <p>Ray 2.58 emits an RLModule deprecation warning from its checkpoint-restore
+  internals; direct application-module construction uses the modern constructor.
+  Ray documents the <a href="https://docs.ray.io/en/latest/rllib/rllib-learner.html">Learner API</a>
+  as alpha, so keep the exact runtime pin and bounded
+  restore/evaluation probes in qualification. Historical reproduction uses the
+  compatibility capsule or the exact source revision in the run manifest; it is
+  not a selectable active trainer mode.</p>
+</main></body></html>

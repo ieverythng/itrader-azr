@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "run_tag": "phaseA_r0_dataset_v2_controls_crossed_8x4_20260924_124641",
+  "scope": "development_selection_panel_not_final_test",
+  "dataset_sha256": "20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9",
+  "evaluation_panel_sha256": "2314a55ceac6aceed575203d91daa0d1468fcd88158ff4d0839751c3b8b36b9f",
+  "panel_file_sha256": "fcebe56d878a80c905488301ee880ebf782f4bc9c802b238fd9d2c1ce1284155",
+  "panel": {
+    "episode_count": 32,
+    "anchor_count": 8,
+    "horizons": [96, 128, 160, 200],
+    "symbols": ["AMD", "AMZN", "AVGO", "IWM", "NVDA", "QQQ"],
+    "identity_check": "32 unique start_idx+horizon pairs; every anchor appears at all four horizons",
+    "selection_note": "Anchors were selected from the existing development panel for full-200-bar validity and mixed full-horizon direction. This removes the horizon/start identity shortcut but remains selection-informed and cannot serve as a final test."
+  },
+  "controls": {
+    "flat": {
+      "net_return_mean": 0.0,
+      "net_sharpe_per_sqrt_bar_mean": 0.0,
+      "turnover_mean": 0.0
+    },
+    "long_only": {
+      "net_return_mean": -0.0009785450278411774,
+      "net_sharpe_per_sqrt_bar_mean": 0.008271140634209743,
+      "turnover_mean": 2.0
+    },
+    "short_only": {
+      "net_return_mean": 0.0005785450278411773,
+      "net_sharpe_per_sqrt_bar_mean": -0.015578861677502165,
+      "turnover_mean": 2.0
+    },
+    "random": {
+      "net_return_mean": -0.013114293910782534,
+      "net_sharpe_per_sqrt_bar_mean": -0.2585737813638464,
+      "turnover_mean": 128.75
+    },
+    "untrained_mlp_film": {
+      "net_return_mean": 0.0005785450278411773,
+      "net_sharpe_per_sqrt_bar_mean": -0.015578861677502165,
+      "turnover_mean": 2.0,
+      "action_note": "The seeded untrained argmax policy was 100% short and exactly matched short-only."
+    }
+  },
+  "directional_control_by_horizon": {
+    "long_only": {
+      "96": -0.0006110846585102787,
+      "128": -0.0020248272179148544,
+      "160": -0.0011565406335322286,
+      "200": -0.00012172760140734761
+    },
+    "short_only": {
+      "96": 0.00021108465851027864,
+      "128": 0.0016248272179148538,
+      "160": 0.0007565406335322284,
+      "200": -0.00027827239859265235
+    }
+  },
+  "next_arm_gate": {
+    "pbt_internal_eligibility": "positive 1 bp net return, Sharpe/√bar > 0, and flat fraction < 0.98",
+    "development_candidate_target": "Sharpe/√bar >= 0.02 with positive 1 bp net return and sustained non-flat behavior",
+    "post_search_comparison": "Report flat and both directional controls; direction itself is not penalized. Diagnose performance by matched market regime before promotion.",
+    "sealed_final_test": "remains closed"
+  }
+}

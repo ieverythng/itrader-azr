@@ -1,47 +1,101 @@
 # Documentation Index
 
-Markdown is the source of truth for active documents. HTML companions accompany the four review surfaces that require them; their synchronization and verification status is recorded in the dated revision audit. Current architecture claims remain source-grounded; the Ray 2.58 migration is staged on `feat(R)/Ray_upgrade` from base `42d1b3a`. Dated reports preserve evidence and line references from their audit snapshots. Solver/trunk/head choices remain subject to the ongoing user grill-me review.
+Markdown is the source of truth for active documents. HTML companions are
+review surfaces. Dated reports preserve evidence and provenance; they do not
+override current source, architecture, or plan decisions.
 
-## Active architecture
+## Authority order
 
-- `architecture.md` — compact current baseline, R-series status, and control rules.
-- `architecture/itrader_system_architecture.md` (+ `.html`) — detailed solver, recurrence, task, proposer, and online-shell architecture.
-- `environment_strategy.md` — dependency authority and Windows/WSL execution boundary.
-- `ops_runbook.md` — operational runbook for compatible environments.
+When documents disagree, use this order:
 
-## Active plans
+1. current source, tests, configs, and `AGENTS.md`;
+2. active architecture and the canonical masterplan;
+3. project-state decisions, current state, handoff, and next actions;
+4. active research registry and focused design notes;
+5. dated research artifacts;
+6. generated GitNexus pages and imported references.
 
-- `plans/itrader_masterplan.md` (+ `.html`) — active cross-phase order and promotion gates; Phase B/C boundaries are being reconciled.
-- `phase_b_plan.md` — historical concrete Phase B ordering, reconciled with the locked 2.9 stack and the current offline+replay/shadow scope.
-- `iTRADER_Codex_Implementation_Spec.md` — working interface/workstream draft; solver/trunk/head order is proposed, not settled by this index.
+Call out meaningful drift rather than silently selecting a convenient version.
+
+## Start here
+
+| Need | Document |
+|---|---|
+| Current system boundary | [Compact architecture](architecture.md) |
+| Detailed solver/task/online architecture | [iTrader System Architecture](architecture/itrader_system_architecture.md) ([HTML](architecture/itrader_system_architecture.html)) |
+| Cross-phase order and promotion gates | [Canonical Masterplan](plans/itrader_masterplan.md) ([HTML](plans/itrader_masterplan.html)) |
+| All research wings, dependencies, statuses, and decisions | [iTrader Research Dashboard](research/itrader_research_dashboard.md) ([HTML](research/itrader_research_dashboard.html)) |
+| Search runs, members, checkpoints, and matched factors | [Experiment Browser](research/itrader_experiment_browser.html) ([registry](research/experiment_registry.json)) |
+| Independent change-review contract | [Review Contract](../REVIEW.md) |
+| Current branch and experiment state | [Current State](project-state/current-state.md) |
+| Ordered continuation work | [Next Actions](project-state/next-actions.md) |
+| R1 diagnostics, replay and implementation acceptance | [R1 development readiness](project-state/r1-development-readiness.md) |
+| Accepted/rejected decisions | [Decision Log](project-state/decisions.md) |
+| Complete dated research catalog | [Research Artifacts](artifacts/research/README.md) |
+
+## Active architecture and operations
+
+- [architecture.md](architecture.md) — compact baseline, R-series status, and
+  control rules.
+- [architecture/itrader_system_architecture.md](architecture/itrader_system_architecture.md)
+  ([HTML](architecture/itrader_system_architecture.html)) — detailed solver,
+  recurrence, task, proposer, capability, and online-shell architecture.
+- [environment_strategy.md](environment_strategy.md) — Ray-2.58 forward
+  authority, Ray-2.9 historical reproduction, and Windows/WSL boundaries.
+- [ops_runbook.md](ops_runbook.md) — compatible-environment operations.
+
+## Plans
+
+- [plans/itrader_masterplan.md](plans/itrader_masterplan.md)
+  ([HTML](plans/itrader_masterplan.html)) — canonical cross-phase plan and
+  promotion authority.
+- [phase_b_plan.md](phase_b_plan.md) — historical Phase-B milestone proposal;
+  use the masterplan for current order and runtime authority.
+- [iTRADER_Codex_Implementation_Spec.md](iTRADER_Codex_Implementation_Spec.md) —
+  working interface/workstream draft; proposed wording is not implementation
+  status.
+
+See [plans/README.md](plans/README.md) for plan ownership and archival rules.
 
 ## Project state
 
-- `project-state/current-state.md` — branch and implementation snapshot.
-- `project-state/handoff.md` — continuation handoff.
-- `project-state/next-actions.md` — ordered implementation and evidence queue.
-- `project-state/decisions.md` — accepted decisions and supersessions.
-- `project-state/session-log.md` — dated engineering log.
-- `project-state/solver-recurrence-assessment.md` — historical assessment rewritten as non-executable evidence and constraints.
+- [project-state/current-state.md](project-state/current-state.md) — branch and
+  implementation snapshot.
+- [project-state/handoff.md](project-state/handoff.md) — continuation handoff.
+- [project-state/next-actions.md](project-state/next-actions.md) — ordered
+  implementation and evidence queue.
+- [project-state/decisions.md](project-state/decisions.md) — accepted decisions
+  and supersessions.
+- [project-state/session-log.md](project-state/session-log.md) — dated
+  engineering log.
 
 ## Research
 
-- `research/recurrent-solver-ablation.md` (+ `.html`) — R0–R4 provenance, R2a–R2d placement matrix, same-input carry/reset controls, and RLlib lifecycle questions; not an accepted architecture contract.
-- `research/sharpe-reward-design.md` (+ `.html`) — reward evidence boundary, telescoping limitation, and proposer/solver separation.
+- [research/itrader_research_dashboard.md](research/itrader_research_dashboard.md)
+  ([HTML](research/itrader_research_dashboard.html)) — canonical research
+  registry. It distinguishes R/C/S identities, provisional ATX/PF/WM/TTS/AZR
+  experiments, orthogonal reward/task/platform axes, masterplan placement, and
+  the evidence/decision queue.
+- [research/itrader_experiment_browser.html](research/itrader_experiment_browser.html)
+  ([registry](research/experiment_registry.json)) — generated run/checkpoint
+  browser over authoritative result JSON. It is an evidence navigator, not a
+  second result ledger or roadmap.
+- [research/recurrent-solver-ablation.md](research/recurrent-solver-ablation.md)
+  ([HTML](research/recurrent-solver-ablation.html)) — focused R-series identity,
+  placement, and lifecycle design provenance.
+- [research/sharpe-reward-design.md](research/sharpe-reward-design.md)
+  ([HTML](research/sharpe-reward-design.html)) — focused reward-axis design note.
 
-## Dated artifacts and audit
+See [research/README.md](research/README.md) for the directory boundary and
+[artifacts/research/README.md](artifacts/research/README.md) for all dated
+investigations, experiment receipts, evidence directories, and imported
+references.
 
-- `artifacts/research/phase-a-performance-validity-audit-2026-09-12.md` (+ `.html`) — critical Phase A audit, restored-winner replay, implemented seam repairs, final full-stack acceptance probe, and remaining promotion run.
-- `artifacts/research/ray-2.58-migration-2026-09-14.md` — authoritative dependency/API seam map, Ray 2.58 acceptance evidence, Windows caveat, and native new-stack gate.
-- `artifacts/research/azr-stack-review-2026-09-12.md` — local AZR v2 synthesis and source-grounded adaptation recommendations.
-- `artifacts/research/recurrence-code-audit-2026-09-12.md` — independent read-only source audit; do not treat its attempted WSL test as a pass.
-- `artifacts/research/recurrence-docs-revision-audit-2026-09-12.md` — this docs coverage inventory, edit rationale, and validation results.
-- `daily_logs/2026-09-12.md` — dated docs-only work log.
+## Historical and advisory surfaces
 
-## Historical/advisory surfaces intentionally excluded from rewrite
-
-- `knowledge/wiki/` is generated GitNexus material and remains advisory.
-- Imported HTML under `artifacts/research/`, including `Neural_Workbench_Formal_Masterplan_Extended.html`, remains historical/reference material.
-- Dated handoffs and older research snapshots remain provenance unless an active document explicitly promotes their conclusion.
-
-When documents disagree, use this precedence: current source/tests/config and `AGENTS.md`; active architecture/masterplan; project-state continuity docs; independent/dated research artifacts; generated/imported material.
+- `docs/artifacts/` contains dated, imported, generated, or historical material.
+- `docs/knowledge/wiki/` is generated GitNexus material and remains advisory.
+- Imported HTML under `docs/artifacts/research/` is reference material unless an
+  active document explicitly promotes a conclusion.
+- Historical plans and recurrence assessments preserve provenance but do not
+  supersede the active architecture, masterplan, or research dashboard.

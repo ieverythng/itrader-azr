@@ -1,0 +1,557 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>R4-v1 solver-state blocking ablation audit</title><style>:root{color-scheme:light;--ink:#18201d;--line:#ccd3cf;--paper:#fbfcfa;--wash:#eef2ef;--accent:#1f6651}*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:16px/1.55 Georgia,serif}main{max-width:1120px;margin:32px auto;background:var(--paper);padding:48px 58px 64px;border:1px solid var(--line)}h1,h2,h3{line-height:1.2}h2{margin-top:40px;padding-top:18px;border-top:1px solid var(--line)}table{width:100%;border-collapse:collapse;margin:18px 0 24px;font-size:.9rem}th,td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}th{background:#e8eeea}tbody tr:nth-child(even){background:#f4f6f4}code{font:.9em Consolas,monospace;background:#edf0ee;padding:1px 4px}pre{overflow:auto;background:#edf0ee;padding:14px}@media(max-width:760px){main{margin:0;padding:28px 18px}table{display:block;overflow:auto}}</style></head><body><main><h1 id="r4-v1-solver-state-blocking-ablation-audit-2026-09-25">R4-v1 solver-state blocking ablation audit — 2026-09-25</h1>
+<h2 id="status">Status</h2>
+<p><strong>Complete; R4-v1 economic promotion failed.</strong> All 12 cells, terminal replays,
+state-conditioned diagnostics, controls, and predeclared anchor-block intervals
+are frozen. Time-only passed the relative net-return factor gate, but no arm
+passed the separate absolute economic gate. No R1, recurrence, PBT, sealed-test
+access, 2-bp promotion, or intermediate-result tuning occurred during the round.</p>
+<h2 id="frozen-question-and-design">Frozen question and design</h2>
+<p>Does the accepted fixed-width R4-v1 state connector improve the frozen R0
+MLP-FiLM solver under exact 1 bp economics, and is any relative effect strong
+and durable enough to pass the separate absolute economic gate?</p>
+<p>The design is a sequential, seed-blocked 4 x 3 paired ablation:</p>
+<table>
+<thead>
+<tr>
+<th>Factor</th>
+<th>Frozen levels</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Solver-state arm</td>
+<td><code>masked</code>, <code>position</code>, <code>time</code>, <code>both</code></td>
+</tr>
+<tr>
+<td>Training seed</td>
+<td><code>20260924</code>, <code>20260925</code>, <code>20260926</code></td>
+</tr>
+<tr>
+<td>Evaluation</td>
+<td>seed <code>30260943</code>; identical crossed 8-anchor x 4-horizon development panel</td>
+</tr>
+<tr>
+<td>Runtime</td>
+<td>Ray 2.58; local worker only; <code>workers=0</code>; <code>pop=1</code>; PBT off</td>
+</tr>
+<tr>
+<td>Exposure</td>
+<td>12 PPO updates, train batch 4,800, approximately 58k sampled steps per cell</td>
+</tr>
+<tr>
+<td>Economics</td>
+<td>exact fixed 1 bp optimization and evidence cost; <code>net_return</code></td>
+</tr>
+<tr>
+<td>Data</td>
+<td>immutable dataset-v2, RTH only, 12-symbol frozen universe</td>
+</tr>
+<tr>
+<td>Observation</td>
+<td>window 60, <code>semantic_v2</code>, <code>market_relative_v1</code>, <code>NoFilter</code></td>
+</tr>
+<tr>
+<td>Solver</td>
+<td>current frozen PPO/R0 MLP-FiLM recipe; only the state mask varies</td>
+</tr>
+</tbody>
+</table>
+<p>The checked-in loadout is
+<code>itrader/scripts/experiments/configs/phase_a_r4_v1_blocking_4x3_20260925.json</code>.
+It runs seed-major to limit time/resource drift within each paired block. The
+runner checks free physical RAM before every cell and hard-stops below 2 GiB.
+Checkpoint cadence is terminal update 12. The existing evidence stack also
+retains a stable checkpoint at any strictly improved, positive held-out
+selection score; those best-of-trajectory checkpoints are secondary only.</p>
+<h2 id="predeclared-decision-gates">Predeclared decision gates</h2>
+<p>These gates were frozen before inspecting any result from this round:</p>
+<ol>
+<li>All 12 cells must complete with identical observation schema, dataset,
+evaluation-panel, and source-tree fingerprints, finite required metrics, and
+no provenance drift.</li>
+<li>Primary attribution uses terminal update 12, paired by training seed against
+that seed's <code>masked</code> arm. Best-of-trajectory evidence is secondary.</li>
+<li>The final three evaluation reports (updates 10–12) must be reported as a
+durability slice; a single terminal point cannot hide late instability.</li>
+<li>Every primary terminal checkpoint must restore and replay exactly in a fresh
+process. If the current best-checkpoint pointer is nonterminal, terminal
+replay must use the update-12 checkpoint-index entry explicitly.</li>
+<li>Each terminal checkpoint requires diagnostics conditioned by prior position
+and remaining-time quarter, including switching, turnover, liquidation,
+inference entropy, explained variance, action probabilities, and value
+outputs.</li>
+<li>Uncertainty is paired by task/episode and clustered or bootstrapped by the
+eight market anchors. The 32 anchor-horizon tasks are not independent.
+Intervals are reported per seed and as a pooled/replicated interpretation.</li>
+<li>The relative factor gate requires directionally consistent paired uplift and
+a predeclared 95% anchor-block interval excluding zero for any promoted
+metric. Net-return and Sharpe effects are computed and reported separately.</li>
+<li>The absolute economic gate is separate: positive exact-1-bp net return and
+Sharpe, superiority to flat and the strongest directional/untrained control,
+reasonable turnover, and exact replay. Relative uplift alone cannot promote.</li>
+<li>No sealed final-test access, 2-bp promotion claim, PBT, or tuning based on
+intermediate results is allowed.</li>
+<li>Cells run sequentially. Free RAM is checked between cells and the official
+runner fails closed below 2 GiB.</li>
+</ol>
+<h2 id="uncertainty-method-frozen-before-results">Uncertainty method frozen before results</h2>
+<p>For each seed and candidate arm, compute episode-level candidate-minus-masked
+deltas on the identical 32 tasks. Define the cluster as the panel's eight unique
+market anchors (<code>symbol</code>, <code>start_idx</code>); all four horizons belonging to an anchor
+travel together. Produce 10,000 seeded nonparametric bootstrap replicates by
+sampling eight anchors with replacement and averaging all carried task deltas.
+Report the percentile 95% interval for net return and for per-episode Sharpe.</p>
+<p>For the pooled interpretation, preserve replication: first sample the three
+training seeds with replacement, then independently sample eight anchors with
+replacement inside each selected seed, and average the resulting deltas. The
+pooled interval is evidence across the three declared training replications, not
+32 independent tasks and not an independent final test.</p>
+<h2 id="controls">Controls</h2>
+<p>Flat, long-only, short-only, seeded-random, and seeded-untrained controls use the
+same dataset, evaluation seed, exact 1 bp evidence cost, and frozen panel. The
+strongest control is chosen separately for net return and Sharpe from these
+predeclared controls; it is not selected from additional post-hoc baselines.</p>
+<h2 id="protected-scope-and-ownership">Protected scope and ownership</h2>
+<p><code>TaskSpec</code> remains unchanged. <code>ITraderEnv</code> continues to own mutable position,
+episode progress, and observation assembly. <code>RewardEngine</code> remains the sole
+reward seam. <code>SolverMLPFiLM</code> consumes the already accepted two-value connector
+without acquiring broker, risk, or execution semantics. The dirty working tree
+containing the accepted dataset-v2 and R4-v1 implementation is the protected
+baseline; unrelated modifications will not be staged, committed, deleted, or
+rewritten.</p>
+<h2 id="results">Results</h2>
+<h3 id="completion-and-provenance">Completion and provenance</h3>
+<p>All 12 cells completed sequentially with one trial each at 12 PPO updates and
+58,256–58,640 sampled environment steps. The matrix has one unique observation
+schema, dataset hash, evaluation-panel hash, and source-tree hash:</p>
+<pre><code class="language-text">observation schema  r4_v1_min / base 332 / state 2 / agent 334
+dataset SHA-256     20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9
+panel SHA-256       2314a55ceac6aceed575203d91daa0d1468fcd88158ff4d0839751c3b8b36b9f
+source SHA-256      351b8d423377feffa22ecd8eb59c7934c92d3ca298f14721ff827bfa8f03c3f1
+</code></pre>
+<p>Required economic and diagnostic metrics were finite. The legacy-stack
+<code>clip_fraction</code> remains unavailable (<code>NaN</code>) as already disclosed by the smoke;
+it is not a required promotion metric and did not vary by cell. Every inter-cell
+RAM check passed the 2 GiB floor. PBT remained off, population remained one, and
+no cell was retried.</p>
+<h3 id="terminal-update-12-economics">Terminal update-12 economics</h3>
+<p>Values are arithmetic means over the identical 32-task development panel.
+Percentages below are return fractions multiplied by 100.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Seed</th>
+<th>Arm</th>
+<th style="text-align: right;">Net</th>
+<th style="text-align: right;">Sharpe / sqrt(bar)</th>
+<th style="text-align: right;">Gross</th>
+<th style="text-align: right;">Turnover</th>
+<th style="text-align: right;">Position changes</th>
+<th style="text-align: right;">Liquidation</th>
+<th style="text-align: right;">Entropy</th>
+<th style="text-align: right;">Explained variance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">20260924</td>
+<td>masked</td>
+<td style="text-align: right;">-0.1193%</td>
+<td style="text-align: right;">-0.02381</td>
+<td style="text-align: right;">-0.0150%</td>
+<td style="text-align: right;">10.438</td>
+<td style="text-align: right;">9.781</td>
+<td style="text-align: right;">0.656</td>
+<td style="text-align: right;">0.9991</td>
+<td style="text-align: right;">0.0130</td>
+</tr>
+<tr>
+<td style="text-align: right;">20260924</td>
+<td>position</td>
+<td style="text-align: right;">-0.1647%</td>
+<td style="text-align: right;">-0.07004</td>
+<td style="text-align: right;">+0.0584%</td>
+<td style="text-align: right;">22.312</td>
+<td style="text-align: right;">21.875</td>
+<td style="text-align: right;">0.281</td>
+<td style="text-align: right;">1.0079</td>
+<td style="text-align: right;">0.0149</td>
+</tr>
+<tr>
+<td style="text-align: right;">20260924</td>
+<td>time</td>
+<td style="text-align: right;">-0.0023%</td>
+<td style="text-align: right;">-0.02516</td>
+<td style="text-align: right;">+0.0627%</td>
+<td style="text-align: right;">6.500</td>
+<td style="text-align: right;">5.656</td>
+<td style="text-align: right;">0.688</td>
+<td style="text-align: right;">0.9895</td>
+<td style="text-align: right;">0.1539</td>
+</tr>
+<tr>
+<td style="text-align: right;">20260924</td>
+<td>both</td>
+<td style="text-align: right;">-0.0008%</td>
+<td style="text-align: right;">-0.00855</td>
+<td style="text-align: right;">+0.0542%</td>
+<td style="text-align: right;">5.500</td>
+<td style="text-align: right;">3.812</td>
+<td style="text-align: right;">1.000</td>
+<td style="text-align: right;">0.9973</td>
+<td style="text-align: right;">0.1170</td>
+</tr>
+<tr>
+<td style="text-align: right;">20260925</td>
+<td>masked</td>
+<td style="text-align: right;">-0.1582%</td>
+<td style="text-align: right;">-0.03204</td>
+<td style="text-align: right;">+0.0143%</td>
+<td style="text-align: right;">17.250</td>
+<td style="text-align: right;">16.500</td>
+<td style="text-align: right;">0.719</td>
+<td style="text-align: right;">0.9656</td>
+<td style="text-align: right;">0.0404</td>
+</tr>
+<tr>
+<td style="text-align: right;">20260925</td>
+<td>position</td>
+<td style="text-align: right;">-0.1045%</td>
+<td style="text-align: right;">-0.02796</td>
+<td style="text-align: right;">+0.0124%</td>
+<td style="text-align: right;">11.688</td>
+<td style="text-align: right;">7.812</td>
+<td style="text-align: right;">0.531</td>
+<td style="text-align: right;">0.9128</td>
+<td style="text-align: right;">0.0213</td>
+</tr>
+<tr>
+<td style="text-align: right;">20260925</td>
+<td>time</td>
+<td style="text-align: right;">-0.0816%</td>
+<td style="text-align: right;">-0.02256</td>
+<td style="text-align: right;">-0.0116%</td>
+<td style="text-align: right;">7.000</td>
+<td style="text-align: right;">6.281</td>
+<td style="text-align: right;">0.719</td>
+<td style="text-align: right;">0.9223</td>
+<td style="text-align: right;">0.0598</td>
+</tr>
+<tr>
+<td style="text-align: right;">20260925</td>
+<td>both</td>
+<td style="text-align: right;">-0.1289%</td>
+<td style="text-align: right;">-0.02409</td>
+<td style="text-align: right;">-0.0121%</td>
+<td style="text-align: right;">11.688</td>
+<td style="text-align: right;">10.688</td>
+<td style="text-align: right;">0.562</td>
+<td style="text-align: right;">0.9313</td>
+<td style="text-align: right;">0.0930</td>
+</tr>
+<tr>
+<td style="text-align: right;">20260926</td>
+<td>masked</td>
+<td style="text-align: right;">-0.0728%</td>
+<td style="text-align: right;">-0.03365</td>
+<td style="text-align: right;">-0.0359%</td>
+<td style="text-align: right;">3.688</td>
+<td style="text-align: right;">3.625</td>
+<td style="text-align: right;">0.062</td>
+<td style="text-align: right;">0.7600</td>
+<td style="text-align: right;">0.0361</td>
+</tr>
+<tr>
+<td style="text-align: right;">20260926</td>
+<td>position</td>
+<td style="text-align: right;">-0.0194%</td>
+<td style="text-align: right;">-0.01544</td>
+<td style="text-align: right;">+0.0068%</td>
+<td style="text-align: right;">2.625</td>
+<td style="text-align: right;">2.625</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.7910</td>
+<td style="text-align: right;">0.0311</td>
+</tr>
+<tr>
+<td style="text-align: right;">20260926</td>
+<td>time</td>
+<td style="text-align: right;">+0.0133%</td>
+<td style="text-align: right;">-0.00348</td>
+<td style="text-align: right;">+0.0439%</td>
+<td style="text-align: right;">3.062</td>
+<td style="text-align: right;">3.062</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.7318</td>
+<td style="text-align: right;">0.2510</td>
+</tr>
+<tr>
+<td style="text-align: right;">20260926</td>
+<td>both</td>
+<td style="text-align: right;">+0.0324%</td>
+<td style="text-align: right;">+0.00644</td>
+<td style="text-align: right;">+0.0481%</td>
+<td style="text-align: right;">1.562</td>
+<td style="text-align: right;">1.562</td>
+<td style="text-align: right;">0.000</td>
+<td style="text-align: right;">0.7706</td>
+<td style="text-align: right;">0.2076</td>
+</tr>
+</tbody>
+</table>
+<p>Three-seed terminal means were:</p>
+<table>
+<thead>
+<tr>
+<th>Arm</th>
+<th style="text-align: right;">Net</th>
+<th style="text-align: right;">Sharpe / sqrt(bar)</th>
+<th style="text-align: right;">Gross</th>
+<th style="text-align: right;">Turnover</th>
+<th style="text-align: right;">Position changes</th>
+<th style="text-align: right;">Liquidation</th>
+<th style="text-align: right;">Explained variance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>masked</td>
+<td style="text-align: right;">-0.1168%</td>
+<td style="text-align: right;">-0.02983</td>
+<td style="text-align: right;">-0.0122%</td>
+<td style="text-align: right;">10.458</td>
+<td style="text-align: right;">9.969</td>
+<td style="text-align: right;">0.479</td>
+<td style="text-align: right;">0.0298</td>
+</tr>
+<tr>
+<td>position</td>
+<td style="text-align: right;">-0.0962%</td>
+<td style="text-align: right;">-0.03781</td>
+<td style="text-align: right;">+0.0259%</td>
+<td style="text-align: right;">12.208</td>
+<td style="text-align: right;">10.771</td>
+<td style="text-align: right;">0.271</td>
+<td style="text-align: right;">0.0224</td>
+</tr>
+<tr>
+<td>time</td>
+<td style="text-align: right;">-0.0235%</td>
+<td style="text-align: right;">-0.01707</td>
+<td style="text-align: right;">+0.0317%</td>
+<td style="text-align: right;">5.521</td>
+<td style="text-align: right;">5.000</td>
+<td style="text-align: right;">0.469</td>
+<td style="text-align: right;">0.1549</td>
+</tr>
+<tr>
+<td>both</td>
+<td style="text-align: right;">-0.0324%</td>
+<td style="text-align: right;">-0.00873</td>
+<td style="text-align: right;">+0.0301%</td>
+<td style="text-align: right;">6.250</td>
+<td style="text-align: right;">5.354</td>
+<td style="text-align: right;">0.521</td>
+<td style="text-align: right;">0.1392</td>
+</tr>
+</tbody>
+</table>
+<p>Time-only and both improved the average gross path, turnover, value fit, and net
+loss relative to masked. Position-only did not: its 20260924 lineage repeated the
+smoke's turnover pathology. The combined arm produced the only positive-net and
+positive-Sharpe terminal cell, seed 20260926, but the other two combined cells
+were negative.</p>
+<h3 id="final-three-durability">Final-three durability</h3>
+<p>The update-10–12 mean net returns were masked <code>-0.0777%</code>, position <code>-0.0894%</code>,
+time <code>-0.0265%</code>, and both <code>-0.0473%</code> when averaged across seeds. The corresponding
+Sharpe means were <code>-0.02109</code>, <code>-0.03432</code>, <code>-0.01733</code>, and <code>-0.01020</code>. Only the
+20260926 combined lineage had positive final-three mean net and Sharpe
+(<code>+0.0124%</code>, <code>+0.00342</code>); this was not replicated by the other seeds. Full
+per-cell update-10–12 receipts are in <code>analysis.json</code>.</p>
+<h3 id="paired-anchor-block-uncertainty">Paired anchor-block uncertainty</h3>
+<p>The predeclared bootstrap resampled the three training seeds, then the eight
+market anchors within each sampled seed, carrying all four horizons together.
+These are development-panel intervals, not a sealed or selection-adjusted test.</p>
+<table>
+<thead>
+<tr>
+<th>Arm vs masked</th>
+<th style="text-align: right;">Mean net delta</th>
+<th style="text-align: right;">95% anchor interval</th>
+<th style="text-align: right;">Mean Sharpe delta</th>
+<th style="text-align: right;">95% anchor interval</th>
+<th>Relative gate</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>position</td>
+<td style="text-align: right;">+0.0206%</td>
+<td style="text-align: right;">[-0.0822%, +0.1154%]</td>
+<td style="text-align: right;">-0.00798</td>
+<td style="text-align: right;">[-0.05077, +0.02223]</td>
+<td>fail</td>
+</tr>
+<tr>
+<td>time</td>
+<td style="text-align: right;">+0.0932%</td>
+<td style="text-align: right;"><strong>[+0.0265%, +0.1752%]</strong></td>
+<td style="text-align: right;">+0.01277</td>
+<td style="text-align: right;">[-0.00933, +0.03355]</td>
+<td><strong>net pass only</strong></td>
+</tr>
+<tr>
+<td>both</td>
+<td style="text-align: right;">+0.0843%</td>
+<td style="text-align: right;">[-0.0246%, +0.2019%]</td>
+<td style="text-align: right;">+0.02110</td>
+<td style="text-align: right;">[-0.00026, +0.04366]</td>
+<td>fail</td>
+</tr>
+</tbody>
+</table>
+<p>Time-only had positive terminal net deltas in all three seeds (<code>+0.1170%</code>,
+<code>+0.0766%</code>, <code>+0.0860%</code>) and its pooled anchor interval excluded zero. Its Sharpe
+delta was negative in seed 20260924, so Sharpe did not pass. Both had positive
+net and Sharpe deltas in every seed, but neither pooled interval excluded zero;
+the Sharpe lower bound missed by approximately <code>0.00026</code> and remains a failure,
+not a near-pass promotion.</p>
+<h3 id="controls-and-absolute-gate">Controls and absolute gate</h3>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th style="text-align: right;">Net</th>
+<th style="text-align: right;">Sharpe / sqrt(bar)</th>
+<th style="text-align: right;">Turnover</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>flat</td>
+<td style="text-align: right;">0.0000%</td>
+<td style="text-align: right;">0.00000</td>
+<td style="text-align: right;">0.000</td>
+</tr>
+<tr>
+<td>long-only</td>
+<td style="text-align: right;">-0.0979%</td>
+<td style="text-align: right;">+0.00827</td>
+<td style="text-align: right;">2.000</td>
+</tr>
+<tr>
+<td>short-only</td>
+<td style="text-align: right;">+0.0579%</td>
+<td style="text-align: right;">-0.01558</td>
+<td style="text-align: right;">2.000</td>
+</tr>
+<tr>
+<td>untrained seed 20260924</td>
+<td style="text-align: right;">+0.0579%</td>
+<td style="text-align: right;">-0.01558</td>
+<td style="text-align: right;">2.000</td>
+</tr>
+<tr>
+<td>untrained seed 20260925</td>
+<td style="text-align: right;">+0.0618%</td>
+<td style="text-align: right;">-0.00976</td>
+<td style="text-align: right;">2.000</td>
+</tr>
+<tr>
+<td>untrained seed 20260926</td>
+<td style="text-align: right;">-0.0716%</td>
+<td style="text-align: right;">-0.01529</td>
+<td style="text-align: right;">5.938</td>
+</tr>
+<tr>
+<td>random seeds (range)</td>
+<td style="text-align: right;">-1.3505% to -1.2144%</td>
+<td style="text-align: right;">-0.25857 to -0.24465</td>
+<td style="text-align: right;">128.750 to 131.312</td>
+</tr>
+</tbody>
+</table>
+<p>No arm had positive net and Sharpe across all three seeds. No arm's mean beat
+flat, the strongest net control (untrained seed 20260925, <code>+0.0618%</code>), or the
+strongest Sharpe control (long-only, <code>+0.00827</code>). Exact relative improvement is
+therefore not economic promotion.</p>
+<h3 id="exact-replay-and-state-conditioned-diagnostics">Exact replay and state-conditioned diagnostics</h3>
+<p>All 12 update-12 checkpoints restored in fresh Ray processes and reproduced the
+authoritative terminal net score. Replay deltas were exactly zero or at most
+<code>2.17e-19</code>.</p>
+<p>Each diagnostic contains 4,672 decisions, action probabilities, value outputs,
+switching, and slices by prior position and remaining-time quarter. Across
+seeds, mean step-level switching was <code>6.83%</code> masked, <code>7.38%</code> position, <code>3.42%</code>
+time, and <code>3.67%</code> both. Time and both reduced turnover and switching while their
+mean explained variance increased to <code>0.155</code> and <code>0.139</code> from masked <code>0.030</code>.
+Their mean predicted flat probability rose toward termination: time from
+<code>46.58%</code> in the early quarter to <code>48.59%</code> terminal, and both from <code>44.18%</code> to
+<code>46.97%</code>. The full by-position slices show distinct probabilities and value
+outputs when those states were visited, but several near-flat terminal policies
+did not visit every prior-position category. These diagnostics establish state
+use and value-path influence; they do not rescue the failed absolute economics.</p>
+<h3 id="evidencetooling-corrections">Evidence/tooling corrections</h3>
+<p>Three narrow evidence defects were closed with red tests before use:</p>
+<ol>
+<li>the ablation runner now enforces a top-level free-RAM floor before every
+sequential cell;</li>
+<li>replay and state diagnostics now select <code>terminal</code> explicitly rather than
+silently following a transient <code>best_checkpoint.json</code> pointer;</li>
+<li>control stable evidence is namespaced by experiment so seeded random and
+untrained episode receipts cannot overwrite one another.</li>
+</ol>
+<p>The new seed-then-anchor bootstrap also has a regression test proving that the
+four crossed horizons move together inside each market-anchor cluster. Only the
+six invalidated random/untrained controls were rerun after the control-path fix.</p>
+<h2 id="verdict">Verdict</h2>
+<p><strong>Fail R4-v1 economic promotion.</strong> Time-only passes the relative net factor gate,
+which is useful evidence that remaining-horizon observability changes the learned
+solution in a favorable direction. It is not the complete Markov state, its
+three-seed mean net and Sharpe remain negative, and it fails the absolute gate.
+The complete position-plus-time arm does not pass a pooled relative interval and
+also fails the absolute gate. Neither becomes the default solver observation,
+enters PBT, or justifies sealed-test or 2-bp promotion work.</p>
+<p>This verdict closes the special R4-before-R1 execution block. It does <strong>not</strong>
+authorize an automatic R1 launch: the existing user-review and recurrent
+lifecycle/placement gates still apply. If R1 proceeds after that review, R4-v1
+must remain a named, separate observability factor rather than being silently
+folded into the recurrent architecture. The next R4 work, if any, should use a
+genuinely new chronological development block and test the time signal as an
+explicit factor; rerunning or tuning against these same eight anchors is not
+allowed.</p>
+<h3 id="post-audit-architecture-decision">Post-audit architecture decision</h3>
+<p>The economic verdict above is unchanged. After reviewing control-state
+correctness separately from immediate returns, R0 remains the immutable parity
+control and the complete <code>R0 + R4-v1</code> connector is architecture-qualified as the
+forward feed-forward Phase A training baseline. This reflects removal of the
+known position/termination alias, not economic promotion or full market
+observability. The follow-up uses a fresh December-2025 block, zero-initialized
+residual heads, executable turnover/near-flat gates, arm-matched update-zero
+controls, counterfactual diagnostics, and a fixed 40-update 4x3 replication.
+R1 must retain state-free and explicitly named <code>R1 + R4-v1</code> cells.</p>
+<h2 id="evidence-index">Evidence index</h2>
+<ul>
+<li><code>solver-state-r4-v1-blocking-ablation-2026-09-25-evidence/analysis.json</code> —
+frozen cell table, final-three durability, diagnostics, controls, intervals,
+and gates;</li>
+<li><code>.../training_comparison/</code> — official 12-cell ablation comparison;</li>
+<li><code>.../terminal_replay/</code> — 12 terminal replay reports and 384 episode receipts;</li>
+<li><code>.../terminal_state_diagnostics/</code> — 12 diagnostic summaries and per-step rows;</li>
+<li><code>.../controls/</code> — matched control summaries and per-seed stable evidence.</li>
+</ul>
+<h2 id="validation-record">Validation record</h2>
+<ul>
+<li>prelaunch healthcheck: passed on Python 3.11.13 / Ray 2.58.0;</li>
+<li>prelaunch full suite: 277 passed;</li>
+<li>RAM-gate red/green tests: passed;</li>
+<li>terminal-selector replay tests: passed;</li>
+<li>control-namespacing red/green tests: passed;</li>
+<li>anchor-bootstrap suite: 10 passed;</li>
+<li>final healthcheck passed on Ray 2.58.0; full suite: 279 passed;</li>
+<li><code>git diff --check</code> and full pre-commit: passed;</li>
+<li>active architecture/masterplan Markdown and HTML companions were synchronized;</li>
+<li>GitNexus status remains stale at commit <code>1d5ba82</code> versus current <code>0894116</code>;
+it was not refreshed because the documented WSL analyzer crash-dump incident
+still forbids an uncoordinated reindex.</li>
+</ul>
+</main></body></html>

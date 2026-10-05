@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "experiment_name": "phaseA_p0_sync_donor_tail_6_20260920_001655_p314159",
+  "status": "completed",
+  "trial_count": 4,
+  "trial_statuses": [
+    "TERMINATED",
+    "TERMINATED",
+    "TERMINATED",
+    "TERMINATED"
+  ],
+  "source_tree_sha256": "5d0ef0e1a937dffc8d7c7a5d1afb72c2dbb44ba4ebdcd2f3ee55223a57bbd49f",
+  "dataset_sha256": "5f2e449548532ff71f419431df86962a2aedf7275d7bff5592729bbb8a900f73",
+  "pbt_event_count": 1,
+  "pbt_events": [
+    {
+      "recorded_at_utc": "2026-09-19T22:20:28.700065+00:00",
+      "event": "exploit",
+      "target": {
+        "trial_id": "d66ce_00002",
+        "tag": "2_seed=1215584",
+        "training_iteration": 5,
+        "pbt_progress_steps": 24256
+      },
+      "donor": {
+        "trial_id": "d66ce_00000",
+        "tag": "0_seed=1166608",
+        "training_iteration": 5,
+        "pbt_progress_steps": 24552
+      },
+      "mutation": {
+        "lr": 0.004358479065440115,
+        "gamma": 0.995,
+        "lambda": 0.9,
+        "clip_param": 0.2,
+        "sgd_minibatch_size": 256,
+        "num_sgd_iter": 20,
+        "vf_clip_param": 10.0,
+        "vf_loss_coeff": 0.5
+      }
+    }
+  ],
+  "terminal_boundary_events": 0,
+  "errored_trials": 0,
+  "watchdog": {
+    "ubuntu_or_wsl_crash_files": 0,
+    "minimum_observed_c_free_gb": 76.08,
+    "minimum_observed_free_ram_gb": 6.0
+  }
+}

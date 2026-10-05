@@ -1,0 +1,43 @@
+{
+  "adjustment": "split",
+  "content_sha256": "fac41f6d42f8c5b1eac739755667bb38407461f82c168d7955de26bb2e5fb79c",
+  "corporate_action_policy": {
+    "dividends": "not_applied",
+    "prices": "split_adjusted",
+    "raw_provider_payloads_retained": true
+  },
+  "dataset_id": "dataset_v2_20220103_20260922_alpaca_sip_split",
+  "end": "2026-09-22",
+  "feed": "sip",
+  "partitioning": [
+    "session",
+    "symbol",
+    "year"
+  ],
+  "provider": "alpaca",
+  "raw_page_count": 1067,
+  "row_count": 10370064,
+  "schema_version": 2,
+  "session_counts": {
+    "after_hours": 2025560,
+    "pre_market": 2829443,
+    "regular": 5515061
+  },
+  "start": "2022-01-03",
+  "symbols": [
+    "AAPL",
+    "MSFT",
+    "AMZN",
+    "NVDA",
+    "AMD",
+    "AVGO",
+    "GOOGL",
+    "META",
+    "SPY",
+    "QQQ",
+    "IWM",
+    "TLT"
+  ],
+  "timeframe": "1Min",
+  "timezone": "America/New_York"
+}

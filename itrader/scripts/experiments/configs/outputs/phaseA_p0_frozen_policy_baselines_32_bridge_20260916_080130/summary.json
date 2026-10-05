@@ -1,0 +1,58 @@
+{
+  "run_tag": "phaseA_p0_frozen_policy_baselines_32_bridge_20260916_080130",
+  "config": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\phase_a_p0_frozen_policy_baselines_32_bridge_20260916.json",
+  "results": [
+    {
+      "variant_id": "flat",
+      "series_id": "flat",
+      "experiment_name": "phaseA_p0_frozen_policy_baselines_32_bridge_20260916_080130_flat",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_frozen_policy_baselines_32_bridge_20260916\\ray\\phaseA_p0_frozen_policy_baselines_32_bridge_20260916_080130_flat\\training_fn_baseline_flat_00000",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_frozen_policy_baselines_32_bridge_20260916\\ray\\_stable_metrics\\training_fn_baseline_flat_00000\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_frozen_policy_baselines_32_bridge_20260916\\ray\\_stable_metrics\\training_fn_baseline_flat_00000\\plots",
+      "final_metric": 0.0
+    },
+    {
+      "variant_id": "long_only",
+      "series_id": "long_only",
+      "experiment_name": "phaseA_p0_frozen_policy_baselines_32_bridge_20260916_080130_long_only",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_frozen_policy_baselines_32_bridge_20260916\\ray\\phaseA_p0_frozen_policy_baselines_32_bridge_20260916_080130_long_only\\training_fn_baseline_long_00000",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_frozen_policy_baselines_32_bridge_20260916\\ray\\_stable_metrics\\training_fn_baseline_long_00000\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_frozen_policy_baselines_32_bridge_20260916\\ray\\_stable_metrics\\training_fn_baseline_long_00000\\plots",
+      "final_metric": 0.0003034064183774
+    },
+    {
+      "variant_id": "short_only",
+      "series_id": "short_only",
+      "experiment_name": "phaseA_p0_frozen_policy_baselines_32_bridge_20260916_080130_short_only",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_frozen_policy_baselines_32_bridge_20260916\\ray\\phaseA_p0_frozen_policy_baselines_32_bridge_20260916_080130_short_only\\training_fn_baseline_short_00000",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_frozen_policy_baselines_32_bridge_20260916\\ray\\_stable_metrics\\training_fn_baseline_short_00000\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_frozen_policy_baselines_32_bridge_20260916\\ray\\_stable_metrics\\training_fn_baseline_short_00000\\plots",
+      "final_metric": -0.0007034064183774
+    },
+    {
+      "variant_id": "random",
+      "series_id": "random",
+      "experiment_name": "phaseA_p0_frozen_policy_baselines_32_bridge_20260916_080130_random",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_frozen_policy_baselines_32_bridge_20260916\\ray\\phaseA_p0_frozen_policy_baselines_32_bridge_20260916_080130_random\\training_fn_baseline_random_00000",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_frozen_policy_baselines_32_bridge_20260916\\ray\\_stable_metrics\\training_fn_baseline_random_00000\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_frozen_policy_baselines_32_bridge_20260916\\ray\\_stable_metrics\\training_fn_baseline_random_00000\\plots",
+      "final_metric": -0.014607874434078
+    },
+    {
+      "variant_id": "untrained_mlp_film",
+      "series_id": "untrained_mlp_film",
+      "experiment_name": "phaseA_p0_frozen_policy_baselines_32_bridge_20260916_080130_untrained_mlp_film",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_frozen_policy_baselines_32_bridge_20260916\\ray\\phaseA_p0_frozen_policy_baselines_32_bridge_20260916_080130_untrained_mlp_film\\training_fn_baseline_untrained_00000",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_frozen_policy_baselines_32_bridge_20260916\\ray\\_stable_metrics\\training_fn_baseline_untrained_00000\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_p0_frozen_policy_baselines_32_bridge_20260916\\ray\\_stable_metrics\\training_fn_baseline_untrained_00000\\plots",
+      "final_metric": -0.0031136631107978
+    }
+  ],
+  "primary_metric": "evaluation/net_return_mean",
+  "compare_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_frozen_policy_baselines_32_bridge_20260916_080130\\ablation_compare.csv",
+  "compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_frozen_policy_baselines_32_bridge_20260916_080130\\ablation_compare.png",
+  "sharpe_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_frozen_policy_baselines_32_bridge_20260916_080130\\ablation_compare_validation_sharpe.png",
+  "entropy_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_frozen_policy_baselines_32_bridge_20260916_080130\\ablation_compare_entropy.png",
+  "episode_len_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_frozen_policy_baselines_32_bridge_20260916_080130\\ablation_compare_episode_len.png",
+  "diagnostics_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_p0_frozen_policy_baselines_32_bridge_20260916_080130\\ablation_compare_diagnostics.png"
+}

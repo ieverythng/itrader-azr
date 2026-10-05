@@ -1,0 +1,89 @@
+{
+  "$schema": "../../itrader/scripts/experiments/schemas/experiment_registry.schema.json",
+  "schema_version": 1,
+  "title": "iTrader Phase A experiment browser",
+  "experiments": [
+    {
+      "id": "r4-v1-min-smoke",
+      "title": "R4-v1 minimum state smoke",
+      "date": "2026-09-25",
+      "status": "diagnostic",
+      "summary": "Three-update parameter-matched smoke across masked, position, remaining-horizon, and combined state cells.",
+      "adapter": "ablation_summary_v1",
+      "source": "docs/artifacts/research/solver-state-r4-v1-min-implementation-note-2026-09-25-evidence/smoke_4cell/summary.json",
+      "report": "docs/artifacts/research/solver-state-r4-v1-min-implementation-note-2026-09-25.md",
+      "factors": {
+        "runtime": "ray-2.58-local-worker",
+        "dataset": "dataset-v2-rth-12-symbol",
+        "panel": "dec-2025-crossed-8x4",
+        "cost": "exact-1bp-from-update-zero",
+        "representation": "r0-vs-r4-v1-four-cell",
+        "curriculum": "family-00-random-generated-stream-worker",
+        "pbt": "disabled",
+        "seed_scope": "seed-20260925"
+      }
+    },
+    {
+      "id": "r4-v1-blocking-4x3",
+      "title": "R4-v1 blocked state attribution",
+      "date": "2026-09-25",
+      "status": "architecture-qualified",
+      "summary": "Matched three-seed attribution of masked, position, remaining-horizon, and combined state under the fixed exact-cost recipe.",
+      "adapter": "ablation_summary_v1",
+      "source": "docs/artifacts/research/solver-state-r4-v1-blocking-ablation-2026-09-25-evidence/training_comparison/summary.json",
+      "report": "docs/artifacts/research/solver-state-r4-v1-blocking-ablation-2026-09-25.md",
+      "factors": {
+        "runtime": "ray-2.58-local-worker",
+        "dataset": "dataset-v2-rth-12-symbol",
+        "panel": "dec-2025-crossed-8x4",
+        "cost": "exact-1bp-from-update-zero",
+        "representation": "r0-vs-r4-v1-four-cell",
+        "curriculum": "family-00-random-generated-stream-worker",
+        "pbt": "disabled",
+        "seed_scope": "seeds-20260924-20260926"
+      }
+    },
+    {
+      "id": "r4-v1-actor-robustness",
+      "title": "R4-v1 actor robustness PBT",
+      "date": "2026-09-29",
+      "status": "mechanically-valid-economically-rejected",
+      "summary": "Matched four-member PBT terminal gate comparing causal cost staging with exact 1 bp from update zero on the January development panel.",
+      "adapter": "terminal_gate_v1",
+      "source": "docs/artifacts/research/solver-state-r4-v1-actor-robustness-2026-09-29-evidence/terminal_gate_summary.json",
+      "report": "docs/artifacts/research/solver-state-r4-v1-actor-robustness-2026-09-29.md",
+      "legacy_dashboard": "docs/artifacts/research/solver-state-r4-v1-causal-forensics-2026-09-29-evidence/dashboard.html",
+      "factors": {
+        "runtime": "ray-2.58-local-worker-two-resident",
+        "dataset": "dataset-v2-rth-12-symbol",
+        "panel": "jan-2026-crossed-8x4",
+        "cost": "matched-causal-staging-vs-exact-1bp",
+        "representation": "r0+r4-v1-position-plus-time",
+        "curriculum": "family-00-random-generated-stream-worker",
+        "pbt": "sync-4-member-40-update",
+        "seed_scope": "four-matched-population-seeds"
+      }
+    },
+    {
+      "id": "r4-v1-g0-fresh-panel",
+      "title": "G0 member 00002 fresh-panel closure",
+      "date": "2026-10-03",
+      "status": "artifact-pair-parity-pass-economic-gate-fail",
+      "summary": "Five retained member-00002 checkpoints produced byte-identical replay artifacts on a predeclared non-overlapping November panel and did not transfer economically. Distinct producer identities were not recorded in the historical receipts, so independent-process provenance remains unverified in the browser.",
+      "adapter": "g0_closure_v1",
+      "source": "docs/artifacts/research/solver-state-r4-v1-causal-forensics-2026-09-29-evidence/g0_fresh_panel/g0_closure_summary.json",
+      "report": "docs/artifacts/research/solver-state-r4-v1-causal-forensics-2026-09-29.md",
+      "legacy_dashboard": "docs/artifacts/research/solver-state-r4-v1-causal-forensics-2026-09-29-evidence/g0_fresh_panel/dashboard.html",
+      "factors": {
+        "runtime": "ray-2.58-fresh-process-replay",
+        "dataset": "dataset-v2-rth-12-symbol",
+        "panel": "nov-2025-crossed-8x4-fresh",
+        "cost": "causal-staging-explicit-factor",
+        "representation": "r0+r4-v1-position-plus-time",
+        "curriculum": "family-00-random-generated-stream-worker",
+        "pbt": "historical-sync-pbt-checkpoint-replay",
+        "seed_scope": "member-00002-five-checkpoints"
+      }
+    }
+  ]
+}

@@ -10,6 +10,8 @@ from itrader.rl_lib.tasks.samplers import TaskSampler00
 from itrader.rl_lib.tasks.encoder import TaskEncoder, DEFAULT_T_EMBED_DIM
 from itrader.rl_lib.tasks.rewards import RewardEngine
 from itrader.rl_lib.evaluation import DataPartition, EpisodeEvidence
+from itrader.rl_lib.evaluation.provenance import canonical_json_sha256
+from itrader.models.observation_contract import validate_semantic_config
 
 
 _ACTION_TO_POSITION = {0: -1, 1: 0, 2: 1}
@@ -17,6 +19,13 @@ _FEATURE_COLUMN_NAMES = {"OPEN", "HIGH", "LOW", "CLOSE", "VOLUME"}
 _START_IDX_MODES = {"random_episode", "stream_worker", "task_spec"}
 _RET_NORM_RESET_MODES = {"episode", "stream"}
 _OBSERVATION_TRANSFORMS = {"raw", "market_relative_v1"}
+SOLVER_STATE_MODES = {"off", "masked", "position", "time", "both"}
+_OBSERVATION_SCHEMA_KEYS = (
+    "observation_schema_id",
+    "base_obs_dim",
+    "solver_state_dim",
+    "agent_obs_dim",
+)
 
 
 def _sanitize(x: np.ndarray) -> np.ndarray:
@@ -27,6 +36,44 @@ def _sanitize(x: np.ndarray) -> np.ndarray:
 def _resolve_choice(value: Any, allowed: set[str], default: str) -> str:
     value = str(value).lower()
     return value if value in allowed else default
+
+
+def resolve_solver_state_mode(value: Any) -> str:
+    mode = str(value or "off").strip().lower()
+    if mode not in SOLVER_STATE_MODES:
+        choices = ", ".join(sorted(SOLVER_STATE_MODES))
+        raise ValueError(f"solver_state_mode must be one of: {choices}")
+    return mode
+
+
+def solver_state_observation_contract(
+    *,
+    window_size: int,
+    n_features: int,
+    task_embed_dim: int,
+    solver_state_mode: Any,
+) -> dict[str, int | str]:
+    mode = resolve_solver_state_mode(solver_state_mode)
+    base_obs_dim = int(window_size) * int(n_features) + int(task_embed_dim)
+    solver_state_dim = 0 if mode == "off" else 2
+    return {
+        "observation_schema_id": "r0_base" if mode == "off" else "r4_v1_min",
+        "base_obs_dim": base_obs_dim,
+        "solver_state_dim": solver_state_dim,
+        "agent_obs_dim": base_obs_dim + solver_state_dim,
+    }
+
+
+def _validate_declared_observation_contract(
+    cfg: dict[str, Any],
+    contract: dict[str, int | str],
+) -> None:
+    for key in _OBSERVATION_SCHEMA_KEYS:
+        if key in cfg and cfg[key] != contract[key]:
+            raise ValueError(
+                f"{key}={cfg[key]!r} does not match derived value "
+                f"{contract[key]!r}"
+            )
 
 
 def _resolve_df_path(df_path: Any) -> Path:
@@ -46,6 +93,43 @@ def _resolve_feature_columns(df: pd.DataFrame, feature_cols: Any) -> list[str]:
     if missing:
         raise ValueError(f"Feature columns not in dataframe: {missing}")
     return columns
+
+
+def _load_market_frame(
+    path: Path,
+    sessions: Any,
+    symbols: Any,
+    columns: Any,
+) -> pd.DataFrame:
+    filters = []
+    normalized_sessions = [str(value) for value in (sessions or []) if str(value)]
+    normalized_symbols = [str(value).upper() for value in (symbols or []) if str(value)]
+    if normalized_sessions:
+        filters.append(("session", "in", normalized_sessions))
+    if normalized_symbols:
+        filters.append(("symbol", "in", normalized_symbols))
+    projected_columns = list(dict.fromkeys(columns or [])) or None
+    frame = pd.read_parquet(path, filters=filters or None, columns=projected_columns)
+    symbol_cols = [column for column in frame.columns if column.upper() == "SYMBOL"]
+    timestamp_cols = [
+        column for column in frame.columns if column.upper() in {"TS", "TIMESTAMP", "DATETIME"}
+    ]
+    sort_columns = symbol_cols[:1] + timestamp_cols[:1]
+    if sort_columns:
+        frame = frame.sort_values(sort_columns, kind="stable")
+    return frame.reset_index(drop=True)
+
+
+def _projected_market_columns(cfg: dict[str, Any]) -> list[str] | None:
+    boundary_columns = list(cfg.get("episode_boundary_cols", ()))
+    if not (cfg.get("data_sessions") or cfg.get("data_symbols") or boundary_columns):
+        return None
+    columns = list(cfg.get("feature_cols") or ["OPEN", "HIGH", "LOW", "CLOSE", "VOLUME"])
+    columns.extend(["symbol", "ts"])
+    columns.extend(boundary_columns)
+    if cfg.get("data_sessions"):
+        columns.append("session")
+    return list(dict.fromkeys(columns))
 
 
 class ITraderEnv(gym.Env):
@@ -75,6 +159,7 @@ class ITraderEnv(gym.Env):
         self.evidence_cost_bps = float(cfg.get("evidence_cost_bps", 1.0))
         self.evidence_periods_per_year = float(cfg.get("evidence_periods_per_year", 0.0))
         self.data_split = str(cfg.get("data_split", "all"))
+        self.capture_replay_trace = bool(cfg.get("capture_replay_trace", False))
         self._ret_ema = 1e-3  # typical per-step abs return; reset each episode
         self.start_idx_mode = _resolve_choice(
             cfg.get("start_idx_mode", "random_episode"),
@@ -94,14 +179,31 @@ class ITraderEnv(gym.Env):
             _OBSERVATION_TRANSFORMS,
             "raw",
         )
+        self.solver_state_mode = resolve_solver_state_mode(
+            cfg.get("solver_state_mode", "off")
+        )
         self._stream_pos: Optional[int] = None
         self._stream_horizon: Optional[int] = None
         self._stream_episode_count = 0
         self._reset_count = -1
 
         # ── load dataframe ------------------------------------------------
-        self.df = pd.read_parquet(_resolve_df_path(cfg.get("df_path"))).reset_index(drop=True)
+        self.df = _load_market_frame(
+            _resolve_df_path(cfg.get("df_path")),
+            cfg.get("data_sessions"),
+            cfg.get("data_symbols"),
+            _projected_market_columns(cfg),
+        )
+        for categorical_column in ("symbol", "session", *cfg.get("episode_boundary_cols", ())):
+            if categorical_column in self.df.columns:
+                self.df[categorical_column] = self.df[categorical_column].astype("category")
         self.cols = _resolve_feature_columns(self.df, cfg.get("feature_cols"))
+        self.semantic_observation_contract = None
+        if "semantic_observation_contract" in cfg:
+            self.semantic_observation_contract = validate_semantic_config(
+                cfg, cfg["semantic_observation_contract"], boundary="env",
+                actual_feature_columns=self.cols,
+            )
         close_cols = [c for c in self.df.columns if c.upper() == "CLOSE"]
         if not close_cols:
             raise ValueError("Dataframe does not contain a CLOSE column")
@@ -112,11 +214,6 @@ class ITraderEnv(gym.Env):
         self.symbol_col = symbol_cols[0] if symbol_cols else None
         timestamp_cols = [c for c in self.df.columns if c.upper() in {"TS", "TIMESTAMP", "DATETIME"}]
         self.timestamp_col = timestamp_cols[0] if timestamp_cols else None
-        self._symbol_values = (
-            self.df[self.symbol_col].astype(str).to_numpy(copy=False)
-            if self.symbol_col is not None
-            else None
-        )
         self.data_partition = DataPartition(
             self.df,
             window_size=self.T,
@@ -125,6 +222,8 @@ class ITraderEnv(gym.Env):
             purge_rows=int(cfg.get("split_purge_rows", 0)),
             symbol_col=self.symbol_col,
             timestamp_col=self.timestamp_col,
+            boundary_cols=cfg.get("episode_boundary_cols", ()),
+            expected_bar_interval=cfg.get("expected_bar_interval"),
         )
 
         # --- Task sampling / embedding -------------------------------------
@@ -149,8 +248,25 @@ class ITraderEnv(gym.Env):
 
         feat_dim = len(self.cols)
         self.price_obs_dim = self.T * feat_dim
-        obs_dim = self.price_obs_dim + self.t_embed_dim
-        self.observation_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(obs_dim,), dtype=np.float32)
+        observation_contract = solver_state_observation_contract(
+            window_size=self.T,
+            n_features=feat_dim,
+            task_embed_dim=self.t_embed_dim,
+            solver_state_mode=self.solver_state_mode,
+        )
+        _validate_declared_observation_contract(cfg, observation_contract)
+        self.observation_schema_id = str(
+            observation_contract["observation_schema_id"]
+        )
+        self.base_obs_dim = int(observation_contract["base_obs_dim"])
+        self.solver_state_dim = int(observation_contract["solver_state_dim"])
+        self.agent_obs_dim = int(observation_contract["agent_obs_dim"])
+        self.observation_space = gym.spaces.Box(
+            low=-np.inf,
+            high=np.inf,
+            shape=(self.agent_obs_dim,),
+            dtype=np.float32,
+        )
         self.action_space = gym.spaces.Discrete(3)  # 0=short, 1=flat, 2=long
 
         # rolling buffer holding last T rows
@@ -205,7 +321,28 @@ class ITraderEnv(gym.Env):
     def _build_obs(self) -> np.ndarray:
         price_obs = _sanitize(self._get_obs())
         task_obs = self._task_embed_for_obs()
-        return _sanitize(np.concatenate([price_obs, task_obs]).astype(np.float32))
+        solver_state_obs = self._solver_state_for_obs()
+        return _sanitize(
+            np.concatenate([price_obs, task_obs, solver_state_obs]).astype(np.float32)
+        )
+
+    def _solver_state_for_obs(self) -> np.ndarray:
+        if self.solver_state_mode == "off":
+            return np.empty(0, dtype=np.float32)
+
+        position = (
+            float(self.pos)
+            if self.solver_state_mode in {"position", "both"}
+            else 0.0
+        )
+        remaining = 0.0
+        if self.solver_state_mode in {"time", "both"}:
+            remaining = max(
+                0.0,
+                (float(self.current_task.horizon) - float(self._t))
+                / float(self.current_task.horizon),
+            )
+        return np.asarray([position, remaining], dtype=np.float32)
 
     def _task_embed_for_obs(self) -> np.ndarray:
         if self.t_embed_mode == "off":
@@ -223,6 +360,7 @@ class ITraderEnv(gym.Env):
 
     def _reset_episode_stats(self) -> None:
         self._t = 0
+        self._action_reward_trace: list[list[int | float]] = []
         self._episode_pnl = 0.0
         self._optimization_reward_sum = 0.0
         self._turnover_sum = 0.0
@@ -330,6 +468,14 @@ class ITraderEnv(gym.Env):
                 params,
             )
 
+    def set_task_sampler_overrides(self, overrides: dict[str, Any]) -> None:
+        """Apply normalized reward-task overrides on subsequent resets."""
+        if not isinstance(overrides, dict):
+            raise TypeError("task sampler overrides must be a mapping")
+        current = dict(self.cfg.get("task_sampler_overrides", {}))
+        current.update(overrides)
+        self.cfg["task_sampler_overrides"] = current
+
     def _log_reset(self, start_idx: int) -> None:
         self._reset_count += 1
         if not self.debug_resets:
@@ -390,10 +536,9 @@ class ITraderEnv(gym.Env):
         }
         if done:
             liquidation_turnover = abs(float(self.pos))
-            symbol = (
-                str(self._symbol_values[self._episode_start_idx])
-                if self._symbol_values is not None
-                else "__single__"
+            symbol = self.data_partition.symbol_for(
+                self._episode_start_idx,
+                int(self.current_task.horizon),
             )
             evidence = EpisodeEvidence.build(
                 optimization_reward=self._optimization_reward_sum,
@@ -415,6 +560,10 @@ class ITraderEnv(gym.Env):
                 steps=self._t,
             )
             info["episode_evidence"] = evidence.to_dict()
+            if self.capture_replay_trace:
+                info["episode_evidence"]["action_reward_trace_sha256"] = (
+                    canonical_json_sha256(self._action_reward_trace)
+                )
             info["success"] = evidence.success
             info["ep_sums"] = {
                 "steps": max(1, int(self._t)),
@@ -528,6 +677,8 @@ class ITraderEnv(gym.Env):
             self.current_task.reward_params,
             ctx,
         )
+        if self.capture_replay_trace:
+            self._action_reward_trace.append([action, float(r)])
         self._optimization_reward_sum += float(r)
         self._turnover_sum += float(turnover_t)
         self._turnover_steps.append(float(turnover_t))

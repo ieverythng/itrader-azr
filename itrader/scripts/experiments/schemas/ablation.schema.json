@@ -20,13 +20,18 @@
       "type": "string",
       "minLength": 1
     },
+    "minimum_free_memory_gb": {
+      "type": "number",
+      "minimum": 0.0,
+      "description": "Fail closed before each sequential variant when free physical RAM is below this GiB floor."
+    },
     "common_args": {
       "$ref": "#/$defs/trainArgs",
       "description": "CLI args shared across variants (without leading --)."
     },
     "variants": {
       "type": "array",
-      "minItems": 2,
+      "minItems": 1,
       "items": {
         "type": "object",
         "required": ["id", "args"],
@@ -42,6 +47,21 @@
         },
         "additionalProperties": false
       }
+    },
+    "promotion": {
+      "type": "object",
+      "required": ["baseline_variants", "candidate_variants"],
+      "additionalProperties": false,
+      "properties": {
+        "baseline_variants": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "candidate_variants": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+        "min_net_return_delta": {"type": "number", "default": 0.0},
+        "min_net_sharpe_per_sqrt_bar": {"type": "number", "default": 0.0},
+        "min_net_sharpe_delta": {"type": "number"},
+        "min_consecutive_passing_reports": {"type": "integer", "minimum": 1, "default": 1},
+        "max_flat_action_fraction": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        "require_positive_net_return": {"type": "boolean", "default": true}
+      }
     }
   },
   "$defs": {
@@ -52,16 +72,28 @@
         "iters": { "type": "integer", "minimum": 1 },
         "window": { "type": "integer", "minimum": 2 },
         "workers": { "type": "integer", "minimum": 0 },
+        "ray_num_cpus": { "type": "integer", "minimum": 0 },
         "timeout_hours": { "type": "number", "minimum": 0 },
         "data_path": { "type": "string" },
+        "data_sessions": { "type": "string" },
+        "data_symbols": { "type": "string" },
+        "episode_boundary_cols": { "type": "string" },
+        "expected_bar_interval": { "type": "string" },
         "experiment_name": { "type": "string" },
         "results_root": { "type": "string" },
+        "pbt_population_seed": { "type": "integer" },
+        "evaluation_seed": { "type": "integer" },
 
         "pbt": { "type": "boolean" },
         "cpu_pbt": { "type": "boolean" },
         "cpu_only": { "type": "boolean" },
         "pop": { "type": "integer", "minimum": 1 },
         "restore_ckpt": { "type": "string" },
+        "restore_progress_steps": { "type": "integer", "minimum": 0 },
+        "restore_progress_updates": { "type": "integer", "minimum": 0 },
+        "resume": { "type": "boolean" },
+        "resume_rewind_to_checkpoint": { "type": "boolean" },
+        "checkpoint_consistent_evaluation": { "type": "boolean" },
         "best_params_json": { "type": "string" },
 
         "start_idx_mode": {
@@ -79,6 +111,20 @@
           "type": "string",
           "enum": ["raw", "market_relative_v1"]
         },
+        "solver_state_mode": {
+          "type": "string",
+          "enum": [
+            "off",
+            "masked",
+            "position",
+            "time",
+            "both"
+          ]
+        },
+        "solver_state_residual_init": {
+          "type": "string",
+          "enum": ["random_v1", "zero_v1"]
+        },
         "observation_filter": {
           "type": "string",
           "enum": ["NoFilter", "MeanStdFilter"]
@@ -86,13 +132,33 @@
         "auto_plot_on_end": { "type": "boolean" },
         "pbt_interval": { "type": "integer", "minimum": 1 },
         "pbt_burn_in": { "type": "integer", "minimum": 0 },
+        "pbt_synch": { "type": "boolean" },
+        "pbt_promotion_eligible": { "type": "boolean" },
+        "pbt_selection_mode": {
+          "type": "string",
+          "enum": ["raw_net", "nonflat_net", "promotion"]
+        },
+        "pbt_selection_min_sharpe": { "type": "number" },
+        "pbt_selection_max_flat_action_fraction": {
+          "type": "number",
+          "minimum": 0.0,
+          "maximum": 1.0
+        },
         "checkpoint_interval": { "type": "integer", "minimum": 1 },
         "evaluation_interval": { "type": "integer", "minimum": 0 },
         "evaluation_num_episodes": { "type": "integer", "minimum": 1 },
+        "evaluation_task_panel_path": { "type": "string" },
         "evidence_cost_bps": { "type": "number", "minimum": 0.0 },
         "evidence_periods_per_year": { "type": "number", "minimum": 0.0 },
         "split_fractions": { "type": "string" },
         "split_purge_rows": { "type": "integer", "minimum": 0 },
+        "policy_control": {
+          "type": "string",
+          "enum": ["flat", "long", "short", "random", "untrained"]
+        },
+        "optimization_cost_bps": { "type": "number", "minimum": 0.0 },
+        "optimization_cost_schedule": { "type": "string" },
+        "net_return_reward_scale": { "type": "number", "exclusiveMinimum": 0.0 },
 
         "gamma": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
         "lambda": { "type": "number", "minimum": 0.0, "maximum": 1.0 },

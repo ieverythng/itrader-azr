@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ray 2.58 Native Migration Iteration</title>
+  <style>
+    :root{color-scheme:light;--ink:#18201d;--muted:#5c6762;--line:#ccd3cf;--paper:#fbfcfa;--wash:#eef2ef;--accent:#1f6651}
+    *{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:16px/1.55 Georgia,serif}
+    main{max-width:980px;margin:32px auto;background:var(--paper);padding:44px 54px 60px;border:1px solid var(--line)}
+    h1,h2{line-height:1.2}h2{margin-top:34px;padding-top:16px;border-top:1px solid var(--line)}
+    code{font:.9em Consolas,monospace;background:#edf0ee;padding:1px 4px}a{color:var(--accent)}
+    @media(max-width:760px){main{margin:0;padding:28px 18px}}
+  </style>
+</head>
+<body><main><h1>Ray 2.58 native migration iteration record</h1>
+<p>Date: 2026-10-05<br>Branch: <code>feat(R)/Ray_upgrade</code><br>Objective: make the active training stack native-only while retaining a small,
+explicitly non-default compatibility boundary for historical parity. Keep the
+Ray 2.9 dependency profile distinct. No economic or full-data experiment is part
+of this migration loop.</p>
+<h2>Baseline</h2>
+<ul>
+<li>Before the native-only cutover edits, the feature worktree had a reported
+<strong>416-passing-test</strong> full suite and a successful required-dependency
+healthcheck on Python 3.11.13, Ray 2.58.0, Gymnasium 1.2.2, PyArrow 17.0.0,
+and CPU Torch 2.3.1. This is pre-mutation baseline evidence, not current final
+validation.</li>
+<li>The then-current native bridge was still opt-in beside a legacy default. That
+failed the user&#39;s full-migration contract even though bounded native PPO,
+restore, and inference probes existed.</li>
+<li>The shared <code>SolverMLPFiLM</code> math had already been split into a Ray-free PyTorch
+core, and the native RLModule consumed that core directly.</li>
+</ul>
+<h2>Mutation and focused checks</h2>
+<p>The active <code>train_solo_V2</code> path now builds only the pinned Ray 2.58 native
+configuration, uses native <code>lambda_</code>, <code>entropy_coeff</code>, <code>minibatch_size</code>,
+<code>num_epochs</code>, <code>train_batch_size_per_learner</code>, and <code>num_env_runners</code> fields, and
+rejects the retired stack selector. Legacy ModelV2/PPO helpers and corrected
+Ray 2.58 recipes were moved into <code>itrader/compat/rllib_legacy/</code>; the mixed
+<code>ray_api_stack.py</code> bridge was removed. The Ray 2.9 runtime profile was not
+changed.</p>
+<p>Reported focused validation during this mutation:</p>
+<ul>
+<li><code>pytest itrader/tests/test_train_config.py</code>: <strong>108 passed</strong> after converting
+stale config, evaluation-sync, cost-schedule, and PBT assertions to native
+contracts.</li>
+<li><code>pytest itrader/tests/test_policy_baselines.py itrader/tests/test_run_ablation.py</code>:
+<strong>46 passed</strong> after removing ModelV2-style inference fakes and rejecting
+historical selectors in active loadouts.</li>
+<li>Core/semantic/inference/native-diagnostics selection, with the real
+Ray-initializing native PPO integration test excluded:
+<strong>62 passed, 2 deselected</strong>.</li>
+<li>A read-only Ray 2.58 source/API audit found that scheduled reward overrides
+assumed <code>.envs</code> on the outer EnvRunner wrapper and incorrectly required an
+evaluation group. The implementation now calls through Ray&#39;s Gymnasium
+vector-wrapper to per-env <code>call</code>, and a synthetic <code>DictInfoToList</code> /
+<code>SyncVectorEnv</code> regression covers multiple training envs with no eval group.</li>
+<li>Native metric projection tests now distinguish an empty wrapper from a
+genuinely missing metric namespace; absent economics remain unavailable, not
+fabricated zeroes.</li>
+</ul>
+<h2>Latest API-boundary checks</h2>
+<p>The active Ray 2.58 trainer now consumes only the native result tree and Tune
+function-trainable contract: <code>learners</code> / <code>env_runners</code>, <code>Trial.local_path</code>,
+<code>storage_path</code>, <code>tune.get_context()</code>, <code>tune.get_checkpoint()</code>, and <code>tune.report()</code>.
+Legacy <code>sampler_results</code>, <code>info.learner</code>, <code>episode_reward_mean</code>, <code>local_dir</code>,
+<code>Trial.logdir</code>, and Ray AIR session fallbacks were removed from the active path.
+Ray 2.58&#39;s documented Function API uses the Tune entrypoints; the pinned runtime
+also rejects <code>ray.train.get_checkpoint()</code> outside a Ray Train worker. See the
+<a href="https://docs.ray.io/en/latest/tune/api/trainable.html">Ray Tune Function API</a>.</p>
+<p>A synthetic <code>training_fn</code> integration probe now exercises the active orchestration
+without starting Ray or training a policy: it supplies the native configuration,
+projects native metrics, writes a structurally valid checkpoint, verifies the
+checkpoint index is durable and hash-matched before Tune is reported, and checks
+the terminal trial status. It does not replace the real Ray PPO/checkpoint/replay
+integration tests. Separate real-Ray tests cover an in-process Algorithm
+train/save/restore/inference round trip and an official CLI/Tune subprocess that
+writes native run, metric, report, and checkpoint evidence.</p>
+<h2>Independent-review follow-up</h2>
+<p>An independent source review found native-boundary gaps that the earlier
+synthetic orchestration test did not cover: native custom metrics did not reach
+the report projector, episode reductions were last-episode/mean-of-means,
+progress used the retired sampled-step counter, GPU trials reserved but did not
+assign a GPU to the learner, native checkpoints were checked against the legacy
+Policy file layout, and <code>MeanStdFilter</code> was declared but not installed as a
+native connector. A small inference helper also flattened batched logits into a
+single action record.</p>
+<p>The follow-up closes these boundaries with weighted <code>__sum</code>/<code>__count</code>
+metrics, the native per-update sampled-step delta, <code>num_gpus_per_learner</code>,
+mandatory <code>api_stack_id</code>-keyed checkpoint authority and matching replay
+provenance, explicit native <code>NoFilter</code>, and a single-observation inference
+guard. Historical TorchPolicy checkpoint checks remain available under their
+explicit legacy stack identity. Structural solver identity remains separate
+from full run/checkpoint identity, which now includes stack and observation
+schema.</p>
+<p>Latest validation on the pinned Ray 2.58.0 Python 3.11 environment:</p>
+<ul>
+<li><code>pytest -q itrader/tests/test_ray_native_stack.py -k
+test_native_ppo_checkpoint_restore_replays_deterministically -x</code>:
+<strong>2 passed, 5 deselected</strong>. This starts real Ray, trains PPO,
+saves/restores, and verifies deterministic native inference and donor optimizer
+reconciliation.</li>
+<li><code>pytest -q itrader/tests/test_ray_native_stack.py::test_native_training_cli_completes_and_persists_a_restorable_checkpoint -x</code>:
+<strong>1 passed</strong>. The official CLI subprocess completed one native Tune
+update and persisted run identity, report/metrics, and an RLModule checkpoint.</li>
+<li>Full test suite excluding those three Ray-starting cases: <strong>414 passed,
+3 deselected</strong>. This also confirms the duplicate-variant regression checks
+after fixing their undefined test-local fixture.</li>
+<li>Required-dependency healthcheck passed on Python 3.11.13, Ray 2.58.0,
+Gymnasium 1.2.2, PyArrow 17.0.0, and CPU Torch 2.3.1. Optional
+<code>llama_cpp</code>/<code>transformers</code> are absent; CUDA is unavailable.</li>
+<li>Working-tree <code>git diff --check</code> passed. Final full suite and
+pre-commit remain scheduled outside the supervised terminal-replay window;
+knowledge freshness and independent review are also still required.</li>
+</ul>
+<p>Earlier focused validation before the independent-review follow-up:</p>
+<ul>
+<li><code>pytest itrader/tests/test_train_config.py itrader/tests/test_pbt_scheduler.py itrader/tests/test_ps_metrics_native.py itrader/tests/test_solver_mlp_film_core.py itrader/tests/test_semantic_observation_contract.py itrader/tests/test_no_nan_forward.py</code>: <strong>164 passed</strong>.</li>
+<li>The real Ray-initializing PPO/checkpoint integration was not run during DEV&#39;s
+supervised bridge; no new Ray worker, replay, or market-data experiment was
+launched from this worktree.</li>
+</ul>
+<h2>Holdout and acceptance decision</h2>
+<p>No market-data holdout or economic study was run. The holdout for this code-only
+iteration is the installed Ray 2.58/Gymnasium 1.2 vector-wrapper contract plus
+the separate synthetic Algorithm and CLI integration tests; no scientific model
+claim is inferred. The separately supervised compatibility control/replay stays
+outside this worktree&#39;s execution scope. Ray-starting checks must not overlap
+that supervised run.</p>
+<p><strong>Status: validation/review gates pass; branch is prepared for main DEV review.</strong>
+The full repository test hook, pinned-environment healthcheck, <code>git diff --check</code>,
+and three independent source reviews passed. Commit and push this branch without
+merging to main.</p>
+<h2>Independent-review closure pass</h2>
+<p>The adversarial review found and the follow-up closed three split-ownership
+gaps before delivery:</p>
+<ul>
+<li>Both native checkpoint replay commands now use
+<code>validate_checkpoint_replay_inputs</code>; the shared contract verifies checkpoint
+bytes, dataset bytes, frozen evaluation-panel identity, resolved configuration,
+and native stack identity before Ray starts. A regression accepts a valid fixture,
+changes only the dataset bytes, and asserts rejection before restore.</li>
+<li>Callback, report projection, and fresh-process replay share one validated
+<code>mean_from_totals</code> contract. Boolean/non-numeric and invalid denominator data
+cannot produce an accepted mean in one path while failing in another.</li>
+<li>Value-readout math lives in the PyTorch-only solver core and is called by the
+native RLModule&#39;s <code>ValueFunctionAPI</code>; the adapter no longer reproduces the
+residual calculation.</li>
+</ul>
+<p>The September 12 audit retains its original
+<code>bec5c775d3adaafe758202c7175791f6e8b323a8</code> source and labels later evidence as a
+continuation. The September 20 legacy-stack guidance in current-state is marked
+historical/superseded. The compatibility control record carries the latest
+supervised closeout: all eight training cells completed; after the first cell-8
+replay was safely stopped and preserved, a separate user-authorized retry
+completed all eight terminal replays (256 fresh episodes total). Those are
+compatibility replay outcomes, not native migration or economic-promotion
+evidence.</p>
+<p>Follow-up focused validation with the pinned environment: replay-integrity,
+checkpoint, native-metric, and solver-core selection passed <strong>16 tests</strong>;
+the separate native RLModule/core parity selection passed <strong>2 tests</strong>.
+Final <code>pre-commit run --all-files</code> passed, including the healthcheck and full
+repository test hook. All three independent source reviews returned
+<code>VERDICT: APPROVE</code>. No new training or economic evaluation was launched from
+this branch.</p>
+</main></body></html>\n

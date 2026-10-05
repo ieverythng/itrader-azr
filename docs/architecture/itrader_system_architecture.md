@@ -1,10 +1,32 @@
 # iTrader System Architecture
 
-Last updated: 2026-09-12
-Branch snapshot: `agent/Watson-dev` at `bec5c77`
-Status: **active working architecture; recurrence and trunk/head design pending grill-me review**
+Last reconciled: 2026-10-05
+Branch snapshot: `feat(R)/Ray_upgrade`, sourced from the dirty `agent/Watson-dev` tree
+Status: **active working architecture; R0 + R4-v1 is architecture-qualified but economically unpromoted, and R1-R3 remain unimplemented**
+
+Research identities and evidence status are indexed in the
+[iTrader Research Dashboard](../research/itrader_research_dashboard.md); the
+[masterplan](../plans/itrader_masterplan.md) remains the phase-order and
+promotion authority.
 
 ## 1. Source-grounded runtime
+
+Current active platform: Ray 2.58.0 using only RLModule/Learner/EnvRunner.
+`SolverMLPFiLMTensorCore` owns framework-neutral PyTorch math; the native module,
+Learner diagnostics, restore reconciliation, inference, and active trainer are
+separate native adapters. No `rllib_api_stack` switch or ModelV2/Policy fallback
+exists in the active training path. Ray 2.58 legacy adapters and historical
+recipes are isolated under `itrader/compat/rllib_legacy/`; `itrader/compat/ray29/`
+is the distinct Ray 2.9 runtime reproduction profile. This is mechanical platform
+work only; it does not establish four-cell representation parity, economic
+promotion, or R1 implementation. See the
+[native-stack implementation note](../artifacts/research/ray-native-stack-implementation-2026-10-05.md)
+and the [migration iteration record](../artifacts/research/ray-native-stack-iteration-2026-10-05.md).
+See [R1 readiness](../project-state/r1-development-readiness.md) for ownership,
+the accepted Q15/Q18 model contract, Q19 selection and Q20 budgets. R1 remains
+unimplemented; Q21 two-tier evaluation is accepted, with fresh-panel construction
+and execution gates still pending. This migration is isolated from the
+supervised compatibility controls and does not change their scientific order.
 
 The implemented offline path is:
 
@@ -12,7 +34,7 @@ The implemented offline path is:
 historical OHLCV parquet
 -> ITraderEnv
 -> chronological flattened market window + task embedding
--> SolverMLPFiLM
+-> SolverMLPFiLMTensorCore -> SolverMLPFiLMTorchRLModule
 -> PPO/GAE update
 -> EpisodeEvidence -> held-out metrics, stable provenance, capability report
 ```
@@ -25,7 +47,8 @@ Source anchors:
 - `itrader/envs/itrader_env.py` owns rolling-window assembly, task-conditioned
   reset, episode state, and reward context.
 - `itrader/rl_lib/tasks/spec.py` owns `TaskSpec`.
-- `itrader/models/solver_mlp_film.py` owns the active FiLM baseline.
+- `itrader/models/solver_mlp_film_core.py` owns the PyTorch-only FiLM math;
+  `itrader/models/ray_native.py` is its native RLModule host.
 - `itrader/rl_lib/train/train_AZR.py` generates a task pool then launches the
   solver: this is bootstrap handoff, not co-adaptive AZR training.
 
@@ -34,17 +57,19 @@ Source anchors:
 The current observation is:
 
 ```text
-obs_t = [price_window_flat(T * F) | task_embedding(D)]
+obs_t = [price_window_flat(T * F) | task_embedding(D) | optional solver_state(S)]
 price_window = reshape(price_window_flat, T, F)
 newest_bar = price_window[-1]
 ```
 
-The environment fills the window chronologically. A candidate model must split
-these dimensions explicitly; inferring `F` from the full observation width is
-invalid once `D` is appended. The legacy `SolverLSTMModel` does exactly that and
-is both shape-incompatible for the usual `T=30,F=5,D=32` layout and non-stateful.
+The environment fills the window chronologically. R0 uses `S=0`; R4-v1 uses the
+fixed `S=2` block. A candidate model must split these dimensions explicitly;
+inferring `F` from the full observation width is invalid once conditioning or
+solver state is appended. The historical `SolverLSTMModel` under
+`itrader/compat/rllib_legacy/models/` does exactly that and is both
+shape-incompatible for the usual `T=30,F=5,D=32` layout and non-stateful.
 
-The active `SolverMLPFiLM` implementation is source-defined as:
+The active PyTorch solver core is source-defined as:
 
 ```text
 hidden = MLP(price_window_flat)
@@ -84,6 +109,94 @@ validation seed. The final `test` partition is reserved for post-selection.
 Annualized Sharpe is optional and requires an explicit periods-per-year contract;
 the invariant metric is the unannualized per-square-root-bar value.
 
+An evaluation run may load one explicit, content-hashed `TaskSpec` panel. Its
+task count must equal `evaluation_num_episodes`, each task must own `start_idx`,
+and reset uses those starts instead of sampler-generated identities. The current
+P0 crosses eight starts with all four horizons so task horizon cannot identify a
+different market path. This is a development-panel correction, not a substitute
+for independent chronological validation.
+
+Promotion-oriented PBT uses synchronous scheduling and a target-owned
+cumulative sampled-environment-step clock. Every report writes an immutable
+stable sidecar checkpoint before `session.report`; Tune receives only
+cadence/terminal checkpoints. Donor selection must resolve an exact
+`pbt_progress_steps` match or fail closed. RLlib iteration and actor-local
+`timesteps_total` can change with lineage restoration and are not authoritative
+population-exposure clocks.
+
+An exploit is accepted only through a generation-bound chain: the scheduler's
+selected donor path/digest, exactly one target restore receipt with that digest,
+a later target report carrying the same restore generation/exploit ID, and a
+same-generation retained target checkpoint. Historical event schemas require an
+explicit legacy inspection mode and cannot satisfy a new-arm gate.
+
+Native custom episode metrics use explicit `__sum` and `__count` leaves, reduced
+by sum and projected to means only at the report boundary. This preserves
+episode-weighted results across EnvRunners with unequal episode counts. Native
+PBT progress consumes Ray's `env_runners.num_env_steps_sampled` delta rather
+than a legacy counter or configured batch-size fallback. Resource selection
+configures `num_gpus_per_learner`, including explicit zero for CPU runs. The
+native observation path declares `NoFilter` and rejects the old inert
+`MeanStdFilter` setting.
+
+Checkpoint authority is keyed by explicit `api_stack_id`, never inferred from
+available files. Ray 2.58 native checkpoints require RLModule
+`module_state.pkl`; ModelV2/TorchPolicy compatibility checkpoints retain a
+distinct policy-state schema. The stack ID is recorded in run/trial identity,
+indexes, restore receipts, and best-checkpoint provenance. Replay requires the
+index, resolved manifest, and resolved config to agree on the stack before digest
+verification. Solver identity remains structural; stack and observation schema
+belong to run/checkpoint provenance.
+
+### Dataset-v2 authority and session contract
+
+The historical-data path is a deep module with one public outcome—an immutable,
+content-addressed snapshot—and provider-specific pagination/retry details hidden
+behind an adapter:
+
+```text
+AlpacaHistoricalDataClient
+  -> retained raw gzip response pages + build_request.json
+  -> split-adjusted Parquet partitions (session/symbol/year) + manifest.json
+  -> in-memory DuckDB catalog/query
+  -> projected, predicate-filtered pandas frame
+  -> ITraderEnv / DataPartition
+```
+
+Parquet is authoritative. DuckDB is a catalog/query engine, not a mutable source
+of truth. The current v2 snapshot records provider, feed, adjustment, time zone,
+symbols, bounds, session counts, schema version, retrieval time, usage
+classification, missing-bar policy, raw-page hashes, and a content hash. Raw
+pages and manifests are written atomically. Credentials
+are read from ignored environment variables and must never enter manifests or
+experiment artifacts.
+
+`ITraderEnv` owns only the requested market slice and observation assembly. It
+does not fetch network data. `DataPartition` respects configured boundary
+columns and exact one-minute continuity so an episode cannot bridge an overnight
+gap, session transition, missing interval, or early close. Phase A selects
+`regular`; pre-market and after-hours are retained for a predeclared Phase B
+ablation. Dividend accounting remains a future explicit cashflow seam in
+environment evidence/reward, not an implicit price rewrite.
+
+### Platform migration gate
+
+Ray 2.58 is the accepted forward R-series runtime; Ray 2.9 is a frozen historical
+reproduction profile. The original migration gate passed both then-current full
+suites, deterministic initialization/control, synchronous exploit/restore lineage
+and fresh replay. The subsequent
+[optimizer audit](../artifacts/research/ray258-historical-optimizer-audit-2026-10-05.md)
+found effective-setting drift despite successful checkpoint transfer. Current
+compatibility repairs have scoped independent approval; the suite after the
+fixed-run entropy-schedule addition passed 406 tests on Ray 2.58. The active
+native migration is a distinct platform change and does not establish PBT search
+effectiveness or economic promotion. Stochastic rollout remains runtime-labelled;
+R1 must run beside a Ray-2.58 R0 control. Do not treat the native migration as a
+representation-study result. Its synthetic integration coverage is distinct at
+two levels: a real Algorithm train/save/restore/inference test and a subprocess
+through the official CLI/Tune path that checks native run identity, reporting,
+and persisted module-state checkpoint structure.
+
 ## Phase B architecture decision status
 
 Phase B covers both offline/curriculum work and online replay/shadow work. A
@@ -97,20 +210,26 @@ these choices until the ongoing grill-me review confirms them.
 mandatory learned reward head, and reward computation must not be silently
 conflated with policy/value-head design.
 
+Ordering is explicit: platform parity first; R1/R2 representation and lifecycle
+controls second; causal C0/C1/shuffled-C1 only after a stable R-series contract;
+and System-One/CLM/Jev S-series work only after the solver interface, platform,
+and evidence contract are frozen. C and S are named independent factors, not
+ways to rescue an R-series result.
+
 
 The historical identities below preserve the original file at commit `4732a98`.
 They are design names, not current CLI flags, and do not settle the architecture.
 
 | ID | Head and conditioning | State | Status and purpose |
 |---|---|---|---|
-| R0 | `SolverMLPFiLM` | None | **Implemented/default control** |
+| R0 | `SolverMLPFiLM` | None | **Implemented; immutable parity control** |
 | R1 | Corrected reset-every-step window LSTM + FiLM | None | Unimplemented; test temporal inductive bias inside the supplied window |
 | R2a | Stateful LSTM + task concat at recurrent input | `(h,c)` across steps | Unimplemented; original recurrence baseline |
 | R2b | Stateful LSTM + FiLM initial state only | `(h,c)` across steps | Deferred; `get_initial_state()` lacks task input under current RLlib contract |
 | R2c | Stateful LSTM + per-step FiLM | `(h,c)` across steps | **Active candidate; unimplemented**; placement remains open pending grill-me review |
 | R2d | Init + per-step FiLM on value head only | `(h,c)` across steps | Deferred; needs matched policy/value placement controls |
 | R3 | Stateful GRU + per-step FiLM | `h` across steps | Planned after LSTM lifecycle controls |
-| R4-v1 | Explicit solver-state features on matched FF + recurrent cells | Cell-dependent | Planned; versioned observability study, not historical R4 |
+| R4-v1 | Explicit position + remaining-horizon state on matched cells | Cell-dependent | Architecture-qualified with R0 as the forward FF baseline; 4x3x40 replication complete, economic promotion failed |
 
 Migration note: the simplified `bec5c77` docs called per-step FiLM R2b; that
 label maps to original R2c. The former init-oriented R4 maps to original R2b.
@@ -177,12 +296,11 @@ before scoring the first action). The warmup is input processing, not extra
 future information. Repeating overlapping observation bars as separate
 chronological steps is invalid.
 
-The pinned source stack is Ray/RLlib 2.58.0 with Gymnasium 1.2.2 from
-`pyproject.toml`/`uv.lock`. R0 explicitly uses the legacy ModelV2/RolloutWorker
-stack while the native RLModule/EnvRunner/Learner/ConnectorV2 path is parity
-gated. Future recurrent implementation must use the native contract only after
-that gate; the old Ray 2.9/2.47 lines are historical. Do not invent
-`recurrent_policy=True` or other flags.
+The current forward stack is Ray/RLlib 2.58.0 with Gymnasium 1.2.2 from
+`pyproject.toml`/`uv.lock`; `itrader/compat/ray29/` preserves the historical
+reproduction profile. The old `phase_b_plan.md` Ray 2.47.1 line is historical
+ordering, not an active lock. Do not invent `recurrent_policy=True` or other
+flags. Use the native recurrent model/state contract of the accepted platform.
 
 Required lifecycle semantics:
 
@@ -204,12 +322,30 @@ imply recurrent state handling or full-episode backpropagation.
 
 ## 6. Solver-state observability
 
-The current policy observation does not include position, previous action,
-realized reward, unrealized PnL, or episode progress. OHLCV-only recurrence cannot
-reconstruct sampled actions, fills, or position exactly. For `R4-v1`, define the
-field order, normalization, timing, and terminal semantics, then append identical
-explicit fields to a feed-forward R0 control and the recurrent comparison. Never
-add them only to recurrence and call the result a memory gain.
+State-free R0 does not include position, prior actions, episode accounting, or
+progress. OHLCV-only recurrence cannot reconstruct sampled actions, fills, or
+position exactly. `R4-v1-min` fixes the auxiliary order as
+`[position, remaining_horizon_fraction]`, including reset and terminal semantics,
+and appends it through a separate bias-free residual branch. The blocking
+three-seed 4x3 FF gate is replay-valid. Time-only passed the relative net-return
+factor gate, but no arm passed the absolute economic gate.
+
+The complete connector is nevertheless architecture-qualified with R0 as the
+forward `R0 + R4-v1` feed-forward baseline because it removes the known
+endogenous action-cost and finite-horizon alias. R0 remains the immutable parity
+control, and this does not constitute economic promotion or full observability of
+the market. New replication uses zero-initialized final residual heads to preserve
+the update-zero R0 policy/value. The completed 4x3x40 replication found a
+seed-consistent positive terminal net delta for combined state and a positive
+pooled seed-then-anchor interval, but not control superiority or seed-consistent
+Sharpe; one seed collapsed near-flat. R1 must retain both state-free and
+explicitly named `R1 + R4-v1` cells.
+
+Episode PnL, cost basis, unrealized/realized PnL, position age, accumulated
+turnover, drawdown, and market-session time are registered future causal factors.
+They enter only with explicit accounting, reset, reward/transition dependency,
+and inference-availability contracts. Market/task × state nonlinear late fusion
+is reserved for separately named R4-v2.
 
 ## 7. AZR-inspired proposer/solver boundary
 
@@ -266,6 +402,17 @@ calibration evidence.
   held-out chronological slices, with stable state norms, valid sequence masks,
   and recorded compute/memory cost.
 - R3 waits for a meaningful LSTM result.
-- R4-v1 requires identical explicit state features in FF and recurrent cells.
+- R4-v1-min is implemented and replay-valid on FF. Its fresh 4x3x40 replication
+  found a relative combined-state net effect but failed absolute promotion. The
+  subsequent actor-robustness PBT, checkpoint forensics, and two-process
+  fresh-panel G0 diagnostic are complete and economically rejected. The G0
+  checkpoints have byte-identical paired artifacts but historical receipts lack
+  producer identities. All had negative fresh-panel net return and Sharpe.
+  Next work compares matched R0, R0 + R4-v1, clean R1, and separately named
+  `R1 + R4-v1`, with causal staging retained as an explicit matched curriculum
+  factor. R4-v2 remains a distinct later joint-fusion factor.
+
+Implementation prerequisites and tests are specified in
+[R1 development readiness](../project-state/r1-development-readiness.md).
 - No recurrent cell becomes operational guidance from an unimplemented design,
   a zero-state probe, PPO logits/value scores, or a training-only curve.

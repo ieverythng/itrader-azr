@@ -16,9 +16,10 @@ def _finite(value: Any) -> float:
 class EpisodeEvidence:
     """Versioned terminal evidence emitted by ``ITraderEnv``.
 
-    This contract deliberately separates the optimized objective from economic
-    arithmetic. Costs are an evaluation assumption and do not alter the solver
-    reward or encode broker execution semantics.
+    This contract derives economic arithmetic independently from the optimized
+    objective. A task may explicitly select the matching ``net_return`` reward,
+    but evidence never infers costs from reward components and does not encode
+    broker execution semantics.
     """
 
     schema_version: int

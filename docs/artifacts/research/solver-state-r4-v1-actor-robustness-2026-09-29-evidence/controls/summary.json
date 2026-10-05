@@ -1,0 +1,60 @@
+{
+  "run_tag": "phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857",
+  "collected_only": false,
+  "config": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929.json",
+  "results": [
+    {
+      "variant_id": "flat",
+      "series_id": "flat",
+      "experiment_name": "phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_flat",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929\\ray\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_flat\\training_fn_baseline_flat_both_zero_v1_00000",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929\\ray\\_stable_metrics\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_flat\\training_fn_baseline_flat_both_zero_v1_00000\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929\\ray\\_stable_metrics\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_flat\\training_fn_baseline_flat_both_zero_v1_00000\\plots",
+      "final_metric": 0.0
+    },
+    {
+      "variant_id": "long_only",
+      "series_id": "long_only",
+      "experiment_name": "phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_long_only",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929\\ray\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_long_only\\training_fn_baseline_long_both_zero_v1_00000",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929\\ray\\_stable_metrics\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_long_only\\training_fn_baseline_long_both_zero_v1_00000\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929\\ray\\_stable_metrics\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_long_only\\training_fn_baseline_long_both_zero_v1_00000\\plots",
+      "final_metric": -0.0048161096257172
+    },
+    {
+      "variant_id": "short_only",
+      "series_id": "short_only",
+      "experiment_name": "phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_short_only",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929\\ray\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_short_only\\training_fn_baseline_short_both_zero_v1_00000",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929\\ray\\_stable_metrics\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_short_only\\training_fn_baseline_short_both_zero_v1_00000\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929\\ray\\_stable_metrics\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_short_only\\training_fn_baseline_short_both_zero_v1_00000\\plots",
+      "final_metric": 0.0044161096257172
+    },
+    {
+      "variant_id": "random",
+      "series_id": "random",
+      "experiment_name": "phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_random",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929\\ray\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_random\\training_fn_baseline_random_both_zero_v1_00000",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929\\ray\\_stable_metrics\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_random\\training_fn_baseline_random_both_zero_v1_00000\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929\\ray\\_stable_metrics\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_random\\training_fn_baseline_random_both_zero_v1_00000\\plots",
+      "final_metric": -0.0138548721285879
+    },
+    {
+      "variant_id": "untrained_mlp_film",
+      "series_id": "untrained_mlp_film",
+      "experiment_name": "phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_untrained_mlp_film",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929\\ray\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_untrained_mlp_film\\training_fn_baseline_untrained_both_zero_v1_00000",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929\\ray\\_stable_metrics\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_untrained_mlp_film\\training_fn_baseline_untrained_both_zero_v1_00000\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929\\ray\\_stable_metrics\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857_untrained_mlp_film\\training_fn_baseline_untrained_both_zero_v1_00000\\plots",
+      "final_metric": -0.0012770077287908
+    }
+  ],
+  "primary_metric": "evaluation/net_return_mean",
+  "compare_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857\\ablation_compare.csv",
+  "compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857\\ablation_compare.png",
+  "sharpe_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857\\ablation_compare_validation_sharpe.png",
+  "entropy_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857\\ablation_compare_entropy.png",
+  "episode_len_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857\\ablation_compare_episode_len.png",
+  "diagnostics_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857\\ablation_compare_diagnostics.png",
+  "action_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_controls_jan2026_20260929_073857\\ablation_compare_action_fractions.png"
+}

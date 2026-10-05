@@ -1,0 +1,42 @@
+{
+  "run_id": "20260924T023238Z",
+  "created_at_utc": "2026-09-24T02:32:38.446352+00:00",
+  "experiment_name": "phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231_no_cost_post_restore_gate_d",
+  "git_commit": "891fcaa2ba2200d0affe2c97a6d9ada592dbcfaa",
+  "source_tree_fingerprint": {
+    "git_commit": "891fcaa2ba2200d0affe2c97a6d9ada592dbcfaa",
+    "algorithm": "sha256(sorted relative-path TAB file-sha256 LF)",
+    "python_file_count": 82,
+    "source_tree_sha256": "9374f7710665a4c557de9784a33909265592ea70ee25b21b9094caf30a66e7de"
+  },
+  "seed": 20260924,
+  "pbt_population_seed": 924024,
+  "resume_existing": false,
+  "resume_rewind_to_checkpoint": false,
+  "config_hash": "b51d8d7dca7d4d939885e79014a4afd020f79c14fd6f9f2a68dceb334db48a02",
+  "dataset_path": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\data\\datasets\\dataset_v2_20220103_20260922_alpaca_sip_split\\bars",
+  "dataset_sha256": "20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9",
+  "results_root": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924",
+  "start_idx_mode": "stream_worker",
+  "ret_norm_reset": "stream",
+  "is_pbt": true,
+  "is_cpu_pbt": false,
+  "pbt_primary_metric": "evaluation/net_return_mean",
+  "pbt_time_attr": "pbt_progress_steps",
+  "pbt_interval": 5,
+  "pbt_synch": true,
+  "pbt_interval_steps": 24000,
+  "checkpoint_interval": 5,
+  "target_environment_steps": 168000,
+  "pbt_mutations": {
+    "lr": "<ray.tune.search.sample.Float object at 0x000001F30CFA2AD0>",
+    "entropy_coeff_schedule": "[[[0, 0.005], [96000, 0.003], [240000, 0.001]], [[0, 0.01], [96000, 0.005], [240000, 0.001]], [[0, 0.02], [96000, 0.01], [240000, 0.003]]]",
+    "clip_param": "[0.1, 0.2, 0.3]",
+    "lambda": "[0.9, 0.95, 0.97]",
+    "gamma": "[0.98, 0.99, 0.995]",
+    "sgd_minibatch_size": "[128, 256, 512]",
+    "num_sgd_iter": "[10, 20, 30]",
+    "vf_clip_param": "[5.0, 10.0, 20.0]",
+    "vf_loss_coeff": "[0.5, 1.0, 2.0]"
+  }
+}

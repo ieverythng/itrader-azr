@@ -1,6 +1,39 @@
 import random
 
+import pytest
+
 from itrader.rl_lib.tasks.rewards import RewardEngine, register
+
+
+def test_net_return_reward_matches_one_bp_economic_arithmetic():
+    params = {"cost_bps": 1.0, "reward_scale": 1000.0}
+    steps = [
+        {"pnl_delta": 0.0020, "turnover_t": 1.0, "position_t": 1.0, "terminal": False},
+        {"pnl_delta": -0.0005, "turnover_t": 0.0, "position_t": 1.0, "terminal": True},
+    ]
+
+    rewards = [RewardEngine.compute("net_return", params, ctx)[0] for ctx in steps]
+
+    # Gross 15 bp - entry 1 bp - terminal liquidation 1 bp = net 13 bp.
+    assert sum(rewards) / params["reward_scale"] == pytest.approx(0.0013)
+
+
+def test_net_return_reward_reports_cost_components_without_double_counting():
+    reward, components = RewardEngine.compute(
+        "net_return",
+        {"cost_bps": 2.0, "reward_scale": 100.0},
+        {
+            "pnl_delta": 0.003,
+            "turnover_t": 2.0,
+            "position_t": -1.0,
+            "terminal": True,
+        },
+    )
+
+    assert components.keys() == {"pnl_delta", "turnover_cost", "liquidation_cost"}
+    assert reward == pytest.approx(sum(components.values()))
+    assert components["turnover_cost"] < 0.0
+    assert components["liquidation_cost"] < 0.0
 
 
 def test_pnl_linear_reward_components_signs():

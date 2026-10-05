@@ -4,7 +4,7 @@ channels:
   - conda-forge
   - pytorch
 dependencies:
-  # Core runtime (canonical Ray 2.58 migration baseline)
+  # Core runtime (accepted Ray 2.58 R-series baseline)
   - python=3.11
   - numpy=1.26.*
   - pandas=2.1.4
@@ -28,5 +28,6 @@ dependencies:
       - isort
       - pre-commit
       - pytest
+      - jsonschema>=4.20,<5
       - pydantic>=2,<3
       - setuptools==69.5.1

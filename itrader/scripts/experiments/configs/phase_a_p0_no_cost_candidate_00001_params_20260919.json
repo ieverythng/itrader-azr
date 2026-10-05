@@ -1,0 +1,11 @@
+{
+  "lr": 0.0036320658878667626,
+  "clip_param": 0.1,
+  "gamma": 0.99,
+  "lambda": 0.9,
+  "sgd_minibatch_size": 512,
+  "num_sgd_iter": 30,
+  "vf_clip_param": 20.0,
+  "vf_loss_coeff": 1.0,
+  "train_batch_size": 4800
+}

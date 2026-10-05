@@ -1,0 +1,214 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>R1 Foundation and Compatibility Hardening</title><style>:root{color-scheme:light;--ink:#18201d;--muted:#5c6762;--line:#ccd3cf;--paper:#fbfcfa;--wash:#eef2ef;--accent:#1f6651}*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:16px/1.55 Georgia,serif}main{max-width:1120px;margin:32px auto;background:var(--paper);padding:48px 58px 64px;border:1px solid var(--line)}h1,h2,h3{line-height:1.2}h2{margin-top:40px;padding-top:18px;border-top:1px solid var(--line)}table{width:100%;border-collapse:collapse;margin:18px 0 24px;font-size:.9rem}th,td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}th{background:#e8eeea}tbody tr:nth-child(even){background:#f4f6f4}code{font:.9em Consolas,monospace;background:#edf0ee;padding:1px 4px}pre{overflow:auto;background:#edf0ee;padding:14px}a{color:var(--accent)}img{max-width:100%;height:auto;border:1px solid var(--line)}@media(max-width:760px){main{margin:0;padding:28px 18px}table{display:block;overflow:auto}}</style></head><body><main><h1>R1 foundation and Ray 2.58 compatibility hardening</h1>
+<p>Date: 2026-10-05. Status: compatibility/evidence implementation independently approved;
+no economic promotion or R1 implementation. Branch <code>agent/Watson-dev</code>, review
+base <code>d3eb4c5</code>; all work remains in the dirty tree. Preserve pre-existing staged
+changes, unrelated research, checkpoints and experiment artifacts.</p>
+<h2>Decision and scope</h2>
+<p>Later human direction on 2026-10-05 authorized the full active-trainer cutover
+on <code>feat(R)/Ray_upgrade</code> independently of this scientific sequence. The ordering
+below remains the corrected-control/R1 attribution plan; its “migrate afterward”
+wording is superseded for active API architecture. See the
+<a href="../../project-state/decisions.md">native migration decision</a> and
+<a href="ray-native-stack-implementation-2026-10-05.md">implementation record</a>.</p>
+<p>Finish compatibility repairs first, then bounded freshly matched R0 and
+R0 + R4-v1 controls. Implement and compare R1/R1 + R4-v1 on this same stack.
+Only afterward perform the R1 comparison on the same accepted Ray 2.58 runtime.
+Any separate four-cell parity comparison against the native API is a later
+scientific choice, not a prerequisite for delivering the migration. Ray 2.58 is
+not an old runtime: “legacy” denotes the retained ModelV2/TorchPolicy API, not
+the installed Ray version.</p>
+<p>Historical outcomes remain immutable observations. They do not automatically
+establish effective hyperparameter mutation or future economic promotion.
+Do not relabel repaired runs as exact continuations of those experiments.</p>
+<h2>What integration exposed</h2>
+<table>
+<thead>
+<tr>
+<th>Seam</th>
+<th>Reproduced defect</th>
+<th>Correction / remaining qualification</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>PPO optimizer configuration</td>
+<td>Old minibatch/epoch keys do not set Ray 2.58&#39;s active <code>minibatch_size</code> / <code>num_epochs</code></td>
+<td>Translate at the runtime boundary; reject mixed aliases; actual optimizer sample-visits are measured</td>
+</tr>
+<tr>
+<td>Donor restore</td>
+<td>Policy gamma/lambda/clip and Adam LR can revert to donor values while target algorithm configuration remains visible</td>
+<td>Reconcile supported fields across training and evaluation policies, inspect actual optimizer parameter groups and persist receipts before sampling</td>
+</tr>
+<tr>
+<td>Learning schedules</td>
+<td>A restored policy has multiple clock/settings owners</td>
+<td>First post-restore update uses recovered target progress; subsequent native RLlib schedule clock is explicitly unchanged, not claimed as repaired monotonic scheduling</td>
+</tr>
+<tr>
+<td>Clip fraction</td>
+<td>Reporter looked for a metric the policy did not produce</td>
+<td>Detached counts from the exact loss forward, reduced across valid optimizer sample-visits; old missing data stays missing</td>
+</tr>
+<tr>
+<td>Exact replay</td>
+<td>Equal selection scores may hide different policies</td>
+<td>Bind full episode metrics and action/reward trace hashes to the original indexed evaluation payload</td>
+</tr>
+<tr>
+<td>Donor bytes</td>
+<td>Rehashing modified weights could bless new bytes</td>
+<td>Require equality to the original indexed scored-checkpoint digest</td>
+</tr>
+<tr>
+<td>Promotion attribution</td>
+<td>Provenance was recorded but not enforced</td>
+<td>Missing/different protected identities or non-boolean success fail eligibility; controls keep provenance</td>
+</tr>
+<tr>
+<td>Process provenance</td>
+<td>Paired artifacts did not prove distinct producers</td>
+<td>Exclusive invocation reservation, process creation identity, launch binding, complete contract and artifact hashes</td>
+</tr>
+<tr>
+<td>Semantic observations</td>
+<td>Width alone cannot distinguish feature order or a 302-wide mistaken market slice</td>
+<td>Versioned OHLCV/time/task/state contract validated at env/model/config boundaries</td>
+</tr>
+<tr>
+<td>Model selection</td>
+<td>Training selection alone leaves untrained/replay consumers ambiguous</td>
+<td>Shared structural registry, protected fixed-recipe overrides and class/config restore checks; R1 reserved, not registered as implemented</td>
+</tr>
+</tbody></table>
+<h2>Validation approach</h2>
+<p>Use narrow red/green cases for ambiguous inputs, followed by integration tests
+through actual producers and consumers. Do not equate test count with validity.
+The synthetic 12-step probes are mechanical checks, not trading experiments.</p>
+<ul>
+<li>Tagged Parquet -&gt; production config builder -&gt; actual PPO -&gt; callbacks -&gt;
+checkpoint -&gt; restored policy -&gt; frozen replay, for R0 and combined state.
+Checks actions, logits, values, episode payloads and semantic identities.</li>
+<li>Same-forward PPO diagnostics compare loss, gradients, RNG, sampled actions
+and one-update weights with installed original <code>PPOTorchPolicy</code>, including
+dropout, both optimizer paths, masking and multiple CPU towers.</li>
+<li>Donor/target PPO tests inspect the first actual optimizer steps, numerical
+GAE and local/remote/evaluation policy settings; preserve weights, Adam
+moments, adaptive KL and native counters.</li>
+<li>Real <code>training_fn</code> restore probes cover manual, Tune self-resume and PBT
+receipt routing. Only Tune&#39;s context/report boundary is substituted.</li>
+<li>Persisted four-arm/three-seed analyzer tests exercise final promotion, not
+only helper predicates. Adversarial receipts, different data/source/runtime,
+earlier checkpoints and mismatched CSV metrics must not promote.</li>
+<li>Two fresh subprocess receipt probes bind output identity to observed
+processes; the independent reviewer additionally executes actual checkpoint
+replay CLIs. Sources must remain frozen during a pair to match contracts.</li>
+</ul>
+<h2>Independent review status</h2>
+<p>Fresh GPT-6.1 Sol at MAX and GPT-6 Astra at MAX executed <code>REVIEW.md</code>.
+Findings during this pass included order-dependent Ray environment registration,
+duplicated runtime identity producers, incomplete replay-contract binding,
+acceptance of arbitrary equal receipt contracts, CSV-vs-replay disagreement,
+and fractional/boolean/string checkpoint clocks coerced into integer matches.
+All blocking findings in the assigned scope were corrected and independently
+re-executed. Both reviewers returned <strong><code>VERDICT: APPROVE</code></strong>. Sol also approved
+the incremental exact-clock fix after probing both indexed and scheduler clocks
+and 20 malformed pending-exploit clock/generation combinations.</p>
+<p>All five required design principles were reported OK: separation of concerns,
+programming by intention, encapsulation, high cohesion and low coupling.
+These are scoped code-review verdicts, not economic promotion or R1 readiness
+without the remaining run declaration.</p>
+<p>The base trainer at <code>d3eb4c5</code> has an <code>IndentationError</code> at line 898, so a literal
+end-to-end base run is unavailable without modifying the base. Reviewers compare
+individual executable base consumers and installed original PPO behavior where
+possible, recording this limitation rather than claiming a clean full baseline.</p>
+<h2>Executed validation and retained evidence</h2>
+<p>All Python commands use <code>.venv/Scripts/python.exe</code> (Python 3.11.13, Ray 2.58.0,
+Torch 2.3.1+cpu). PATH Python is not the validated interpreter.</p>
+<table>
+<thead>
+<tr>
+<th>Command / probe</th>
+<th>Observed result</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>.venv/Scripts/python.exe -m pytest -q itrader/tests</code></td>
+<td>399 passed; full suite also passed inside subsequent pre-commit runs</td>
+</tr>
+<tr>
+<td><code>.venv/Scripts/python.exe itrader/tools/healthcheck.py</code></td>
+<td>All required dependencies pass; optional llama_cpp/transformers absent, no CUDA</td>
+</tr>
+<tr>
+<td><code>.venv/Scripts/python.exe -m pytest -q itrader/tests/test_replay_integrity.py itrader/tests/test_pbt_scheduler.py itrader/tests/test_policy_baselines.py</code></td>
+<td>53 passed after the final strict-clock correction</td>
+</tr>
+<tr>
+<td><code>.venv/Scripts/python.exe -m pre_commit run --all-files</code></td>
+<td>Final serialized invocation passed all hooks, exit 0. An earlier 399-test invocation flagged concurrent doc edits, not failing assertions</td>
+</tr>
+<tr>
+<td><code>git diff --check</code></td>
+<td>Pass; normal LF/CRLF notices only</td>
+</tr>
+<tr>
+<td><code>bash tools/knowledge/status.sh</code></td>
+<td>Runs successfully; GitNexus remains stale at 1d5ba82 versus d3eb4c5, source/tests used as authority</td>
+</tr>
+<tr>
+<td>Independent original/current R0 comparison</td>
+<td>Twelve seeded cases: exact parameters, logits, values, gradients and RNG parity</td>
+</tr>
+<tr>
+<td>Independent persisted-analyzer attacks</td>
+<td>13 cases: valid evidence accepted; altered runtime/source/env/seed/progress/generation/digest, nonboolean parity, duplicate index and CSV inflation rejected</td>
+</tr>
+<tr>
+<td>Real replay harness</td>
+<td>Two fresh replay CLI processes exit zero; distinct identities, matching complete contract, identical episode payload and checkpoint parity</td>
+</tr>
+<tr>
+<td>State-diagnostic CLI</td>
+<td>Completed with verified four-row artifact</td>
+</tr>
+</tbody></table>
+<p>Durable copies, preserving original producer/launch identities and bytes:</p>
+<ul>
+<li><a href="r1-foundation-hardening-2026-10-05-evidence/replay_pair/replication.json">Two-process replication</a>.</li>
+<li><a href="r1-foundation-hardening-2026-10-05-evidence/replay_pair/process_1/stable_trial.json">First replay receipt</a>
+and <a href="r1-foundation-hardening-2026-10-05-evidence/replay_pair/process_2/stable_trial.json">second replay receipt</a>.</li>
+<li><a href="r1-foundation-hardening-2026-10-05-evidence/state_diagnostic/stable_trial.state_diagnostics.json">State-diagnostic receipt</a>.</li>
+</ul>
+<p>The archived bundle is approximately 69.5 KB, containing 12 evidence files,
+not a production run. Original absolute process/checkpoint references still
+point to <code>C:/Users/Admin/AppData/Local/Temp/itrader_astra_review_audit_lhbvuwm4</code>;
+the temporary synthetic checkpoint/data are not copied into the repository.
+Copied receipts do not constitute additional producer invocations.</p>
+<h2>Experiment boundary and next actions</h2>
+<p>Decision at closure: <strong>defer fresh R0/R4 training to the next session; stop
+before R1 implementation</strong>. The <a href="ray258-historical-optimizer-audit-2026-10-05.md">read-only historical audit</a>
+found native 30/128 in ten terminal checkpoints, effective donor settings in
+five exploited targets, and six entropy resets on member-00002 self-resume.
+Name historical-effective versus intended optimizer recipes explicitly before
+launch. Preserve old charts and artifacts; do not manufacture corrected results.</p>
+<ol>
+<li>Independent review, full suite, healthcheck and serialized pre-commit are
+complete. No unresolved reviewer blocker remains in the assigned scope.</li>
+<li>The bounded historical config/checkpoint audit is complete; retain its
+uncertainty and original artifacts rather than expanding into every old run.</li>
+<li>Freeze a corrected-stack R0/R4 loadout, source/dataset hashes, seeds, budget
+and inspected development panel. Run only after correctness gates pass;
+otherwise leave it prepared for the next session.</li>
+<li>Stop before R1 implementation in this pass, as requested. Q19/Q20 are
+accepted; Q21 fresh selection policy remains pending in GRILL.</li>
+<li>Later R1 screen: four cells x two seeds x two curricula, 57,600 nominal
+steps per cell (921,600 total). Compressed causal cost boundaries are
+14,400 / 28,800 / 43,200; evaluation is exact 1 bp; PBT disabled.</li>
+<li>Native API migration is a separate later four-cell bridge, not silent
+parity with historical artifacts. No final-test access is authorized here.</li>
+</ol>
+<p>Skills used: itrader-architecture-check, itrader-stack-iteration-loop, TDD,
+codebase-design, deslop-refactor, improve-codebase-architecture and
+itrader-experiment-handoff. Keep TaskSpec, env,
+reward, policy and execution/risk ownership separate throughout.</p>
+</main></body></html>

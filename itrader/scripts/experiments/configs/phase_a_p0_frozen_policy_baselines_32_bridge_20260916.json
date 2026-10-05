@@ -1,0 +1,29 @@
+{
+  "name": "phaseA_p0_frozen_policy_baselines_32_bridge",
+  "python_exe": ".venv/Scripts/python.exe",
+  "train_module": "itrader.rl_lib.evaluation.run_policy_baselines",
+  "primary_metric": "evaluation/net_return_mean",
+  "common_args": {
+    "data_path": "itrader/data/ohlcv.parquet",
+    "results_root": "itrader/scripts/experiments/configs/outputs/phase_a_p0_frozen_policy_baselines_32_bridge_20260916/ray",
+    "window": 60,
+    "seed": 20260913,
+    "evaluation_num_episodes": 32,
+    "task_horizons": "96,128,160,200",
+    "task_reward_ids": "net_return",
+    "evidence_cost_bps": 1.0,
+    "optimization_cost_bps": 1.0,
+    "net_return_reward_scale": 1000.0,
+    "evidence_periods_per_year": 0.0,
+    "split_fractions": "0.7,0.15,0.15",
+    "split_purge_rows": 200,
+    "observation_transform": "market_relative_v1"
+  },
+  "variants": [
+    {"id": "flat", "args": {"policy_control": "flat"}},
+    {"id": "long_only", "args": {"policy_control": "long"}},
+    {"id": "short_only", "args": {"policy_control": "short"}},
+    {"id": "random", "args": {"policy_control": "random"}},
+    {"id": "untrained_mlp_film", "args": {"policy_control": "untrained"}}
+  ]
+}

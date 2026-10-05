@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "receipt_kind": "tune_self_resume",
+  "observed_checkpoint_path": "C:\\Users\\Admin\\AppData\\Local\\Temp\\checkpoint_tmp_091f8bd5c84d4e68bafeec90d4465831",
+  "observed_checkpoint_sha256": "ecb24c561865f5bb7cf7a0a948313c6da17f5a236b07d10ec7f7914cd4e2a1e3",
+  "expected_checkpoint_sha256": "ecb24c561865f5bb7cf7a0a948313c6da17f5a236b07d10ec7f7914cd4e2a1e3",
+  "digest_match": true,
+  "lineage_verified": false,
+  "recorded_at_utc": "2026-09-24T13:51:08.344684+00:00",
+  "target_trial_id": "b5ac0_00001",
+  "target_trial_name": "training_fn_ITraderEnv_b5ac0_00001",
+  "restore_generation": 0,
+  "parent_exploit_id": null,
+  "target_clock_at_restore": 48768,
+  "target_updates_at_restore": 10,
+  "donor_checkpoint_path": null,
+  "donor_trial_id": null,
+  "donor_progress_steps": null,
+  "source_tree_sha256": "b984951c2d390d91653f8e41ef37dc4fc79936d8f489fc9f78ef108c1a13bade",
+  "dataset_sha256": "20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9",
+  "evaluation_panel_sha256": "2314a55ceac6aceed575203d91daa0d1468fcd88158ff4d0839751c3b8b36b9f"
+}

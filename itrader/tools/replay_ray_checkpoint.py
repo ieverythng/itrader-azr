@@ -9,10 +9,12 @@ from pathlib import Path
 import ray
 from ray.rllib.algorithms.algorithm import Algorithm
 
+from itrader.rl_lib.callbacks.metrics_contract import mean_from_totals
+from itrader.rl_lib.evaluation.run_checkpoint_replay import (
+    validate_checkpoint_replay_inputs,
+)
 from itrader.rl_lib.train.train_solo_V2 import (
     _atomic_write_json,
-    _extract_custom_metrics,
-    _register_models,
     deterministic_evaluate,
 )
 
@@ -59,11 +61,20 @@ def _report_row(stable_trial_dir: Path, iteration: int) -> dict:
 
 
 def _metric_value(custom_metrics: dict, name: str) -> float:
-    for key in (f"{name}_mean", name):
-        value = custom_metrics.get(key)
-        if value is not None:
-            return float(value)
-    raise KeyError(f"Evaluation did not emit {name!r}")
+    return mean_from_totals(custom_metrics, name, required=True)
+
+
+def _validate_native_checkpoint(stable_trial_dir: Path, record: dict, checkpoint_path: Path) -> dict:
+    snapshot = record.get("config_snapshot")
+    resolved_path = Path(snapshot) if snapshot else stable_trial_dir / "resolved_config.json"
+    if snapshot and not resolved_path.is_absolute():
+        resolved_path = stable_trial_dir / resolved_path
+    resolved, _validation, _digest = validate_checkpoint_replay_inputs(
+        record,
+        checkpoint_path,
+        resolved_path,
+    )
+    return resolved
 
 
 def replay(stable_trial_dir: Path, iteration: int | None, tolerance: float) -> dict:
@@ -75,13 +86,20 @@ def replay(stable_trial_dir: Path, iteration: int | None, tolerance: float) -> d
     if not checkpoint_path.is_dir():
         raise FileNotFoundError(f"Stable checkpoint is missing: {checkpoint_path}")
 
-    _register_models()
+    resolved = _validate_native_checkpoint(stable_trial_dir, checkpoint_record, checkpoint_path)
     ray.init(include_dashboard=False)
     algorithm = None
     try:
         algorithm = Algorithm.from_checkpoint(str(checkpoint_path))
+        from itrader.models.registry import validate_native_restored_model
+
+        validate_native_restored_model(algorithm, resolved["config"])
         evaluation = deterministic_evaluate(algorithm)
-        custom_metrics = _extract_custom_metrics(evaluation)
+        evaluation_metrics = evaluation.get("evaluation", evaluation)
+        env_runner_metrics = evaluation_metrics.get("env_runners", {})
+        custom_metrics = env_runner_metrics.get("custom_metrics")
+        if not isinstance(custom_metrics, dict) or not custom_metrics:
+            raise ValueError("Native replay evaluation did not emit EnvRunner metrics")
         comparisons = {}
         for custom_name, report_name in METRICS.items():
             expected = float(expected_row[report_name])
@@ -113,7 +131,7 @@ def replay(stable_trial_dir: Path, iteration: int | None, tolerance: float) -> d
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Replay an immutable iTrader RLlib checkpoint and compare held-out metrics."
+        description="Replay an immutable Ray 2.58 native iTrader checkpoint and compare held-out metrics."
     )
     parser.add_argument("stable_trial_dir", type=Path)
     parser.add_argument("--iteration", type=int)

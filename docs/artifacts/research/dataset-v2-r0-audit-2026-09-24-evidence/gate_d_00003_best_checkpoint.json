@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "metric": "evaluation/net_return_mean",
+  "score": -0.0007389743722287021,
+  "training_iteration": 17,
+  "pbt_progress_steps": 82936,
+  "stable_checkpoint": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\_stable_metrics\\training_fn_ITraderEnv_35bc1_00003_3_seed=959228_2026-09-24_04-32-38\\checkpoints\\iter_000017_025239263335",
+  "recorded_at_utc": "2026-09-24T02:52:39.296930+00:00",
+  "selection_scope": "eligible_evaluation_improvement",
+  "requires_fresh_process_replay": true
+}
