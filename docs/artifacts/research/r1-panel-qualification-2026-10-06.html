@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>R1 panel qualification — 2026-10-06</title>
+<style>body{margin:0;background:#101a20;color:#e6eff3;font:16px/1.6 system-ui,sans-serif}main{max-width:1000px;margin:auto;padding:40px 28px}h1,h2{line-height:1.25}h2{margin-top:36px}a{color:#8bdac0}code,pre{background:#1a2933}code{padding:2px 5px}pre{padding:18px;overflow:auto}.gate{border-left:4px solid #e5b56b;padding:16px 22px;background:#23303a}li{margin:8px 0}.muted{color:#afbdc6}</style>
+</head><body><main>
+<p class="muted">agent/Watson-dev · base d3eb4c5 · uncommitted prerequisite work</p>
+<h1>R1 panel qualification and terminal preflight</h1>
+<p>2026-10-06. <a href="r1-panel-qualification-2026-10-06.md">Full Markdown source, hashes and audit limits</a> ·
+<a href="../../project-state/next-actions.md">Next actions</a> ·
+<a href="../../research/itrader_research_dashboard.html">Research dashboard</a></p>
+<section class="gate"><h2>Panel freeze is blocked</h2>
+<p>Metadata eligibility leaves 2,052 provisional symbol/session anchors. Conservative possible historical exposure leaves <strong>zero certified fresh candidates</strong>. This does not mean every validation bar was visited.</p>
+<p>Q23 recovery/new-data and Q26 uncertainty decisions are with GRILL-IMPLEMENT. No real panel was selected, frozen or opened. No training, R1 implementation or economic promotion.</p></section>
+<h2>Calendar feasibility, not freshness</h2>
+<p>Only symbol, timestamp, session and session ID were projected: 5,515,061 regular-session rows, twelve symbols. Validation uses 0.7/0.15/0.15, 200-row purge, 60 prior bars, same-session one-minute continuity and room for 200 future bars.</p>
+<p>There are 2,084 eligible symbol/session anchors before the 32 known explicit exclusions, 2,052 afterward, across 176 dates from 2025-04-24 through 2026-01-08. No returns or regime values informed selection. Authoritative exchange-session provenance remains required.</p>
+<p>The snapshot retains 1,185 raw Alpaca calendar records. This is available metadata for a reviewed normalization/seal, not a certified panel. The source uses opaque <code>SYMBOL:DATE:regular</code> session IDs; calendar lookup now uses the separate timestamp-derived New York date.</p>
+<h2>What prevents certification?</h2>
+<p>Twenty-six historical random-start configurations retain fixed task seeds but no starts in 594 evaluation reports. Six dirty source fingerprints each cover 82 Python files; the recorded Git commit contains only 72 tracked files and does not reproduce those fingerprints. Seeds plus commit cannot prove historical reset/partition semantics.</p>
+<p>Sixteen control sidecars do recover recorded episode windows. That does not repair the randomized runs' missing source proof. The bounded search and exact source identities are retained in the Markdown audit; it was not an exhaustive offload scan.</p>
+<h2>Preparation implemented</h2>
+<ul><li>Scientific sixteen-cell draft: R0, R0 + R4-v1, R1 and R1 + R4-v1; two seeds; exact 1 bp versus causal staging; PBT off.</li>
+<li>57,600 nominal steps per cell, 921,600 total. Causal stages at 0/14,400/28,800/43,200; original entropy clock unchanged.</li>
+<li>Read-only terminal preflight: all sixteen completed cells and original checkpoint bytes before panel access; strict seed identities, no later index hidden by stale completed status, predeclared qualification/panel hashes, inventory coverage and matching dataset.</li>
+<li>Fixed task/time semantics and full input/outcome overlap rejection. A separately hashed exchange-calendar artifact is required; weekday labels do not qualify a session. Synthetic real-environment flat/long receipts exercised the 128-task reporter and liquidation accounting.</li></ul>
+<p>The draft is not a sealed execution manifest. Preflight is not the actual terminal evaluator; its output explicitly denies evaluation authorization. Candidate/control producer receipts, approved Q26 method and real terminal execution wiring remain required.</p>
+<p>Final Sol/MAX and Luna/xhigh fix reviews approve the scoped preparation code, not real panel readiness. They rechecked strict seed/clock identities, calendar membership and full-minute bounds, composite session identities and synthetic persisted preflight. Final pre-commit passes every configured hook, including healthcheck and core pytest on the 480-test collection; the focused suite passes 31 tests. Validation details and the optional timestamp-storage-unit nit are in the Markdown closeout.</p>
+<h2>Next boundary</h2>
+<ol><li>Resolve Q23 with the human: source recovery or separately predeclared new evaluation data/split; do not repurpose the sealed final test.</li>
+<li>Settle Q26 and session provenance; select/hash an outcome-blind panel only when exclusions permit it.</li>
+<li>Finish terminal execution and independent integration review; implement/review R1 on corrected compatibility APIs.</li>
+<li>Seal effective configs and source before all sixteen matched runs. Open terminal evaluation only after all finish.</li></ol>
+<p class="muted">The eight corrected-compatibility terminal replays remain accepted. No artifacts were deleted; no staging, commit or push. Native migration remains isolated. Final validation/review details are recorded in the Markdown closeout.</p>
+<h2>Follow-up scope correction — 2026-10-06</h2>
+<p>The <a href="evaluation-code-audit-2026-10-06.html">later evaluation-wide audit</a> corrects the frame interpretation: all sixteen legacy controls configure the same twelve input symbols. Six/eight describe task-symbol coverage, not alternate market-frame projections. Metadata recovery maps 512 recorded rows to 48 starts; all sidecar symbols agree. Historical within-symbol ordering remains conditional without dirty source snapshots, and the 26 randomized configs remain source-unbound. Zero certified-fresh remains the verdict.</p>
+<p>Both fresh evaluation-wide reviews return <strong>CHANGES</strong>. Q27 asks approval for four repairs: explicit-start remapping, ambiguous terminal selection, physical-EOF/reset agreement and state-tail diagnostic schema. Earlier scoped preflight approvals and the eight accepted replay receipts remain intact. No panel freeze, executor launch or R1 implementation is authorized.</p>
+</main></body></html>

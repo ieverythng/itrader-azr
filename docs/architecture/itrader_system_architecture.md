@@ -1,6 +1,6 @@
 # iTrader System Architecture
 
-Last reconciled: 2026-10-01
+Last reconciled: 2026-10-06
 Branch snapshot: `agent/Watson-dev` with the uncommitted R4-v1 implementation/evidence round
 Status: **active working architecture; R0 + R4-v1 is architecture-qualified but economically unpromoted, and R1-R3 remain unimplemented**
 
@@ -10,6 +10,25 @@ Research identities and evidence status are indexed in the
 promotion authority.
 
 ## 1. Source-grounded runtime
+
+Current platform: Ray 2.58 with explicit ModelV2/TorchPolicy compatibility APIs.
+The compatibility repair round adds shared structural model selection, opt-in
+semantic OHLCV contracts, same-loss clip diagnostics and measured post-restore
+learning-setting reconciliation. Scoped Sol/Astra evidence review approved these
+fixes; no performance promotion or R1 implementation follows automatically.
+The native RLModule/Learner/EnvRunner migration is deferred until R1 is compared
+on this corrected stack; then repeat R0, R0 + R4-v1, R1 and R1 + R4-v1.
+See [R1 readiness](../project-state/r1-development-readiness.md) for ownership,
+the accepted Q15/Q18 model contract, Q19 selection and Q20 budgets. R1 remains
+unimplemented; Q21 two-tier evaluation is accepted, with fresh-panel construction
+and execution gates still pending. Native API development may proceed in an
+isolated worktree; integration remains after the corrected-stack R1 comparison.
+
+Q22 freezes the same corrected optimizer recipe across all 16 screen cells;
+PBT stays off and entropy retains its original sampled-step schedule. Q23 panel
+sampling is accepted; eligibility/freeze gates remain pending. The completed
+R0/R4 one-update smoke and fresh replay
+qualify only that bounded compatibility path, not R1 or economic performance.
 
 The implemented offline path is:
 
@@ -24,9 +43,9 @@ historical OHLCV parquet
 
 Source anchors:
 
-- `itrader/rl_lib/train/train_solo_V2.py` currently selects
-  `custom_model="solver_mlp_film"`; registration of other model names is not a
-  selector.
+- `itrader/rl_lib/train/train_solo_V2.py` uses the shared model registry;
+  `solver_mlp_film` remains the default. The R1 selector is reserved and fails
+  closed until its implementation lands; registration alone is not availability.
 - `itrader/envs/itrader_env.py` owns rolling-window assembly, task-conditioned
   reset, episode state, and reward context.
 - `itrader/rl_lib/tasks/spec.py` owns `TaskSpec`.
@@ -127,10 +146,12 @@ AlpacaHistoricalDataClient
 ```
 
 Parquet is authoritative. DuckDB is a catalog/query engine, not a mutable source
-of truth. The current v2 snapshot records provider, feed, adjustment, time zone,
-symbols, bounds, session counts, schema version, retrieval time, usage
-classification, missing-bar policy, raw-page hashes, and a content hash. Raw
-pages and manifests are written atomically. Credentials
+of truth. The retained v2 snapshot records provider, feed, adjustment, time zone,
+symbols, bounds, session counts, schema version and a content hash. Its
+2026-09-22 manifest predates the builder's raw-file hash ledger. New manifests
+also retain retrieval/usage/missing-bar provenance and raw-page hashes; old raw
+calendar/pages require separate reviewed binding. Raw pages and manifests are
+written atomically. Credentials
 are read from ignored environment variables and must never enter manifests or
 experiment artifacts.
 
@@ -145,8 +166,15 @@ environment evidence/reward, not an implicit price rewrite.
 ### Platform migration gate
 
 Ray 2.58 is the accepted forward R-series runtime; Ray 2.9 is a frozen historical
-reproduction profile. Both full suites, deterministic initialization/control,
-synchronous exploit/restore lineage, and exact fresh replay pass. The first
+reproduction profile. The original migration gate passed both then-current full
+suites, deterministic initialization/control, synchronous exploit/restore lineage
+and fresh replay. The subsequent
+[optimizer audit](../artifacts/research/ray258-historical-optimizer-audit-2026-10-05.md)
+found effective-setting drift despite successful checkpoint transfer. Current
+compatibility repairs have scoped independent approval; the suite after the
+fixed-run entropy-schedule addition passes 406 tests on
+Ray 2.58; new PBT-off R0/R4 controls do not establish PBT search effectiveness.
+The first
 stochastic rollout differs under the same seed, so results stay runtime-labelled
 instead of requiring bit-identical PPO paths. R1 must run beside a Ray-2.58 R0
 control; the native RLModule/EnvRunner modernization remains a later independent

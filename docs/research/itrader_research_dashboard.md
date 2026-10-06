@@ -1,15 +1,33 @@
 # iTrader Research Dashboard
 
-Last reconciled: 2026-10-03<br>
+Last reconciled: 2026-10-06<br>
 Branch snapshot: `agent/Watson-dev` with the uncommitted R4-v1 research round<br>
 Status: **active research registry; G0 closed and fixed-recipe R1 attribution next**<br>
 Visual companion: [open the HTML dashboard](itrader_research_dashboard.html)<br>
 Run evidence: [search the generated experiment browser](itrader_experiment_browser.html)
 ([registry](experiment_registry.json))
 
-R1 preparation: [development contract](../project-state/r1-development-readiness.md).
-The next screen includes R0 + R4-v1 as well as R0, R1 and R1 + R4-v1.
-Replay/attribution review blockers and learner diagnostics precede training.
+[History and operational log](#history-and-operational-log) preserves prior
+notices without obscuring the research map. Eight corrected-control terminal
+replays are accepted; no economic promotion or fresh-panel opening is implied.
+
+The sixteen-cell scientific draft and read-only terminal preflight are now
+implemented; real terminal execution and final config/source sealing are not.
+Q23 has 2,052 provisional eligible symbol/session anchors; conservative possible
+historical exposure leaves zero certifiably fresh candidates. Sixteen control
+sidecars recover recorded starts, but 26 randomized runs remain source-unbound.
+Q23's recovery/new-data choice and Q26's uncertainty decision remain gates.
+No panel freeze/opening, R1 implementation or new market results. See the
+[qualification audit](../artifacts/research/r1-panel-qualification-2026-10-06.md).
+
+The [evaluation code audit](../artifacts/research/evaluation-code-audit-2026-10-06.md)
+completes bounded Q23 recovery and current evaluator-gate review, not a reopening
+of accepted controls: 48 recorded starts mapped conditionally, 26 randomized
+configs still source-unbound, two independent CHANGES verdicts. The [quantitative-methodology synthesis](../artifacts/research/evaluation-quant-methodology-2026-10-06.md)
+is candidate-only: synchronized calendar-block inference, explicit economic
+attribution and future offline-to-online capability evidence remain separately
+governed. Mechanical corrections require Q27 approval; Q23/Q26 choices still
+block panel freeze. No new run is registered in the Experiment Browser.
 
 ## 1. Authority and scope
 
@@ -379,7 +397,7 @@ accepted recipe changes.
 |---|---|---|---|
 | **G0** | Are formulas, configs, telemetry, lineage, panel, cost, and replay trustworthy? | No training | Source/checkpoint-backed receipt; critic, advantage, clip, KL, margin, replay all interpretable |
 | **G1** | Are native recurrent selection, masks, reset, last-valid state, and replay correct? | Tests + deterministic smoke | Exact train/eval/checkpoint state parity |
-| **G2a** | What are the encoder and solver-state effects across R0, R0 + R4-v1, R1 and R1 + R4-v1? | Proposed 4 SRU per curriculum; 8 SRU = 921,600 steps for two curricula, subject to final declaration | Mechanics pass and a challenger merits extension; no promotion claim |
+| **G2a** | What are the encoder and solver-state effects across R0, R0 + R4-v1, R1 and R1 + R4-v1? | Accepted Q20: 8 SRU = 921,600 nominal training steps; Q21 monitoring and terminal evaluation budget separate | All 16 cells complete before fresh terminal evaluation; mechanics pass and a challenger merits extension; no promotion claim |
 | **G2b** | Is there memory-specific signal? | 2 SRU = 230,400 steps | `CARRY` paired signal over identical `RESET`, with valid state norms/masks |
 | **G2c** | Does a surviving R comparison clear economic gates? | 2 arms = 1,152,000; 3 arms = 1,728,000 steps | Held-out 1 bp, static-direction control, replay, block-aware uplift, then 2 bp stress |
 | **G3** | Does EMA improve evaluation at identical snapshots? | Approximately zero extra solver steps | Lower variance or better paired economics without hidden collapse |
@@ -508,3 +526,98 @@ misapplied, preserve the provenance and write an explicit alias/migration note.
 - Made the correct CLM/PPO loss boundary explicit: repeated-label pairwise
   InfoNCE is invalid; per-question choice, multi-positive loss, or categorical
   PPO are valid alternatives.
+
+## History and operational log
+
+These dated notices preserve the operational sequence, not current run status.
+The final closeout supersedes earlier holds; evidence is not removed.
+
+**Final closeout, 16:38:** all eight corrected-compatibility terminal replays
+are independently accepted (256 episodes); 416 tests, healthcheck and pre-commit
+pass. No economic promotion. The positive staged R4 seed is reproducible, not
+replicated across seeds. Next: accepted panel/completion/reporting prerequisites
+for R1. All older pending-replay notices below are historical. WSL remains off.
+
+**16:32 current:** all eight bridge terminals now have complete witnessed
+replays (256 episodes) with indexed checkpoint/payload/score parity. Aggregate
+review and repository validation are finishing. The positive staged R4 seed
+reproduces +0.392761% net / +0.018892 Sharpe per sqrt-bar; the second seed is
+flat, so there is no replicated economic promotion. Earlier holds below are
+historical. WSL is off and the final closeout is Windows-only.
+
+**16:10 replay renewal:** reviewed Windows job-object containment replaces the
+failed external watchdog. Eight bounded terminal replays use the immutable
+training evaluator snapshot and a separately stamped repaired launcher. The
+human removed the global deadline; hard free-RAM reserve1GiB, proactive1.25GiB.
+Full acceptance remains open, with no new training or economic promotion.
+The historical safety hold below and failed15:37 attempt remain documented.
+
+**13:48 safety hold:** all eight corrected-stack training cells completed;
+three terminal replays reproduce their episode payloads. Replay 3 nevertheless
+breached the 2 GiB RAM floor (1.47 GiB observed), then exited naturally.
+Further replay is held and the heartbeat paused; full replay acceptance remains
+open. No lost training, no OOM observed and no economic promotion. The first
+two replay receipts also need witnessed repeats to close process provenance.
+
+The [Experiment Browser's latest tab](itrader_experiment_browser.html#exp-0)
+now indexes all eight bridge terminals separately from the smoke. It displays
+official terminal net values; the report links Sharpe, action and PPO curves.
+Staged R4 has positive net/Sharpe transients on both seeds, but terminal positive
+performance only on the first. Replay hold and no-promotion labels remain explicit.
+
+R1 preparation: [development contract](../project-state/r1-development-readiness.md).
+The next screen includes R0 + R4-v1 as well as R0, R1 and R1 + R4-v1.
+Replay/attribution review blockers and learner diagnostics precede training.
+
+Current platform boundary: Ray 2.58 runtime with ModelV2/TorchPolicy compatibility
+APIs. Finish corrected-stack R0/R4 controls and R1 attribution here first; defer
+native RLModule/Learner/EnvRunner until a later four-cell platform bridge.
+Historical PBT events are not proof of effective optimizer/policy mutations;
+see the [compatibility/evidence audit](../artifacts/research/r1-foundation-hardening-2026-10-05.md).
+Two corrected one-update smoke cells and fresh 32-task checkpoint replays now
+pass. R0 net -0.059056%, Sharpe -0.044665 per sqrt-bar; combined-state R4 net
++0.441611%, Sharpe +0.024455, entirely short-only. These are mechanics checks,
+not a completed attribution study or economic promotion.
+
+The [retained-checkpoint audit](../artifacts/research/ray258-historical-optimizer-audit-2026-10-05.md)
+confirms effective 30/128 optimizer settings, five exploited-target divergences,
+and six member-00002 self-resume entropy spikes. Fresh corrected-stack training
+has now been authorized under GPT-6 Luna/xhigh supervision; existing charts
+remain historical observations. The [corrected-control audit](../artifacts/research/corrected-compatibility-r0-r4-controls-2026-10-05.md)
+tracks preflight, frozen configuration, stops and eventual results. PBT is off;
+this round cannot measure exploit/explore effectiveness.
+Attempt04 now has all eight training cells complete (13:30:16, 467,584 sampled
+steps); 96 reporting rows and 33 checkpoint hashes pass parent checks. Fresh
+terminal replays and independent evidence closure remain pending. Exact-cost
+terminals are all flat; staged R4's +0.392761% net / +0.018892 per-sqrt-bar Sharpe
+on seed 20260924 does not replicate on seed 20260925 (flat). The linked audit
+owns current replay status and official comparison plots. No economic promotion.
+At 13:37, replay is not yet running: the eight terminal-input selections pass,
+but RAM is approximately 4.12 GiB, below the declared 5 GiB startup gate.
+By 13:42 headroom recovered and replay 1 passed exact episode/payload parity.
+An uncaptured launcher/driver PID link is being resolved through the existing
+process-witness helper and one bounded repeat; final replay acceptance is pending.
+
+Q21 two-tier evaluation is now accepted for the later 16-cell representation
+screen: the inspected 32-task panel monitors initialization/every update;
+a separately predeclared fresh validation-only panel has 32 symbol/session
+anchors x horizons 96/128/160/200 = 128 terminal tasks. Open it only after all
+16 runs finish, using predetermined terminal checkpoints and identical tasks
+for every cell/control. The final test remains sealed. Panel construction and
+runner enforcement remain pending; the existing eight-cell bridge is distinct.
+Q22's identical corrected optimizer recipe is accepted, with PBT off and the
+original entropy clock. Q23 metadata-only fresh-panel sampling is approved;
+eligibility audit and panel freeze remain pending. Q24 equal-symbol terminal-net
+reporting is accepted but unimplemented; raw episode means remain secondary
+and unchanged. Q25 secondary net-bps-per-actual-bar reporting is also accepted
+but unimplemented: normalize each episode by its actual positive step count
+before equal-symbol aggregation. It does not replace terminal net return.
+See the [full reporting contract](../project-state/r1-development-readiness.md#accepted-q21-evaluation-and-reporting-contract).
+The dashboard must separate economics, matched directional/flat/random/untrained
+controls, encoder/state/interaction effects, PPO/critic diagnostics, actual
+cost-stage exposure, and resource/provenance evidence. Preserve raw traces;
+crossed horizons and two training seeds do not establish independent significance.
+
+Native Ray 2.58 API development is staged separately on `feat(R)/Ray_upgrade`;
+integration still follows the corrected-compatibility R1 comparison and requires
+all four cells. No migration commit/push permission extends to this dirty tree.

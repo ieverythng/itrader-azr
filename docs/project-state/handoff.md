@@ -1,5 +1,283 @@
 # Handoff
 
+**Evaluation audit completed (2026-10-06):** the bounded recovery maps 512
+recorded control rows to 48 starts; 26 randomized configs remain source-unbound.
+Both fresh independent reviews return CHANGES. Q27's four mechanical repairs and
+Q23/Q26 scientific decisions await approval. This does not reopen the accepted eight-control
+replay receipts or approve new metrics, split rules, data collection or training.
+The inherited physical-dataset-end/reset defect is reproduced; all 256 accepted
+control episode identities have full horizons and lie below that edge. No panel
+is certified or opened, no actual terminal executor is available, and R1 remains
+unimplemented. Research proposals require individual GRILL decisions before use.
+See the [current code audit](../artifacts/research/evaluation-code-audit-2026-10-06.md)
+for independently reproduced evaluator gaps and the pending Q27 repair scope.
+
+**Prerequisite audit update (2026-10-06):**
+The sixteen-cell scientific loadout draft and fail-closed read-only terminal
+preflight are implemented. Metadata-only auditing found 2,052 provisional
+symbol/session anchors, but conservative historical possible-exposure exclusion
+leaves zero certified fresh candidates. Sixteen control episode sidecars recover
+recorded starts; the 26 randomized runs still lack source-bound start proof.
+Q23's recovery/new-data decision and Q26's calendar-block method block panel
+freeze. The real 128-task executor,
+matched control receipts and final pre-training config/source seal remain
+required; passing preflight does not authorize evaluation. No panel was frozen
+or opened, and no training or R1 implementation occurred. Corrected eight-cell
+controls remain replay-qualified without economic promotion. Native migration
+stays isolated; dirty work and artifacts are preserved. See the
+[qualification audit](../artifacts/research/r1-panel-qualification-2026-10-06.md).
+The dated execution notices below are historical, not active launch authority.
+
+## 2026-10-05 16:38 — Corrected-control replay sprint closed
+
+- All8 terminals / 256 episodes independently accepted. Exact indexed checkpoint,
+  payload and score parity; live producer witnesses; zero cleanup residue.
+- Required healthcheck, 416 tests in99.37s, pre-commit and diff check pass.
+  No training/replay remains. WSL is stopped; avoid starting it as a side effect.
+- Review report: control-audit evidence `replay_closeout_review.md`; portable
+  receipts under `replay_jobscope_20261005` and `replay_jobscope_retry01_20261005`.
+- Original failed cell8 and earlier watchdog/resource failures remain preserved.
+  Actual model outcomes remain unpromoted; positive staged R4 seed is not replicated.
+- Source contracts: frozen evaluator944d7d30 /104 files; launcher/consumer
+  a8bf027a /105 files. Separate operator revisions are recorded per invocation.
+- Next: Q21 completion/panel opening, Q23 non-exposure verification, Q24 weighted
+  estimand and Q25 duration diagnostics; then implement R1 under accepted GRILL
+  contract. No new training or R1 implementation in this pass. Native branch stays isolated.
+- Heartbeat to PAUSED. No staging/commit/push/deletion. GitNexus remains stale.
+
+## 2026-10-05 16:32 — All terminal replays complete; final checks running
+
+- Eight accepted fresh terminal receipts / 256 episodes. Cells4--7 under
+  `study_attempt04_terminal_replay_jobscope20261005`; cells8,1,2,3 under
+  `study_attempt04_terminal_replay_jobscope_retry01_20261005` in the same run root.
+- The first cell8 attempt hit the proactive1.25GiB buffer at1.198GiB (hard1GiB
+  preserved); zero owned survivors. It remains rejected, never overwritten.
+- Human explicitly stopped WSL/Hermes; `wsl --shutdown` and no-running-distro /
+  no-Vmmem checks passed. Do not run WSL/bash during remaining work.
+- Accepted minimum RAM2.134GiB; actualCPU2 verified. Frozen evaluator944d7d30;
+  repaired launcher a8bf027a2f2f0f7e412c5f0f5fcf921642f0a29d0baa3d83039ec816fe9b6321.
+- Sol/MAX and Luna/xhigh approve process/score fixes; Sol also approves operator
+  raw-summary and output-root fixes. Final aggregate evidence review is ongoing.
+- Serialized guarded pre-commit (including healthcheck and full tests) is running;
+  log at run root `closeout_precommit_20261005.log`. Do not launch another suite.
+- No economic promotion, R1 work, staging/commit/push or artifact deletion.
+
+## 2026-10-05 16:10 — Reviewed process scope; replay-only renewal
+
+- Human removed the fixed global deadline; eight fresh terminal jobs remain
+  bounded to 300 seconds each, no automatic retry. Order: 4,5,6,7,8,1,2,3.
+- Luna `/root/launcher_fix_second_review` owns only first cell4 initially.
+  Driver: `C:/Users/Admin/ray_results/corrected-compat-r0-r4v1-20261005/replay_jobscope_closeout.py`.
+- Use immutable evaluator snapshot `frozen_source_944d7d30` (original 104-file
+  hash), separately stamped repaired launcher. Do not assert main-tree parity.
+- Windows job ownership covers descendants missed by polling; Sol/MAX and
+  Luna/xhigh independently approved real process/failure probes. POSIX untested.
+- RAM: hard1GiB, proactive1.25GiB, startup5GiB; RayCPU2/Torch8 unchanged.
+- Failed15:37 watchdog attempt produced no episodes. Recorded cleanup covered
+  only a subset; later exact replay PIDs exited naturally. Preserve evidence.
+- Evidence consumer now rejects contradictory selection scores and boolean
+  receipt versions. Luna approved; second-model score review remains pending.
+- Heartbeat active. No training, R1/native work, staging, commits or deletion.
+
+## 2026-10-05 15:31 — Human revised resource floor
+
+- Human authorizes minimum 1 GB free; use 1 GiB hard runtime floor, original
+  5 GiB startup envelope with explicit Ray CPU2 / unchanged Torch8. No GPU switch.
+- Watchdog synthetic root-exit/child-survival cleanup passed with zero survivors;
+  saved under resumed replay root/watchdog_probe. Exact PID/CreationDate checks.
+- Parent cleared seven replay jobs; deadline15:46 unchanged, source frozen.
+- Fresh review found helper timeout leaves descendants and timeout status can
+  bypass returncode-only acceptance. External watchdog contains active jobs;
+  owning helper repair and fresh review remain required after source freeze.
+- Earlier 7/2 GiB policy is superseded prospectively; preserve earlier breaches.
+
+## 2026-10-05 15:16 — Human-renewed replay closeout
+
+- RAM7.44 GiB, no owned processes, source944d7d30...58fcf233 unchanged.
+- Luna/xhigh owns exactly seven fresh terminal jobs:4--8 and witnessed repeats1--2,
+  new `study_attempt04_terminal_replay_resumed20261005` outputs; no duplicate3.
+  Startup>=7 GiB, runtime>=2 GiB, hard replay-only deadline15:46Madrid.
+- Existing process-witness helper and concurrent RAM checks required. Preserve
+  originals and earlier floor breach; no source/config edits during replay.
+- Heartbeat active for this bounded phase. Parent supervises and owns fixes.
+  Scoped normal code/evidence reviews follow; native Bugbot launcher unavailable.
+- GRILL confirms accepted decisions are reflected; panel/runner/Q24-Q25 work
+  remains pending. No new training, R1/native work, stage, commit or deletion.
+
+## 2026-10-05 13:48 — Replay resource hold; heartbeat paused
+
+- All eight training cells remain completed and preserved. Replay 3 briefly
+  reached 1.47 GiB free RAM, below the 2 GiB runtime floor; it completed before
+  the targeted stop check, so no process was killed. No owned processes remain.
+- Three 32-episode receipts pass exact payload/checkpoint/score parity. Only
+  replay 3 has a saved live launcher/producer witness (`launch_03_01e66.json`,
+  producer PID 6412). First two receipts retain an unobserved-parentage limit.
+- No further launch. Heartbeat `monitor-corrected-r0-r4-attempt04` is PAUSED.
+  A safer replay resource plan must precede the remaining five terminals and
+  two witnessed repeats. Independent closure review remains pending agent capacity.
+- Read-only lead: replay Ray initialization lacks the training node's explicit
+  CPU cap. Investigate before changing anything; runtime/config are still frozen.
+  Do not confuse resource acceptance with the verified episode parity, or call
+  the study closed. No R1/native integration, staging, commit, push or deletion.
+
+## 2026-10-05 — Longer compatibility development bridge authorized
+
+- **Attempt04 training complete, replay pending:** official summary written
+  13:30:16 Europe/Madrid; eight cells, 96 updates, 467,584 total sampled steps.
+  All 96 reporting/accounting rows and 33 checkpoint hashes pass parent checks.
+  Exact-cost cells all end flat; staged R4 ends positive only on seed 20260924,
+  not replicated on seed 20260925. No economic promotion. Launcher exited.
+  Luna owns eight sequential terminal-only fresh replays under
+  `study_attempt04_terminal_replay`; do not duplicate. Keep source/config frozen
+  and heartbeat active until replay/review closure. No R1 or fresh-panel opening.
+  At 13:37, all eight replay-input checks passed, but no replay launched: RAM
+  recovered from 3.56 to about 4.12 GiB, still below the 5 GiB startup gate.
+  No owned Ray/replay process remains; wait without closing unrelated apps.
+  Fresh independent review is pending an available agent slot, not waived.
+  At 13:42, RAM recovered; replay 1 completed with exact 32-episode parity.
+  Launcher/driver PID linkage lacked a live witness. Use the existing
+  `run_replay_replication.launch_replay` helper once per remaining terminal,
+  save its observed-process record, and repeat terminal 1 once separately to
+  close that observation gap. Do not invoke the two-replay module main blindly.
+- Historical live observations: launcher PID 10480, start 12:41:24 Europe/Madrid, deadline
+  14:41:24; all eight variants, 5.64 GiB startup RAM, unchanged 5/2 GiB floors.
+  Source `944d7d30...58fcf233`; unique `study_attempt04_summary` / `_logs`.
+  Luna supervises; heartbeat `monitor-corrected-r0-r4-attempt04` checks every
+  five minutes and must not duplicate training or replay. Runtime/config frozen.
+  At 12:47, cell 1 completed 12 updates / 58,256 steps with terminal all-flat;
+  cell 2 staged-cost R0 began. First-cell raw/derived economics agree throughout;
+  fresh terminal replay remains pending. Logs use `run_ablation.*.log` filenames.
+  At 12:52, cell 2 completed 12/58,256: terminal 99.980469% flat, net
+  -0.000230305%, Sharpe -0.001758110 per sqrt-bar. All four checkpoint hashes
+  pass. Scheduled optimizer reward is distinct from fixed-1-bp economic net;
+  do not apply the exact-cost reward/1,000 identity to staged training aggregates.
+  At 13:02, cell 3 combined-state exact-cost completed 12/58,256, terminal flat;
+  all four checkpoint hashes pass. Cell 4 combined-state staged-cost is active
+  at update 6 (net +0.207477%, Sharpe -0.000678467 per sqrt-bar); no terminal verdict.
+  At 13:07, first-seed four-cell set is complete. Combined-state staged-cost
+  terminal: net +0.392761%, Sharpe +0.018892 per sqrt-bar, 0% flat, below the
+  known short-only control. All four checkpoint hashes and all report rows pass;
+  replay pending. Cell 5 (second-seed R0/exact-cost) is active; source unchanged.
+  At 13:12, cell 5 completed 12/58,640, terminal flat; all 12 report rows and
+  six retained checkpoint hashes pass. Cell 6 second-seed staged-cost R0 is
+  active. Five of eight training cells complete; terminal fresh replays pending.
+  At 13:17, cell 6 completed 12/58,640: net -0.171068%, Sharpe -0.059884 per
+  sqrt-bar, 76.523438% flat. All reporting/checkpoint checks pass. Cell 7
+  second-seed combined-state exact-cost started; six of eight training cells done.
+- Human explicitly resumed the existing eight-cell R0/R4 x exact/causal cost x
+  two-seed bridge: 12 updates each, PBT off, inspected January panel. Luna/xhigh
+  supervises startup/source/resource gates before launch and bounded execution.
+- Source/config remain frozen during cells. No native import, R1 encoder,
+  fresh 128-panel opening, staging, commit or deletion. Native work remains on
+  the isolated feature branch; main cutover later, as previously agreed.
+- Status and eventual exact launch receipts live in the corrected-control audit.
+  The two completed one-update smokes are not the eight-cell study.
+- Initial RAM hold recovered. Official launch 12:09:28 Europe/Madrid, PID 8672,
+  startup RAM 5.34 GiB; first R0/exact cell completed 12 updates / 58,256 steps.
+  Owned tree stopped 12:18:32 during cell 2 (two updates / 9,768 steps) for
+  a reporting defect, not OOM. Raw training/evaluation/checkpoint evidence is
+  intact per independent review. Replay terminal before repair; then review
+  and restart with a distinct frozen source. All partial artifacts preserved.
+  Terminal fresh replay passed exactly (100% flat). Reporting repair subsequently
+  passed 412 tests, healthcheck, pre-commit and Sol/Astra independent approval;
+  Luna cleared for attempt04 preflight, source `944d7d30...58fcf233`.
+  Earlier helper PID 45344 failed before training/output; no duplicate remained.
+
+## 2026-10-05 — Smoke and fresh replay complete; Q22 accepted
+
+- Luna/xhigh completed two one-update controls, 4,944 sampled steps each,
+  then 32-task deterministic replay in separate fresh processes. Both indexed
+  checkpoint hashes and episode/score replay gates pass. Sampled RAM minimum
+  3.35 GiB; no main eight-cell study or owned training/replay remains running.
+- R0 net -0.059056%, Sharpe -0.044665 per sqrt-bar; R4 net +0.441611%,
+  Sharpe +0.024455, entirely short-only. Mechanics verified, no economic promotion.
+- Q22 identical corrected optimizer recipe is approved and recorded in readiness.
+  Q23 metadata-only sampling is now approved; Luna audits feasibility without
+  prices/returns. Q24 equal-symbol terminal aggregation is now approved but
+  unimplemented; Q25 secondary duration diagnostics are also accepted but not
+  implemented. Panel freeze and Q21 runner gates remain open.
+  No R1 encoder work, native integration, commits, staging or deletion in this pass.
+- See the control-run audit for exact artifact paths, resolved recipe and failed
+  attempt-01 evidence. Earlier entries below are chronological, not live status.
+- Q23 metadata audit/recount: 4,158 eligible offset slots minus 64 known-panel
+  overlaps leaves 4,094, across 2,052 symbol/session pairs. No panel selected.
+  Enumerate available historical randomized evaluation starts before claiming
+  freshness; the four checked-in panels alone do not prove universal non-exposure.
+
+## 2026-10-05 — Q21 accepted; native development may proceed in isolation
+
+- Verified human approval in GRILL-IMPLEMENT: two-tier monitoring/terminal
+  evaluation, fixed terminal checkpoint selection, matched controls and separate
+  economic/PPO/critic/cost/provenance reports. Read the accepted Q21 section in
+  `r1-development-readiness.md`; panel and runner gates still require implementation.
+- Native API staging is authorized only in the separate `feat(R)/Ray_upgrade`
+  worktree. Main-tree runtime changes stay frozen during supervised controls.
+  No shared full-data jobs; no silent dirty-foundation import or legacy overwrite.
+- The human freed RAM and resumed Luna/xhigh smoke supervision. Recheck resources
+  and all declared hashes before launch. The previous resource hold is historical;
+  do not infer completion from this renewed authorization.
+
+## 2026-10-05 — Corrected control round resumed
+
+- Human authorized fresh R0 / R0 + R4-v1 controls under GPT-6 Luna/xhigh
+  supervision, with escalation and safe stop on critical issues. Preflight is
+  active; do not infer a launched/completed run from authorization.
+- Use the official ablation path, PBT off, local workers, random/generated
+  Family-00 tasks and dataset-v2 RTH. Freeze actual settings and hashes before
+  launch; report exact-cost and causal-curriculum factors separately.
+- Runtime code stays frozen during training. Preserve the dirty tree and old
+  artifacts. No R1 implementation or native API migration in this round.
+- Record completion/failure and outputs in the
+  [control-run audit](../artifacts/research/corrected-compatibility-r0-r4-controls-2026-10-05.md).
+- Resource hold at preflight: below 5 GiB available RAM. Do not start the full
+  dataset probe below that margin; stop owned workers at a 2 GiB runtime floor.
+  No user application or unrelated Ray/WSL process may be stopped implicitly.
+- Fixed-run entropy schedule is now an explicit CLI/loadout setting; old omitted
+  defaults are preserved. Focused tests: 106 passed; full suite: 406 passed;
+  serialized all-files pre-commit passed. Configs separate the two smoke cells
+  from the eight paired study cells. No experiment result exists yet.
+- Fresh Sol 6.1/MAX and Astra/MAX independently approved the schedule/loadout
+  increment. Final available RAM remained approximately 4.88 GiB, below the
+  startup guard. No background experiment is queued; recheck source/data hashes
+  and resources before explicitly resuming supervision.
+
+
+## 2026-10-05 — Compatibility repair review approved; stop before R1
+
+- Checkout `agent/Watson-dev`, HEAD `d3eb4c5`, pre-existing staged/unstaged work
+  preserved. Do not commit, push, delete artifacts or stage unrelated work.
+- Same-forward PPO clipping, strict OHLCV/selector contracts, replay producer
+  receipts and evidence gates are implemented in the dirty tree. Independent
+  review found additional receipt-binding defects; all scoped blockers were
+  fixed and both reviewers returned APPROVE. Full suite: 399 passed; required
+  dependency healthcheck and final serialized pre-commit pass, exit 0.
+- Real PPO probes exposed ignored optimizer aliases and target settings lost
+  after donor restore. Preserve historic outcomes, qualify mutation claims,
+  audit effective settings before estimating the affected experiment scope.
+- Corrected compatibility R0/R4 reruns are authorized after gates pass. R1 stays
+  on the compatibility stack; native API migration is deferred until afterward,
+  then all four representation cells must be repeated for platform parity.
+- Q19/Q20 accepted; Q21 pending. See readiness and the dated foundation audit
+  for exact boundaries and validation. GitNexus remains stale.
+- Run decision: defer fresh R0/R4 training to the next session, stop before
+  any R1 implementation. The read-only historical audit found native 30/128
+  throughout the ten sampled terminal checkpoints and six unexploited-00002
+  self-resume entropy resets. Freeze effective versus intended recipe identity
+  explicitly before launching; do not recreate those resets.
+
+
+## 2026-10-05 — Q18 accepted; Q19 and budget pending
+
+- GRILL confirms shared R1 encoder/projection/task-FiLM for actor and critic,
+  with separate pi/vf heads and both losses updating the shared path. This
+  supersedes the sharing-pending status in the dated entry below.
+- Q15 and zero_v1 R4 residuals are unchanged. Q19 structural `solver_model`
+  selection is still proposed, not accepted; budget is not finalized.
+- Proposed names match R0's existing key and an unused R1 key. Implementation
+  must reject outer/nested selector conflicts and preserve historical restore
+  registration semantics, including `solver_lstm_v2`.
+- Readiness MD/HTML and the decision log record the acceptance boundary.
+
 ## 2026-10-04 — GRILL R1 capacity and curriculum coordination
 
 - Added six source-grounded planning acceptance criteria to the readiness doc:

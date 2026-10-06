@@ -1,0 +1,87 @@
+{
+  "run_tag": "phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005_20261005_124125",
+  "collected_only": false,
+  "config": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005.json",
+  "results": [
+    {
+      "variant_id": "r0_exact1bp_seed20260924",
+      "series_id": "r0_exact1bp_seed20260924",
+      "experiment_name": "phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005_20261005_124125_r0_exact1bp_seed20260924",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005_20261005_124125_r0_exact1bp_seed20260924\\training_fn_ITraderEnv_55cb4_00000_0_2026-10-05_12-41-34",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_55cb4_00000_0_2026-10-05_12-41-34\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_55cb4_00000_0_2026-10-05_12-41-34\\plots",
+      "final_metric": 0.0
+    },
+    {
+      "variant_id": "r0_causal_cost_seed20260924",
+      "series_id": "r0_causal_cost_seed20260924",
+      "experiment_name": "phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005_20261005_124125_r0_causal_cost_seed20260924",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005_20261005_124125_r0_causal_cost_seed20260924\\training_fn_ITraderEnv_2c514_00000_0_2026-10-05_12-47-34",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_2c514_00000_0_2026-10-05_12-47-34\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_2c514_00000_0_2026-10-05_12-47-34\\plots",
+      "final_metric": -2.3030470476790425e-06
+    },
+    {
+      "variant_id": "r4v1_exact1bp_seed20260924",
+      "series_id": "r4v1_exact1bp_seed20260924",
+      "experiment_name": "phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005_20261005_124125_r4v1_exact1bp_seed20260924",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005_20261005_124125_r4v1_exact1bp_seed20260924\\training_fn_ITraderEnv_01e66_00000_0_2026-10-05_12-53-32",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_01e66_00000_0_2026-10-05_12-53-32\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_01e66_00000_0_2026-10-05_12-53-32\\plots",
+      "final_metric": 0.0
+    },
+    {
+      "variant_id": "r4v1_causal_cost_seed20260924",
+      "series_id": "r4v1_causal_cost_seed20260924",
+      "experiment_name": "phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005_20261005_124125_r4v1_causal_cost_seed20260924",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005_20261005_124125_r4v1_causal_cost_seed20260924\\training_fn_ITraderEnv_dfa55_00000_0_2026-10-05_12-59-44",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_dfa55_00000_0_2026-10-05_12-59-44\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_dfa55_00000_0_2026-10-05_12-59-44\\plots",
+      "final_metric": 0.0039276117295857
+    },
+    {
+      "variant_id": "r0_exact1bp_seed20260925",
+      "series_id": "r0_exact1bp_seed20260925",
+      "experiment_name": "phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005_20261005_124125_r0_exact1bp_seed20260925",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005_20261005_124125_r0_exact1bp_seed20260925\\training_fn_ITraderEnv_be0d6_00000_0_2026-10-05_13-05-58",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_be0d6_00000_0_2026-10-05_13-05-58\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_be0d6_00000_0_2026-10-05_13-05-58\\plots",
+      "final_metric": 0.0
+    },
+    {
+      "variant_id": "r0_causal_cost_seed20260925",
+      "series_id": "r0_causal_cost_seed20260925",
+      "experiment_name": "phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005_20261005_124125_r0_causal_cost_seed20260925",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005_20261005_124125_r0_causal_cost_seed20260925\\training_fn_ITraderEnv_9415f_00000_0_2026-10-05_13-11-57",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_9415f_00000_0_2026-10-05_13-11-57\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_9415f_00000_0_2026-10-05_13-11-57\\plots",
+      "final_metric": -0.001710679513602
+    },
+    {
+      "variant_id": "r4v1_exact1bp_seed20260925",
+      "series_id": "r4v1_exact1bp_seed20260925",
+      "experiment_name": "phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005_20261005_124125_r4v1_exact1bp_seed20260925",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005_20261005_124125_r4v1_exact1bp_seed20260925\\training_fn_ITraderEnv_6b27c_00000_0_2026-10-05_13-17-58",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_6b27c_00000_0_2026-10-05_13-17-58\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_6b27c_00000_0_2026-10-05_13-17-58\\plots",
+      "final_metric": 0.0
+    },
+    {
+      "variant_id": "r4v1_causal_cost_seed20260925",
+      "series_id": "r4v1_causal_cost_seed20260925",
+      "experiment_name": "phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005_20261005_124125_r4v1_causal_cost_seed20260925",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\phase_a_corrected_ray258_r0_r4v1_fixed_2x2_cost_20261005_20261005_124125_r4v1_causal_cost_seed20260925\\training_fn_ITraderEnv_48faf_00000_0_2026-10-05_13-24-10",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_48faf_00000_0_2026-10-05_13-24-10\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_48faf_00000_0_2026-10-05_13-24-10\\plots",
+      "final_metric": 0.0
+    }
+  ],
+  "primary_metric": "evaluation/net_return_mean",
+  "compare_csv": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\study_attempt04_summary\\ablation_compare.csv",
+  "compare_png": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\study_attempt04_summary\\ablation_compare.png",
+  "sharpe_compare_png": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\study_attempt04_summary\\ablation_compare_validation_sharpe.png",
+  "entropy_compare_png": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\study_attempt04_summary\\ablation_compare_entropy.png",
+  "episode_len_compare_png": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\study_attempt04_summary\\ablation_compare_episode_len.png",
+  "diagnostics_compare_png": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\study_attempt04_summary\\ablation_compare_diagnostics.png",
+  "action_compare_png": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\study_attempt04_summary\\ablation_compare_action_fractions.png"
+}

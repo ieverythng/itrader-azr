@@ -1,0 +1,101 @@
+{
+  "schema_version": 3,
+  "trial": "training_fn_ITraderEnv_11aad_00000_0_2026-10-05_10-45-08",
+  "checkpoint": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_11aad_00000_0_2026-10-05_10-45-08\\checkpoints\\iter_000001_084553458561",
+  "checkpoint_selection": "best",
+  "selection_metric": "evaluation/net_return_mean",
+  "diagnostic_only": false,
+  "evaluation_panel_path": null,
+  "source_panel_sha256": "51626768f1ad4ceba22b8c2480a39b654db4d53c710e14e3745d9e891afcfb09",
+  "evaluation_panel_sha256": "51626768f1ad4ceba22b8c2480a39b654db4d53c710e14e3745d9e891afcfb09",
+  "selected_score": -0.0005905628356427681,
+  "replayed_score": -0.0005905628356427678,
+  "replay_delta": 3.2526065174565133e-19,
+  "selection_score_parity": true,
+  "payload_parity": true,
+  "checkpoint_parity": true,
+  "evaluation_payload_sha256": "dd83f1e0d1f0d5b4df80ced546466c1d589f98c30d9ae5b1033c2faee63b2a1a",
+  "parity_scope": "source_episode_metrics_and_action_reward_trace_v1",
+  "episode_count": 32,
+  "summary": {
+    "training_iteration": 0,
+    "pbt_progress_steps": 0,
+    "episode_len_mean": 146.0,
+    "evaluation/optimization_reward_mean": -0.5905628356427669,
+    "evaluation/gross_return_mean": 0.0017281871643572322,
+    "evaluation/net_return_mean": -0.0005905628356427678,
+    "evaluation/net_sharpe_per_sqrt_bar_mean": -0.04466533007261733,
+    "evaluation/turnover_mean": 23.1875,
+    "custom_metrics/act_0_frac_mean": 0.8243815104166666,
+    "custom_metrics/act_short_frac_mean": 0.8243815104166666,
+    "evaluation/custom_metrics/act_0_frac_mean": 0.8243815104166666,
+    "evaluation/custom_metrics/act_short_frac_mean": 0.8243815104166666,
+    "custom_metrics/act_1_frac_mean": 0.0,
+    "custom_metrics/act_flat_frac_mean": 0.0,
+    "evaluation/custom_metrics/act_1_frac_mean": 0.0,
+    "evaluation/custom_metrics/act_flat_frac_mean": 0.0,
+    "custom_metrics/act_2_frac_mean": 0.17561848958333331,
+    "custom_metrics/act_long_frac_mean": 0.17561848958333331,
+    "evaluation/custom_metrics/act_2_frac_mean": 0.17561848958333331,
+    "evaluation/custom_metrics/act_long_frac_mean": 0.17561848958333331
+  },
+  "receipt_version": 1,
+  "status": "complete",
+  "producer": {
+    "invocation_id": "497ab961-ee2d-4cd5-bf19-0255847c92e5",
+    "pid": 43344,
+    "host": "ULTIMATE-MACHINE",
+    "process_started_unix": 1791190381.8430068,
+    "process_instance_id": "5d8bea191dca0f8e0fe03fa3f095459c2841a959ee5c991daa92df5d81de8cb3",
+    "started_at_utc": "2026-10-05T08:53:02.318956+00:00",
+    "operation": "episode_replay",
+    "launch_id": null,
+    "completed_at_utc": "2026-10-05T08:53:24.326484+00:00"
+  },
+  "evaluation_contract": {
+    "version": "deterministic_replay_v1",
+    "checkpoint_sha256": "c3939368bc2a89048710e75efbebf5132df8bc31cf8bfb4b82b17ea38731aee4",
+    "progress_steps": 4944,
+    "restore_generation": 0,
+    "dataset_sha256": "20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9",
+    "source_panel_sha256": "51626768f1ad4ceba22b8c2480a39b654db4d53c710e14e3745d9e891afcfb09",
+    "evaluation_panel_sha256": "51626768f1ad4ceba22b8c2480a39b654db4d53c710e14e3745d9e891afcfb09",
+    "effective_env_config_sha256": "6194807a781cdb0ce925f81d8ceeacb2d8c3cbde4c258b338e7140cb991a402a",
+    "checkpoint_config_sha256": "5c7d5eccc48d50300ce3b620d01a8cb44bc925eeaa964b6ca6ba41ac36574dbf",
+    "observation_schema": {
+      "observation_schema_id": "r0_base",
+      "base_obs_dim": 332,
+      "solver_state_dim": 0,
+      "agent_obs_dim": 332
+    },
+    "runtime": {
+      "python": "3.11.13",
+      "platform": "Windows-10-10.0.19045-SP0",
+      "ray": "2.58.0",
+      "gymnasium": "1.2.2",
+      "pyarrow": "17.0.0",
+      "torch": "2.3.1",
+      "pandas": "2.1.4"
+    },
+    "replay_source": {
+      "algorithm": "sha256(sorted relative-path TAB file-sha256 LF)",
+      "python_file_count": 104,
+      "source_tree_sha256": "b2739469a5a601aceb95b69e19d5f08ce44e8b8763b94300ebb7ea4f79234e95"
+    },
+    "explore": false,
+    "execution": {
+      "device": "cpu",
+      "torch_deterministic_algorithms": true,
+      "torch_num_threads": 8
+    },
+    "evaluation_seed": 32260943
+  },
+  "evaluation_contract_sha256": "5cf6d1924825bb81b87160ac71e7ce5756a87cc08888145dc76d9d0ab4c11fa2",
+  "artifacts": [
+    {
+      "file": "training_fn_ITraderEnv_11aad_00000_0_2026-10-05_10-45-08.episodes.jsonl",
+      "sha256": "c1cfab78ed53bd058000e2733fc1432256f27b7c6b46f62d1cc7ffa66fada51a",
+      "rows": 32
+    }
+  ]
+}

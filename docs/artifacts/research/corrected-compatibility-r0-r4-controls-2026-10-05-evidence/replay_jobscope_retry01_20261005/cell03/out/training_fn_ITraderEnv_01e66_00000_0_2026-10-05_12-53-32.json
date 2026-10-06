@@ -1,0 +1,101 @@
+{
+  "schema_version": 3,
+  "trial": "training_fn_ITraderEnv_01e66_00000_0_2026-10-05_12-53-32",
+  "checkpoint": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_01e66_00000_0_2026-10-05_12-53-32\\checkpoints\\iter_000012_105930406463",
+  "checkpoint_selection": "terminal",
+  "selection_metric": "evaluation/net_return_mean",
+  "diagnostic_only": false,
+  "evaluation_panel_path": null,
+  "source_panel_sha256": "51626768f1ad4ceba22b8c2480a39b654db4d53c710e14e3745d9e891afcfb09",
+  "evaluation_panel_sha256": "51626768f1ad4ceba22b8c2480a39b654db4d53c710e14e3745d9e891afcfb09",
+  "selected_score": 0.0,
+  "replayed_score": 0.0,
+  "replay_delta": 0.0,
+  "selection_score_parity": true,
+  "payload_parity": true,
+  "checkpoint_parity": true,
+  "evaluation_payload_sha256": "45f6454dd793a2970b645a3c1c198d303c607499140ece839dcf8492a0145366",
+  "parity_scope": "source_episode_metrics_and_action_reward_trace_v1",
+  "episode_count": 32,
+  "summary": {
+    "training_iteration": 0,
+    "pbt_progress_steps": 0,
+    "episode_len_mean": 146.0,
+    "evaluation/optimization_reward_mean": 0.0,
+    "evaluation/gross_return_mean": 0.0,
+    "evaluation/net_return_mean": 0.0,
+    "evaluation/net_sharpe_per_sqrt_bar_mean": 0.0,
+    "evaluation/turnover_mean": 0.0,
+    "custom_metrics/act_0_frac_mean": 0.0,
+    "custom_metrics/act_short_frac_mean": 0.0,
+    "evaluation/custom_metrics/act_0_frac_mean": 0.0,
+    "evaluation/custom_metrics/act_short_frac_mean": 0.0,
+    "custom_metrics/act_1_frac_mean": 1.0,
+    "custom_metrics/act_flat_frac_mean": 1.0,
+    "evaluation/custom_metrics/act_1_frac_mean": 1.0,
+    "evaluation/custom_metrics/act_flat_frac_mean": 1.0,
+    "custom_metrics/act_2_frac_mean": 0.0,
+    "custom_metrics/act_long_frac_mean": 0.0,
+    "evaluation/custom_metrics/act_2_frac_mean": 0.0,
+    "evaluation/custom_metrics/act_long_frac_mean": 0.0
+  },
+  "receipt_version": 1,
+  "status": "complete",
+  "producer": {
+    "invocation_id": "9cb590e5-7f78-4003-990f-a20b47a0a779",
+    "pid": 15232,
+    "host": "ULTIMATE-MACHINE",
+    "process_started_unix": 1791210500.4899428,
+    "process_instance_id": "6b6a350677387e9779d838a4788123135783b828e9225b9ab2d9d2576dfd049a",
+    "started_at_utc": "2026-10-05T14:28:21.118887+00:00",
+    "operation": "episode_replay",
+    "launch_id": "5ea2216f-b343-406b-ba72-f58818b22667",
+    "completed_at_utc": "2026-10-05T14:28:43.335690+00:00"
+  },
+  "evaluation_contract": {
+    "version": "deterministic_replay_v1",
+    "checkpoint_sha256": "547334eada7c702198d19a79036bc958aace5c970b6a45ffa097d1368bf81b30",
+    "progress_steps": 58256,
+    "restore_generation": 0,
+    "dataset_sha256": "20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9",
+    "source_panel_sha256": "51626768f1ad4ceba22b8c2480a39b654db4d53c710e14e3745d9e891afcfb09",
+    "evaluation_panel_sha256": "51626768f1ad4ceba22b8c2480a39b654db4d53c710e14e3745d9e891afcfb09",
+    "effective_env_config_sha256": "2d81d8a1bce1635ad15ecf0ccdea5b77e17fdc91af4b420d6f1398eb9b00e498",
+    "checkpoint_config_sha256": "cf651c03353ded23362f970032b95dfa5b12171439a76c43a3bf8e67dce21397",
+    "observation_schema": {
+      "observation_schema_id": "r4_v1_min",
+      "base_obs_dim": 332,
+      "solver_state_dim": 2,
+      "agent_obs_dim": 334
+    },
+    "runtime": {
+      "python": "3.11.13",
+      "platform": "Windows-10-10.0.19045-SP0",
+      "ray": "2.58.0",
+      "gymnasium": "1.2.2",
+      "pyarrow": "17.0.0",
+      "torch": "2.3.1",
+      "pandas": "2.1.4"
+    },
+    "replay_source": {
+      "algorithm": "sha256(sorted relative-path TAB file-sha256 LF)",
+      "python_file_count": 104,
+      "source_tree_sha256": "944d7d308654b93b090fec83a8097728157405671ae8aff858d2d00658fcf233"
+    },
+    "explore": false,
+    "execution": {
+      "device": "cpu",
+      "torch_deterministic_algorithms": true,
+      "torch_num_threads": 8
+    },
+    "evaluation_seed": 32260943
+  },
+  "evaluation_contract_sha256": "829f919fc4c850754c30f55bf66cf2fe9198fda4df40f66cda603a1b23941edf",
+  "artifacts": [
+    {
+      "file": "training_fn_ITraderEnv_01e66_00000_0_2026-10-05_12-53-32.episodes.jsonl",
+      "sha256": "23f07220d8b37b80283b3f77c27b53e15e2237effff596669dca1f32635e5251",
+      "rows": 32
+    }
+  ]
+}

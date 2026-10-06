@@ -1,0 +1,82 @@
+{
+  "scope": "Only docs/artifacts/research/solver-state-r4-v1-causal-forensics-2026-09-29-evidence, report metadata and file hashes; no steps/outcomes inspected. Not exhaustive inventory of workstation artifacts.",
+  "files": [
+    {
+      "file": "g0_fresh_panel\\checkpoint_102040\\process_a\\state\\training_fn_ITraderEnv_dc4cf_00002_2_seed=5259741_2026-09-29_06-54-32.state_diagnostics.json",
+      "solver_state_mode": "both",
+      "schema_id": "r4_v1_min",
+      "state_dim": 2,
+      "sha256": "d02c58cc1db52e18a818293ac6c5ab90d07516d3b74d130c20bf48cc114c547f"
+    },
+    {
+      "file": "g0_fresh_panel\\checkpoint_102040\\process_b\\state\\training_fn_ITraderEnv_dc4cf_00002_2_seed=5259741_2026-09-29_06-54-32.state_diagnostics.json",
+      "solver_state_mode": "both",
+      "schema_id": "r4_v1_min",
+      "state_dim": 2,
+      "sha256": "d02c58cc1db52e18a818293ac6c5ab90d07516d3b74d130c20bf48cc114c547f"
+    },
+    {
+      "file": "g0_fresh_panel\\checkpoint_106968\\process_a\\state\\training_fn_ITraderEnv_dc4cf_00002_2_seed=5259741_2026-09-29_06-54-32.state_diagnostics.json",
+      "solver_state_mode": "both",
+      "schema_id": "r4_v1_min",
+      "state_dim": 2,
+      "sha256": "1a0deb805c7d9cdb046ff4558162c13a18238a6b9873cd4b24656e735971c7cd"
+    },
+    {
+      "file": "g0_fresh_panel\\checkpoint_106968\\process_b\\state\\training_fn_ITraderEnv_dc4cf_00002_2_seed=5259741_2026-09-29_06-54-32.state_diagnostics.json",
+      "solver_state_mode": "both",
+      "schema_id": "r4_v1_min",
+      "state_dim": 2,
+      "sha256": "1a0deb805c7d9cdb046ff4558162c13a18238a6b9873cd4b24656e735971c7cd"
+    },
+    {
+      "file": "g0_fresh_panel\\checkpoint_194368\\process_a\\state\\training_fn_ITraderEnv_dc4cf_00002_2_seed=5259741_2026-09-29_06-54-32.state_diagnostics.json",
+      "solver_state_mode": "both",
+      "schema_id": "r4_v1_min",
+      "state_dim": 2,
+      "sha256": "c062ba97aa656cec6a7865c2a3c973c0871fdb66072296282fa02f1663c48ce7"
+    },
+    {
+      "file": "g0_fresh_panel\\checkpoint_194368\\process_b\\state\\training_fn_ITraderEnv_dc4cf_00002_2_seed=5259741_2026-09-29_06-54-32.state_diagnostics.json",
+      "solver_state_mode": "both",
+      "schema_id": "r4_v1_min",
+      "state_dim": 2,
+      "sha256": "c062ba97aa656cec6a7865c2a3c973c0871fdb66072296282fa02f1663c48ce7"
+    },
+    {
+      "file": "g0_fresh_panel\\checkpoint_77832\\process_a\\state\\training_fn_ITraderEnv_dc4cf_00002_2_seed=5259741_2026-09-29_06-54-32.state_diagnostics.json",
+      "solver_state_mode": "both",
+      "schema_id": "r4_v1_min",
+      "state_dim": 2,
+      "sha256": "9b8a02e7f62ea2a083c720f7f2a51646921957f358a240219b6200953027e6eb"
+    },
+    {
+      "file": "g0_fresh_panel\\checkpoint_77832\\process_b\\state\\training_fn_ITraderEnv_dc4cf_00002_2_seed=5259741_2026-09-29_06-54-32.state_diagnostics.json",
+      "solver_state_mode": "both",
+      "schema_id": "r4_v1_min",
+      "state_dim": 2,
+      "sha256": "9b8a02e7f62ea2a083c720f7f2a51646921957f358a240219b6200953027e6eb"
+    },
+    {
+      "file": "g0_fresh_panel\\checkpoint_92384\\process_a\\state\\training_fn_ITraderEnv_dc4cf_00002_2_seed=5259741_2026-09-29_06-54-32.state_diagnostics.json",
+      "solver_state_mode": "both",
+      "schema_id": "r4_v1_min",
+      "state_dim": 2,
+      "sha256": "7bf6e31f7a1aab4bc4a8f9c43fd7c090ee1084599bcb45a7c2b10eeff02e1cc8"
+    },
+    {
+      "file": "g0_fresh_panel\\checkpoint_92384\\process_b\\state\\training_fn_ITraderEnv_dc4cf_00002_2_seed=5259741_2026-09-29_06-54-32.state_diagnostics.json",
+      "solver_state_mode": "both",
+      "schema_id": "r4_v1_min",
+      "state_dim": 2,
+      "sha256": "7bf6e31f7a1aab4bc4a8f9c43fd7c090ee1084599bcb45a7c2b10eeff02e1cc8"
+    },
+    {
+      "file": "state_diag_77832\\training_fn_ITraderEnv_dc4cf_00002_2_seed=5259741_2026-09-29_06-54-32.state_diagnostics.json",
+      "solver_state_mode": "both",
+      "schema_id": "r4_v1_min",
+      "state_dim": 2,
+      "sha256": "64d5fea176b84eb8aabc3f6b38b808f2adca2da61f24053374b2d3690981e84f"
+    }
+  ]
+}

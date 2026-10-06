@@ -1,0 +1,321 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Historical Ray 2.58 Optimizer Audit</title><style>:root{color-scheme:light;--ink:#18201d;--muted:#5c6762;--line:#ccd3cf;--paper:#fbfcfa;--wash:#eef2ef;--accent:#1f6651}*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:16px/1.55 Georgia,serif}main{max-width:1120px;margin:32px auto;background:var(--paper);padding:48px 58px 64px;border:1px solid var(--line)}h1,h2,h3{line-height:1.2}h2{margin-top:40px;padding-top:18px;border-top:1px solid var(--line)}table{width:100%;border-collapse:collapse;margin:18px 0 24px;font-size:.9rem}th,td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}th{background:#e8eeea}tbody tr:nth-child(even){background:#f4f6f4}code{font:.9em Consolas,monospace;background:#edf0ee;padding:1px 4px}pre{overflow:auto;background:#edf0ee;padding:14px}a{color:var(--accent)}img{max-width:100%;height:auto;border:1px solid var(--line)}@media(max-width:760px){main{margin:0;padding:28px 18px}table{display:block;overflow:auto}}</style></head><body><main><h1>Retained Ray 2.58 optimizer and restore audit</h1>
+<p>Date: 2026-10-05. Read-only inspection; no training, replay, edits or deletion
+of historical artifacts. Ten terminal checkpoints plus three G0 checkpoints
+were inspected sequentially after verifying full checkpoint SHA-256 against
+each retained index. Policy files were approximately 2.18 MB each.</p>
+<h2>Findings and limits</h2>
+<p>All ten terminal checkpoints identify Ray 2.58.0 and persist native
+<code>num_epochs=30</code>, <code>minibatch_size=128</code>. Their declared configs supplied legacy
+aliases, not these native fields. All five exploited terminal targets have
+policy/optimizer settings differing from the intended algorithm configuration;
+their reported LR follows the intended value rather than saved Adam LR.</p>
+<p>The unexploited causal member <code>00002</code> retains its expected lower LR, but has
+the same epoch mismatch and six self-resume entropy spikes. “Unexploited” does
+not mean “never restored.” This limits recipe and optimization-history claims;
+it does not invalidate the observed returns of the policies actually produced,
+nor prove that the defects caused every flat basin or transient gain.</p>
+<p>The audit is a bounded sample, not certification of all past runs. Saved
+metadata is not an unavailable per-step optimizer trace. Do not retrospectively
+rewrite histories, infer corrected economic outcomes, or discard checkpoints.</p>
+<h2>Artifact roots and method</h2>
+<ul>
+<li><code>A</code>: <code>D:/iTRADER-offload/active/ray_results/v2r0-ray258-parity-20260924/_stable_metrics</code></li>
+<li><code>B</code>: <code>D:/iTRADER-offload/active/ray_results/phase-a-r0-plus-r4-v1-actor-robustness-20260929/_stable_metrics</code></li>
+</ul>
+<p>For each checkpoint, read <code>algorithm_state.pkl</code>,
+<code>policies/default_policy/policy_state.pkl</code> and <code>rllib_checkpoint.json</code> only after
+digest verification. Intended settings came from the index&#39;s <code>config_snapshot</code>;
+reported settings came from <code>report_rows.csv</code> and <code>metrics_full.jsonl</code>.
+These are trusted local serialized artifacts, not arbitrary downloaded pickles.</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Root / trial directory</th>
+<th>Checkpoint under trial</th>
+<th align="right">Target steps</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>R0-0</td>
+<td>A / <code>training_fn_ITraderEnv_63247_00000_0_seed=958639_2026-09-25_00-15-02</code></td>
+<td><code>checkpoints/iter_000012_222110438339</code></td>
+<td align="right">58,592</td>
+</tr>
+<tr>
+<td>R0-1</td>
+<td>A / <code>training_fn_ITraderEnv_63247_00001_1_seed=1908464_2026-09-25_00-15-02</code></td>
+<td><code>checkpoints/iter_000012_222114361318</code></td>
+<td align="right">58,648</td>
+</tr>
+<tr>
+<td>Exact-0</td>
+<td>B / <code>training_fn_ITraderEnv_1ea45_00000_0_seed=4822157_2026-09-29_07-46-30</code></td>
+<td><code>checkpoints/iter_000040_062723649190</code></td>
+<td align="right">194,944</td>
+</tr>
+<tr>
+<td>Exact-1</td>
+<td>B / <code>training_fn_ITraderEnv_1ea45_00001_1_seed=5104182_2026-09-29_07-46-30</code></td>
+<td><code>checkpoints/iter_000040_062935266133</code></td>
+<td align="right">194,912</td>
+</tr>
+<tr>
+<td>Exact-2</td>
+<td>B / <code>training_fn_ITraderEnv_1ea45_00002_2_seed=5259741_2026-09-29_07-46-30</code></td>
+<td><code>checkpoints/iter_000040_062718940067</code></td>
+<td align="right">194,360</td>
+</tr>
+<tr>
+<td>Exact-3</td>
+<td>B / <code>training_fn_ITraderEnv_1ea45_00003_3_seed=4568774_2026-09-29_07-46-30</code></td>
+<td><code>checkpoints/iter_000040_062930732297</code></td>
+<td align="right">194,840</td>
+</tr>
+<tr>
+<td>Causal-0</td>
+<td>B / <code>training_fn_ITraderEnv_dc4cf_00000_0_seed=4822157_2026-09-29_06-54-32</code></td>
+<td><code>checkpoints/iter_000041_053539606657</code></td>
+<td align="right">195,320</td>
+</tr>
+<tr>
+<td>Causal-1</td>
+<td>B / <code>training_fn_ITraderEnv_dc4cf_00001_1_seed=5104182_2026-09-29_06-54-32</code></td>
+<td><code>checkpoints/iter_000040_053725792156</code></td>
+<td align="right">194,456</td>
+</tr>
+<tr>
+<td>Causal-2</td>
+<td>B / <code>training_fn_ITraderEnv_dc4cf_00002_2_seed=5259741_2026-09-29_06-54-32</code></td>
+<td><code>checkpoints/iter_000040_053721474237</code></td>
+<td align="right">194,368</td>
+</tr>
+<tr>
+<td>Causal-3</td>
+<td>B / <code>training_fn_ITraderEnv_dc4cf_00003_3_seed=4568774_2026-09-29_06-54-32</code></td>
+<td><code>checkpoints/iter_000041_053543966654</code></td>
+<td align="right">195,560</td>
+</tr>
+</tbody></table>
+<h2>Requested versus persisted effective settings</h2>
+<p>Every row below actually used native 30 epochs / minibatch 128.</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th align="right">Intended epochs / minibatch</th>
+<th align="right">Intended LR</th>
+<th align="right">Saved optimizer LR</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>R0-0</td>
+<td align="right">20 / 256</td>
+<td align="right">1.3577370939916343e-5</td>
+<td align="right">same</td>
+</tr>
+<tr>
+<td>R0-1</td>
+<td align="right">30 / 512</td>
+<td align="right">1.0861896751933076e-5</td>
+<td align="right">1.3577370939916343e-5</td>
+</tr>
+<tr>
+<td>Exact-0</td>
+<td align="right">20 / 512</td>
+<td align="right">6.144123266966957e-6</td>
+<td align="right">7.680154083708696e-6</td>
+</tr>
+<tr>
+<td>Exact-1</td>
+<td align="right">30 / 256</td>
+<td align="right">6.503092969927453e-6</td>
+<td align="right">same</td>
+</tr>
+<tr>
+<td>Exact-2</td>
+<td align="right">20 / 128</td>
+<td align="right">7.151674865214668e-6</td>
+<td align="right">same</td>
+</tr>
+<tr>
+<td>Exact-3</td>
+<td align="right">30 / 512</td>
+<td align="right">7.680154083708696e-6</td>
+<td align="right">same</td>
+</tr>
+<tr>
+<td>Causal-0</td>
+<td align="right">20 / 512</td>
+<td align="right">6.865607870606081e-6</td>
+<td align="right">7.151674865214668e-6</td>
+</tr>
+<tr>
+<td>Causal-1</td>
+<td align="right">20 / 128</td>
+<td align="right">8.582009838257601e-6</td>
+<td align="right">7.151674865214668e-6</td>
+</tr>
+<tr>
+<td>Causal-2</td>
+<td align="right">20 / 128</td>
+<td align="right">7.151674865214668e-6</td>
+<td align="right">same</td>
+</tr>
+<tr>
+<td>Causal-3</td>
+<td align="right">30 / 256</td>
+<td align="right">8.582009838257601e-6</td>
+<td align="right">7.151674865214668e-6</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>Exploited target</th>
+<th>Additional intended -&gt; saved-policy differences</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>R0-1</td>
+<td>gamma .98 -&gt; .995; lambda .90 -&gt; .95; VF coefficient 2 -&gt; .5</td>
+</tr>
+<tr>
+<td>Exact-0</td>
+<td>gamma .995 -&gt; .99; clip .3 -&gt; .2; VF clip 10 -&gt; 5; VF coefficient 1 -&gt; .5</td>
+</tr>
+<tr>
+<td>Causal-0</td>
+<td>lambda .97 -&gt; .90; clip .2 -&gt; .1</td>
+</tr>
+<tr>
+<td>Causal-1</td>
+<td>VF clip 10 -&gt; 20; VF coefficient 1 -&gt; 2</td>
+</tr>
+<tr>
+<td>Causal-3</td>
+<td>gamma .98 -&gt; .99; lambda .95 -&gt; .90</td>
+</tr>
+</tbody></table>
+<h2>Member 00002 self-resume confound</h2>
+<p>Causal-2&#39;s configured entropy schedule is
+<code>[[0, .005], [96000, .002], [240000, .0005]]</code>. Its six receipts are
+<code>tune_self_resume</code>, not PBT exploitation. The retained learner metrics show
+approximately <code>.005</code> on each first update after restore. Expected values below
+evaluate the unchanged schedule at that update&#39;s starting target progress.</p>
+<table>
+<thead>
+<tr>
+<th>Receipt under Causal-2 <code>restore_receipts/</code></th>
+<th align="right">Restore steps</th>
+<th>Next update / report steps</th>
+<th align="right">Schedule at start</th>
+<th align="right">Recorded coefficient</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>self_resume_0000_050505533999.json</code></td>
+<td align="right">48,624</td>
+<td>11 / 53,552</td>
+<td align="right">.0034805</td>
+<td align="right">.005</td>
+</tr>
+<tr>
+<td><code>self_resume_0000_051030511764.json</code></td>
+<td align="right">72,904</td>
+<td>16 / 77,832</td>
+<td align="right">.00272175</td>
+<td align="right">.005</td>
+</tr>
+<tr>
+<td><code>self_resume_0000_051906192191.json</code></td>
+<td align="right">102,040</td>
+<td>22 / 106,968</td>
+<td align="right">.001937083333</td>
+<td align="right">.005</td>
+</tr>
+<tr>
+<td><code>self_resume_0000_052151742250.json</code></td>
+<td align="right">126,320</td>
+<td>27 / 131,248</td>
+<td align="right">.001684166667</td>
+<td align="right">.005</td>
+</tr>
+<tr>
+<td><code>self_resume_0000_052748339468.json</code></td>
+<td align="right">150,600</td>
+<td>32 / 155,528</td>
+<td align="right">.00143125</td>
+<td align="right">.005</td>
+</tr>
+<tr>
+<td><code>self_resume_0000_053553362442.json</code></td>
+<td align="right">179,736</td>
+<td>38 / 184,664</td>
+<td align="right">.00112775</td>
+<td align="right">.005</td>
+</tr>
+</tbody></table>
+<p>Three inspected G0 points all retain LR <code>7.151674865214668e-6</code>, gamma <code>.99</code>,
+lambda <code>.9</code>, clip <code>.1</code>, VF coefficient <code>2</code>, VF clip <code>20</code>, native 30/128.</p>
+<table>
+<thead>
+<tr>
+<th align="right">Steps</th>
+<th>Checkpoint under Causal-2</th>
+<th align="right">Adam steps</th>
+<th align="right">Adaptive KL</th>
+<th align="right">Reported update entropy</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">77,832</td>
+<td><code>checkpoints/iter_000016_051100507146</code></td>
+<td align="right">18,000</td>
+<td align="right">3.0517578125e-6</td>
+<td align="right">.005, immediately after resume</td>
+</tr>
+<tr>
+<td align="right">102,040</td>
+<td><code>checkpoints/iter_000021_051327487556</code></td>
+<td align="right">23,580</td>
+<td align="right">9.5367431640625e-8</td>
+<td align="right">.001987666667</td>
+</tr>
+<tr>
+<td align="right">106,968</td>
+<td><code>checkpoints/iter_000022_051936217482</code></td>
+<td align="right">24,720</td>
+<td align="right">4.76837158203125e-8</td>
+<td align="right">.005, immediately after resume</td>
+</tr>
+</tbody></table>
+<p>Native <code>global_timestep</code> matches listed target steps for these points.
+Causal-2 terminal Adam count <strong>44,910</strong> equals
+<code>sum(floor(env_steps_this_update / 128) * 30)</code> over 40 retained reports.
+The intended 20-epoch recipe would yield <strong>29,940</strong> for the same batch lengths.
+This independently corroborates the effective native settings.</p>
+<h2>Verified checkpoint digests</h2>
+<pre><code class="language-text">R0-0     d04c1981d7491922d7bcca0aeee50e1ca1d63873e2440b8d3a5c152263c2a269
+R0-1     077bf062cb797f477d3aa4f541dcdbb9e6746def47a594ab43a1a5b468b4b97e
+Exact-0  c40930df52c4f6288c373e4155a9b1ee2ded22cb7ae475a006f80c427bc12f66
+Exact-1  21f4900c6da36ac722edb757a9f9353de1b207632e07e0cfee67d36e6c76106f
+Exact-2  2e726472aea9e901e32edad96894b363bed7fddf23e0be9c0ae34adc5c12f562
+Exact-3  a95adf46a48f8df0c5f4a3dc1a7ff5a97b2d46f4e682f52d0e31f871a6583fdd
+Causal-0 83e8854880f696a0d55c2676de82e05cf11ea4f0e633aa7f97df6bdaeda7a751
+Causal-1 2046822ca9c3de76970b79e44dcc3396c1e1cef4936bc3d2183172f54e0dd38b
+Causal-2 28afc955e1c7a41a223a941345ccc38c52654c843e26109f1f82b421837bbd63
+Causal-3 f26bc1d353d24188368e3015a5f59e57265357a351433b1d2540fc8ff998527a
+77832    08d3a5842e8ffaa7c41902be6ee1108ebe476e58619582b247a4fc271cb026d2
+102040   74d9798b01daefce2da695c4bdfde6d1015ac01ec6e267feb2dbee4f5c207cce
+106968   2566ab85cc1524c7f5d339df2f6e61c1d797840d059f740acb21dffa1a26f83b
+</code></pre>
+<h2>Consequence for the next control</h2>
+<p>Preserve the old policies as historical observed outcomes. A fresh run must
+name its effective epoch/minibatch recipe and repaired schedule/restore behavior.
+For lowest-confound representation attribution, use explicit native 30/128
+across the fresh R0/R4 pair and later R1 pair; call any intentional 20-epoch
+change a separate optimizer factor. Do not deliberately recreate entropy-reset
+spikes as normal training. This recommendation does not authorize training or
+claim a matched full-history reproduction.</p>
+</main></body></html>

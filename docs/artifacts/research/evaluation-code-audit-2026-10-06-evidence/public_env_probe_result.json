@@ -1,0 +1,130 @@
+{
+  "dataset_end_expected_steps": 4,
+  "dataset_end_actual": {
+    "requested_start": 96,
+    "reset_reported_start": 96,
+    "evidence_start": 96,
+    "steps": 3,
+    "horizon": 4,
+    "end": 99,
+    "initial_state": [
+      0,
+      1
+    ],
+    "terminal_state": [
+      1,
+      0.25
+    ],
+    "net": -0.0002,
+    "turnover": 2,
+    "terminated": true,
+    "truncated": false
+  },
+  "last_eligible_horizons_1_2": [
+    {
+      "requested_start": 99,
+      "reset_reported_start": 99,
+      "evidence_start": 98,
+      "steps": 1,
+      "horizon": 1,
+      "end": 99,
+      "initial_state": [
+        0,
+        1
+      ],
+      "terminal_state": [
+        1,
+        0
+      ],
+      "net": -0.0002,
+      "turnover": 2,
+      "terminated": true,
+      "truncated": false
+    },
+    {
+      "requested_start": 98,
+      "reset_reported_start": 98,
+      "evidence_start": 98,
+      "steps": 1,
+      "horizon": 2,
+      "end": 99,
+      "initial_state": [
+        0,
+        1
+      ],
+      "terminal_state": [
+        1,
+        0.5
+      ],
+      "net": -0.0002,
+      "turnover": 2,
+      "terminated": true,
+      "truncated": false
+    }
+  ],
+  "interior": {
+    "requested_start": 95,
+    "reset_reported_start": 95,
+    "evidence_start": 95,
+    "steps": 4,
+    "horizon": 4,
+    "end": 99,
+    "initial_state": [
+      0,
+      1
+    ],
+    "terminal_state": [
+      1,
+      0
+    ],
+    "net": -0.0002,
+    "turnover": 2,
+    "terminated": true,
+    "truncated": false
+  },
+  "out_of_range_task_spec": {
+    "requested_start": 1000,
+    "reset_reported_start": 96,
+    "evidence_start": 96,
+    "steps": 3,
+    "horizon": 4,
+    "end": 99,
+    "initial_state": [
+      0,
+      1
+    ],
+    "terminal_state": [
+      1,
+      0.25
+    ],
+    "net": -0.0002,
+    "turnover": 2,
+    "terminated": true,
+    "truncated": false
+  },
+  "fixed_random_starts": [
+    73,
+    90,
+    73,
+    90,
+    73,
+    90
+  ],
+  "worker1_fixed_random_starts": [
+    73,
+    90,
+    73,
+    90,
+    73,
+    90
+  ],
+  "fixed_random_two_task_cycle_repeats": true,
+  "fixed_random_worker_identity_does_not_change_task_owned_seeds": true,
+  "stream_seed7": [
+    55,
+    59,
+    55
+  ],
+  "stream_reseed_restarts": true,
+  "scope": "synthetic_mechanics_not_historical_start_recovery"
+}

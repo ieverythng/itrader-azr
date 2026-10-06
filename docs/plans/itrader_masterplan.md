@@ -1,10 +1,119 @@
 # iTrader Masterplan
 
-Last reconciled: 2026-10-03
+**Evaluation audit completed (2026-10-06):** the bounded recovery maps 512
+recorded control rows to 48 starts; 26 randomized configs remain source-unbound.
+Both fresh independent reviews return CHANGES. Q27's four mechanical repairs and
+Q23/Q26 scientific decisions await approval. This does not reopen the accepted eight-control
+replay receipts or approve new metrics, split rules, data collection or training.
+The inherited physical-dataset-end/reset defect is reproduced; all 256 accepted
+control episode identities have full horizons and lie below that edge. No panel
+is certified or opened, no actual terminal executor is available, and R1 remains
+unimplemented. Research proposals require individual GRILL decisions before use.
+See the [current code audit](../artifacts/research/evaluation-code-audit-2026-10-06.md)
+for independently reproduced evaluator gaps and the pending Q27 repair scope.
+
+**Prerequisite audit update (2026-10-06):**
+The sixteen-cell scientific loadout draft and fail-closed read-only terminal
+preflight are implemented. Metadata-only auditing found 2,052 provisional
+symbol/session anchors, but conservative historical possible-exposure exclusion
+leaves zero certified fresh candidates. Sixteen control episode sidecars recover
+recorded starts; the 26 randomized runs still lack source-bound start proof.
+Q23's recovery/new-data decision and Q26's calendar-block method block panel
+freeze. The real 128-task executor,
+matched control receipts and final pre-training config/source seal remain
+required; passing preflight does not authorize evaluation. No panel was frozen
+or opened, and no training or R1 implementation occurred. Corrected eight-cell
+controls remain replay-qualified without economic promotion. Native migration
+stays isolated; dirty work and artifacts are preserved. See the
+[qualification audit](../artifacts/research/r1-panel-qualification-2026-10-06.md).
+The dated execution notices below are historical, not active launch authority.
+
+Last reconciled: 2026-10-06
 Status: **dataset-v2 R0 is the immutable negative/parity control; R0 + R4-v1 is architecture-qualified but economically unpromoted after G0 artifact-pair closure; fixed-recipe R1 attribution is next**
 Branch snapshot: `agent/Watson-dev` plus the uncommitted R4-v1 implementation/evidence round
 
 ## North star
+
+**Final corrected-control closeout (16:38):** all eight terminal replays and the
+independent evidence audit pass; 416 tests, healthcheck and pre-commit pass.
+The compatibility controls are now replay-qualified, not economically promoted.
+Proceed through the accepted panel/completion/aggregation work into fixed-recipe
+R1 attribution. Preserve inspected-panel limits, original failures and separate
+native migration staging. No additional R0 sweep is required by this closeout.
+
+**Latest closeout qualification (16:32):** all eight corrected-compatibility
+terminal replays completed with 256 witnessed episodes and indexed
+checkpoint/payload/score parity. Aggregate review and serialized repository
+validation remain in progress. The positive staged R4 seed is reproducible but
+not replicated across seeds; no economic promotion. Proceed next through accepted
+panel/completion/aggregation prerequisites and then R1, not another R0 sweep.
+
+**Latest closeout qualification (16:10):** two independent reviews approve the
+Windows job-object replay containment repair. Eight fresh terminal replays use
+the immutable evaluator snapshot with separate launcher provenance; full
+evidence acceptance remains open. Human authorization removes the session
+deadline but retains a 1 GiB hard free-RAM reserve and bounded replay jobs.
+Earlier holds below are historical; phase order and economic gates are unchanged.
+
+**Latest closeout qualification (15:25):** remaining terminal replays were
+reauthorized under a tighter resource envelope, but a fresh independent review
+reproduced incomplete child-process cleanup on replay timeout. Launches are
+held pending supervisor containment; repair/review is required before sprint
+closure. This does not change the phase order or establish a policy defect.
+The [control audit](../artifacts/research/corrected-compatibility-r0-r4-controls-2026-10-05.md)
+owns live replay status and preserved earlier attempts.
+
+**Accepted order, 2026-10-05:** repair/review Ray 2.58 compatibility APIs;
+fresh matched R0 and R0 + R4-v1 controls; implement and compare R1 and
+R1 + R4-v1 on that same stack; then native RLModule/Learner/EnvRunner migration
+with a full four-cell parity bridge. Do not make platform migration an R1
+prerequisite. Preserve older artifacts and qualify historical effective-PBT
+claims pending the optimizer/restore audit. Economic promotion remains separate.
+
+The bounded optimizer/restore audit is now complete and qualifies the sampled
+Ray-2.58 runs: observed policy outcomes remain historical evidence, while logged
+mutation requests do not prove effective PBT settings. Lost search effectiveness
+is unquantified. The user has authorized supervised, fixed-recipe corrected-stack
+R0/R4 controls ([current declaration](../artifacts/research/corrected-compatibility-r0-r4-controls-2026-10-05.md));
+PBT stays off for this attribution round. Stop on critical evidence/resource
+failures, and stop before implementing R1 in this pass.
+
+GRILL Q21 is accepted: inspected 32-task initialization/update monitoring and
+a fresh predeclared 128-task validation-only terminal panel (32 symbol/session
+anchors x four frozen horizons), opened after all 16 target-screen runs finish.
+Use predetermined terminal checkpoints, matched controls, explicit economic and
+PPO/critic reporting, and anchor-aware uncertainty; final test stays sealed.
+Panel/runner enforcement remains to be implemented. The separate corrected-stack
+eight-cell preparation is not automatically the Q21 screen. Native API work may
+be developed now in the isolated migration branch; integration and four-cell
+qualification remain after the corrected-compatibility R1 comparison.
+
+Q22 is accepted: identical corrected 30-epoch / minibatch-128 optimizer recipe
+and original entropy schedule across all 16 screen cells, PBT off (exact fields
+in readiness). Q23 metadata-only fresh-panel sampling is accepted; eligibility
+audit and panel freeze remain outstanding. Q24 accepts a separate versioned
+equal-symbol terminal-net summary, preserving legacy raw means and PPO/PBT
+semantics. Q25 secondary per-episode net-bps-per-actual-bar diagnostics are
+accepted; both reporting implementations wait until the active source freeze ends.
+Both corrected one-update R0/R4 smokes and fresh 32-task replays passed; this
+closes the bounded mechanics probe, not the eight-cell bridge or economic gate.
+The longer bridge's first R0/exact-cost cell completed 12 updates and replayed
+exactly all-flat. A training-report namespace defect triggered a conservative
+hold during cell 2; raw rewards/evaluation/checkpoints remain intact. Repair
+and independently review reporting, then restart under a distinct source
+fingerprint. Do not infer a matched eight-cell conclusion from the partial run.
+That repair subsequently passed 412 tests, healthcheck, pre-commit and scoped
+Sol/Astra review. Restarted attempt04 completed all eight training cells at
+13:30:16: 467,584 sampled steps, 96 report rows and 33 checkpoint digests checked.
+Eight sequential fresh terminal replays and independent evidence closure are
+still required. The staged R4 positive terminal did not replicate on the second
+seed; exact-cost terminals are all flat. No economic promotion, Q21 qualification,
+new PBT-effectiveness claim or R1 implementation is implied.
+At 13:48, further replay is held after the third replay crossed the 2 GiB RAM
+floor (1.47 GiB observed). Three receipts pass episode parity; first two lack
+live launch witnesses. No owned process remains and heartbeat is paused.
+Resolve the replay resource envelope before completing terminal acceptance;
+all training evidence is preserved and no new R1 work is authorized here.
 
 The [R1 development-readiness contract](../project-state/r1-development-readiness.md)
 defines the next diagnostics and replay-identity work before implementation.
@@ -34,7 +143,7 @@ intentionally separate, and `train_AZR.py` is currently a bootstrap handoff.
 
 ## Phase A — implemented solver baseline under performance revalidation
 
-**Status: measurement and PBT seams repaired; optimizer health is provisional and trading performance is not validated.**
+**Status: measurement/PBT compatibility corrections have scoped independent approval; fresh corrected-stack control training is complete, terminal replay acceptance remains pending, and trading performance is not validated.**
 
 - `train_solo_V2.py` selects `SolverMLPFiLM`.
 - `ITraderEnv` emits chronological `price_window_flat + task_embedding`.

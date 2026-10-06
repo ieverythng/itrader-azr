@@ -1,5 +1,134 @@
 # Decisions
 
+## 2026-10-06 — Strict Q23 qualification retained
+
+- The human requests proper outcome-independent panel construction. Eligibility
+  alone cannot establish historical non-exposure; no relaxed development-panel
+  interpretation was accepted.
+- A scientific loadout draft is not the final execution seal. Effective configs
+  and runtime/source identities must be frozen after R1 implementation/review
+  and before the sixteen-cell training screen.
+- GRILL reports that Q26's calendar-block uncertainty method still awaits human
+  choice. Descriptive weighted reports do not fulfill that requirement.
+- Read-only preflight is implemented; real terminal execution remains gated.
+  See the [qualification audit](../artifacts/research/r1-panel-qualification-2026-10-06.md).
+
+## 2026-10-05 — Q25 secondary duration diagnostics accepted
+
+- Human approves per-horizon paired results and episode `net_bps_per_bar`:
+  `10000 * arithmetic episode net return / actual decision steps`.
+- Keep Q24 terminal-return primary unchanged. Normalize each episode before
+  hierarchical averaging; liquidation cost counts without adding a bar.
+- Validate positive integral actual steps and endpoint/horizon consistency;
+  never use lookback, exposure/training steps, a clamp or pooled-return ratio.
+  This is neither compounded nor annualized portfolio performance.
+- Implementation/testing waits until the active runtime source freeze ends.
+  Native migration remains isolated; one native endpoint plus a Ray-free core
+  is accepted there without changing main's experiment/cutover order.
+
+## 2026-10-05 — Q24 equal-symbol terminal estimand accepted
+
+- Fresh target-screen primary: average four horizons within anchor, anchors
+  within symbol, then 12 symbols equally; same weights for policies and controls.
+- Preserve legacy raw episode means and per-horizon outputs. Do not change PPO
+  rewards, PBT scores or historical metrics. Symbol weighting does not normalize
+  duration; Q25 is still pending.
+- Compare to the strongest whole-panel constant direction, not per-anchor
+  hindsight selection; also show long, short and flat separately. Keep episode
+  Sharpe units explicit and never invent a portfolio from overlapping episodes.
+- Exact panel joins, 128-task/12-symbol/four-horizon coverage, finite values,
+  costs and provenance must pass before aggregation. No available-case weights
+  or reuse of an unweighted uncertainty interval for the new estimand.
+- See readiness for implementation tests; no new aggregator is claimed yet.
+
+## 2026-10-05 — Q23 metadata-only terminal-panel coverage accepted
+
+- Human accepts 32 distinct symbol/session anchors across 12 symbols, at least
+  two each plus eight seeded allocations, chronological validation coverage,
+  RTH offsets 60/120 minutes, full 60-bar past / 200-bar future eligibility,
+  crossed with horizons 96/128/160/200. Respect split/purge/session boundaries.
+- Use metadata only; no future-return, regime or model-outcome selection.
+  Check feasibility and inspected-window non-overlap before freezing hashes.
+- Diagnose direction and benchmark uplift ex post; do not manufacture a
+  bullish/bearish-balanced panel using realized outcomes. Training sampling is
+  distinct from fixed paired terminal evaluation.
+- Eligibility audit is in progress, not a frozen panel or implemented Q21 gate.
+  Aggregation/benchmark weighting is still pending. No added budget or R1 code.
+
+## 2026-10-05 — Q22 corrected optimizer recipe accepted
+
+- Human approval verified in GRILL-IMPLEMENT: all 16 representation-screen
+  cells share native 30 epochs / minibatch 128, LR `7.151674865214668e-6`,
+  gamma `0.99`, lambda `0.9`, clip `0.1`, value coefficient `2`, value clip `20`.
+- Keep entropy `[(0,.005),(96000,.002),(240000,.0005)]` on its unscaled native
+  sampled-step clock. PBT is off; optimizer permutation comes later.
+- Do not recreate historical restore leakage or entropy-reset spikes. The
+  corrected recipe enables matched attribution, not exact historical replay.
+- Q21 remains required. Q23 was pending at this decision (accepted above); neither
+  this recipe decision nor the completed two-cell smoke supplies that panel.
+- Both corrected one-update smoke checkpoints now pass fresh 32-task replay.
+  The separate eight-cell development bridge has not started. No extra budget,
+  R1 implementation or native integration is authorized by this decision.
+
+## 2026-10-05 — Q21 two-tier evaluation accepted; native development isolated
+
+- Human approval verified in GRILL-IMPLEMENT: inspected 32-task monitoring at
+  initialization/every update; fresh validation-only 32 symbol/session anchors
+  crossed with horizons 96/128/160/200 for 128 terminal tasks. Predeclare/hash
+  without outcome inspection and share identical tasks across all cells/controls.
+- Use predetermined terminal checkpoints, not selected transients. Open the
+  fresh panel only after all 16 target-screen runs finish. Final test stays sealed.
+  Protocol acceptance does not mean the panel or enforcement already exists.
+- Reporting separates raw episode/run economics, directional and other matched
+  controls, encoder/state/interaction effects, PPO/critic diagnostics, actual
+  causal-cost exposure, resource use and provenance. Retain raw traces; crossed
+  horizons are not independent and two seeds do not establish significance.
+  Evaluation is outside the 921,600 nominal training-step budget.
+- The existing eight-cell corrected-compatibility preparation remains its own
+  development-panel bridge; do not silently count it as the complete target screen.
+- Native Ray 2.58 API development is authorized now in the separate migration
+  chat/worktree on `feat(R)/Ray_upgrade`, with commits/pushes confined there.
+  Integration order is unchanged: corrected compatibility R0/R4 controls, R1
+  comparison on that stack, then native qualification repeating all four cells.
+  No main-tree commit or source overwrite is authorized by that separate work.
+- See [R1 readiness](r1-development-readiness.md) for the implementation contract.
+
+## 2026-10-05 — Correct compatibility first; native APIs after R1
+
+- Human decision: finish the Ray 2.58 compatibility repairs, rerun matched R0
+  and R0 + R4-v1, then implement/compare R1 and R1 + R4-v1 on the same stack.
+  Native RLModule/Learner/EnvRunner migration follows, with a complete four-cell
+  platform bridge. It is not a prerequisite for R1 implementation.
+- Preserve historical runs, checkpoints and raw outcomes. Do not infer effective
+  learning settings from historical PBT mutation logs: integration reproduced
+  obsolete minibatch/epoch aliases and donor-restored optimizer/policy settings.
+- Q19 structural selectors and Q20 screen budget are accepted, superseding the
+  pending wording in the earlier entry: four cells x two seeds x two curricula,
+  57,600 nominal steps each; cost boundaries 14,400 / 28,800 / 43,200.
+  Q21 was pending at this decision and is superseded by the accepted entry
+  above; final test remains sealed.
+- Correctness approval, representation attribution and economic promotion are
+  separate decisions. No new performance claim is made by synthetic probes.
+
+
+## 2026-10-05 — GRILL Q18 accepts shared R1 encoder and FiLM
+
+- Human decision relayed by GRILL: R1 actor and critic share one market window
+  LSTM, projection and task-FiLM path, with separate pi/vf output heads. Both
+  losses update the shared representation, matching R0's sharing arrangement.
+- Q15 remains fixed: unidirectional LSTM(5,156), zero h/c every decision, final
+  chronological output, Linear(156,256,bias=True), ReLU, existing task FiLM and
+  dropout semantics. R4-v1 zero_v1 additive residuals remain unchanged.
+- Capacity under this accepted design is 178,324 parameters for R1 and 178,372
+  with R4-v1, versus 179,268 and 179,316 for their R0 counterparts. These are
+  measured component counts, not an implemented or trained R1 result.
+- Q19 structural selector design and the run budget remain pending. Proposed
+  `solver_model` values are `solver_mlp_film` and `solver_window_lstm_film`;
+  historical registrations retain their original restore meanings.
+- The four-cell matrix and compressed cost curriculum remain accepted. No
+  performance run can bypass the open evidence/diagnostics gates.
+- Implementation acceptance details: [R1 readiness](r1-development-readiness.md).
+
 ## 2026-10-03 — Close G0 without promotion and enter fixed-recipe R1 attribution
 
 - Decision: close the member-`00002` checkpoint-only diagnostic and proceed to

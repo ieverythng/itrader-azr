@@ -1,0 +1,766 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Research-only evaluation and quantitative methodology for the iTrader R-series screen; no panel, metric, threshold, method, code path, or promotion decision is adopted.">
+<title>Evaluation and quantitative methodology for the R-series screen &mdash; 2026-10-06</title>
+<style>
+:root{--bg:#101a20;--panel:#17252e;--panel-2:#23303a;--text:#e6eff3;--muted:#afbdc6;--link:#8bdac0;--line:#3a4b56;--accent:#e5b56b;--code:#1a2933}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1100px;margin:auto;padding:40px 28px 64px}
+a{color:var(--link);text-underline-offset:3px}
+a:hover,a:focus{color:#b7f0dc}
+h1,h2,h3{line-height:1.25;scroll-margin-top:20px}
+h1{font-size:clamp(2rem,5vw,3.15rem);margin:10px 0 14px;max-width:920px}
+h2{margin-top:42px;padding-top:6px;border-top:1px solid var(--line)}
+h3{margin-top:28px;color:#dce8ed}
+p{max-width:88ch}
+.eyebrow,.muted{color:var(--muted)}
+.eyebrow{margin:0 0 6px;font-size:.93rem;letter-spacing:.02em}
+.source-links{margin-bottom:28px;color:var(--muted)}
+.source-links span{padding:0 7px}
+.gate{margin:24px 0 34px;border-left:4px solid var(--accent);padding:16px 22px;background:var(--panel-2)}
+.gate h2{margin:0 0 8px;padding:0;border:0;font-size:1.35rem;color:#ffd69b}
+.gate p{margin:0}
+code,pre{background:var(--code)}
+code{padding:2px 5px;border-radius:3px;font:0.92em ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}
+pre{padding:18px;overflow:auto;border:1px solid #2f424e;border-radius:5px;line-height:1.45}
+pre code{padding:0;background:transparent;font-size:.92rem}
+ul,ol{max-width:90ch;padding-left:1.55rem}
+li{margin:8px 0}
+table{display:block;width:100%;overflow-x:auto;border-collapse:collapse;margin:20px 0 28px}
+th,td{min-width:150px;padding:11px 13px;border:1px solid var(--line);vertical-align:top;text-align:left}
+th{background:var(--panel-2);color:#f1f6f8}
+tbody tr:nth-child(even){background:var(--panel)}
+strong{color:#fff}
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.92rem}
+.skip-link{position:absolute;left:-9999px;top:0;background:#fff;color:#000;padding:8px 12px;z-index:2}
+.skip-link:focus{left:10px;top:10px}
+@media (max-width:650px){main{padding:28px 18px 48px}h1{font-size:2rem}th,td{min-width:135px}}
+@media print{:root{--bg:#fff;--panel:#f6f7f8;--panel-2:#eef1f3;--text:#111;--muted:#555;--link:#075d4d;--line:#bbb;--accent:#9c5c00;--code:#f1f3f4}body{font-size:11pt}main{max-width:none;padding:0}a{color:inherit}pre,table{break-inside:avoid}}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#report">Skip to report</a>
+<main id="report">
+<p class="eyebrow">agent/Watson-dev &middot; research artifact &middot; 2026-10-06</p>
+<nav class="source-links" aria-label="Companion documents"><a href="evaluation-quant-methodology-2026-10-06.md">Markdown source</a><span aria-hidden="true">&middot;</span><a href="../../project-state/r1-development-readiness.md">R1 development readiness</a><span aria-hidden="true">&middot;</span><a href="../../plans/itrader_masterplan.md">Masterplan</a><span aria-hidden="true">&middot;</span><a href="../../research/itrader_research_dashboard.html">Research dashboard</a></nav>
+<article>
+<h1 id="evaluation-and-quantitative-methodology-for-the-r-series-screen">Evaluation and quantitative methodology for the R-series screen</h1>
+<p>Date: 2026-10-06
+Status: research synthesis and candidate protocol; no panel, threshold, metric,
+Q26 method, code path, or promotion decision is adopted by this document</p>
+<section class="gate" aria-labelledby="research-status">
+  <h2 id="research-status">Research only &mdash; no adoption</h2>
+  <p>This is a methodology synthesis and candidate protocol. It adopts no panel, threshold, metric, Q26 method, code path, or promotion decision. It opened no market outcomes, selected no candidate dates, and leaves the final test sealed.</p>
+</section>
+<h2 id="executive-decision">Executive decision</h2>
+<p>The next R0/R4/R1 evaluation should remain a <strong>paired economic attribution
+screen</strong>, not be converted into one universal score.</p>
+<p>The accepted Q24 point estimand remains the authority: average the four crossed
+horizons within each anchor, anchors within each symbol, and the twelve symbols
+equally. Q25 net bps per actual bar remains a secondary duration diagnostic.
+Neither should be reopened by this research pass. The active contracts and
+their current implementation status are recorded in
+<a href="../../project-state/r1-development-readiness.md"><code>r1-development-readiness.md</code></a>,
+<a href="r1-panel-qualification-2026-10-06.md"><code>r1-panel-qualification-2026-10-06.md</code></a>,
+and the <a href="../../plans/itrader_masterplan.md">masterplan</a>.</p>
+<p>The strongest candidate for Q26 is a <strong>paired, synchronized calendar-block
+procedure that recomputes the exact Q24 hierarchy in every resample</strong>. It must
+keep all horizons of an anchor together and preserve cross-symbol market
+dependence. This is a candidate, not a decision: block construction, support,
+calibration, interval type, multiplicity family, and failure policy still need
+outcome-blind analysis and human approval. Block-bootstrap theory makes block
+choice part of the estimand's finite-sample behavior, not a harmless display
+setting (<a href="https://doi.org/10.1214/aos/1176347265">Kunsch 1989</a>,
+<a href="https://users.ssc.wisc.edu/~behansen/718/Politis%20Romano.pdf">Politis and Romano 1994</a>,
+<a href="https://academic.oup.com/biomet/article-abstract/82/3/561/260651">Hall, Horowitz, and Jing 1995</a>).</p>
+<p>Economic interpretation should use a vector:</p>
+<pre><code class="language-text">gross return - modeled turnover cost = net return
+directional loading + timing residual - cost = net return
+</code></pre>
+<p>That vector must sit beside exposure, turnover, liquidation, action shares,
+gross drawdown, horizon, symbol, calendar, and named controls. A flat solver is
+not skilled merely because an active policy loses; a profitable solver is not
+necessarily learning state if a constant direction explains the result.</p>
+<p>The proposed 60-past-bars plus one-next-bar analysis is useful as a <strong>causal
+local-action diagnostic</strong>, but not as one-step Sharpe and not as a replacement
+for terminal evaluation. The action and every normalizer must be frozen before
+the outcome bar is read. Report immediate gross, transition cost, net, exposure,
+and active return versus named controls; keep the hindsight-best action as an
+oracle-only ceiling.</p>
+<p>Finally, <code>CapabilityProfile</code> remains primarily a future online/shadow
+eligibility and matching contract. Offline evaluation may build the evidence
+needed to derive it later, but the boundary is:</p>
+<pre><code class="language-text">held-out offline capability evidence
+  -&gt; separately versioned calibration/reduction
+  -&gt; future online/shadow CapabilityProfile
+</code></pre>
+<p>The current dataclass is a scaffold, not an estimator. In the present R-series
+screen it must not become a solver reward, training input, unapproved proposer
+feedback signal, promotion gate, broker/risk rule, or substitute for
+<code>DecisionGate</code>. This is not a permanent ban on curriculum feedback: a separately
+approved Phase B path may later transform calibrated held-out validation or
+rolling capability evidence into versioned <code>r_prop</code> or proposer/curriculum
+feedback. Terminal-screen and sealed final-test evidence must remain isolated
+from adaptive proposer updates. This preserves the phase boundaries in the
+active <a href="../../architecture/itrader_system_architecture.md">system architecture</a>,
+<a href="../../iTRADER_Codex_Implementation_Spec.md">implementation specification</a>, and
+<a href="../../plans/itrader_masterplan.md">masterplan</a>.</p>
+<h2 id="scope-and-epistemic-labels">Scope and epistemic labels</h2>
+<p>This pass opened no market outcomes, selected no candidate dates, froze no
+panel, ran no replay or training, and changed no source/config/data/active
+architecture. The final test remains sealed. R1 remains unimplemented on this
+branch, and the native migration remains a separate later concern.</p>
+<p>Claims use these labels:</p>
+<ul>
+<li><strong>Verified local fact:</strong> confirmed in current source, tests, or active docs.</li>
+<li><strong>Verified external fact:</strong> supported by a linked primary paper or official
+  first-party implementation/documentation.</li>
+<li><strong>Inference:</strong> a proposed iTrader interpretation of those facts.</li>
+<li><strong>Hypothesis:</strong> a design candidate requiring prospective validation.</li>
+</ul>
+<p>The GitNexus index was not used as authority because its recorded index is
+stale and WSL is intentionally off. Direct source and active docs take
+precedence.</p>
+<h2 id="1-the-evaluation-object">1. The evaluation object</h2>
+<h3 id="11-what-q24-and-q25-estimate">1.1 What Q24 and Q25 estimate</h3>
+<p>For policy <code>p</code>, matched control <code>c</code>, symbol <code>s</code>, anchor <code>a</code>, and horizon <code>h</code>,
+define the paired terminal-net difference:</p>
+<pre><code class="language-text">d[p,c,s,a,h] = net[p,s,a,h] - net[c,s,a,h]
+</code></pre>
+<p>The accepted Q24 contrast is:</p>
+<pre><code class="language-text">anchor_delta = mean over h in {96, 128, 160, 200}
+symbol_delta = mean over frozen anchors for that symbol
+theta        = equal mean over the 12 symbols
+</code></pre>
+<p>This describes a task design that chooses a declared symbol uniformly, then an
+available anchor for that symbol, then a frozen horizon. It is <strong>not</strong> a
+simultaneously traded twelve-asset portfolio. The raw 128-task mean answers a
+different question because symbols with three anchors receive more weight than
+symbols with two. Both remain visible, with Q24 primary and raw-task averaging
+secondary. These are verified current contracts in
+<a href="../../../itrader/rl_lib/evaluation/terminal_panel_report.py"><code>terminal_panel_report.py</code></a>.</p>
+<p>Q25 first computes, per complete episode:</p>
+<pre><code class="language-text">net_bps_per_bar = 10000 * terminal_net_return / actual_decision_steps
+</code></pre>
+<p>and only then applies the same hierarchy. It is an arithmetic duration
+diagnostic, not an annualized, compounded, or pooled-step return. Missing,
+censored, duplicate, or wrong-horizon cases fail rather than being reweighted.</p>
+<h3 id="12-what-two-seeds-can-support">1.2 What two seeds can support</h3>
+<p>The market panel and training randomness are different populations. Calendar
+resampling may describe market-sample uncertainty <strong>conditional on a frozen
+checkpoint</strong>. It cannot turn two optimizer seeds into a population-level
+estimate of training-run variation. Deep-RL evaluation work documents how
+unstable finite-run conclusions can be and recommends reporting uncertainty
+over aggregate performance, but it does not make two runs inferentially
+adequate (<a href="https://papers.nips.cc/paper/2021/file/f514cec81cb148559cf475e7426eed5e-Paper.pdf">Agarwal et al. 2021</a>,
+<a href="https://ojs.aaai.org/index.php/AAAI/article/download/11694/11553">Henderson et al. 2018</a>).</p>
+<p>For this screen, report each seed, paired effects, sign agreement, and a
+descriptive mean/range. Keep any claim about the algorithm across fresh
+training runs for a later independently powered replication.</p>
+<h2 id="2-economic-attribution-before-statistical-inference">2. Economic attribution before statistical inference</h2>
+<h3 id="21-exact-current-accounting">2.1 Exact current accounting</h3>
+<p>Current <code>EpisodeEvidence</code> separates optimized reward from economic evidence.
+For one matched episode:</p>
+<pre><code class="language-text">G = sum_t position_t * return_(t+1)
+turnover = sum_t |position_t - position_(t-1)| + |terminal_position|
+C = turnover * cost_bps * 1e-4
+N = G - C
+</code></pre>
+<p>The terminal position contributes liquidation cost but no extra decision bar.
+A short-to-long flip contributes two turnover units. The implementation and
+edge behavior are in
+<a href="../../../itrader/rl_lib/evaluation/episode_evidence.py"><code>episode_evidence.py</code></a>
+and <a href="../../../itrader/envs/itrader_env.py"><code>itrader_env.py</code></a>.</p>
+<p>The exact 1 bp result is therefore a transparent linear cost scenario. It is
+not a live fill model: it does not estimate spreads, queueing, partial fills,
+latency, borrow/funding, capacity, or nonlinear impact. Empirical execution-cost
+work separates commissions, spread, impact, and opportunity cost and finds
+nonlinear size effects, illustrating why a proportional bp charge should not be
+called execution truth
+(<a href="https://pages.stern.nyu.edu/~afrazzin/pdf/Trading%20Cost%20of%20Asset%20Pricing%20Anomalies%20-%20Frazzini,%20Israel%20and%20Moskowitz.pdf">Frazzini, Israel, and Moskowitz</a>).</p>
+<h3 id="22-direction-timing-and-cost-bridge">2.2 Direction, timing, and cost bridge</h3>
+<p>On an identical symbol/anchor/horizon price path, let <code>T</code> be episode length,
+<code>p_bar</code> average signed exposure, and <code>L</code> the matched long-only gross return:</p>
+<pre><code class="language-text">p_bar      = long_action_fraction - short_action_fraction
+G_direction = p_bar * L
+G_timing    = G - G_direction
+N           = G_direction + G_timing - C
+</code></pre>
+<p>This identity separates average directional loading from the gross residual
+created by changing position within the episode. <code>G_timing</code> is an attribution
+residual, not automatically causal alpha or forecasting skill. It can contain
+noise, path dependence, and selection. The full derivation and limits are in
+<a href="evaluation-quant-methodology-2026-10-06-evidence/quant-attribution-primary-sources.md">the quantitative attribution evidence note</a>.</p>
+<p>For every paired representation/control comparison, preserve:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Required outputs</th>
+<th>Question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Economics</td>
+<td>gross, modeled cost, net, net bps/bar</td>
+<td>Was value earned after the declared cost scenario?</td>
+</tr>
+<tr>
+<td>Gross source</td>
+<td>directional component, timing residual</td>
+<td>Was gross mostly static direction or state-dependent behavior?</td>
+</tr>
+<tr>
+<td>Activity</td>
+<td>absolute/signed exposure, short/flat/long fractions, changes</td>
+<td>Was the solver active, directional, or in a flat basin?</td>
+</tr>
+<tr>
+<td>Friction</td>
+<td>total turnover, liquidation turnover/share, repriced cost scenarios</td>
+<td>Did cost avoidance explain the result?</td>
+</tr>
+<tr>
+<td>Path</td>
+<td>gross maximum drawdown, per-bar net Sharpe, positive-net-bar fraction</td>
+<td>What path and variability accompanied it?</td>
+</tr>
+<tr>
+<td>Concentration</td>
+<td>symbol, synchronized calendar block, decision offset, horizon, ex-post regime</td>
+<td>Where did the result occur?</td>
+</tr>
+</tbody>
+</table>
+<p>Current drawdown is gross additive drawdown, not net drawdown. Current episode
+Sharpe is mean divided by sample standard deviation of within-episode net bar
+returns and simple square-root annualization, when requested, does not repair
+serial dependence. Lo shows why Sharpe time scaling depends on the return
+process and autocorrelation
+(<a href="https://alo.mit.edu/publications/page/18/">Lo 2002</a>).</p>
+<h3 id="23-benchmark-ladder">2.3 Benchmark ladder</h3>
+<p>Sharpe's differential-return formulation makes the benchmark part of the
+meaning of a risk-adjusted result
+(<a href="https://web.stanford.edu/~wfsharpe/art/sr/sr.htm">Sharpe 1994</a>). Use a ladder:</p>
+<ol>
+<li>flat/no exposure;</li>
+<li>long-only and short-only, shown separately;</li>
+<li>seeded random;</li>
+<li>architecture/state-matched seeded untrained;</li>
+<li>exposure-matched static attribution; and</li>
+<li>only later, a timestamp-aligned market/factor residual with lagged-only
+   loadings if its data and support are adequate.</li>
+</ol>
+<p>The whole-panel stronger of long and short may remain a descriptive hurdle.
+Selecting it after outcomes are visible is a two-benchmark selection, so a
+confirmatory superiority claim should either beat both with simultaneous
+inference or include that selection in the predeclared multiplicity procedure.
+Never take a per-anchor hindsight maximum.</p>
+<p>A flat control answers whether exposure added value. It does not demonstrate
+skill. A market-beta or factor model is model-dependent; daily Fama-French
+factors must not be copied across minute bars as if they were independent
+intraday factors (<a href="https://mba.tuck.dartmouth.edu/pages/Faculty/ken.french/data_library.html">official Kenneth French data library</a>).</p>
+<h3 id="24-risk-normalization-is-secondary">2.4 Risk normalization is secondary</h3>
+<p>Keep raw net as the economic base. Candidate companion views include paired
+active return, net bps per actual bar, differential-return Sharpe from a genuine
+aligned return stream, lagged-volatility-standardized active return, downside
+risk, tail loss, and alpha/beta. None is a universal replacement.</p>
+<p>Avoid promotion ratios such as net/turnover, net/exposure, or net/drawdown:
+near-zero denominators can reward inactivity or create unstable values. Any
+zero denominator must produce explicit unavailable status plus coverage, not an
+epsilon-tuned winning value.</p>
+<h2 id="3-candidate-q26-statistical-protocol">3. Candidate Q26 statistical protocol</h2>
+<h3 id="31-dependence-that-must-survive">3.1 Dependence that must survive</h3>
+<p>The 128 rows are not 128 independent market observations:</p>
+<ul>
+<li>four horizons at one anchor share lookback and most outcome bars;</li>
+<li>nearby anchors for one symbol can overlap or share serial regimes;</li>
+<li>symbols on the same sessions share market shocks; and</li>
+<li>paired R cells share panel construction while training seeds remain separate
+  learning replications.</li>
+</ul>
+<p>Long-horizon return research demonstrates how overlapping observations distort
+conventional approximations
+(<a href="https://www.nber.org/papers/w3335">Richardson and Stock 1989</a>). Resampling each
+symbol independently would also erase cross-symbol covariance, while IID
+resampling of four horizons would multiply apparent support.</p>
+<h3 id="32-leading-candidate-synchronized-calendar-block-resampling">3.2 Leading candidate: synchronized calendar-block resampling</h3>
+<p>The leading design candidate is:</p>
+<ol>
+<li>join candidate and control by immutable task identity and subtract first;</li>
+<li>keep all four horizon deltas inside their anchor;</li>
+<li>derive, from metadata only, each anchor's maximal information/outcome window
+   from the 60-bar lookback through the 200-bar future bound;</li>
+<li>merge intersecting or predeclared-adjacent windows into ordered calendar
+   components;</li>
+<li>apply the same calendar block draw or multiplier to every affected symbol;</li>
+<li>rebuild complete replicas and recompute horizon -&gt; anchor -&gt; symbol -&gt;
+   equal-symbol Q24 in every draw; and</li>
+<li>report the point estimate, interval, effective support, block specification,
+   and predeclared sensitivity results.</li>
+</ol>
+<p>This construction is an iTrader inference. It requires layout-specific null
+simulation before outcomes are opened. A sparse panel may not permit ordinary
+resampling without dropping a symbol; silent eleven-symbol renormalization is
+not Q24. Fixed-support block multipliers, moving/circular/stationary blocks,
+fixed-b subsampling, and HAC are candidates to compare on the exact frozen
+layout, not interchangeable implementations.</p>
+<p>The <a href="evaluation-quant-methodology-2026-10-06-evidence/statistical-protocol-primary-sources.md">statistical evidence note</a>
+details assumptions, alternatives, primary sources, failure modes, and tests.</p>
+<h3 id="33-candidate-alternatives-and-their-limits">3.3 Candidate alternatives and their limits</h3>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Useful target</th>
+<th>Proper role here</th>
+<th>Main limit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Synchronized moving/stationary block bootstrap</td>
+<td>Exact nonlinear Q24 paired contrast</td>
+<td>Leading candidate pending layout calibration</td>
+<td>Block/support sensitivity; cannot create complete symbol coverage</td>
+</tr>
+<tr>
+<td>Calendar-block subsampling/fixed-b</td>
+<td>Same contrast</td>
+<td>Strong finite-sample sensitivity or fallback candidate</td>
+<td>Needs enough complete chronological subsamples</td>
+</tr>
+<tr>
+<td>HAC long-run variance</td>
+<td>Ordered mean/linearized contribution series</td>
+<td>Analytic sensitivity</td>
+<td>Small-sample bandwidth and irregular-support sensitivity</td>
+</tr>
+<tr>
+<td>PSR/DSR</td>
+<td>A genuine Sharpe-series question and, for DSR, logged search adjustment</td>
+<td>Later diagnostic only</td>
+<td>Not Q24; overlapping episode Sharpes are not a portfolio return series</td>
+</tr>
+<tr>
+<td>White Reality Check / Hansen SPA</td>
+<td>Whether any member of a declared family beats a benchmark</td>
+<td>Optional global multiplicity layer</td>
+<td>Requires complete trial family and valid dependence resampler</td>
+</tr>
+<tr>
+<td>Romano-Wolf StepM</td>
+<td>Adjusted individual comparisons</td>
+<td>Optional if naming cells is the goal</td>
+<td>Same inventory/resampling requirements</td>
+</tr>
+</tbody>
+</table>
+<p>PSR and DSR do not provide uncertainty for Q24 terminal net return. DSR also
+depends on an honest inventory of tried strategies and their dispersion
+(<a href="https://www.davidhbailey.com/dhbpapers/deflated-sharpe.pdf">Bailey and Lopez de Prado 2014</a>).
+White's Reality Check and Hansen's SPA address data snooping over a declared
+candidate family; neither repairs an exposed panel, missing runs, or only two
+training seeds
+(<a href="https://onlinelibrary.wiley.com/doi/10.1111/1468-0262.00152">White 2000</a>,
+<a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=264569">Hansen 2005</a>).</p>
+<h3 id="34-outcome-blind-support-audit-and-failure-policy">3.4 Outcome-blind support audit and failure policy</h3>
+<p>Before panel freeze, report from metadata:</p>
+<ul>
+<li>unique sessions, dates, anchors, symbols, offsets, and merged calendar
+  components;</li>
+<li>component size, calendar span/gaps, symbol coverage, and share of fixed Q24
+  weight;</li>
+<li>number of candidate contiguous blocks across a predeclared block grid;</li>
+<li>whether every method can preserve twelve-symbol/four-horizon support;</li>
+<li>component influence and a fully defined descriptive effective-support value;
+  and</li>
+<li>simulated coverage/type-I error under common-factor, serially dependent,
+  heavy-tailed, and null paired-effect designs matched to the layout.</li>
+</ul>
+<p>Fail closed rather than shorten blocks until an interval appears when support is
+degenerate, a component dominates, the hierarchy cannot be preserved, plausible
+block choices reverse the conclusion without a design reason, or null
+calibration fails its later predeclared tolerance. This note deliberately sets
+no numerical cutoff, confidence level, alpha, block length, or bootstrap count.</p>
+<h2 id="4-causal-local-action-diagnostics">4. Causal local-action diagnostics</h2>
+<h3 id="41-replace-one-step-sharpe-with-an-action-value-vector">4.1 Replace one-step Sharpe with an action-value vector</h3>
+<p>A Sharpe ratio requires a series of differential returns and a dispersion
+estimate; a single realized return has neither
+(<a href="https://web.stanford.edu/~wfsharpe/art/sr/sr.htm">Sharpe 1994</a>). Current
+<code>EpisodeEvidence</code> also returns zero by convention for fewer than two returns.
+Therefore do not call <code>one_next_return / lagged_volatility</code> a one-step Sharpe.</p>
+<p>For prior position <code>q_t</code>, target action <code>a</code> in <code>{-1,0,+1}</code>, next asset return
+<code>r_(t+1)</code>, and cost rate <code>c</code>, define a continuation probe:</p>
+<pre><code class="language-text">gross_1(a)        = a * r_(t+1)
+switch_cost_1(a)  = c * |a - q_t|
+net_continue_1(a) = gross_1(a) - switch_cost_1(a)
+</code></pre>
+<p>A forced one-bar round trip is a different estimand:</p>
+<pre><code class="language-text">net_roundtrip_1(a) = net_continue_1(a) - c * |a|
+</code></pre>
+<p>The latter includes terminal liquidation; the continuation probe intentionally
+does not. Mixing them would reward flat for an accounting choice rather than
+answer the intended action question.</p>
+<h3 id="42-causality-and-controls">4.2 Causality and controls</h3>
+<p>At decision time, serialize and freeze the 60 past bars, prior position, task
+identity, policy action, and any scale/loading estimate. Only then read the next
+bar as outcome. The historical simulator can mechanically score all three
+actions on the same exogenous path, but:</p>
+<pre><code class="language-text">oracle_value = max_a net_continue_1(a)
+oracle_gap   = oracle_value - net_continue_1(policy_action)
+</code></pre>
+<p>is a hindsight diagnostic. It must never be reported as policy PnL, fed into
+the action, or used as deployment confidence. This is consistent with offline
+policy evaluation: a target policy is fixed from context before the realized
+reward is used to score it
+(<a href="https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/Published-3.pdf">Li et al. 2011</a>).</p>
+<p>Report the policy action versus:</p>
+<ul>
+<li>hold prior position;</li>
+<li>target flat;</li>
+<li>target long and target short separately;</li>
+<li>a seeded random action policy; and</li>
+<li>optionally a lagged-loading residual benchmark, only if supported.</li>
+</ul>
+<p>Hold and flat differ whenever the prior position is nonzero. Flat then incurs a
+close cost even though next-bar exposure is zero.</p>
+<h3 id="43-lagged-volatility-and-edge-cases">4.3 Lagged volatility and edge cases</h3>
+<p>A candidate normalizer may use trailing RMS, sample standard deviation, EWMA,
+or a time-of-day-conditioned estimate, but it must use only bars through <code>t</code>,
+be identical across compared actions/policies at the anchor, and remain named
+and versioned. Research on volatility-managed portfolios supports lagging the
+scale; it does not validate a particular 60-minute estimator for iTrader
+(<a href="https://amoreira2.github.io/alan-moreira.github.io/VolPortfolios_published.pdf">Moreira and Muir 2017</a>).</p>
+<p>Always retain raw gross/cost/net. Zero or non-finite scale makes the normalized
+field unavailable and increments a coverage counter. Zero exposure similarly
+makes exposure-normalized ratios unavailable. Neither condition is evidence of
+zero risk or skill.</p>
+<p>One-step results diagnose local direction and switch-cost sensitivity. Full
+terminal replay remains necessary for continuation behavior, repeated
+switching, state use, drawdown, horizon, and liquidation. If a future evaluator
+branches one action then follows the policy, every branch needs independently
+cloned environment, inventory, model/recurrent state, and randomness.</p>
+<p>The complete construction and source ledger are in
+<a href="evaluation-quant-methodology-2026-10-06-evidence/capability-diagnostics-primary-sources.md">the capability diagnostics note</a>.</p>
+<h2 id="5-offline-evidence-and-the-future-online-capabilityprofile">5. Offline evidence and the future online CapabilityProfile</h2>
+<p>The current
+<a href="../../../itrader/rl_lib/tasks/capability_profile.py"><code>CapabilityProfile</code></a> stores
+identity, horizon/regime descriptors, <code>estimated_p_solve</code>, expected net utility,
+calibration error, sample count, and metadata. <strong>Verified local fact:</strong> it does
+not specify how those values are estimated, calibrated, refreshed, or made safe
+for online use.</p>
+<p>The research boundary is therefore two-stage:</p>
+<h3 id="stage-a-offline-held-out-capability-evidence">Stage A: offline held-out capability evidence</h3>
+<p>Preserve an inspectable evidence bundle containing:</p>
+<ul>
+<li>solver/checkpoint/source/data/panel/cost identities;</li>
+<li>task family, symbol/resolution, horizon, and causal context definition;</li>
+<li>raw economic and active-return vectors;</li>
+<li>one-step local diagnostics and terminal metrics, explicitly distinguished;</li>
+<li>named controls and oracle-only fields;</li>
+<li>action/exposure/turnover and coverage slices;</li>
+<li>uncertainty object and method identity; and</li>
+<li>probability/calibration evidence only when a real probabilistic prediction
+  and held-out outcome definition exist.</li>
+</ul>
+<p>Metric construction, uncertainty, and calibration are separate concerns.
+Proper scoring-rule theory distinguishes whether probabilities match observed
+events from how sharp or useful those predictions are
+(<a href="https://sites.stat.washington.edu/people/raftery/Research/PDF/Gneiting2007jasa.pdf">Gneiting and Raftery 2007</a>).
+If no probability model exists, <code>calibration_error</code> is unavailable, not zero.</p>
+<h3 id="stage-b-future-onlineshadow-operational-projection">Stage B: future online/shadow operational projection</h3>
+<p>A separately versioned reducer may later transform qualified held-out evidence
+into <code>CapabilityProfile</code> for solver eligibility and candidate-task matching.
+That transform requires its own source-panel identity, calibration method,
+freshness/staleness rules, support requirements, abstention behavior, and tests.</p>
+<p>The same underlying held-out evidence may later serve an explicitly approved
+offline Phase B curriculum consumer through a separate, versioned adapter. That
+adapter must use a declared adaptive validation or rolling-evaluation source,
+must preserve the evidence/provenance record, and must never train on the
+terminal screen or sealed final test. This is the planned capability-to-<code>r_prop</code>
+feedback seam, not a behavior enabled by the current dataclass or this research
+artifact.</p>
+<p>The profile remains evidence consumed by a future capability-matching layer
+after <code>MarketFramer</code> produces <code>CandidateTask</code> options, and by <code>DecisionGate</code>
+eligibility logic only after held-out calibration. This matches the existing
+<a href="../../project-state/decisions.md">project decision</a> that profiles are updated
+from held-out or rolling evaluation slices for later online gating. The profile
+does not place orders, override deterministic risk, or make <code>WAIT</code> a fourth
+solver action. <code>WAIT</code> remains a first-class online-shell outcome; the solver's
+action space remains short/flat/long.</p>
+<h2 id="6-lessons-from-open-source-trading-environments">6. Lessons from open-source trading environments</h2>
+<p>The survey found transferable <strong>contract patterns</strong>, not validated trading
+edge:</p>
+<table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>Verified useful pattern</th>
+<th>iTrader mapping</th>
+<th>Do not import blindly</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/AI4Finance-Foundation/FinRL-Meta">FinRL-Meta</a></td>
+<td>Data/environment/agent separation; cost and run memories</td>
+<td>Preserve explicit environment and evidence ledgers</td>
+<td>Continuous share actions or turbulence liquidation</td>
+</tr>
+<tr>
+<td><a href="https://github.com/microsoft/qlib">Microsoft Qlib</a></td>
+<td>Explicit train/valid/test roles, fit bounds, benchmark, costs, recorder artifacts</td>
+<td>Bind data role, preprocessing, run, position, and benchmark provenance</td>
+<td>Example dates, fees, or naming <code>test</code> as proof of final-test status</td>
+</tr>
+<tr>
+<td><a href="https://github.com/tensortrade-org/tensortrade">TensorTrade</a></td>
+<td>Composable action/reward/observer/feed/exchange/portfolio seams</td>
+<td>Keep ownership explicit</td>
+<td>Treating arbitrary swappability as scientific validity</td>
+</tr>
+<tr>
+<td><a href="https://github.com/AminHP/gym-anytrading">Gym-AnyTrading</a></td>
+<td>Compact windowed environment</td>
+<td>Negative comparison for implicit initial short and binary actions</td>
+<td>Fee-free oracle or binary action contract</td>
+</tr>
+<tr>
+<td><a href="https://github.com/ClementPerroud/Gym-Trading-Env">Gym-Trading-Env</a></td>
+<td>Target positions <code>[-1,0,1]</code>, current/last position, fees and borrow cost</td>
+<td>Closest action/inventory vocabulary</td>
+<td>Its default reward/leverage/termination assumptions</td>
+</tr>
+<tr>
+<td><a href="https://papers.neurips.cc/paper_files/paper/2023/file/b8f6f7f2ba4137124ac976286eacb611-Paper-Datasets_and_Benchmarks.pdf">TradeMaster</a></td>
+<td>Chronological rolling periods, multiple metrics and seeds</td>
+<td>Separate time-period from seed variation</td>
+<td>Its particular windows, ranks, or algorithms as sufficient evidence</td>
+</tr>
+</tbody>
+</table>
+<p>The durable lesson is explicit data roles, position/cost semantics,
+benchmark-relative evidence, and run provenance. No surveyed platform proves
+that its default split, cost, reward, action space, or headline result is right
+for iTrader. See the
+<a href="evaluation-quant-methodology-2026-10-06-evidence/benchmark-environment-primary-sources.md">benchmark-environment evidence note</a>.</p>
+<h2 id="7-q23-recovery-versus-a-separately-declared-evaluation-dataset">7. Q23: recovery versus a separately declared evaluation dataset</h2>
+<p>Q23 is upstream of Q26. A sophisticated interval cannot repair an exposed or
+unprovable panel. Repeated adaptive access to a holdout changes its validity;
+formal reusable-holdout work treats information released from held-out data as
+a first-class resource rather than assuming a date label remains untouched
+(<a href="https://pubmed.ncbi.nlm.nih.gov/26250683/">Dwork et al. 2015</a>).</p>
+<h3 id="option-a-source-bound-historical-recovery">Option A: source-bound historical recovery</h3>
+<p>The source/code audit owns this route. Certification requires, at minimum:</p>
+<ul>
+<li>exact dirty-source binding for historical producer hashes, not merely the
+  current Git tree;</li>
+<li>RNG/reset/cursor semantics and worker identity;</li>
+<li>reconstruction of the actual historical projected frame for each producer,
+  mapped by symbol and UTC timestamp; for the recovered controls the frame is
+  the same canonical twelve-symbol configuration, while the observed six- and
+  eight-symbol counts are task-symbol coverage of two panels, not different
+  market-frame layouts;</li>
+<li>reconstruction of per-evaluation starts for every relevant report;</li>
+<li>dataset, task, config, checkpoint, and producer identities; and</li>
+<li>proof that candidate anchors/windows were not previously inspected.</li>
+</ul>
+<p>DEV's corrected metadata audit establishes that all sixteen legacy-control
+configs declare the same twelve <code>data_symbols</code>. The canonical regular-frame
+mapping matches all 512 recorded sidecar <code>(index, symbol)</code> pairs and identifies
+48 unique start coordinates: 32 unpanelled, eight September crossed-panel, and
+eight January crossed-panel starts. That mapping evidence does not prove the
+exact historical within-
+symbol ordering without the dirty source snapshot, and recorded locations are
+not source-bound RNG reconstruction. The bounded search of the 26 exact
+randomized stable-trial directories plus source/snapshot/manifest-named
+immediate siblings at eight parent locations found zero candidate source
+snapshots. The randomized starts therefore remain unrecovered, and the
+conservative 2,052-anchor bound still yields zero certified-fresh candidates.
+Both independent evaluation-code reviews return <code>CHANGES</code>; Q27's four bounded
+mechanical repairs remain a separate pending human decision, not a methodology
+adoption. DEV's
+<a href="evaluation-code-audit-2026-10-06.md">evaluation-code audit</a> owns the dated
+counts and reconstructability correction. Unresolved cases stay excluded;
+"likely" starts are not non-exposure proof.</p>
+<h3 id="option-b-separately-declared-evaluation-only-data">Option B: separately declared evaluation-only data</h3>
+<p>Older or newer alone does not prove non-exposure. Before reading returns,
+declare:</p>
+<ul>
+<li>provider/feed, adjustment policy, bar resolution, RTH/calendar source, and
+  continuity requirements;</li>
+<li>acquisition universe and the fixed twelve-symbol role or an explicitly
+  human-approved change;</li>
+<li>whether the slice is adaptive validation, terminal screening, or a new sealed
+  final test;</li>
+<li>preprocessing-fit boundaries, purge/overlap rules, and inspected-anchor
+  exclusions; and</li>
+<li>metadata coverage/diversity and Q26 calendar-support feasibility.</li>
+</ul>
+<p>Do not apply a generic 70/15/15 split to a short evaluation-only slice. Do not
+repartition the existing sealed final test. If the new source differs from
+training data, provider/acquisition shift becomes an explicit factor, not an
+invisible freshness benefit.</p>
+<h3 id="decision-rule">Decision rule</h3>
+<p>Choose one primary route before further terminal-panel work. A hybrid is
+possible, but it answers two different questions and adds a provider/source
+factor; it should not become an indefinite attempt to find whichever panel
+looks better. Panel identity, eligibility, and exclusion must be fixed from
+metadata before returns or model outcomes are read.</p>
+<h2 id="8-candidate-practical-protocol">8. Candidate practical protocol</h2>
+<p>This sequence is a research recommendation, not execution authorization:</p>
+<ol>
+<li>Decide Q23 recovery versus separate evaluation-only data, including the
+   data role and strict non-exposure proof.</li>
+<li>Run only metadata-level eligibility and calendar-support diagnostics.</li>
+<li>Generate candidate Q26 layouts and calibrate them on synthetic nulls that
+   reproduce the exact sparse/dependent structure.</li>
+<li>Human-select and seal the Q26 family, block rule/grid, interval construction,
+   multiplicity family, and fail policy without seeing terminal outcomes.</li>
+<li>Complete R1 implementation/review and freeze all sixteen effective configs,
+   source/runtime identities, training seeds, checkpoints, controls, and the
+   terminal panel.</li>
+<li>Train all cells; open the terminal panel only after completion, using the
+   same deterministic 1 bp task set and exact candidate/control joins.</li>
+<li>Report per-seed Q24/Q25, the attribution vector, named controls,
+   concentration slices, and checkpoint-conditional calendar uncertainty.</li>
+<li>Report two-seed agreement descriptively; do not claim the training-run
+   sampling distribution.</li>
+<li>Run any predeclared familywise procedure only with the complete registered
+   family and the same dependence-preserving resampler.</li>
+<li>Treat the result as attribution/feasibility evidence, not automatic
+    economic promotion or deployment permission.</li>
+</ol>
+<h2 id="9-minimum-tests-for-a-later-implementation-pass">9. Minimum tests for a later implementation pass</h2>
+<h3 id="economic-and-aggregation-contracts">Economic and aggregation contracts</h3>
+<ul>
+<li>Property-test <code>net = gross - cost</code> and
+  <code>net = direction + timing - cost</code>, including all position transitions and
+  exactly one true terminal liquidation.</li>
+<li>Prove long-only has zero timing residual, short-only mirrors it, and flat has
+  zero gross/turnover from zero prior exposure.</li>
+<li>Reject mismatched, missing, duplicate, censored, wrong-horizon, or wrong-cost
+  candidate/control joins.</li>
+<li>Hand-check Q24 hierarchy under unequal anchor counts and row permutations;
+  never silently renormalize incomplete symbols/horizons.</li>
+<li>Verify Q25 normalizes each episode before aggregation and uses actual positive
+  decision steps.</li>
+</ul>
+<h3 id="dependence-and-multiplicity-contracts">Dependence and multiplicity contracts</h3>
+<ul>
+<li>Keep all horizons of an anchor on one resampling weight.</li>
+<li>Apply one synchronized draw/multiplier to overlapping calendar windows across
+  symbols; include a test that independent-per-symbol resampling fails.</li>
+<li>Preserve twelve-symbol/four-horizon support in every valid replicate.</li>
+<li>Simulate common-factor, serially dependent, heavy-tailed nulls and record
+  coverage/type-I error before outcome access.</li>
+<li>Refuse population-seed inference from two seeds.</li>
+<li>Require the complete predeclared cell/metric/control family for multiplicity
+  procedures; treat selected stronger direction as simultaneous or descriptive.</li>
+</ul>
+<h3 id="causal-diagnostic-contracts">Causal diagnostic contracts</h3>
+<ul>
+<li>Persist observation, policy action, lagged volatility, and any lagged loading
+  before outcome access; future-row perturbation must not alter them.</li>
+<li>Exhaustively test all nine prior-position/target-action transition costs.</li>
+<li>Separate continuation from forced-roundtrip liquidation semantics.</li>
+<li>Serialize hindsight maxima only under <code>oracle</code>/<code>diagnostic_only</code> names.</li>
+<li>Keep zero/non-finite scale and zero-exposure ratios unavailable while retaining
+  raw values and coverage.</li>
+<li>Ensure no diagnostic field enters solver observations, <code>RewardEngine</code>, task
+  encoding, unapproved proposer feedback, or current R-series promotion.</li>
+<li>For any later Phase B capability-to-curriculum adapter, require a distinct
+  version and a declared validation/rolling source; assert that terminal-screen
+  and sealed final-test records cannot enter adaptive proposer updates.</li>
+</ul>
+<h3 id="capabilityprovenance-contracts">Capability/provenance contracts</h3>
+<ul>
+<li>Require a named outcome and estimator before populating <code>estimated_p_solve</code>.</li>
+<li>Require actual held-out probabilistic forecasts before calibration fields are
+  populated; otherwise record unavailable.</li>
+<li>Version and test any offline-evidence-to-profile reducer separately.</li>
+<li>Bind every result to source, dataset, config, checkpoint, panel, task, cost,
+  seed, producer, and method identities.</li>
+<li>Ensure a future profile cannot override deterministic <code>DecisionGate</code>,
+  <code>RiskEngine</code>, <code>Executor</code>, or WAIT behavior.</li>
+</ul>
+<h2 id="10-assumptions-and-known-failure-modes">10. Assumptions and known failure modes</h2>
+<ul>
+<li>Historical prices are treated as exogenous to these unit-position actions;
+  live impact/capacity is outside the simulator.</li>
+<li>Additive episode returns are not compounded capital returns.</li>
+<li>Equal-symbol results describe the declared universe, not a deployable
+  capital-weighted portfolio.</li>
+<li>Correlated equities and ETFs mean symbol count is not independence count.</li>
+<li>Ex-post regime and best-direction summaries are descriptive selectors.</li>
+<li>Episode Sharpes over 96--200 bars are short and serially structured.</li>
+<li>A 1 bp proportional cost scenario does not establish live execution.</li>
+<li>Sparse calendar components may make confirmatory Q26 inference impossible;
+  honest descriptive reporting is preferable to manufactured precision.</li>
+<li>Two seeds cannot establish robustness to training randomness.</li>
+<li>One-step action diagnostics cannot establish terminal policy value.</li>
+<li><code>CapabilityProfile</code> fields do not create calibration, uncertainty, or online
+  safety semantics by existing.</li>
+</ul>
+<h2 id="11-ordered-one-question-at-a-time-q23q26-grilling-agenda">11. Ordered one-question-at-a-time Q23/Q26 grilling agenda</h2>
+<p>Ask one question, record the answer, then ask the next; later questions depend
+on earlier choices.</p>
+<ol>
+<li><strong>Q23 source authority:</strong> Will the terminal panel use source-bound recovered
+   historical starts, or a separately declared evaluation-only dataset?</li>
+<li><strong>If separate data:</strong> Is its role adaptive validation/terminal screening or
+   a newly sealed final test, while the existing final test remains untouched?</li>
+<li><strong>Metadata contract:</strong> Which provider/feed, calendar, adjustments,
+   continuity, twelve-symbol universe, offsets, and purge/exclusion rules prove
+   eligibility without outcomes?</li>
+<li><strong>Recovery/freshness stop rule:</strong> What unresolved provenance or overlap
+   condition makes a candidate unavailable rather than "probably fresh"?</li>
+<li><strong>Q26 confirmatory target:</strong> Is Q24 terminal net the sole confirmatory
+   estimand, with Q25/horizon/Sharpe diagnostic, or are more metrics entering the
+   multiplicity family?</li>
+<li><strong>Contrast family:</strong> Which R1/R0, R4, interaction, curriculum, and control
+   contrasts are confirmatory before the panel opens?</li>
+<li><strong>Calendar unit:</strong> Based on metadata-only layout diagnostics, should Q26 use
+   session dates, merged maximal-window components, or another predeclared
+   synchronized unit?</li>
+<li><strong>Method family:</strong> Which synchronized block bootstrap, fixed-support
+   multiplier, fixed-b subsampling, and HAC candidates should enter null
+   calibration?</li>
+<li><strong>Calibration/failure rule:</strong> What prospective coverage/error and instability
+   policy makes Q26 fail closed, and what support evidence is required?</li>
+<li><strong>Multiplicity output:</strong> Is the goal a global RC/SPA-style family test,
+    adjusted individual StepM comparisons, or descriptive attribution only?</li>
+<li><strong>Seed scope:</strong> Do we explicitly retain two seeds as a mechanics/attribution
+    screen and require a later seed-powered replication before promotion?</li>
+<li><strong>Capability handoff:</strong> Which offline evidence fields may later feed a
+    separately validated online/shadow <code>CapabilityProfile</code>, and what event is
+    any <code>p_solve</code> probability calibrated against?</li>
+</ol>
+<h2 id="evidence-package">Evidence package</h2>
+<ul>
+<li><a href="evaluation-quant-methodology-2026-10-06-evidence/quant-attribution-primary-sources.md">Quantitative attribution</a></li>
+<li><a href="evaluation-quant-methodology-2026-10-06-evidence/statistical-protocol-primary-sources.md">Statistical protocol and primary sources</a></li>
+<li><a href="evaluation-quant-methodology-2026-10-06-evidence/capability-diagnostics-primary-sources.md">Causal capability diagnostics</a></li>
+<li><a href="evaluation-quant-methodology-2026-10-06-evidence/benchmark-environment-primary-sources.md">Open-source benchmark/environment survey</a></li>
+</ul>
+<h2 id="bottom-line">Bottom line</h2>
+<p>The evaluation problem is not solved by adding more metrics. It is solved by
+making each claim's estimand, comparison, dependence unit, data role, and
+consumer explicit. For the immediate R-series work, retain Q24/Q25, deepen the
+paired economic attribution, settle Q23, and calibrate Q26 before opening a
+panel. Build offline capability evidence in parallel. Transfer it into the
+future online <code>CapabilityProfile</code>, or into a later approved Phase B curriculum
+feedback adapter, only through separate versioned and validated contracts that
+keep terminal/final evidence isolated from adaptive training.</p>
+</article>
+<footer>Faithful HTML companion to <a href="evaluation-quant-methodology-2026-10-06.md">the Markdown source</a>. Research-only evidence and candidate protocol; no adoption or execution authorization.</footer>
+</main>
+</body>
+</html>

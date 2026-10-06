@@ -1,6 +1,34 @@
 # Next Actions
 
-Last updated: 2026-10-04
+**Evaluation audit completed (2026-10-06):** the bounded recovery maps 512
+recorded control rows to 48 starts; 26 randomized configs remain source-unbound.
+Both fresh independent reviews return CHANGES. Q27's four mechanical repairs and
+Q23/Q26 scientific decisions await approval. This does not reopen the accepted eight-control
+replay receipts or approve new metrics, split rules, data collection or training.
+The inherited physical-dataset-end/reset defect is reproduced; all 256 accepted
+control episode identities have full horizons and lie below that edge. No panel
+is certified or opened, no actual terminal executor is available, and R1 remains
+unimplemented. Research proposals require individual GRILL decisions before use.
+See the [current code audit](../artifacts/research/evaluation-code-audit-2026-10-06.md)
+for independently reproduced evaluator gaps and the pending Q27 repair scope.
+
+**Prerequisite audit update (2026-10-06):**
+The sixteen-cell scientific loadout draft and fail-closed read-only terminal
+preflight are implemented. Metadata-only auditing found 2,052 provisional
+symbol/session anchors, but conservative historical possible-exposure exclusion
+leaves zero certified fresh candidates. Sixteen control episode sidecars recover
+recorded starts; the 26 randomized runs still lack source-bound start proof.
+Q23's recovery/new-data decision and Q26's calendar-block method block panel
+freeze. The real 128-task executor,
+matched control receipts and final pre-training config/source seal remain
+required; passing preflight does not authorize evaluation. No panel was frozen
+or opened, and no training or R1 implementation occurred. Corrected eight-cell
+controls remain replay-qualified without economic promotion. Native migration
+stays isolated; dirty work and artifacts are preserved. See the
+[qualification audit](../artifacts/research/r1-panel-qualification-2026-10-06.md).
+The dated execution notices below are historical, not active launch authority.
+
+Last updated: 2026-10-06
 
 Use the [iTrader Research Dashboard](../research/itrader_research_dashboard.md)
 for wing identity and dependency context; this file owns the ordered operational
@@ -11,6 +39,139 @@ metrics into the registry.
 
 ## Immediate R1 development preparation
 
+### Current bounded queue (2026-10-06)
+
+1. Settle Q27's four mechanical correction boundaries in GRILL; patch owning
+   seams test-first and return every fix to fresh independent review. Do not
+   change the frozen evaluator or rewrite accepted historical receipts.
+2. Settle Q23 after the completed bounded recovery: 48 recorded starts are
+   conditionally mapped, but 26 randomized configs remain source-unbound. Approve
+   a further evidence-recovery scope or explicit evaluation-only data role;
+   no nominal-seed or newer-date shortcut to freshness.
+3. Choose Q26 grouping/block/interval/coverage/seed terms after metadata support
+   and synthetic calibration; the methodology synthesis is not approval.
+4. Implement/review the actual all-16 terminal executor with sealed identities,
+   predetermined terminals, matched controls and accepted Q24/Q25/Q26 outputs.
+5. Advance R1 only at the agreed reviewed boundary. Native migration remains
+   isolated and is not substituted for these corrected-compatibility gates.
+
+The notices below preserve prior execution history, not current launch authority.
+
+**Final closeout, 16:38:** the eight corrected-control terminal replays and final
+independent evidence audit are complete. Healthcheck, 416 tests and pre-commit
+pass. No replay work remains from attempt04. Resume at Q21/Q23/Q24/Q25 below:
+panel/completion enforcement, non-exposure qualification, equal-symbol reporting
+and per-actual-bar diagnostics; then R1 implementation and fixed-recipe comparison.
+No economic promotion. Earlier pending-replay entries are historical.
+
+**16:32 current:** all eight terminal replays completed with 256 witnessed
+episodes and exact indexed payload/score/checkpoint parity. Finish independent
+aggregate review and the already-running serialized repository checks; do not
+launch another training run. Then close accepted Q21/Q23/Q24/Q25 execution
+prerequisites before R1: all-cell completion/panel-opening enforcement, verified
+panel non-exposure, equal-symbol weighting and actual-bar duration diagnostics.
+Keep causal staging explicit and matched. No economic promotion. See the control
+audit for preserved failures and the two successful replay roots. WSL stays off.
+
+**16:10 supersession:** reviewed Windows job-object containment is implemented
+and approved by two independent reviewers. Resume eight sequential terminal
+replays using the frozen evaluator snapshot and separately identified repaired
+launcher; repeat terminal3 too for uniform lifetime evidence. Per-job300s,
+hard1GiB/proactive1.25GiB/startup5GiB; the human removed the global deadline.
+No new training/R1. Finish second-model score-gate review and serialized full
+validation, then reconcile all eight receipts and dashboard. Browser tests now
+pass45/45; the earlier hard-coded registry-ID gap is fixed. Historical holds
+and the failed15:37 watchdog attempt remain preserved in the control audit.
+
+**15:16 renewed closeout:** seven witnessed terminal replays are authorized
+(remaining 4--8 and repeats 1--2), source frozen, 7 GiB startup / 2 GiB runtime,
+deadline 15:46 Madrid. The child-local Ray CPU cap is now an explicit operational
+factor; no checkpoint configuration changes. At 15:25 new launches are held
+while supervisor descendant cleanup is checked: fresh Sol review reproduced
+parent-only timeout cleanup in `launch_replay`. Repair and independently review
+that safety path after the frozen replays (or before a separately labelled
+restart if safe external supervision is unavailable). Native Bugbot launch is
+unavailable; the repository's normal independent review ladder is in progress.
+Earlier hold below remains historical evidence, not the latest authorization.
+
+**13:48 safety stop overrides earlier launch instructions:** attempt04 training
+is complete, but replay 3 crossed the 2 GiB RAM floor (1.47 GiB observed).
+It exited naturally; no owned processes remain. Heartbeat is paused and further
+replay is held. Define a safer replay resource envelope before the remaining
+five terminals and two witnessed repeats. Inspect the replay Ray node's uncapped
+CPU initialization as a possible resource factor without editing frozen source.
+Three receipts have exact payload parity; full replay/evidence acceptance and
+fresh independent review remain open. All checkpoints are preserved.
+The Experiment Browser now includes all eight terminals (docs-only update).
+After the Python-source freeze ends, refresh the hard-coded experiment-ID list
+in `test_experiment_browser.py` and run all 45 browser tests. Meanwhile 44 generic
+tests and separate production render/source equality checks pass; do not claim
+an unchanged full-suite pass for this registry increment.
+
+**2026-10-05 ordering update:** compatibility fixes have scoped Sol/Astra approval,
+406 passing tests after the fixed-run entropy-schedule increment, and a green
+serialized pre-commit run. Next,
+run bounded fresh R0 / R0 + R4-v1 controls on corrected Ray 2.58 compatibility
+APIs; implement and compare R1 / R1 + R4-v1 on that same stack. Only afterward
+perform the native RLModule/Learner/EnvRunner migration, with all four cells
+repeated as an explicit platform bridge. No silent rewrite of historical runs.
+Audit old effective optimizer/policy settings separately from recorded mutation
+requests; donor restore and obsolete minibatch/epoch names can make them differ.
+See the [foundation audit](../artifacts/research/r1-foundation-hardening-2026-10-05.md).
+
+**Current run decision:** the user has resumed the corrected-compatibility
+control round with GPT-6 Luna/xhigh supervision. Preflight and frozen declaration
+are tracked in the [control-run audit](../artifacts/research/corrected-compatibility-r0-r4-controls-2026-10-05.md).
+This supersedes the prior deferral; PBT remains off and R1 remains unimplemented.
+After the human freed RAM, smoke attempt 02 completed both one-update cells
+and fresh-process 32-task replays (5 GiB startup margin, 2 GiB runtime floor;
+sampled minimum 3.35 GiB). Attempt 01's pre-training cadence failure is preserved;
+explicit matching intervals and all-cell full-builder checks now pass.
+Attempt03 launched at 12:09:28, then stopped its owned tree at 12:18:32 for a
+derived-training-metric reporting defect. One cell completed 12 updates;
+cell 2 stopped after two. Independent review found raw training metrics,
+evaluation economics and checkpoint digests intact. Finish terminal replay,
+repair/review reporting, and restart the matched study under a new frozen source
+fingerprint. Reporting repair now passes 412 tests, healthcheck, pre-commit and
+independent Sol/Astra approval; Luna is cleared for attempt04 preflight with
+source `944d7d30...58fcf233`. Preserve the initial RAM hold, failed launcher and partial run.
+Do not open the fresh terminal panel.
+
+Attempt04 training completed at 13:30:16 Europe/Madrid: all eight cells,
+467,584 sampled steps; all 96 reporting rows and 33 indexed checkpoint hashes
+pass parent checks. Luna must finish eight sequential fresh terminal replays
+before evidence-review closure and final dashboard indexing. Training processes
+have exited; no extra training or retained-best replay is authorized here.
+Luna is primary supervisor;
+`monitor-corrected-r0-r4-attempt04` is the five-minute recovery heartbeat.
+Do not duplicate work or edit the frozen source/configuration.
+At 13:37, replay launch is held below the unchanged 5 GiB startup gate
+(approximately 4.12 GiB available). All eight terminal selections pass input
+identity checks; no replay is active. Wait for RAM recovery and agent capacity
+for independent closure review; do not bypass either gate.
+The 13:42 check supersedes that RAM hold: replay 1 completed with exact payload
+parity, but its launcher/driver relationship was not observed live. Luna owns
+the remaining seven replays with persisted process witnesses plus one bounded
+repeat of terminal 1; preserve the original receipt and its observation limit.
+
+The human has explicitly authorized the eight-cell development bridge; Luna/xhigh
+has completed training with its unchanged loadout (12 updates per cell, 460,800
+nominal total training steps, PBT off). Preserve retained checkpoints, but replay
+only the eight terminals for this closure, without calling it a Q21 screen.
+In parallel, audit the accepted Q23
+metadata-only sampling rule for feasibility, then implement
+Q21 initialization/fresh-panel/completion gates before the target screen; do not
+retroactively count this smoke as a qualifying screen cell. The separate bridge
+remains a distinct experiment if explicitly chosen, not a substitute for Q21.
+The
+[retained-checkpoint audit](../artifacts/research/ray258-historical-optimizer-audit-2026-10-05.md)
+confirms effective 30 epochs / minibatch 128 in all ten sampled terminals,
+donor-setting divergence in five exploited targets and six member-00002
+self-resume entropy resets. Freeze explicit native optimizer settings first.
+The proposed control uses historical-effective 30/128 across both fresh cells;
+an intentional 20-epoch recipe is a separate factor. Keep the repaired schedule,
+not the historical reset spikes. Stop before R1 implementation in this pass.
+
 Use [R1 development readiness](r1-development-readiness.md) for the source-grounded
 diagnostics, replay identity, model selector and window-encoder acceptance tests.
 The [fresh independent review](../artifacts/research/r1-readiness-independent-review-2026-10-03.md)
@@ -19,8 +180,25 @@ The proposed representation study now includes four cells: R0, R0 + R4-v1,
 R1, and R1 + R4-v1, each under explicit exact-cost and causal-staging factors.
 This completes the encoder-by-solver-state comparison. GRILL confirms the
 four-cell matrix, 5-to-156 window LSTM with 256-wide projection, and compressed
-sampled-step cost curriculum. Sharing, panel/seeds, exact cost boundaries and
-budget still need the GRILL declaration before launch. Close the review blockers,
+sampled-step cost curriculum. Q18 now accepts shared encoder/projection/FiLM
+with separate pi/vf heads. Q19 structural selectors and Q20 budget are accepted:
+16 runs, two paired seeds, 57,600 nominal steps each, compressed cost boundaries
+14,400 / 28,800 / 43,200. Q21 two-tier evaluation is accepted: implement and
+freeze the fresh 128-task terminal panel and all-16 completion gate separately
+from inspected 32-task initialization/update monitoring. Q22 freezes the identical
+corrected optimizer recipe across all 16 cells; Q23 sampling is approved but
+its eligibility audit/panel freeze remain outstanding. Implement the accepted
+Q24 equal-symbol terminal-net report alongside unchanged legacy metrics and
+accepted Q25 per-episode net-bps-per-actual-bar diagnostics after the run's
+source freeze ends. Do not reuse unweighted uncertainty for
+the new estimand or accept incomplete horizon/symbol coverage.
+Metadata coverage is feasible (4,094 slots after all four known-panel exclusions),
+but audit available historical randomized evaluation starts before asserting
+freshness or freezing a panel. The count alone does not close that gate.
+The exploratory per-panel reporting counter was reconciled: 4,158 candidates,
+64 unique exclusions (16 per panel), 4,094 retained. Historical-random-start
+exposure remains unresolved despite that successful recount.
+Close remaining execution gates,
 learner clip-fraction and verified replay receipts first; no R1 implementation
 or new training run is claimed by this preparation pass.
 The readiness contract also contains six GRILL acceptance checks: semantic

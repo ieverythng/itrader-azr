@@ -1,6 +1,6 @@
 # iTrader Architecture Entry Point
 
-Last reconciled: 2026-10-01
+Last reconciled: 2026-10-06
 Branch snapshot: `agent/Watson-dev` with the uncommitted R4-v1 implementation/evidence round
 Status: **active working architecture; R0 + R4-v1 is architecture-qualified but economically unpromoted, and R1-R3 remain unimplemented**
 
@@ -11,6 +11,21 @@ evidence navigation are in
 `docs/research/itrader_research_dashboard.md` (+ `.html`).
 
 ## Implemented baseline
+
+Ray 2.58 is the current runtime, using the ModelV2/TorchPolicy compatibility
+stack. Compatibility repairs have scoped independent approval; native RLModule/Learner/EnvRunner
+is a deferred platform factor after R1, with a four-cell parity bridge.
+`models/registry.py` owns structural selection and restore identity;
+`models/observation_contract.py` owns opt-in semantic observation validation.
+`r0_r1_v1` pins OHLCV order, the 60-bar chronological window, task encoding,
+NoFilter/market_relative_v1 and zero_v1 state initialization. Historical profiles
+remain distinct. R1's selector is reserved and fails closed until implemented.
+PPO diagnostics and restore reconciliation belong to the training adapter;
+replay/config/data/source identity belongs to evaluation provenance, not the env.
+Terminal screen completion and metadata qualification belong to the evaluation
+layer. Its new read-only preflight is not an evaluator or a freshness oracle:
+independently reviewed historical-start/session proofs and sealed identities
+remain required. No R1 implementation or native-stack cutover is implied.
 
 ```text
 itrader/rl_lib/train/train_solo_V2.py
@@ -45,7 +60,7 @@ symbol-safe `DataPartition` owns per-symbol chronological train/validation/test
 intervals and purge. PBT selects only held-out validation net return; the final
 test remains outside tuning.
 
-Synchronous Ray 2.9 PBT schedules on trial-owned cumulative sampled environment
+Synchronous PBT schedules on trial-owned cumulative sampled environment
 steps. Every evaluation report has an immutable stable sidecar checkpoint, while
 Tune receives only cadence/terminal checkpoints. A donor is valid only when its
 scored `pbt_progress_steps` exactly matches the selected sidecar; absence is a
@@ -61,9 +76,14 @@ one target receipt with the same full-tree checkpoint digest, a target report,
 and a retained target checkpoint must agree before an exploit counts.
 
 Ray 2.58 is the accepted forward R-series runtime; Ray 2.9 remains a frozen
-historical reproduction profile. The current source passes 254 tests on both,
-matches initial policy weights and deterministic R0 controls exactly, and closes
-the Ray-2.58 synchronous exploit/restore/replay contract. RLlib stochastic
+historical reproduction profile. The original migration gate passed 254 tests
+on both runtimes and matched initial policy weights and deterministic R0 controls.
+The later compatibility/evidence and fixed-entropy round passes 406 tests on Ray 2.58;
+this is not a current dual-runtime suite claim. The
+[historical optimizer audit](artifacts/research/ray258-historical-optimizer-audit-2026-10-05.md)
+qualifies earlier PBT effectiveness: checkpoint transfers did not guarantee
+that requested policy/optimizer settings reached the learner. Corrected-stack
+R0/R4 fixed-recipe controls are a separate prospective experiment. RLlib stochastic
 rollout streams differ under the same seed, so results remain runtime-labelled
 and R1 must include a matched Ray-2.58 R0 control. Do not combine solver
 representation with the later native RLModule/EnvRunner migration.
@@ -85,9 +105,11 @@ and after-hours are retained for named Phase B factors. Split-adjusted prices ar
 accepted; dividend cashflows remain unimplemented and must not be inferred from
 silently dividend-adjusted prices.
 
-Snapshot manifests retain retrieval time, usage classification, missing-bar
-policy, and hashes for raw provider pages. Raw and manifest writes are atomic;
-licensed data and credentials remain ignored while aggregate evidence is tracked.
+The snapshot builder retains retrieval time, usage classification, missing-bar
+policy and raw-provider page hashes in new manifests. The retained dataset-v2
+2026-09-22 manifest predates its raw-file hash ledger; historical raw pages need
+separate reviewed hashes rather than assumed manifest binding. Raw/manifest
+writes are atomic; licensed data and credentials remain ignored.
 
 ## R-series implementation/status matrix
 

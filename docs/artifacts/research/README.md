@@ -15,6 +15,25 @@ reports that have an HTML review companion.
 
 ## Foundation, measurement, and platform
 
+- [Evaluation code audit](evaluation-code-audit-2026-10-06.md) ([HTML](evaluation-code-audit-2026-10-06.html)): completed bounded historical recovery and two CHANGES reviews; Q27/Q23/Q26 pending, no launch authority.
+- [Evaluation quantitative methodology](evaluation-quant-methodology-2026-10-06.md) ([HTML](evaluation-quant-methodology-2026-10-06.html)): primary-source candidate statistical/attribution protocol and ordered Q23/Q26 decisions, not adopted defaults.
+- [R1 panel qualification and terminal preflight](r1-panel-qualification-2026-10-06.md) ([HTML](r1-panel-qualification-2026-10-06.html)): outcome-independent calendar feasibility, historical-source proof limits, sixteen-cell draft and fail-closed preparation; no fresh panel or new run.
+- [R1 prerequisite and browser closeout](r1-prerequisites-2026-10-05.md): Q21 completion components, Q23 historical-exposure limitation, Q24/Q25 reporting, and individual-run browser access.
+- [Corrected-compatibility R0/R4 controls](corrected-compatibility-r0-r4-controls-2026-10-05.md)
+  ([HTML](corrected-compatibility-r0-r4-controls-2026-10-05.html)) — supervised
+  fixed-recipe control declaration and outcomes; distinct from historical PBT
+  and the later native-API migration.
+
+- [Historical Ray 2.58 optimizer/restore audit](ray258-historical-optimizer-audit-2026-10-05.md)
+  ([HTML](ray258-historical-optimizer-audit-2026-10-05.html)) — ten terminal
+  checkpoints, intended versus effective PPO settings, and member-00002
+  self-resume entropy spikes; historical artifacts preserved.
+
+- [R1 foundation and compatibility hardening](r1-foundation-hardening-2026-10-05.md)
+  ([HTML](r1-foundation-hardening-2026-10-05.html)) — effective optimizer/restore
+  settings, semantic observations, replay evidence, independent review and the
+  compatibility-first / native-migration-later boundary.
+
 - [R1 readiness independent review](r1-readiness-independent-review-2026-10-03.md)
   ([HTML](r1-readiness-independent-review-2026-10-03.html)) — fresh Sol/Astra
   review, reproduced evidence-gate blockers and development prerequisites.

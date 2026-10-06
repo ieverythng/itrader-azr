@@ -1,6 +1,6 @@
 # R0 + R4-v1 actor-robustness audit
 
-Date: 2026-09-29  
+Date: 2026-09-29
 Status: complete; mechanically valid search, no economic promotion
 
 ## Decision under test

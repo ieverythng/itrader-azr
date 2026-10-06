@@ -1,0 +1,19 @@
+{
+  "cell": 1,
+  "trial": "training_fn_ITraderEnv_55cb4_00000_0_2026-10-05_12-41-34",
+  "evaluator_source": "944d7d308654b93b090fec83a8097728157405671ae8aff858d2d00658fcf233",
+  "launcher_source": {
+    "algorithm": "sha256(sorted relative-path TAB file-sha256 LF)",
+    "python_file_count": 105,
+    "source_tree_sha256": "a8bf027a2f2f0f7e412c5f0f5fcf921642f0a29d0baa3d83039ec816fe9b6321"
+  },
+  "operator_sha256": "fd20bae59d3f16be7580a6deff3bcca9363ff86f63155ded46d4902b10b7a466",
+  "startup_free_bytes": 6025052160,
+  "ram_hard_floor_bytes": 1073741824,
+  "ram_proactive_stop_bytes": 1342177280,
+  "ray_override_resources": {
+    "CPU": 2
+  },
+  "timeout_seconds": 300,
+  "checkpoint_sha256": "9aa552d88930dafe409975a137f923868041a83d5f04b3b23a983d7b715e1705"
+}

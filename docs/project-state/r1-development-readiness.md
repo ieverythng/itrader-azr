@@ -1,7 +1,105 @@
 # R1 development readiness
 
-Reviewed: 2026-10-04. Planning contract; the diagnostics and R1 work below are
-not implemented by this review pass. Base: `c13af18`, dirty `agent/Watson-dev`.
+**Evaluation audit completed (2026-10-06):** the bounded recovery maps 512
+recorded control rows to 48 starts; 26 randomized configs remain source-unbound.
+Both fresh independent reviews return CHANGES. Q27's four mechanical repairs and
+Q23/Q26 scientific decisions await approval. This does not reopen the accepted eight-control
+replay receipts or approve new metrics, split rules, data collection or training.
+The inherited physical-dataset-end/reset defect is reproduced; all 256 accepted
+control episode identities have full horizons and lie below that edge. No panel
+is certified or opened, no actual terminal executor is available, and R1 remains
+unimplemented. Research proposals require individual GRILL decisions before use.
+See the [current code audit](../artifacts/research/evaluation-code-audit-2026-10-06.md)
+for independently reproduced evaluator gaps and the pending Q27 repair scope.
+
+**Prerequisite audit update (2026-10-06):**
+The sixteen-cell scientific loadout draft and fail-closed read-only terminal
+preflight are implemented. Metadata-only auditing found 2,052 provisional
+symbol/session anchors, but conservative historical possible-exposure exclusion
+leaves zero certified fresh candidates. Sixteen control episode sidecars recover
+recorded starts; the 26 randomized runs still lack source-bound start proof.
+Q23's recovery/new-data decision and Q26's calendar-block method block panel
+freeze. The real 128-task executor,
+matched control receipts and final pre-training config/source seal remain
+required; passing preflight does not authorize evaluation. No panel was frozen
+or opened, and no training or R1 implementation occurred. Corrected eight-cell
+controls remain replay-qualified without economic promotion. Native migration
+stays isolated; dirty work and artifacts are preserved. See the
+[qualification audit](../artifacts/research/r1-panel-qualification-2026-10-06.md).
+The dated execution notices below are historical, not active launch authority.
+
+Updated: 2026-10-06. Compatibility/evidence repairs passed scoped independent
+Sol/Astra review; R1 itself remains unimplemented. Implementation review base: `d3eb4c5`; current checkout:
+`d3eb4c5`, dirty `agent/Watson-dev` with pre-existing staged work preserved.
+
+## Current implementation boundary
+
+**Final closeout, 16:38:** corrected-control replay is independently accepted:
+8/8 terminals, 256 episodes, witnessed producer and checkpoint/payload/score
+parity. Healthcheck,416 tests and pre-commit pass. These are trustworthy controls,
+not economic promotion or a new fresh-panel study. Q21/Q23/Q24/Q25 execution
+work remains; no R1 encoder has been implemented. Historical progress below is
+superseded only for replay completion, not erased.
+
+**16:32 latest:** all eight corrected-compatibility terminal replays now match
+their indexed checkpoints, episode payloads and scores with live producer
+witnesses (256 episodes). Final aggregate review and full-suite validation remain
+in progress. This closes the missing replay executions, not economic promotion
+or Q21/Q23/Q24/Q25 implementation. R1 remains outside this pass. Historical
+failed attempts are preserved; WSL was stopped on the human's explicit request.
+
+**16:10 latest qualification:** Windows process containment is repaired and
+independently approved on two models. Frozen-evaluator terminal replays are
+resuming with separate launcher identity; full acceptance is still pending.
+The human removed the global deadline and authorized a 1 GiB RAM reserve
+(proactive stop at 1.25 GiB). Score-contradiction/version checks are repaired with
+second-model review pending. The 15:37 external-watchdog failure produced no
+episode evidence and remains rejected. R1 remains unimplemented and out of scope.
+
+**15:25 closeout qualification:** user renewed the remaining terminal replays;
+source remains frozen with a declared Ray-node CPU cap and 7/2 GiB resource
+gates. Fresh independent review reproduced a launcher timeout that can leave
+child processes alive. New launches are held pending external cleanup checks;
+the defect must be repaired/reviewed before sprint sign-off. This is a process
+lifecycle defect, not evidence of changed learned policies. Follow the control
+audit for the current replay count. R1 implementation remains outside this pass.
+
+- Implemented and exercised on synthetic data: strict semantic observations,
+  structural model selection, fixed-recipe override protection, R0 stateless
+  lifecycle, same-forward PPO clipping diagnostics, original indexed-checkpoint
+  digest checks, replay trace/receipt evidence and fail-closed comparison gates.
+- The real builder → PPO → callback → checkpoint → frozen replay probe covers
+  both R0 and R0 + R4-v1. This is mechanical validation, not performance evidence.
+- Integration exposed two additional Ray-2.58 compatibility defects: obsolete
+  optimizer config names left active minibatch/epoch settings at defaults;
+  donor restore overwrote policy settings and optimizer LR while algorithm config
+  and reported LR retained target values. Runtime key translation is repaired;
+  restore reconciliation passes local/remote-policy integration probes. Historical mutation logs alone do not
+  establish that requested settings reached training.
+- **No R1 encoder in this pass.** Fresh Sol/Astra review approved the fixes;
+  408 tests and serialized pre-commit pass after the cadence and reporting checks.
+  The user subsequently resumed fresh R0/R4 controls with
+  GPT-6 Luna/xhigh supervision. The fixed-recipe, PBT-off declaration and
+  resource preflight are tracked in the
+  [control audit](../artifacts/research/corrected-compatibility-r0-r4-controls-2026-10-05.md).
+  Both one-update smoke cells and fresh 32-task checkpoint replays completed.
+  These qualify the bounded mechanical path, not the longer study or an economic
+  gate. The restarted eight-cell attempt04 bridge completed training at 13:30:16:
+  467,584 sampled steps, all 96 report rows and 33 checkpoint digests checked.
+  Fresh terminal replays and independent evidence closure remain pending.
+  The positive staged-R4 terminal did not replicate across both seeds; no
+  economic promotion or Q21-screen qualification follows. See also the
+  [implementation audit](../artifacts/research/r1-foundation-hardening-2026-10-05.md).
+  At 13:48 replay is held after a 1.47 GiB free-RAM reading breached the 2 GiB
+  runtime floor; the third replay exited naturally. Three receipts have exact
+  episode parity, but first two lack live launch witnesses. Heartbeat is paused;
+  full replay acceptance requires a safer resource plan and remaining evidence.
+- Ray **2.58 runtime** is current on this branch; **legacy RLlib API stack** means
+  ModelV2/TorchPolicy/RolloutWorker. A native RLModule/Learner/EnvRunner migration
+  may be developed now in the isolated `feat(R)/Ray_upgrade` worktree; integration
+  is deferred until after the corrected-compatibility R1 comparison. Its later
+  bridge must repeat all four cells: R0, R0 + R4-v1, R1 and R1 + R4-v1.
+  Do not make that migration a prerequisite for implementing R1 here.
 
 ## Evidence and decision
 
@@ -17,8 +115,8 @@ learn an economic edge or that an LSTM will. Keep the final test sealed.
 
 ## Work order and acceptance
 
-The fresh review reproduced three additional pre-training blockers: replay parity
-currently compares only the many-to-one selection score, and the R4 attribution
+The initial review reproduced three additional pre-training blockers: replay parity
+compared only the many-to-one selection score, and the R4 attribution
 analyzer records differing provenance counts without making them disqualifying;
 PBT donor recovery recomputes a changed checkpoint hash without checking it
 against the scored/indexed digest. Add full trace/metric parity, fail-closed
@@ -26,8 +124,8 @@ matched provenance and indexed-digest verification as part of the
 gates below. The Sol reviewer also reproduced a string `"false"` being accepted
 as replay success and control baselines losing their identities before promotion
 comparison. Require strict boolean receipts and matched control provenance.
-These are newly identified code gaps, not changes to G0's negative
-economic result. They are recorded for implementation, not fixed by this pass.
+These findings motivated the current repair pass. They do not change G0's
+negative economic result; the stronger gates now have scoped independent approval.
 
 | Order | Owning seam | Required outcome before advancing |
 |---|---|---|
@@ -95,12 +193,12 @@ the installed pinned Ray source is the authority for the adapter.
 
 ## 2. Stamp and validate replay provenance
 
-`run_checkpoint_replay.py` and `run_checkpoint_state_diagnostics.py` currently
-write separate reports. Neither stamps execution identity. The shared
-`evaluation/provenance.py` already owns checkpoint, dataset and source hashing;
-extend that boundary rather than duplicate receipt construction.
+`run_checkpoint_replay.py` and `run_checkpoint_state_diagnostics.py` now share
+invocation/completion receipt construction in `evaluation/replay_evidence.py`.
+`evaluation/provenance.py` owns checkpoint, dataset and source hashing. Historical
+reports without producer identities remain unknown; they are not rewritten.
 
-Proposed versioned receipt fields:
+Receipt acceptance contract (implementation coverage is tracked in the audit):
 
 - fresh invocation UUID and process-instance identity established at process
   entry, with PID, process creation time, host identifier and UTC start/end;
@@ -143,8 +241,13 @@ provenance; do not backfill invented IDs into G0 evidence.
 GRILL coordination received 2026-10-04 reports Q15 acceptance of one
 unidirectional `LSTM(5,156)` followed by `Linear(156,256) + ReLU`, using the
 final chronological output and zero h/c at each decision. The existing task
-FiLM/dropout and 256-wide readout remain. The actor/critic sharing decision is
-explicitly still pending the human answer in GRILL; budget is also pending.
+FiLM/dropout and 256-wide readout remain. GRILL coordination on 2026-10-05
+confirms explicit human acceptance of Q18: one shared market encoder,
+projection and task-FiLM path, with separate pi/vf heads. Both losses update
+that shared representation. Q19 selection and Q20 screening budget were also
+accepted through GRILL on 2026-10-05; Q21 two-tier evaluation was subsequently
+approved the same day. Approval is a protocol decision, not evidence that its
+fresh panel or runner gates are implemented.
 
 Source-grounded parameter check, using actual PyTorch modules and the current
 R0 class (60 x 5 market input, task dimension 32, task projection 64,
@@ -158,27 +261,45 @@ MLP widths 256/256, three action logits, default LSTM biases):
 | Common task FiLM | 35,392 |
 | Separate pi/vf heads combined | 1,028 |
 | R0 total | 179,268 |
-| R1 total, assuming shared encoder/FiLM | 178,324 |
+| R1 total, accepted shared encoder/FiLM design | 178,324 |
 | R0 + R4-v1 total | 179,316 |
-| R1 + R4-v1 total, assuming shared encoder/FiLM | 178,372 |
+| R1 + R4-v1 total, accepted shared encoder/FiLM design | 178,372 |
 
-R1 is 944 parameters (0.527%) smaller than R0 under the shared-path proposal.
+R1 is 944 parameters (0.527%) smaller than R0 under the accepted shared-path design.
 The unchanged width-8 R4 residual adds 48 parameters. A disposable forward
 check produced `[2,60,156]` LSTM outputs and `[2,256]` final readouts. This is
 capacity/shape verification, not R1 implementation or a learning result.
 
-Recommendation to GRILL: share the market encoder, projection and task FiLM
+Accepted Q18: share the market encoder, projection and task FiLM
 between actor and critic, with separate pi/vf heads, matching R0's ownership.
 Both losses then train the same representation; a separate-encoder study would
 change sharing and capacity together. Shared weights do not imply equal actor
 and critic gradient contributions. Keep value-loss weighting and task-dropout
 semantics fixed, and report the respective gradients/critic fit before adding
-a new sharing ablation. Do not treat this recommendation as accepted yet.
+a new sharing ablation. This is an accepted design, not implemented R1 code.
 
-`_model_config` currently selects `solver_mlp_film` unconditionally. Registering
-the old `solver_lstm_v2` model does not provide R1. The next change needs a
-validated model selector in the ablation schema/runner, training builder,
-resolved manifest, checkpoint loader and diagnostic paths.
+The structural selector now reaches the ablation schema/runner, training builder,
+resolved manifests, untrained controls and checkpoint/diagnostic paths.
+`solver_window_lstm_film` fails explicitly as unimplemented; it is not registered
+to a placeholder or the historical `solver_lstm_v2` class.
+
+Accepted Q19: one structural `solver_model` selector with names
+`solver_mlp_film` and `solver_window_lstm_film`, independent of R/S experiment
+labels and solver-state/reward/curriculum factors. The first name already
+matches the current registered R0 key; the second has no current registration
+or implementation collision. Bind the selected model and versioned observation,
+preprocessing and state contracts to the resolved manifest and restore path.
+Prefer one validated selection interface shared by schema/runner/training,
+model-matched baselines and replay; a plugin framework is unnecessary here.
+
+Compatibility concerns for Q19: define how a missing selector in historical
+configs resolves from their recorded `model.custom_model` without changing old
+weights or observations; reject conflicts between the outer selector and that
+nested key after override merges. Keep `solver_lstm_v2` and other historical
+registrations available only for faithful restores; never reinterpret them as
+R1. New R1 loadouts require explicit selection. An intentional transfer between
+architectures would require a separate future migration contract; it is not
+ordinary restore. These are accepted requirements, not permission to reinterpret old checkpoints.
 
 R1 input is the same chronological `60 x 5` OHLCV window plus the same task
 embedding. Split `[market | task | optional state]` explicitly before reshaping.
@@ -195,8 +316,9 @@ Require initial-policy/value parity within each base/state-augmented pair.
 R0 and R1 need matched inputs and budgets, not identical initial weights across
 different architectures.
 
-Remaining GRILL freeze: actor/critic sharing, exact selector/config identity,
-panel/seeds and step/wall-time/resource budget. Q15 fixes hidden size/layer
+Remaining execution freeze: construct/hash the Q21 fresh panel, pin concrete
+paired seeds and resource/wall-time declaration for the complete target screen.
+Q21's evaluation protocol is accepted; Q20 approves the sampled-step budget. Q15 fixes hidden size/layer
 count and readout shape; preserve the FiLM formula and task-dropout treatment.
 Measure parameter count, wall time and memory separately
 from matched sampled environment steps. Do not describe equal steps as equal
@@ -212,7 +334,9 @@ behavior remains owned by environment/RLlib; do not redefine it for R1.
 
 These six planning concerns are acceptance criteria for implementation. They
 are not demonstrated R1 runtime defects: R1 remains unimplemented. They do not
-reopen Q15 or settle pending actor/critic sharing and budget.
+reopen Q15. Q18 sharing, Q19 selectors and Q20 budget were subsequently accepted
+on 2026-10-05; Q21's two-tier evaluation protocol is also accepted, with panel
+construction and enforcement still pending.
 
 1. **Semantic observation validation.** Pin the ordered
    `[OPEN, HIGH, LOW, CLOSE, VOLUME]` features, oldest-to-newest 60-bar window
@@ -230,17 +354,18 @@ reopen Q15 or settle pending actor/critic sharing and budget.
    injection per market bar, identity-centered FiLM or new recurrent dropout
    belongs to this cell. Test the numerical formula with controlled weights;
    actor-only and value-only backward passes must reach the intended paths.
-   Sharing remains pending, so these tests must reflect the final GRILL answer.
+   Under accepted Q18, verify that each loss reaches the shared encoder/FiLM
+   while the policy-only loss does not train the value head and vice versa.
 3. **Stable selector across every consumer.** Carry an explicit versioned R1
    identity through loadouts, training, resolved manifests, checkpoint restore,
    diagnostics and model-matched untrained controls. `UntrainedFiLMPolicy`
-   directly constructs `SolverMLPFiLM` today; replacing training selection alone
-   would leave an MLP labelled as an untrained R1 control. Preserve the legacy
+   previously constructed `SolverMLPFiLM` directly; the shared registry now owns
+   selection for controls too. Preserve the legacy
    `solver_lstm_v2` registration for old restores; never alias it to R1. Reject
    unknown selectors and cross-architecture restore requests. Check round-trip
    logits, value predictions and actions, not just successful checkpoint load.
-4. **Protect architecture after overrides.** `_apply_best_params` currently
-   merges arbitrary `custom_model_config` keys. Restrict architecture overrides
+4. **Protect architecture after overrides.** `_apply_best_params` historically
+   merged arbitrary `custom_model_config` keys. Restrict architecture overrides
    for fixed-recipe cells or validate the fully merged config against the
    declared contract before construction. The manifest, checkpoint and restored
    model must agree. Test stale best-parameter files that change state width,
@@ -279,9 +404,8 @@ The 2026-10-04 GRILL coordination confirms human acceptance of this complete
 
 The two named curriculum factors are exact 1 bp and causal
 `0 -> 0.25 -> 0.5 -> 1 bp`; held-out evaluation is always exact 1 bp.
-GRILL Q17 accepts a compressed cost curriculum for the screen. Its exact
-sampled-step boundaries remain part of the pending budget declaration; the
-coordination message supplies no numerical boundaries. Keep a separately named
+GRILL Q20 accepts the compressed screen with exact sampled-step boundaries
+14,400 / 28,800 / 43,200 within 57,600 nominal steps per cell. Keep a separately named
 compressed profile. Do not modify the historical 48k/96k/144k profile or scale
 the entropy schedule along with cost.
 Keep dataset-v2 RTH, Family 00, random/generated proposer, stream_worker,
@@ -291,16 +415,11 @@ including entropy schedule and PPO/GAE settings, rather than launching a new
 hyperparameter search. Historical checkpoints are references, not substitutes
 for freshly matched R0 controls.
 
-Budget proposal, awaiting the run declaration: smoke every cell first. The
-dashboard's two-seed 12-update screening convention becomes four SRU per
-curriculum, eight SRU / 921,600 nominal sampled steps for both curricula.
-A full three-seed replication is a later declaration (24 cells across both
-curricula). A short screen cannot traverse the original 48k/96k/144k cost
-boundaries fully. Use the accepted compressed profile after declaring its exact
-sampled-step boundaries; never imply a complete original-schedule comparison
-from 12 updates. As a budget proposal only, equal quarters of a 57,600-step
-target would use 14,400/28,800/43,200 steps. Confirm the target first and freeze
-integer boundaries in the loadout, not a runtime rescaling formula. Record
+Accepted Q20 budget: smoke every cell first, then four cells x two paired seeds
+x two curricula = 16 runs, 921,600 nominal sampled steps total. A full three-seed
+replication is a later declaration. A short screen does not traverse the
+historical 48k/96k/144k schedule: label the compressed curriculum explicitly.
+Freeze the integer boundaries in the loadout, not a runtime rescaling formula. Record
 actual cost used for each completed update and apply crossings to subsequent
 sampling. The original entropy schedule remains on its original clock unless
 separately approved. Run sequentially within memory
@@ -309,6 +428,156 @@ staging boundaries before launch. Use fresh chronological validation for any
 new selection; January and November are now inspected development panels.
 Log within-seed encoder, solver-state and interaction deltas with anchor-aware
 uncertainty. Crossed horizons at one anchor are not independent samples.
+
+### Accepted Q22 optimizer recipe
+
+Human approval verified in GRILL-IMPLEMENT on 2026-10-05. All 16 target-screen
+cells use the same corrected recipe, with PBT disabled: native 30 epochs,
+minibatch 128, learning rate `7.151674865214668e-6`, gamma `0.99`, GAE lambda
+`0.9`, PPO clip `0.1`, value-loss coefficient `2`, and value clip `20`.
+Keep entropy `[(0,0.005),(96000,0.002),(240000,0.0005)]` linearly interpolated
+on its original sampled-step clock, not compressed with the cost curriculum.
+Restore-reset defects remain repaired; never reproduce donor leakage or entropy
+spikes for historical parity. Optimizer permutation/PBT is a later experiment.
+
+The existing corrected-control loadouts already declare these exact settings;
+their audit records the resolved native configuration and hashes. This accepts
+the recipe, not a completed 16-cell loadout or permission to bypass evaluation,
+source-freeze, resource and independent-review gates.
+
+### Accepted Q23 fresh-panel sampling rule
+
+Human approval verified in GRILL-IMPLEMENT on 2026-10-05. Choose 32 eligible
+distinct symbol/session anchors across all 12 configured symbols: at least two
+per symbol, with the remaining eight allocated by a recorded seed. Cover
+chronological validation blocks at fixed decision offsets 60 or 120 minutes
+after RTH open. Each anchor must have 60 same-session past minute bars and
+200 eligible future bars under the current split, purge and boundary rules;
+cross all anchors with the frozen 96/128/160/200 horizons.
+
+Select by calendar, symbol and eligibility only, never returns, regime tags or
+model outcomes. Audit available metadata before choosing dates; record coverage,
+inclusions/exclusions, seed, dataset and panel hashes. If declared coverage is
+infeasible, report it before changing the rule. Exclude inspected development
+anchors and overlapping windows. The eligibility audit is in progress; no panel
+has been frozen and Q21 runner enforcement is not yet implemented.
+
+Balance means outcome-independent coverage, not hindsight bullish/bearish
+balancing. Terminal results should expose static-direction benchmark uplift,
+actions/exposure/logit patterns by symbol, block and horizon. Regime/direction
+slices are ex-post reporting only. Training's stream_worker/random starts do
+not replace deterministic paired evaluation.
+
+### Accepted Q24 terminal reporting estimand
+
+Human approval verified in GRILL-IMPLEMENT on 2026-10-05. For this fresh-panel
+screen, the new explicitly versioned primary is equal-symbol-weight terminal
+net return: average the four horizons within each anchor, anchors within each
+symbol, then the 12 symbols equally. Use identical weights for every policy,
+control and paired contrast. Preserve the existing raw 128-episode mean and
+per-horizon metrics as labeled secondary/historical outputs; do not change PPO
+reward, PBT scoring or old reports.
+
+Show flat, long-only and short-only separately. Choose the stronger constant
+direction once over the whole panel using the declared weights, never a
+per-anchor hindsight maximum. Episode Sharpe remains explicitly per sqrt-bar;
+overlapping crossed episodes cannot be stitched into a portfolio equity curve.
+The current evidence drawdown derives from gross episode PnL: label it gross
+drawdown, not net drawdown. This reporting decision does not introduce a new
+cost-adjusted drawdown calculation or change environment accounting.
+Equal-symbol weighting does not normalize episode duration. Q25 adds secondary
+duration diagnostics below; no new rate-based primary is authorized.
+
+Implementation must validate panel-metadata joins, exactly one task for each
+96/128/160/200 horizon per anchor, all 128 tasks and 12 symbols, finite metrics,
+eligible endpoints/steps, cost and effective-contract identities. Missing or
+duplicate coverage fails closed; never renormalize available cases. Existing
+unweighted paired-bootstrap intervals are not intervals for this macro estimand.
+Required tests include unequal anchor counts, hand-computed hierarchical weights,
+permuted rows, missing/duplicate/wrong horizons, horizon pairing and identical
+control paired-zero deltas. This acceptance is not an implemented aggregation.
+
+### Accepted Q25 secondary duration diagnostics
+
+Human approval verified in GRILL-IMPLEMENT on 2026-10-05. Retain per-horizon
+paired results and add `net_bps_per_bar = 10000 * episode_net_return / steps`,
+using positive integral actual decision steps. Normalize each episode first,
+then apply the declared horizon/anchor/symbol aggregation; do not divide pooled
+returns by pooled steps. The Q24 terminal-return primary is unchanged.
+
+Net return is arithmetic gross return minus all turnover costs, including
+terminal liquidation. Liquidation adds cost but no extra decision bar. The
+denominator is not the 60-bar lookback, configured horizon when truncated,
+exposure bars or training steps. Reject missing, invalid or inconsistent step
+evidence; do not clamp with `max(1, steps)`. Validate end/start/step semantics
+against environment evidence and require complete horizon coverage on fixed
+panels; explicitly identify any censored cases. Preserve paired anchor/horizon
+comparisons and dependence from overlapping episodes.
+
+This is an arithmetic episode-average diagnostic, not a compounded, annualized
+or stitched portfolio return. Implement and test it only after the active
+development run's source freeze ends; approval does not claim it is recorded
+by the running loadout. Test liquidation-only cost, unequal durations, invalid
+steps, endpoint mismatch and normalize-before-aggregate ordering.
+
+### Accepted Q21 evaluation and reporting contract
+
+Human approval verified in GRILL-IMPLEMENT on 2026-10-05:
+
+| Tier | Contract |
+|---|---|
+| Progress monitoring | Same inspected 32-task panel at initialization and every update, evaluated deterministically at 1 bp; development curves only |
+| Terminal screening | Fresh validation-only 32 eligible symbol/session anchors crossed with frozen horizons 96/128/160/200: 128 tasks, identical hashed panel for every target-screen cell and control |
+| Panel declaration | Select and hash before training using deterministic eligibility/calendar/symbol rules, without inspecting outcomes; verify chronology, session boundaries and non-overlap with inspected development anchors |
+| Checkpoint selection | Predetermined terminal checkpoint, never the best transient; freeze identity before opening terminal results |
+| Opening rule | Evaluate the fresh terminal panel only after all 16 target-screen runs finish; do not adapt later cells to early terminal results |
+| Final test | Remains sealed and unused |
+
+The two-tier runner/panel gates are **requirements, not implemented claims**.
+The new read-only preflight checks completion/qualification but is not the real
+terminal executor. Preserve source-defined opaque session IDs
+(`SYMBOL:DATE:regular` in dataset-v2); derive the calendar trading date separately
+from aware timestamps. Require reviewed/hash-bound exchange-calendar membership
+and full-minute open/close bounds, never weekday labels alone.
+Initialization monitoring must use the actual seeded model before its first
+update, including arm-matched untrained controls. Failed/incomplete cells stop
+the all-16 completion gate; do not silently substitute retained-best checkpoints
+or treat a partial screen as complete.
+
+First-class report sections must distinguish:
+
+- Per-episode and per-run gross/net return, Sharpe with its exact unit, turnover,
+  drawdown, exposure and short/flat/long fractions.
+- Matched flat, long-only, short-only, random and architecture/state-matched
+  seeded untrained controls; show the strongest matched directional control
+  without changing checkpoint selection or inventing a new promotion threshold.
+- Within-seed encoder, solver-state and interaction deltas.
+- Policy/value losses, clip fraction and its denominator, approximate KL,
+  entropy, explained variance and other available critic diagnostics.
+- Actual causal-bp-stage exposure and cost applied, sampled steps, throughput,
+  memory, checkpoint lineage and source/data/panel/producer identities.
+
+Retain raw episode/action/reward evidence. Crossed horizons share anchors and
+are not independent samples; use anchor/calendar-block-aware summaries and do
+not infer statistical significance from two training seeds. Evaluation steps,
+cost scenarios and evaluation wall time are separate from the approved 921,600
+nominal training steps. This screen is attribution/feasibility, not automatic
+economic promotion.
+
+The separately declared corrected-compatibility eight-cell R0/R4 preflight
+remains a development-panel bridge, not a retroactive fulfillment of this
+16-cell target-screen protocol. Reusing any earlier cell requires explicit
+contract/source/initialization/panel equivalence; otherwise rerun it. Historical
+January/November diagnostics are not relabelled fresh terminal evidence.
+
+Accepted platform ordering (2026-10-05): finish compatibility repairs and fresh
+R0 controls, implement/test R1 on that same stack, then integrate and qualify
+RLModule/Learner/EnvRunner with the complete four-cell bridge. Native development
+may proceed now in the separate migration worktree with bounded mechanical
+tests, without changing this screen's API stack or running concurrent full-data
+jobs. Commits/pushes there do not authorize commits in the main dirty tree. Preserve
+historical checkpoints and manifests; new stack/source/settings are explicit
+factors, never relabelled historical parity.
 
 Require expected dataset, effective task panel, source, configuration, runtime
 and seed identities for every cell before computing a promotable attribution.
