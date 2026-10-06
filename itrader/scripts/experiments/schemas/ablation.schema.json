@@ -70,6 +70,8 @@
       "additionalProperties": true,
       "properties": {
         "iters": { "type": "integer", "minimum": 1 },
+        "solver_model": { "enum": ["solver_mlp_film", "solver_window_lstm_film"] },
+        "representation_profile": { "enum": ["legacy", "r0_r1_v1"] },
         "window": { "type": "integer", "minimum": 2 },
         "workers": { "type": "integer", "minimum": 0 },
         "ray_num_cpus": { "type": "integer", "minimum": 0 },
@@ -158,6 +160,7 @@
         },
         "optimization_cost_bps": { "type": "number", "minimum": 0.0 },
         "optimization_cost_schedule": { "type": "string" },
+        "entropy_coeff_schedule": { "type": "string" },
         "net_return_reward_scale": { "type": "number", "exclusiveMinimum": 0.0 },
 
         "gamma": { "type": "number", "minimum": 0.0, "maximum": 1.0 },
