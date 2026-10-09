@@ -1,5 +1,23 @@
 # iTrader Masterplan
 
+**Current boundary (2026-10-07):** Q27's four mechanical repairs are implemented;
+Independent Sol and Luna reviews approve mechanics and the separate opt-in
+economics pilot. Final core validation (530 cases), healthcheck, clean scoped
+pre-commit rerun and diff checks pass. Reviewer pairs are requested dispatch
+metadata, not observed runtime telemetry. The approved
+Q23 `terminal_screen_only` role, dual dataset identities and certified intervals
+need their own implementation/review; no external-data validation relabeling.
+Metadata-first envelope planning is now approved; exact bounds/clearance and
+Q26 remain GRILL items before panel freeze and real all-16 execution. Optional
+volatility normalization is not a prerequisite when disabled. No acquisition,
+panel opening, new training, R1 or native integration has occurred. The eight
+accepted corrected-control receipts and original artifacts remain untouched.
+See the [Oct-7 repair audit](../artifacts/research/evaluation-mechanical-repairs-2026-10-07.md)
+for executed regressions, review fixes and test-ROI recommendations.
+
+The dated Oct-6 notices below retain their publication-time approval status;
+the Oct-7 boundary above supersedes that status, not their recovery evidence.
+
 **Evaluation audit completed (2026-10-06):** the bounded recovery maps 512
 recorded control rows to 48 starts; 26 randomized configs remain source-unbound.
 Both fresh independent reviews return CHANGES. Q27's four mechanical repairs and
@@ -28,7 +46,7 @@ stays isolated; dirty work and artifacts are preserved. See the
 [qualification audit](../artifacts/research/r1-panel-qualification-2026-10-06.md).
 The dated execution notices below are historical, not active launch authority.
 
-Last reconciled: 2026-10-06
+Last reconciled: 2026-10-07
 Status: **dataset-v2 R0 is the immutable negative/parity control; R0 + R4-v1 is architecture-qualified but economically unpromoted after G0 artifact-pair closure; fixed-recipe R1 attribution is next**
 Branch snapshot: `agent/Watson-dev` plus the uncommitted R4-v1 implementation/evidence round
 

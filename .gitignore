@@ -10663,3 +10663,6 @@ itrader/models/Qwen2.5-7B-Instruct/model.safetensors.index.txt
 /.ray-probe-tmp
 /.pytest-tmp-final
 /.pytest-tmp-reporting-green
+
+# Repetitive coordination probes only; keep decisions and verdict receipts tracked.
+/docs/coordination/_local/

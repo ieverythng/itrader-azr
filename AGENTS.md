@@ -32,6 +32,58 @@ When documentation disagrees, use this precedence:
 
 Call out meaningful drift instead of silently choosing a convenient version.
 
+## Chat Coordination
+
+Use `docs/coordination/README.md` for the board-based workflow ported from UAH.
+GRILL-IMPLEMENT owns human decisions, cross-chat dispatch, sequencing, and run
+authorization. DEV owns implementation, RESEARCH owns investigations, and
+TRAINING/TESTING owns authorized validation and experiment execution.
+
+- Each parent writes only its own board. GRILL checks boards at turn starts and
+  dependency gates; boards do not wake chats or provide continuous monitoring.
+- GRILL may send finite scoped dispatches. DEV, RESEARCH, and TRAINING/TESTING
+  must not message or delegate to one another. Routine findings, blockers, and
+  final handoffs belong on their owned boards, not unsolicited messages to GRILL.
+- Urgent safety/resource incidents may be escalated directly to GRILL. A routine
+  completion or stale board is not an urgent incident. Direct human instructions
+  remain authoritative; record a resulting scope change on the owned board.
+- Encourage bounded subagents with disjoint write sets. Children report to their
+  own parent; that parent integrates the result and remains accountable. This is
+  an organizational tree, not a new runtime hierarchy or a fixed agent count.
+- Declare branch, HEAD, dirty/untracked snapshot, write scope, evidence, budget,
+  stop rules, and next decision. A changed relevant snapshot invalidates its
+  review/run authorization; idle or elapsed time alone does not prove staleness.
+- Only one heavy local job may hold the explicit GRILL resource lease. Do not
+  overlap full tests, training, PBT, model serving, or collection by assumption.
+  Run leases are scoped human/GRILL records, not an implemented atomic lock.
+- Boards do not grant Git staging, commits, pushes, data-access rights, statistical
+  qualification, or release authority. Preserve existing dirty work and WSL-off
+  constraints. UAH runtime/provider integration remains deferred.
+
+Keep one current scope, a short queue, and compact final receipts per board.
+Durable decisions and qualification evidence stay tracked; repetitive local
+logs may go in ignored `docs/coordination/_local/`. Do not hide existing evidence
+or duplicate whole reports across boards, plans, and handoffs.
+
+## Review Tool Boundaries
+
+`REVIEW.md` remains the independent review authority; the `code-review` skill
+adds Standards/Spec checks. High-risk changes require its two-reviewer gate.
+No-Mistakes is a pinned, experimental complementary workflow, not a qualified
+replacement. Importing or invoking a skill grants no permission to commit,
+rebase, reset, push, create a PR, initialize a daemon, change hooks, auto-fix
+unrelated files, or bypass a failed review. Local instructions and human scope
+override broader vendor defaults. See `docs/coordination/review-workflow.md` for
+the bounded pilot contract; no actual tool pilot is authorized by this port.
+
+For new behavior, prefer a small named set of public-contract integration and
+end-to-end scenarios with independent oracles: episode/reset semantics, selector
+and restore identity, runner evidence and fail-closed data gates. Keep focused
+deterministic tests for distinct invariants; do not grow private-method tests or
+delete existing tests to meet a numerical target. Synthetic E2E can certify a
+lifecycle without proving trading edge. Live models/data are not ordinary CI
+dependencies. Track the boundary caught, not just a larger green test count.
+
 ## Architectural Invariants
 
 - `TaskSpec` remains the canonical task/problem contract.
@@ -91,6 +143,10 @@ This repo has GitNexus tooling under `tools/knowledge/`.
 See `docs/knowledge/WORKFLOWS.md`.
 
 ## Validation
+
+On native Windows with WSL off, use `.venv\Scripts\python.exe
+itrader/tools/run_repo_python.py` in place of the shell launcher below. Keep
+the same check scopes; do not start WSL to resolve an interpreter.
 
 Run the narrowest relevant checks first, then widen based on affected seams:
 

@@ -1,5 +1,33 @@
 # Decisions
 
+## 2026-10-07 — Q27 scope and separate Q23 role approved
+
+- Direct human decisions in GRILL authorize four bounded mechanical corrections:
+  explicit diagnostic starts reject rather than remap; terminal ties reject;
+  EOF/reset horizons agree; actual R4 tail schema is guarded before intervention.
+  Implementation review is separate from approval of this scope.
+- Q23 uses a first-class `terminal_screen_only` role, separate training/terminal
+  identities and certified eligible intervals. Do not relabel external data as
+  ordinary validation or change the existing training/final-test partitions.
+  The acquisition envelope/calendar support remains the next GRILL decision;
+  no new-data hash, nominal seed or new date alone establishes non-exposure.
+- The human subsequently approved metadata-first historical-envelope planning:
+  select defensible bounds using exposure/calendar metadata, then calibrate
+  candidate uncertainty methods using synthetic returns before market outcomes.
+  Exact bounds/clearance and Q26 choices remain pending. Synthetic calibration
+  can reject a method; it is not solver evidence or significance optimization.
+- The secondary economics pilot is opt-in, outcome-explanatory reporting.
+  `direction = mean_signed_position * matched_long_gross`, timing is gross minus
+  direction, and unchanged net is direction plus timing minus costs. No clipping,
+  best-direction oracle or forecasting-alpha assertion is approved.
+- No volatility estimator, epsilon, ddof, annualizer or promotion threshold is
+  adopted. Disabling this optional diagnostic does not block base Q24 net-return
+  execution. Q26 support/calibration/method decisions remain unapproved.
+- Human requests explicit test-value review: prefer compact public-seam
+  integrations and adversarial matrices; preserve distinct failure/provenance
+  checks rather than measuring progress by green-test count. See the
+  [repair/review record](../artifacts/research/evaluation-mechanical-repairs-2026-10-07.md).
+
 ## 2026-10-06 — Strict Q23 qualification retained
 
 - The human requests proper outcome-independent panel construction. Eligibility

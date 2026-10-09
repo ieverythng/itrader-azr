@@ -1,6 +1,6 @@
 # iTrader Research Dashboard
 
-Last reconciled: 2026-10-06<br>
+Last reconciled: 2026-10-07<br>
 Branch snapshot: `agent/Watson-dev` with the uncommitted R4-v1 research round<br>
 Status: **active research registry; G0 closed and fixed-recipe R1 attribution next**<br>
 Visual companion: [open the HTML dashboard](itrader_research_dashboard.html)<br>
@@ -10,6 +10,17 @@ Run evidence: [search the generated experiment browser](itrader_experiment_brows
 [History and operational log](#history-and-operational-log) preserves prior
 notices without obscuring the research map. Eight corrected-control terminal
 replays are accepted; no economic promotion or fresh-panel opening is implied.
+
+**Oct-7 current boundary:** Q27 mechanics and the separate optional economic
+pilot are implemented with independent Sol and Luna approval; core validation
+(530 cases), healthcheck, clean scoped pre-commit and diff checks pass. Reviewer
+dispatch metadata is not observed runtime telemetry. Q23's first-class terminal-only role,
+dual dataset identities and certified intervals are approved, with their own
+implementation/review next. Metadata-first envelope planning is approved;
+exact bounds/clearance and Q26 remain pending. No new run, panel opening, acquisition or R1. See the
+[repair audit](../artifacts/research/evaluation-mechanical-repairs-2026-10-07.md)
+for execution evidence and integration-first test-ROI recommendations. The
+Oct-6 publication-time approval labels below are historical, not current.
 
 The sixteen-cell scientific draft and read-only terminal preflight are now
 implemented; real terminal execution and final config/source sealing are not.

@@ -1,0 +1,330 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-10-07T21:45:53.521105+00:00",
+  "scope": "outcome_blind_calendar_and_timestamp_metadata_only",
+  "value_access": {
+    "bar_endpoint_called": false,
+    "ohlcv_columns_requested": false,
+    "returns_or_regimes_read": false,
+    "model_or_control_outputs_read": false,
+    "credential_values_emitted": false
+  },
+  "provider_calendar_probe": {
+    "provider": "alpaca",
+    "adapter": "itrader.inputs.market_data.alpaca.AlpacaMarketDataSource.fetch_calendar",
+    "canonical_request": {
+      "end": "2026-10-07",
+      "endpoint": "calendar",
+      "start": "2019-01-01"
+    },
+    "canonical_request_sha256": "f1978c5153d32c5504f8ce59689dde7ff7dae4a2ae3d30e0c569f055ae3ff5c7",
+    "canonical_response_payload_sha256": "360d219baff281f84b1185b9febb2590d176b8c2e4447bda540daf034ece7b9a",
+    "response_session_count": 1952,
+    "response_first_session": "2019-01-02",
+    "response_last_session": "2026-10-07",
+    "slices": {
+      "pre_v2_three_complete_years": {
+        "request_start": "2019-01-01",
+        "request_end": "2021-12-31",
+        "first_session": "2019-01-02",
+        "last_session": "2021-12-31",
+        "exchange_sessions": 757,
+        "requested_symbol_session_slots_for_12_symbols": 9084,
+        "early_close_count": 6,
+        "early_closes": [
+          "2019-07-03",
+          "2019-11-29",
+          "2019-12-24",
+          "2020-11-27",
+          "2020-12-24",
+          "2021-11-26"
+        ]
+      },
+      "nearest_two_complete_pre_v2_years": {
+        "request_start": "2020-01-01",
+        "request_end": "2021-12-31",
+        "first_session": "2020-01-02",
+        "last_session": "2021-12-31",
+        "exchange_sessions": 505,
+        "requested_symbol_session_slots_for_12_symbols": 6060,
+        "early_close_count": 3,
+        "early_closes": [
+          "2020-11-27",
+          "2020-12-24",
+          "2021-11-26"
+        ]
+      },
+      "retained_v2_dates": {
+        "request_start": "2022-01-03",
+        "request_end": "2026-09-22",
+        "first_session": "2022-01-03",
+        "last_session": "2026-09-22",
+        "exchange_sessions": 1184,
+        "early_close_count": 9
+      },
+      "post_v2_through_decision_date": {
+        "request_start": "2026-09-23",
+        "request_end": "2026-10-07",
+        "first_session": "2026-09-23",
+        "last_session": "2026-10-07",
+        "exchange_sessions": 11,
+        "early_close_count": 0
+      }
+    }
+  },
+  "retained_dataset_v2_projection": {
+    "dataset_id": "dataset_v2_20220103_20260922_alpaca_sip_split",
+    "dataset_content_sha256": "fac41f6d42f8c5b1eac739755667bb38407461f82c168d7955de26bb2e5fb79c",
+    "build_request_file_sha256": "e2fd032d9af90dc74a2ae2b1762a96ef8b7d47c49bd957706f9e646ceee4df62",
+    "manifest_file_sha256": "4c6202883a46cbe5bfbf4986003dcd1eb05b3738ac2d48eeb42d9a57fe974ca5",
+    "raw_calendar_file_sha256": "0bb92722b805a05af29f11db1922081b279e6b5142265f4ad371e3266ac44a72",
+    "projection_columns": [
+      "symbol",
+      "ts",
+      "session",
+      "session_id",
+      "trading_date"
+    ],
+    "filter": {
+      "session": "regular"
+    },
+    "regular_rows": 5515061,
+    "duplicate_symbol_timestamp_rows": 0,
+    "calendar_sessions_through_snapshot_end": 1184,
+    "cross_symbol": {
+      "dates_with_any_regular_row_for_all_12": 1184,
+      "dates_with_complete_calendar_schedule_for_all_12": 625,
+      "dates_eligible_at_t_plus_60_for_all_12": 636,
+      "dates_eligible_at_t_plus_120_for_all_12": 625,
+      "dates_eligible_at_both_offsets_for_all_12": 622,
+      "first_all_12_date": "2022-01-03",
+      "last_all_12_date": "2026-09-22",
+      "provider_early_close_count": 9,
+      "early_close_eligible_at_either_offset_for_all_12": 0
+    },
+    "eligibility_definition": {
+      "decision_offsets_minutes_after_reviewed_open": [
+        60,
+        120
+      ],
+      "lookback_minutes": 60,
+      "longest_outcome_minutes": 200,
+      "same_symbol_session": true,
+      "required_interval_minutes": 260
+    },
+    "symbols": {
+      "AAPL": {
+        "rows": 460140,
+        "sessions": 1184,
+        "first_session": "2022-01-03",
+        "last_session": "2026-09-22",
+        "session_rows_min": 210,
+        "session_rows_median": 390.0,
+        "session_rows_max": 390,
+        "sessions_with_missing_expected_minutes": 0,
+        "missing_expected_minutes": 0,
+        "max_intrasession_gap_minutes": 1,
+        "eligible_t_plus_60_sessions": 1175,
+        "eligible_t_plus_120_sessions": 1175
+      },
+      "AMD": {
+        "rows": 460140,
+        "sessions": 1184,
+        "first_session": "2022-01-03",
+        "last_session": "2026-09-22",
+        "session_rows_min": 210,
+        "session_rows_median": 390.0,
+        "session_rows_max": 390,
+        "sessions_with_missing_expected_minutes": 0,
+        "missing_expected_minutes": 0,
+        "max_intrasession_gap_minutes": 1,
+        "eligible_t_plus_60_sessions": 1175,
+        "eligible_t_plus_120_sessions": 1175
+      },
+      "AMZN": {
+        "rows": 460009,
+        "sessions": 1184,
+        "first_session": "2022-01-03",
+        "last_session": "2026-09-22",
+        "session_rows_min": 210,
+        "session_rows_median": 390.0,
+        "session_rows_max": 390,
+        "sessions_with_missing_expected_minutes": 52,
+        "missing_expected_minutes": 131,
+        "max_intrasession_gap_minutes": 3,
+        "eligible_t_plus_60_sessions": 1126,
+        "eligible_t_plus_120_sessions": 1125
+      },
+      "AVGO": {
+        "rows": 455685,
+        "sessions": 1184,
+        "first_session": "2022-01-03",
+        "last_session": "2026-09-22",
+        "session_rows_min": 203,
+        "session_rows_median": 390.0,
+        "session_rows_max": 390,
+        "sessions_with_missing_expected_minutes": 534,
+        "missing_expected_minutes": 4455,
+        "max_intrasession_gap_minutes": 6,
+        "eligible_t_plus_60_sessions": 662,
+        "eligible_t_plus_120_sessions": 650
+      },
+      "GOOGL": {
+        "rows": 458122,
+        "sessions": 1184,
+        "first_session": "2022-01-03",
+        "last_session": "2026-09-22",
+        "session_rows_min": 210,
+        "session_rows_median": 390.0,
+        "session_rows_max": 390,
+        "sessions_with_missing_expected_minutes": 132,
+        "missing_expected_minutes": 2018,
+        "max_intrasession_gap_minutes": 4,
+        "eligible_t_plus_60_sessions": 1046,
+        "eligible_t_plus_120_sessions": 1044
+      },
+      "IWM": {
+        "rows": 460136,
+        "sessions": 1184,
+        "first_session": "2022-01-03",
+        "last_session": "2026-09-22",
+        "session_rows_min": 210,
+        "session_rows_median": 390.0,
+        "session_rows_max": 390,
+        "sessions_with_missing_expected_minutes": 1,
+        "missing_expected_minutes": 4,
+        "max_intrasession_gap_minutes": 5,
+        "eligible_t_plus_60_sessions": 1174,
+        "eligible_t_plus_120_sessions": 1175
+      },
+      "META": {
+        "rows": 460139,
+        "sessions": 1184,
+        "first_session": "2022-01-03",
+        "last_session": "2026-09-22",
+        "session_rows_min": 210,
+        "session_rows_median": 390.0,
+        "session_rows_max": 390,
+        "sessions_with_missing_expected_minutes": 1,
+        "missing_expected_minutes": 1,
+        "max_intrasession_gap_minutes": 2,
+        "eligible_t_plus_60_sessions": 1174,
+        "eligible_t_plus_120_sessions": 1174
+      },
+      "MSFT": {
+        "rows": 460140,
+        "sessions": 1184,
+        "first_session": "2022-01-03",
+        "last_session": "2026-09-22",
+        "session_rows_min": 210,
+        "session_rows_median": 390.0,
+        "session_rows_max": 390,
+        "sessions_with_missing_expected_minutes": 0,
+        "missing_expected_minutes": 0,
+        "max_intrasession_gap_minutes": 1,
+        "eligible_t_plus_60_sessions": 1175,
+        "eligible_t_plus_120_sessions": 1175
+      },
+      "NVDA": {
+        "rows": 460140,
+        "sessions": 1184,
+        "first_session": "2022-01-03",
+        "last_session": "2026-09-22",
+        "session_rows_min": 210,
+        "session_rows_median": 390.0,
+        "session_rows_max": 390,
+        "sessions_with_missing_expected_minutes": 0,
+        "missing_expected_minutes": 0,
+        "max_intrasession_gap_minutes": 1,
+        "eligible_t_plus_60_sessions": 1175,
+        "eligible_t_plus_120_sessions": 1175
+      },
+      "QQQ": {
+        "rows": 460140,
+        "sessions": 1184,
+        "first_session": "2022-01-03",
+        "last_session": "2026-09-22",
+        "session_rows_min": 210,
+        "session_rows_median": 390.0,
+        "session_rows_max": 390,
+        "sessions_with_missing_expected_minutes": 0,
+        "missing_expected_minutes": 0,
+        "max_intrasession_gap_minutes": 1,
+        "eligible_t_plus_60_sessions": 1175,
+        "eligible_t_plus_120_sessions": 1175
+      },
+      "SPY": {
+        "rows": 460136,
+        "sessions": 1184,
+        "first_session": "2022-01-03",
+        "last_session": "2026-09-22",
+        "session_rows_min": 210,
+        "session_rows_median": 390.0,
+        "session_rows_max": 390,
+        "sessions_with_missing_expected_minutes": 1,
+        "missing_expected_minutes": 4,
+        "max_intrasession_gap_minutes": 5,
+        "eligible_t_plus_60_sessions": 1174,
+        "eligible_t_plus_120_sessions": 1175
+      },
+      "TLT": {
+        "rows": 460134,
+        "sessions": 1184,
+        "first_session": "2022-01-03",
+        "last_session": "2026-09-22",
+        "session_rows_min": 210,
+        "session_rows_median": 390.0,
+        "session_rows_max": 390,
+        "sessions_with_missing_expected_minutes": 6,
+        "missing_expected_minutes": 6,
+        "max_intrasession_gap_minutes": 2,
+        "eligible_t_plus_60_sessions": 1173,
+        "eligible_t_plus_120_sessions": 1170
+      }
+    }
+  },
+  "legacy_dataset_v1_projection": {
+    "path_identity": "itrader/data/ohlcv.parquet",
+    "file_sha256": "5f2e449548532ff71f419431df86962a2aedf7275d7bff5592729bbb8a900f73",
+    "projection_columns": [
+      "symbol",
+      "ts"
+    ],
+    "rows": 719855,
+    "duplicate_symbol_timestamp_rows": 0,
+    "timestamp_dtype": "datetime64[us]",
+    "timestamp_timezone": null,
+    "first_timestamp_raw_naive": "2023-07-05 09:00:00",
+    "last_timestamp_raw_naive": "2025-07-03 21:59:00",
+    "checked_in_configs_referencing_path": 37,
+    "checked_in_configs_explicitly_declaring_70_15_15_and_200_row_purge": 31,
+    "symbols": {
+      "AAPL": {
+        "rows": 378521,
+        "trading_dates": 502,
+        "first_timestamp_raw_naive": "2023-07-05 09:00:00",
+        "last_timestamp_raw_naive": "2025-07-03 21:59:00"
+      },
+      "AMZN": {
+        "rows": 188431,
+        "trading_dates": 250,
+        "first_timestamp_raw_naive": "2024-07-05 09:00:00",
+        "last_timestamp_raw_naive": "2025-07-03 21:59:00"
+      },
+      "MSFT": {
+        "rows": 152903,
+        "trading_dates": 250,
+        "first_timestamp_raw_naive": "2024-07-05 09:00:00",
+        "last_timestamp_raw_naive": "2025-07-03 21:55:00"
+      }
+    },
+    "interpretation": "possible historical value exposure only; checked-in configs do not prove execution completeness and the source lacks the immutable dataset-v2 provenance contract"
+  },
+  "retained_exposure_inventory": {
+    "file_sha256": "74b4fff809a85ebb22c055b3fd0a33e9c2c3e145a044e366d296622ded81162f",
+    "scope": "retained_metadata_inventory_not_complete_exposure_certificate",
+    "resolved_configs": 163,
+    "unresolved_configs": 42,
+    "random_episode_configs_with_unreconstructed_starts": 26
+  }
+}

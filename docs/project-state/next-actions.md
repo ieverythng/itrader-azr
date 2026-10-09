@@ -1,5 +1,23 @@
 # Next Actions
 
+**Current boundary (2026-10-07):** Q27's four mechanical repairs are implemented;
+Independent Sol and Luna reviews approve mechanics and the separate opt-in
+economics pilot. Final core validation (530 cases), healthcheck, clean scoped
+pre-commit rerun and diff checks pass. Reviewer pairs are requested dispatch
+metadata, not observed runtime telemetry. The approved
+Q23 `terminal_screen_only` role, dual dataset identities and certified intervals
+need their own implementation/review; no external-data validation relabeling.
+Metadata-first envelope planning is now approved; exact bounds/clearance and
+Q26 remain GRILL items before panel freeze and real all-16 execution. Optional
+volatility normalization is not a prerequisite when disabled. No acquisition,
+panel opening, new training, R1 or native integration has occurred. The eight
+accepted corrected-control receipts and original artifacts remain untouched.
+See the [Oct-7 repair audit](../artifacts/research/evaluation-mechanical-repairs-2026-10-07.md)
+for executed regressions, review fixes and test-ROI recommendations.
+
+The dated Oct-6 notices below retain their publication-time approval status;
+the Oct-7 boundary above supersedes that status, not their recovery evidence.
+
 **Evaluation audit completed (2026-10-06):** the bounded recovery maps 512
 recorded control rows to 48 starts; 26 randomized configs remain source-unbound.
 Both fresh independent reviews return CHANGES. Q27's four mechanical repairs and
@@ -28,7 +46,7 @@ stays isolated; dirty work and artifacts are preserved. See the
 [qualification audit](../artifacts/research/r1-panel-qualification-2026-10-06.md).
 The dated execution notices below are historical, not active launch authority.
 
-Last updated: 2026-10-06
+Last updated: 2026-10-07
 
 Use the [iTrader Research Dashboard](../research/itrader_research_dashboard.md)
 for wing identity and dependency context; this file owns the ordered operational
@@ -39,15 +57,14 @@ metrics into the registry.
 
 ## Immediate R1 development preparation
 
-### Current bounded queue (2026-10-06)
+### Current bounded queue (2026-10-07)
 
-1. Settle Q27's four mechanical correction boundaries in GRILL; patch owning
-   seams test-first and return every fix to fresh independent review. Do not
-   change the frozen evaluator or rewrite accepted historical receipts.
-2. Settle Q23 after the completed bounded recovery: 48 recorded starts are
-   conditionally mapped, but 26 randomized configs remain source-unbound. Approve
-   a further evidence-recovery scope or explicit evaluation-only data role;
-   no nominal-seed or newer-date shortcut to freshness.
+1. Q27 mechanical repair and optional-pilot review/validation are closed. Preserve
+   frozen evaluators, accepted receipts and distinct negative regression cases.
+2. Implement/review Q23's approved first-class terminal-only role, dual identities
+   and certified eligible intervals as a distinct change. GRILL must settle the
+   metadata-first acquisition envelope/calendar support before collection;
+   freshness still requires retained access/exposure proof, not a newer date.
 3. Choose Q26 grouping/block/interval/coverage/seed terms after metadata support
    and synthetic calibration; the methodology synthesis is not approval.
 4. Implement/review the actual all-16 terminal executor with sealed identities,

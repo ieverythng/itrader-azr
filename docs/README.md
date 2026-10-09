@@ -27,6 +27,7 @@ Call out meaningful drift rather than silently selecting a convenient version.
 | All research wings, dependencies, statuses, and decisions | [iTrader Research Dashboard](research/itrader_research_dashboard.md) ([HTML](research/itrader_research_dashboard.html)) |
 | Search runs, members, checkpoints, and matched factors | [Experiment Browser](research/itrader_experiment_browser.html) ([registry](research/experiment_registry.json)) |
 | Independent change-review contract | [Review Contract](../REVIEW.md) |
+| GRILL dispatch, parent boards, resource leases, and review workflow | [Coordination](coordination/README.md) |
 | Current branch and experiment state | [Current State](project-state/current-state.md) |
 | Ordered continuation work | [Next Actions](project-state/next-actions.md) |
 | R1 diagnostics, replay and implementation acceptance | [R1 development readiness](project-state/r1-development-readiness.md) |
@@ -68,6 +69,19 @@ See [plans/README.md](plans/README.md) for plan ownership and archival rules.
   and supersessions.
 - [project-state/session-log.md](project-state/session-log.md) — dated
   engineering log.
+
+## Coordination
+
+- [coordination/README.md](coordination/README.md) defines board ownership,
+  bounded dispatch, resource leases, and freshness checks.
+- [coordination/grill.md](coordination/grill.md) records current orchestration
+  and decision dependencies; DEV, RESEARCH, and TRAINING/TESTING have separate
+  owned boards linked from the index.
+- [coordination/review-workflow.md](coordination/review-workflow.md) bounds the
+  experimental No-Mistakes port without replacing `REVIEW.md`.
+
+Boards are operational Markdown, not a second architecture or experiment
+ledger. They do not require generated HTML companions.
 
 ## Research
 
