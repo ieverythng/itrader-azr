@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Saluki advisory assessment: recommended dispositions, accounting, chronology, examiner evidence and bounded next work. Proposal only; no adoption or run authorization.">
+  <title>Saluki Advisory | Evidence, Experiments And Next Work</title>
+  <style>
+    :root {
+      --paper: #fafaf8;
+      --white: #ffffff;
+      --ink: #202925;
+      --muted: #59645f;
+      --line: #d8dfd9;
+      --soft: #f0f3f0;
+      --emerald: #21634c;
+      --rust: #91432b;
+      --teal: #23636b;
+      --focus: #91432b;
+      --measure: 1120px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-padding-top: 90px; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif; letter-spacing: 0; }
+    a { color: var(--emerald); text-decoration-thickness: 1px; text-underline-offset: 3px; overflow-wrap: anywhere; }
+    a:hover { color: var(--rust); text-decoration-thickness: 2px; }
+    a:focus-visible, [tabindex]:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+    .skip { position: fixed; top: 10px; left: 14px; z-index: 10; padding: 8px 12px; background: var(--white); transform: translateY(-160%); }
+    .skip:focus { transform: translateY(0); }
+    .inner { width: min(var(--measure), calc(100% - 64px)); margin: 0 auto; min-width: 0; }
+    .masthead { padding: 35px 0 28px; border-top: 5px solid var(--emerald); }
+    .eyebrow { margin: 0 0 13px; color: var(--muted); font-size: 12px; font-weight: 650; text-transform: uppercase; }
+    h1 { margin: 0; font-size: 34px; line-height: 1.2; font-weight: 700; letter-spacing: 0; }
+    .subtitle { margin: 6px 0 18px; color: var(--muted); font-size: 18px; }
+    .metadata { display: flex; flex-wrap: wrap; gap: 5px 22px; margin: 0; color: var(--muted); font-size: 13px; }
+    .status { margin: 21px 0 0; padding: 12px 0 12px 18px; border-left: 3px solid var(--rust); max-width: 88ch; }
+    .status strong { color: var(--rust); }
+    .status p { margin: 3px 0 0; }
+    .document-links { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 18px; font-size: 14px; }
+    .anchors { position: sticky; top: 0; z-index: 5; background: var(--paper); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .anchors .inner { display: flex; gap: 22px; overflow-x: auto; padding: 12px 4px; scrollbar-width: thin; }
+    .anchors a { flex: 0 0 auto; white-space: nowrap; color: var(--ink); font-size: 13px; font-weight: 600; text-decoration: none; }
+    .anchors a:hover, .anchors a:focus-visible { color: var(--emerald); text-decoration: underline; }
+    section { padding: 31px 0 34px; border-bottom: 1px solid var(--line); scroll-margin-top: 20px; }
+    .section-heading { display: flex; gap: 15px; align-items: baseline; margin: 0 0 16px; }
+    .section-number { flex: 0 0 24px; color: var(--emerald); font: 13px/1.4 ui-monospace, Consolas, monospace; }
+    h2 { margin: 0; font-size: 23px; line-height: 1.3; letter-spacing: 0; }
+    h3 { margin: 23px 0 7px; font-size: 17px; line-height: 1.4; }
+    p { margin: 0 0 12px; }
+    p:last-child { margin-bottom: 0; }
+    .lead { font-size: 17px; max-width: 94ch; }
+    .quiet { color: var(--muted); font-size: 14px; }
+    .note { margin: 18px 0 0; padding-left: 15px; border-left: 2px solid var(--teal); }
+    .note.caution { border-left-color: var(--rust); }
+    .note strong { color: var(--teal); }
+    .note.caution strong { color: var(--rust); }
+    .columns { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 18px; }
+    .columns > * { min-width: 0; }
+    .columns h3 { margin-top: 0; }
+    ul, ol { margin: 8px 0 14px; padding-left: 23px; }
+    li { margin: 5px 0; }
+    code { font: 0.88em/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap: anywhere; }
+    pre { margin: 16px 0; padding: 16px 18px; overflow-x: auto; background: var(--soft); border-left: 2px solid var(--line); font: 13px/1.75 ui-monospace, SFMono-Regular, Consolas, monospace; tab-size: 2; }
+    pre code { font: inherit; overflow-wrap: normal; }
+    .table-wrap { margin: 18px 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; line-height: 1.5; }
+    caption { text-align: left; padding: 0 0 9px; font-size: 13px; color: var(--muted); }
+    th, td { padding: 12px 14px; vertical-align: top; border-bottom: 1px solid var(--line); overflow-wrap: anywhere; }
+    thead th { background: var(--soft); font-size: 12px; font-weight: 700; color: var(--muted); }
+    tbody th { font-weight: 600; }
+    th:first-child, td:first-child { padding-left: 10px; }
+    .dispositions { min-width: 760px; }
+    .dispositions th:nth-child(1) { width: 27%; }
+    .dispositions th:nth-child(2) { width: 26%; }
+    .accounting, .actions { min-width: 550px; }
+    .chronology { min-width: 600px; }
+    .queue { min-width: 840px; }
+    .queue th:nth-child(1) { width: 5%; }
+    .queue th:nth-child(2) { width: 32%; }
+    .queue th:nth-child(3) { width: 40%; }
+    .num { text-align: right; font-variant-numeric: tabular-nums; }
+    .retain { color: var(--emerald); font-weight: 650; }
+    .investigate { color: var(--teal); font-weight: 650; }
+    .restrict { color: var(--rust); font-weight: 650; }
+    .source-list { list-style: none; margin: 0; padding: 0; }
+    .source-list li { padding: 7px 0; border-bottom: 1px solid var(--line); }
+    .source-list small { display: block; color: var(--muted); font-size: 12px; }
+    details { margin: 17px 0 0; border-top: 1px solid var(--line); padding-top: 10px; }
+    summary { cursor: pointer; color: var(--muted); font-size: 14px; }
+    summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 4px; }
+    .hashes { margin: 12px 0 0; }
+    .hashes dt { color: var(--muted); font-size: 12px; }
+    .hashes dd { margin: 2px 0 10px; font-size: 13px; }
+    .flow { list-style: none; padding: 0; margin: 18px 0; counter-reset: evidence; }
+    .flow li { display: grid; grid-template-columns: 30px 1fr; gap: 12px; margin: 0; padding: 11px 0; border-bottom: 1px solid var(--line); counter-increment: evidence; }
+    .flow li::before { content: counter(evidence, decimal-leading-zero); color: var(--teal); font: 13px/1.6 ui-monospace, Consolas, monospace; }
+    .flow span { min-width: 0; }
+    .endpoints { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin: 19px 0; }
+    .endpoints div { padding-top: 9px; border-top: 2px solid var(--line); min-width: 0; }
+    .endpoints strong { display: block; color: var(--teal); font-size: 14px; }
+    .endpoints p { margin-top: 4px; font-size: 14px; }
+    .readiness { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .readiness h3 { margin: 0 0 8px; }
+    footer { padding: 25px 0 34px; color: var(--muted); font-size: 13px; }
+    .footer-row { display: flex; flex-wrap: wrap; gap: 12px 28px; justify-content: space-between; }
+    @media (max-width: 760px) {
+      .inner { width: calc(100% - 36px); }
+      .masthead { padding-top: 25px; }
+      h1 { font-size: 30px; }
+      .subtitle { font-size: 16px; }
+      h2 { font-size: 21px; }
+      .columns { grid-template-columns: 1fr; gap: 18px; }
+      .endpoints { grid-template-columns: 1fr; gap: 12px; }
+      .anchors .inner { gap: 20px; }
+      section { padding: 26px 0; }
+      .section-heading { gap: 10px; }
+      .metadata { gap: 4px 15px; }
+    }
+    @media (max-width: 380px) {
+      .inner { width: calc(100% - 28px); }
+      h1 { font-size: 28px; }
+      .section-number { flex-basis: 21px; }
+      .status { padding-left: 12px; }
+    }
+    @media print {
+      @page { size: A4; margin: 16mm 14mm; }
+      :root { --paper: #ffffff; --ink: #000000; --muted: #404040; --line: #bdbdbd; }
+      body { font-size: 10pt; line-height: 1.45; background: #ffffff; }
+      .inner { width: 100%; max-width: none; }
+      .skip, .anchors { display: none; }
+      .masthead { padding: 0 0 15px; border-top: 0; }
+      h1 { font-size: 24pt; }
+      h2 { font-size: 16pt; }
+      h3 { font-size: 12pt; }
+      .subtitle { font-size: 12pt; }
+      .lead { font-size: 11pt; }
+      section { padding: 15px 0; }
+      h2, h3, .section-heading, caption { break-after: avoid; }
+      p, li { orphans: 3; widows: 3; }
+      table { font-size: 9pt; }
+      .table-wrap { overflow: visible; margin: 12px 0; }
+      .dispositions, .accounting, .actions, .chronology, .queue { min-width: 0; }
+      thead { display: table-header-group; }
+      tr { break-inside: avoid; }
+      th, td { padding: 7px 6px; }
+      pre { white-space: pre-wrap; overflow: visible; font-size: 9pt; }
+      a { color: #000000; text-decoration: underline; }
+      .columns { gap: 18px; }
+      .endpoints { gap: 14px; }
+      .status, .note, .flow li { break-inside: avoid; }
+      .hashes { display: block !important; }
+      footer { padding: 15px 0 0; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to report</a>
+  <header class="masthead" id="top">
+    <div class="inner">
+      <p class="eyebrow">iTrader / Research assessment / 10 October 2026</p>
+      <h1>Saluki Advisory</h1>
+      <p class="subtitle">Evidence, Experiments And Next Work</p>
+      <p class="metadata"><span>Branch <code>agent/Watson-dev</code></span><span>HEAD <code>8f9fcf9</code></span><span>Inherited dirty tree</span></p>
+      <div class="status">
+        <strong>Proposal, not adoption.</strong>
+        <p>Investigation and recommended work ordering only. No architecture adoption, statistical qualification or run authorization. Q26 grilling is paused at the human's request; accepted criteria and unanswered terms remain preserved.</p>
+      </div>
+      <div class="document-links">
+        <a href="saluki-advisory-assessment-2026-10-10.md">Full assessment / authoritative Markdown</a>
+        <a href="../../plans/itrader_masterplan.md">Canonical masterplan</a>
+        <a href="#queue">Proposed work queue</a>
+      </div>
+    </div>
+  </header>
+  <nav class="anchors" aria-label="Report sections">
+    <div class="inner">
+      <a href="#authority">01 Authority</a>
+      <a href="#assessment">02 Assessment</a>
+      <a href="#costs">03 Costs</a>
+      <a href="#actions">04 Actions</a>
+      <a href="#chronology">05 Chronology</a>
+      <a href="#evaluation">06 Evaluation</a>
+      <a href="#examiner">07 Examiner</a>
+      <a href="#queue">08 Queue</a>
+      <a href="#limits">09 Limits</a>
+    </div>
+  </nav>
+  <main id="main">
+    <section id="authority" aria-labelledby="authority-title">
+      <div class="inner">
+        <div class="section-heading"><span class="section-number">01</span><h2 id="authority-title">Inputs And Authority</h2></div>
+        <p class="lead">Current source, tests and configs win over imported advice. This report is a companion review surface, not an alternative evaluator or roadmap; its <a href="saluki-advisory-assessment-2026-10-10.md">Markdown</a> is the sole content authority.</p>
+        <div class="columns">
+          <div>
+            <h3>Imported advisory</h3>
+            <p>The human identifies the model-authored <a href="../../research/trading-rl-evaluation-advisory-2026-10-10.md">original Markdown</a> and <a href="../../research/trading-rl-evaluation-advisory-2026-10-10.html">original HTML</a>. Both were untracked and not Git-staged at intake; neither original is edited.</p>
+            <p>Model identity, parameter count and benchmark intelligence are human-reported, not independently qualified. Imported instructions, including the suggested memory-file workflow, do not override AGENTS or board ownership.</p>
+            <details open>
+              <summary>Original file identities / SHA256 at intake</summary>
+              <dl class="hashes">
+                <dt>Original Markdown</dt><dd><code>0dd526633e95bcf47525e68d55abc40f4734bbbf035cdb5ecdd065be3fc7b707</code></dd>
+                <dt>Original HTML</dt><dd><code>fbef9a5db93272bed7d05df12f23ea5dd498163b6e4c38b72d9acbecb6c6dc30</code></dd>
+              </dl>
+            </details>
+          </div>
+          <div>
+            <h3>Finite, light-only evidence inputs</h3>
+            <ul class="source-list">
+              <li><a href="saluki-source-audit-2026-10-10.md">DEV / Source audit</a></li>
+              <li><a href="saluki-methodology-research-2026-10-10.md">RESEARCH / Trading methodology</a></li>
+              <li><a href="adversarial-llm-examiner-2026-10-10.md">RESEARCH / Adversarial LLM examiner</a></li>
+              <li><a href="saluki-runtime-inventory-2026-10-10.md">TRAINING / Runtime and dataset metadata</a><small>Inventory delivered; metadata is not compatibility qualification.</small></li>
+            </ul>
+            <p class="quiet" style="margin-top: 12px">GRILL integrates the findings. Accepted ordering stays with the <a href="../../plans/itrader_masterplan.md">masterplan</a>, <a href="../../research/recurrent-solver-ablation.md">R-series design</a> and <a href="../../research/sharpe-reward-design.md">Sharpe design</a>.</p>
+          </div>
+        </div>
+        <div class="readiness">
+          <h3>Verified metadata, not root CUDA provisioning</h3>
+          <p>The root <code>.venv</code> remains Torch <code>2.3.1+cpu</code>, Ray <code>2.58.0</code>, Gymnasium <code>1.2.2</code> and NumPy <code>1.26.4</code>. The external CUDA benchmark used Torch <code>2.9.0.dev20250801+cu128</code>; that is not the current root environment.</p>
+          <p>Dataset-v2 metadata spans <strong>2022-01-03 through 2026-09-22</strong>. Neither the proposed 2020 training start nor the preserved 2020-2021 Q23 envelope is available in that snapshot. No provisioning or collection occurs here.</p>
+        </div>
+      </div>
+    </section>
+    <section id="assessment" aria-labelledby="assessment-title">
+      <div class="inner">
+        <div class="section-heading"><span class="section-number">02</span><h2 id="assessment-title">Executive Assessment</h2></div>
+        <p class="lead">Retain controlled experiments, turnover reporting, chronological separation and preserved final evaluation. Correct inconsistent cost units and action aliases; do not adopt unsupported training budgets or treat retraining as a reset of historical exposure.</p>
+        <p>No result in this pass proves economic edge, predicts a confidence interval or justifies promoting R1/R4.</p>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Recommended dispositions table">
+          <table class="dispositions">
+            <caption>GRILL recommendations for the next human decision, not permission to implement or launch.</caption>
+            <thead><tr><th scope="col">Proposal</th><th scope="col">Recommended disposition</th><th scope="col">Reason / next evidence</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Frozen recipes, source/data/partition identities, matched seeds</th><td class="retain">Retain existing discipline</td><td>Already required. Extend existing manifests, not another framework.</td></tr>
+              <tr><th scope="row">Turnover and cost-response reporting</th><td class="investigate">Prioritize bounded diagnostic design</td><td>Separate fixed-action repricing from training-cost experiments.</td></tr>
+              <tr><th scope="row">Larger R0 training first, by 10-100x</th><td class="restrict">Reject mandatory prerequisite</td><td>No universal sample budget or certified ceiling. Preserve matched R0/R1 order; inspect learning curves before longer runs.</td></tr>
+              <tr><th scope="row">0.01/0.1-bp cost as proof of real edge</th><td class="restrict">Reject interpretation; possible sensitivity ablation</td><td>Sensitivity rates, not verified implementation costs.</td></tr>
+              <tr><th scope="row">Fresh chronological train/validation/test</th><td class="investigate">Design before acquisition or retraining</td><td>Common calendar, exposure ledger and causal eligibility required. Dates are not selected.</td></tr>
+              <tr><th scope="row">T=30/60/120/240 crossed immediately with costs</th><td class="restrict">Defer broad grid</td><td>Isolate T=60 encoder/state factors first; verify session support and matched anchors before changing T.</td></tr>
+              <tr><th scope="row">WAIT and EXIT as extra family-00 actions</th><td class="restrict">Do not adopt now</td><td>Target-position semantics already hold and flatten. Extra logits alone add no economic transitions.</td></tr>
+              <tr><th scope="row">Punish waiting after an allowance</th><td class="restrict">Reject as a basin cure</td><td>Changes the objective toward activity and may force losing trades. Non-trading is not automatically reward hacking.</td></tr>
+              <tr><th scope="row">Opt-in causal volatility features</th><td class="investigate">Later observation-ablation candidate</td><td>Specify units, estimator, causal cutoff, fitting scope and restore identity. Do not copy advisory pseudocode.</td></tr>
+              <tr><th scope="row">Shared trunk and family heads</th><td class="retain">Preserve accepted research direction</td><td>Not validated here. Family input/action/economic semantics remain separately owned.</td></tr>
+              <tr><th scope="row">Conversational examiner for proposer tests</th><td class="investigate">New research wing; pilot design only</td><td>Needs defect-detection and false-rejection evidence, not a model-size rule.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note caution"><strong>Decision boundary.</strong> These recommendations grant no changes to models, actions, rewards, pins, data access or budgets.</p>
+        <h3>Source corrections before an ablation</h3>
+        <ul>
+          <li>The environment calculates per-step reward; GAE belongs to RLlib, not a cited environment line or necessarily a complete-episode update.</li>
+          <li>The named PBT-off recipe omits gamma and resolves to CLI default <code>0.99</code>, not a three-value sweep. <code>40*4800</code> is a nominal target, not a witnessed sampled-step count.</li>
+          <li>OHLC is relative to the last causal close; volume uses log1p plus window standardization. Not all channels are z-scored. Output is sanitized/clipped to <code>[-10,10]</code>; relative OHLC still carries percentage-volatility amplitude.</li>
+          <li>The literal v2 concatenation mixes a 2D matrix and 1D list, causing a rank mismatch. Reshaping that list into one row would produce <code>61x5</code>, not a channel in the required <code>60x5</code> layout. 252 minute bars is not one year; fitted or precomputed does not prove causal or restore-compatible.</li>
+          <li>R1 resets recurrent state at every decision; it is not cross-decision episode recurrence. Only family 00 is enabled; family metadata does not implement pairs trading.</li>
+        </ul>
+        <p class="quiet">The <a href="saluki-source-audit-2026-10-10.md">source claim ledger</a> supplies hashes and line anchors. No production defect was established by this static audit; preserve existing public-contract tests.</p>
+      </div>
+    </section>
+    <section id="costs" aria-labelledby="costs-title">
+      <div class="inner">
+        <div class="section-heading"><span class="section-number">03</span><h2 id="costs-title">Cost: Rate, Turnover And Episode Length</h2></div>
+        <p>Current unit-position accounting uses prior position <code>p</code>, target <code>q</code>, next-bar return <code>r</code> and one-way per-unit-turnover rate <code>c</code>:</p>
+        <pre><code>continuation gross = q * r
+switching cost    = c * abs(q - p)
+continuation net  = q * r - c * abs(q - p)
+terminal net      = continuation net - c * abs(q)  [if liquidation applies]</code></pre>
+        <p><strong><code>c=1e-4</code> is 1 bp per turnover unit.</strong> It is not 1 bp per round trip or a per-bar holding charge. Diagnostic economic net is not interchangeable with scaled/shaped PPO optimizer reward; confirm that reward separately.</p>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Independent cost accounting examples">
+          <table class="accounting">
+            <caption>Independent accounting examples, not market results. All paths start flat.</caption>
+            <thead><tr><th scope="col">Position path</th><th scope="col" class="num">Turnover, including liquidation</th><th scope="col" class="num">Cost at 1 bp</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Long held for 200 decisions, then terminal liquidation</th><td class="num">2</td><td class="num">2 bp</td></tr>
+              <tr><th scope="row">Long, long, short, short, then terminal liquidation</th><td class="num">4</td><td class="num">4 bp</td></tr>
+              <tr><th scope="row">Flat throughout</th><td class="num">0</td><td class="num">0 bp</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>The advisory's 4.4-bp gap is not numerically smaller than a 1-bp rate. Aggregate return differences and per-turnover rates also have different denominators. This assessment neither re-scores that historical gap nor infers its uncertainty.</p>
+        <div class="columns">
+          <div>
+            <h3>Frozen-trace repricing</h3>
+            <p>Additive net is <code>G - c*U</code>: gross return <code>G</code> and turnover <code>U</code> are fixed, including applicable terminal liquidation. The response is affine and cannot improve with higher costs.</p>
+            <p>Break-even is <code>10,000*G/U</code> bp for <code>U&gt;0</code>. A negative rate means no nonnegative cost makes the trace profitable; <code>U=0</code> leaves the division undefined. Compounded wealth requires separately derived accounting.</p>
+          </div>
+          <div>
+            <h3>Training at different costs</h3>
+            <p>Separately trained policies can change both <code>G</code> and <code>U</code>. That is a different question requiring matched budgets, seeds and panels.</p>
+            <p>Cost sensitivity cannot by itself identify architecture, optimizer, exploration, sampling, leakage or directional exposure as the cause. SIP identifies a market-data feed, not a verified fill/spread/fee model.</p>
+          </div>
+        </div>
+        <p class="note"><strong>Proposed public integration scenario.</strong> Literal entry/hold/flip/exit paths, terminal costs exactly once and frozen-trace repricing invariance. Reuse <code>EpisodeEvidence</code> and economic diagnostics; do not add another accounting owner.</p>
+      </div>
+    </section>
+    <section id="actions" aria-labelledby="actions-title">
+      <div class="inner">
+        <div class="section-heading"><span class="section-number">04</span><h2 id="actions-title">WAIT / EXIT: Intent Versus Transition</h2></div>
+        <p class="lead">Current actions target short <code>-1</code>, flat <code>0</code> or long <code>+1</code>. Repeating the target holds; choosing flat closes exposure. Time advances and the position still earns next-bar PnL.</p>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Action alias truth table">
+          <table class="actions">
+            <caption>Transition truth table: WAIT means keep position; EXIT means target zero.</caption>
+            <thead><tr><th scope="col">Current position</th><th scope="col">Hold / proposed WAIT</th><th scope="col">Flatten / proposed EXIT</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">Short</th><td>SHORT, turnover 0</td><td>FLAT, turnover 1</td></tr>
+              <tr><th scope="row">Flat</th><td>FLAT, turnover 0</td><td>FLAT, turnover 0</td></tr>
+              <tr><th scope="row">Long</th><td>LONG, turnover 0</td><td>FLAT, turnover 1</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Under those definitions WAIT and EXIT alias existing transitions. Five logits still change exploration/entropy, action probabilities and checkpoint dimensions, even with unchanged returns. Describing FLAT as only holding an already-flat account leaves exposed-state behavior undefined and must not silently remove the close action.</p>
+        <p>A distinct Phase C or portfolio intent needs validity/masking, position ownership, duration, risk authority, fill handling and already-flat behavior. Broker semantics stay in deterministic <code>DecisionGate</code>/<code>RiskEngine</code>/<code>Executor</code> shells. Online <code>WAIT</code>/<code>NO_ACTION</code> remains first-class without five training logits; matching family output widths does not confer matching semantics.</p>
+        <p class="note caution"><strong>Separate factor, not a shortcut.</strong> Any future action change needs its own transition table and strict action-schema/restore tests. Do not mix it into R0/R1 x solver state or add trade quotas to manufacture activity.</p>
+        <p class="quiet">DEV identifies a prospective restore gap: selector/config and output width are bound, but no explicit action-ID vocabulary is recorded. A same-width semantic remap needs its own version and rejection oracle before a future change; no remap or current runtime defect was established here.</p>
+      </div>
+    </section>
+    <section id="chronology" aria-labelledby="chronology-title">
+      <div class="inner">
+        <div class="section-heading"><span class="section-number">05</span><h2 id="chronology-title">Chronology: Four Different Decisions</h2></div>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Four distinct chronology decisions">
+          <table class="chronology">
+            <caption>Calendar order is not a substitute for evaluation procedure or evidence freshness.</caption>
+            <thead><tr><th scope="col">Decision</th><th scope="col">What must be declared</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">1. Partition membership</th><td>Which dates/symbols belong to train, validation and test.</td></tr>
+              <tr><th scope="row">2. Training sample order</th><td>Chronological traversal versus randomized valid starts.</td></tr>
+              <tr><th scope="row">3. Walk-forward evaluation</th><td>Training/selection on prior folds, testing later folds and explicit refit rules.</td></tr>
+              <tr><th scope="row">4. Evidence freshness</th><td>Which outcomes any human or agent already used for selection.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>A left-to-right split is not proof of walk-forward evaluation; neither makes inspected outcomes fresh. Starting over cannot erase existing 2025-2026 development exposure. Preserve earlier results as historical/inspected evidence, not deleted or relabeled final-test.</p>
+        <h3>Declare the calendar before outcomes</h3>
+        <p>The proposed 2020-2023 / 2023-2025 / 2025-2026 ranges are illustrative, overlap at written endpoints and are not frozen. Declare non-overlapping half-open bounds shared across symbols, data availability, prior use, train-only fitting and selection roles.</p>
+        <p>An unseen historical envelope, governed nested walk-forward study and prospective holdout support different claims; none is selected here. The approved 2020-2021 Q23 candidate envelope remains preserved, with data availability, exposure clearance and qualification unresolved. Approval is not acquisition or run authority. Current dataset-v2 begins on 2022-01-03 and cannot supply that envelope.</p>
+        <div class="columns">
+          <div>
+            <h3>Causal eligibility, not arbitrary gaps</h3>
+            <p>Derive purge and eligibility from history, horizon, label/outcome intervals, session resets and fitting dependencies. A 500- or 1,000-row gap is not a universal leakage certificate. Declared protocols may allow prior causal context, not future outcomes.</p>
+          </div>
+          <div>
+            <h3>Window length changes support</h3>
+            <p><code>T=60</code> is 60 one-minute bars, not two hours. A 240-bar history plus a 200-decision horizon cannot fit wholly in a 390-bar full RTH session. Check exact indexing and shortened sessions. Larger T can change the eligible panel, not just compute; surviving anchors are not automatically matched samples.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section id="evaluation" aria-labelledby="evaluation-title">
+      <div class="inner">
+        <div class="section-heading"><span class="section-number">06</span><h2 id="evaluation-title">Evaluation And The One-Bar Diagnostic</h2></div>
+        <p class="lead">Evidence validity, metric availability, uncertainty qualification and promotion eligibility are separate. Keep valid negative or inconclusive returns visible; quarantine invalid comparisons rather than replacing them with zero.</p>
+        <p>DEV19 still requires its execution-backed Spec review. This advisory does not close it.</p>
+        <h3>Q26 criteria retained; qualification remains open</h3>
+        <p>The accepted primary is <strong>fixed-1-bp paired terminal net uplift</strong>, not every reported statistic. The nominal 95% equal-tailed candidate, simultaneous MC coverage lower bound <code>&gt;=94%</code> and directional-error upper bounds <code>&lt;=3%</code> are unchanged. Process support, operational method and independent confirmation remain open. A small historical gap cannot predict whether the interval crosses zero.</p>
+        <h3>One bar can diagnose accounting, not realized Sharpe</h3>
+        <p>Bind action, prior position, causal market history and any optional volatility estimate before the next return. Report gross, switching cost, net and matched benchmark-relative net; distinguish continuation from terminal liquidation. Overlapping histories, calendars and positions prevent treating observations as independent samples.</p>
+        <p>One outcome has no meaningful realized Sharpe. An ex-post ratio needs a return series, stated reference, sampling period and variance treatment; see <a href="https://web.stanford.edu/~wfsharpe/art/sr/SR.htm">Sharpe's original treatment</a>. Optional volatility normalization stays off and does not block net reporting.</p>
+        <h3>Horizon-local attribution</h3>
+        <pre><code>directional = mean signed position * matched long-only gross
+timing      = policy gross - directional
+net         = directional + timing - costs</code></pre>
+        <p>Cancellation in the net identity is intentional accounting. Do not clip attribution or select the best directional control after seeing returns. Timing is not automatically forecasting skill or independent of exposure. An ex-post best long/short control is a diagnostic oracle, not a deployable benchmark or replacement for predeclared paired-net inference.</p>
+      </div>
+    </section>
+    <section id="examiner" aria-labelledby="examiner-title">
+      <div class="inner">
+        <div class="section-heading"><span class="section-number">07</span><h2 id="examiner-title">New Wing: The Adversarial LLM Examiner</h2></div>
+        <p class="lead">Pilot design only: a bounded conversational probe between deterministic contract validation and complete proposer-solver E2E testing. It examines causal fit, constraints under follow-up, uncertainty and demonstrated-defect correction.</p>
+        <p>It cannot certify economic performance, data freshness or statistical uplift. <a href="https://arxiv.org/abs/2305.13281">LM vs LM</a> provides a factual-QA cross-examination precedent, not trading-task evidence. <a href="https://arxiv.org/abs/2407.04622">Scalable oversight</a> distinguishes debate from consultancy with task-dependent results; this single-proposer examination is not two-sided debate. <a href="https://arxiv.org/abs/2403.17710">JudgeDeceiver</a> motivates treating evaluated text as an injection surface. Local transfer remains a hypothesis.</p>
+        <p>Reuse current harness identities in the proposed evidence flow:</p>
+        <ol class="flow" aria-label="Proposed examiner evidence flow">
+          <li><span>Frozen fixture + causal summary + task contract</span></li>
+          <li><span>Proposer invocation and initial candidate</span></li>
+          <li><span>Deterministic validation and executable oracle</span></li>
+          <li><span>Blinded static judge OR bounded examiner dialogue</span></li>
+          <li><span>Final candidate validated again + complete dialogue receipt</span></li>
+          <li><span>Defect-detection / false-rejection / cost report</span></li>
+        </ol>
+        <div class="endpoints">
+          <div><strong>Initial defect</strong><p>Was the defect present in the first candidate?</p></div>
+          <div><strong>Examiner detection</strong><p>Did the examiner discover that defect?</p></div>
+          <div><strong>Repair after feedback</strong><p>Was the final candidate corrected?</p></div>
+        </div>
+        <p>Keep these endpoints distinct: persuasive explanations or repairs can hide poor initial proposals. Model size is a selection factor, not an intelligence guarantee. Qualify on held-out labeled defects, varied model families and orderings, with deterministic or independently reviewed ground truth.</p>
+        <div class="columns">
+          <div>
+            <h3>Replayable pilot design</h3>
+            <p>Compare deterministic-only, static rubric judge and bounded multi-turn examiner on the same fixtures. Include valid tasks, malformed payloads, plausible but incompatible horizons, fabricated summary claims, leakage requests, adversarial instructions and no-solution cases.</p>
+            <p>Measure detection, false rejection, abstention, stability and tokens/latency. Declare turn/token/tool limits and stop rules before calls. No numerical budget is selected here.</p>
+          </div>
+          <div>
+            <h3>Restricted evidence, untrusted dialogue</h3>
+            <p>No future outcomes, secrets, broker tools or approval rights. Quarantine failures and retain invocation/model/harness/fixture identities. Separate examiner development fixtures, held-out assessment fixtures and golden-task selection data.</p>
+            <p>Larger-model, same-family and cross-family arms are possible ablations, not mandatory orders-of-magnitude scaling. The <a href="adversarial-llm-examiner-2026-10-10.md">dedicated examiner note</a> supplies source-backed risks and pilot decisions. No calls, LoRA or golden-dataset promotion run here.</p>
+          </div>
+        </div>
+        <p class="note caution"><strong>Canonical contract and access boundary.</strong> <code>CapabilityProfile</code> is a canonical future online/shadow contract with an existing typed scaffold, not an optional examiner role. Calibration requires separately permitted evidence. <code>terminal_screen_only</code> outcomes cannot feed operational calibration, proposer reward, curriculum, PPO or tuning. A conversational score cannot bypass those restrictions.</p>
+      </div>
+    </section>
+    <section id="queue" aria-labelledby="queue-title">
+      <div class="inner">
+        <div class="section-heading"><span class="section-number">08</span><h2 id="queue-title">Bounded Queue And Masterplan Placement</h2></div>
+        <p class="lead">Proposed ordering, not a grant to launch. Preserve the <a href="../../plans/itrader_masterplan.md">canonical cross-phase plan</a> and require the stated evidence before each downstream decision.</p>
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Bounded implementation queue">
+          <table class="queue">
+            <caption>Owners, proposed work and acceptance evidence. No item is marked approved or complete here.</caption>
+            <thead><tr><th scope="col">Order</th><th scope="col">Owner / proposed work</th><th scope="col">Acceptance evidence</th><th scope="col">Placement</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">1</th><td><strong>DEV</strong><br>Smallest existing economics scenario: action/cost accounting and repricing</td><td>Literal expected costs, public report/trace parity and independent review.</td><td>Phase A/B evidence foundation</td></tr>
+              <tr><th scope="row">2</th><td><strong>TRAINING</strong><br>Root CUDA/uv qualification as a separate platform factor</td><td>Exact wheel/lock/runtime, public-stack lifecycle and CPU/GPU comparability.</td><td>Platform prerequisite, not edge</td></tr>
+              <tr><th scope="row">3</th><td><strong>GRILL + RESEARCH</strong><br>Exposure-aware common-calendar layout decision</td><td>Metadata declaration, access roles and pre-outcome eligibility.</td><td>Evaluation foundation; Q23 retained</td></tr>
+              <tr><th scope="row">4</th><td><strong>DEV + TRAINING</strong><br>Existing four-cell synthetic lifecycle under a fresh usable lease</td><td>PPO/update/save/restore/replay for all four cells; no market results.</td><td>Phase B R1 readiness</td></tr>
+              <tr><th scope="row">5</th><td><strong>GRILL</strong><br>Resume unresolved Q26 decisions when the human requests</td><td>Method/support freeze plus independent synthetic confirmation.</td><td>Evaluation qualification</td></tr>
+              <tr><th scope="row">6</th><td><strong>TRAINING</strong><br>Matched R0/R1 x state screen after all prerequisites</td><td>Equal recipes/budgets, all-run completion and qualified or descriptive reports.</td><td>Phase B representation attribution</td></tr>
+              <tr><th scope="row">7</th><td><strong>RESEARCH + DEV</strong><br>Cost, T and causal volatility one factor at a time</td><td>Frozen-trace diagnostics first; matched training studies later.</td><td>Orthogonal research factors</td></tr>
+              <tr><th scope="row">8</th><td><strong>RESEARCH + DEV</strong><br>Examiner pilot specification, then approved isolated implementation</td><td>Held-out defect-detection/false-rejection and identity evidence.</td><td>Proposer/harness wing, before LoRA</td></tr>
+              <tr><th scope="row">9</th><td><strong>GRILL</strong><br>Family heads and genuinely new portfolio intents</td><td>Versioned domain/observation/action/reward contracts.</td><td>Phase B families / Phase C shell</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p>No additional R0 ceiling search, new action dimension or replacement reward is silently inserted before R1. <code>pnl_linear</code> remains the established default; Sharpe reward is an independent gated ablation. Targeted deslop follows agreed, tested interfaces, without a generic framework or imported-material rewrite.</p>
+      </div>
+    </section>
+    <section id="limits" aria-labelledby="limits-title">
+      <div class="inner">
+        <div class="section-heading"><span class="section-number">09</span><h2 id="limits-title">Validation And Limits</h2></div>
+        <p>This is documentation-only. No price outcomes, market collection, model calls, GPU/Ray/PPO jobs, dependency changes or Git shipping occur in this assessment. Runtime inventory is delivered metadata evidence, not an executed compatibility test. Browser automation blocks local <code>file://</code> navigation; no workaround is attempted. Static HTML/link checks apply, but desktop/mobile screenshots were not obtained.</p>
+        <p>The Markdown records a stale GitNexus index and native Bash's missing <code>python3</code>. WSL remains off and direct source reads take precedence. Existing full-suite and healthcheck results do not automatically qualify this dirty snapshot.</p>
+        <p>Final source-audit, research and inventory receipts are linked from <a href="../../coordination/grill.md">GRILL's owned board</a>. Document-review dispositions are recorded there as they complete; static HTML/link checks are not rendering checks. This companion does not approve runtime or statistical gates.</p>
+        <p class="note"><strong>Authority remains unchanged.</strong> Consult the <a href="saluki-advisory-assessment-2026-10-10.md">full Markdown assessment</a> for content, the linked audit notes for evidence and the <a href="../../plans/itrader_masterplan.md">masterplan</a> for ordering.</p>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <div class="inner footer-row"><span>iTrader / Dated advisory assessment / 2026-10-10</span><span><a href="saluki-advisory-assessment-2026-10-10.md">Markdown source of truth</a> &nbsp; <a href="#top">Back to top</a></span></div>
+  </footer>
+</body>
+</html>

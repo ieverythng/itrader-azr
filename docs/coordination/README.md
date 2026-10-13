@@ -20,12 +20,32 @@ change and stops conflicting work; a board never overrides human instructions.
 
 ## Dispatch And Handoff
 
-GRILL sends finite scopes to parents. Parents do not message/delegate to peer
-parents, and do not send routine unsolicited completion messages to GRILL.
+GRILL sends finite scopes to parents. Outside the bounded repair exception below,
+parents do not message/delegate to peers or send routine unsolicited completion messages to GRILL.
 They update boards at scope start, actionable blocker, and final handoff.
 Direct escalation to GRILL is reserved for urgent safety/resource incidents
 (for example unintended outcome access or an unauthorized running job).
 Routine missing decisions stay on the board.
+
+### Bounded DEV--TRAINING Repair Loops
+
+Human-approved exception (2026-10-13): GRILL may name a finite paired scope under
+`itrader-stack-iteration-loop`. DEV owns production implementation and test-first
+repairs; TRAINING owns reproduction and frozen-source execution. Concise direct
+messages may carry the failing command/evidence or a hash-bound repair handoff,
+but each parent records scope changes, evidence and closure on its own board.
+No peer delegation to RESEARCH or unsolicited routine messages to GRILL follow.
+The pair cannot authorize another run, change a lease, choose unresolved research
+terms, or ship Git changes. A source change invalidates the affected run approval.
+GRILL's heartbeat checks actionable board changes, not every message; it is not
+continuous monitoring. Stop on unresolved decisions or failed prerequisites;
+record routine blockers on the board. Escalate directly only urgent safety/resource incidents.
+
+Every meaningful scope must start with `itrader-architecture-check`: trace the
+existing public entrypoint and owner before adding scripts. A launcher failure
+belongs in DEV, with TRAINING providing a minimal reproduction, not an expanding
+set of experiment-local converters. Native argument lists and existing repository
+launchers are preferred. Distinguish a failed launch from a CUDA/kernel failure.
 
 Each scope records:
 

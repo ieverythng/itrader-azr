@@ -1,11 +1,241 @@
 # iTrader Research Dashboard
 
-Last reconciled: 2026-10-07<br>
-Branch snapshot: `agent/Watson-dev` with the uncommitted R4-v1 research round<br>
-Status: **active research registry; G0 closed and fixed-recipe R1 attribution next**<br>
+Last reconciled: 2026-10-13<br>
+Branch snapshot: `agent/Watson-dev` with inherited dirty work and R1 implementation<br>
+Status: **Four-cell CPU and CUDA PPO/checkpoint/replay lifecycles passed; market performance, comparative throughput and Q23/Q26 qualification remain open**<br>
 Visual companion: [open the HTML dashboard](itrader_research_dashboard.html)<br>
 Run evidence: [search the generated experiment browser](itrader_experiment_browser.html)
 ([registry](experiment_registry.json))
+
+## Current Evidence And Next Study (2026-10-13)
+
+### CUDA37: Four Synthetic Cells Passed
+
+The [owned execution receipt](../coordination/training-testing.md#training-cuda37-release1---complete)
+records one successful attempt, all four cells passed, no failures/errors/skips,
+and the selected RTX 5070 Ti UUID with `cuda:0` after construction, PPO update
+and restore in every case. Both Windows Jobs closed without survivors/errors;
+all 35 frozen source/runtime identities matched after execution. The lease is
+closed, not an authority to rerun or train on markets.
+
+| Synthetic cell | JUnit case time | Result |
+|---|---:|---|
+| R0 + R4-v1 | 45.131 s | Passed |
+| R1 + R4-v1 | 2.819 s | Passed |
+| R0, state off | 29.335 s | Passed |
+| R1, state off | 1.986 s | Passed |
+
+Runtime: installed `cuda-tested-cu128`, Python 3.11, Torch
+`2.9.0.dev20250801+cu128`, CUDA 12.8, Ray 2.58.0. Each case used 600 artificial
+OHLCV rows, 12 sampled steps, one PPO update and one SGD epoch. Assertions cover
+finite learning diagnostics, checkpoint/selector identity and restored frozen
+replay, not economic edge. Total supervised time was 119.078 s including the
+0.625 s transport check; minimum observed RAM was 3.734 GiB and sampled whole-GPU
+peak use about 0.98 GiB, not exclusive learner allocation. Four JUnit compatibility
+warnings did not remove the recorded device properties.
+
+R0 ran first in each process and R1 second: these cold/warm case times cannot
+estimate architectural speedup. The older CPU lifecycle total of 37.234 s also
+used a different Torch runtime, so it is not a matched CPU/GPU benchmark.
+The [older bare-LSTM kernel benchmark](../artifacts/research/cuda-reuse07/benchmark-reuse07-result.json)
+measured batch-128 forward/backward medians of 81.584 ms CPU versus 3.989 ms GPU
+(about 20.5x), but batch-1 forward/backward was 1.370 versus 2.341 ms. It ran no
+Ray workload; its environment listed Ray 2.9. Neither result predicts full-stack
+rollout/learner throughput or profitable behavior. TRAINING-PREP38 will specify
+a same-installed-runtime, same-recipe comparison separating startup, warm
+rollout, learning, transfers and memory before another throughput claim.
+
+### Reward Parity Is An Open Decision
+
+`RewardEngine` dispatches the reward explicitly named by `TaskSpec.reward_id`.
+The repository/family-00 default remains `pnl_linear`. The current corrected
+four-by-two-by-two draft and CUDA37 test explicitly request `net_return`; scoring
+`evaluation/net_return_mean` never selects the training reward automatically.
+
+Provenance: commit `88361f0` (2026-09-19) added the separate objective. Commit
+`f045fde` retains the Sep-14 probe and Sep-16 matched reward bridge, whose
+[audit](../artifacts/research/phase-a-performance-validity-audit-2026-09-12.md)
+explicitly says not to silently change `pnl_linear`. Those historical experiments
+are evidence, not proof of a human decision to replace the default. The recorded
+Q22 optimizer recipe does not resolve this reward choice.
+
+- `pnl_linear`: normalized PnL plus task-sampled abstract turnover/drawdown
+  penalties and caps. Its current function does not charge terminal liquidation.
+- `net_return`: fixed-scale PnL minus explicit basis-point switching and terminal
+  liquidation costs; the draft fixes `reward_scale=1000`. It is a different
+  optimization objective, even when both are scored on identical net returns.
+- With only `net_return`, sampling still varies symbol, horizon and task/start
+  seeds; the env supplies stream starts. The draft fixes reward ID, scale and
+  initial cost (with cost changing at later episode resets for the ramp arm).
+- With `pnl_linear`, the sampler also varies supported turnover/drawdown knobs.
+  `semantic_v2` hashes reward ID and parameters into the task embedding; it is
+  not a learned numeric reward encoder. The legacy encoder omits reward params.
+
+RESEARCH-REWARD38 audits `pnl_linear` for bounded repairs, Sharpe shaping/pure
+Sharpe and alternative objectives, including scale, critic, discount, state
+sufficiency and accounting. A 50/50 episode-level mixture is a secondary research
+candidate, not approved training. Reward is frozen within an episode; mixture
+frequency, normalization and critic comparability need explicit controls.
+Existing [Sharpe design](sharpe-reward-design.md) remains experimental. No reward
+or task-contract behavior changed in this documentation pass.
+
+The delivered [REWARD38 primary-source audit](../artifacts/research/reward-parity-and-challengers-2026-10-13.md)
+adds actionable checks, not a new objective:
+
+- Preserve evaluation TaskSpec conditioning when changing training rewards;
+  independent 1-bp economic scoring does not require net-return TaskSpecs.
+- Audit adaptive PnL/drawdown scaling versus unscaled turnover, caps and terminal
+  liquidation with literal accounting oracles before dismantling components.
+- Current Sharpe rewards use gross strategy-return history and bounded rolling
+  score differences, not differential Sharpe or cost-net Sharpe. History/state,
+  warmup, near-zero variance, window eviction and terminal conventions need
+  tests before a cost-aware supplement; pure Sharpe and mixtures follow later.
+- R1/R4 do not expose the reward's endogenous return/EMA/drawdown history.
+  More complex reward-state requirements are a separate state-contract factor;
+  these risks are not measured causes of the observed policy basin.
+- Installed CPU and CUDA Ray source checks agree: legacy value loss clamps
+  squared critic error, and advantages are standardized over policy batches,
+  not separately per reward task. `ppo_torch_policy.py` hashes identically at
+  `b66508671453251bfad03a7d46b3b86637000b760825db0607e7b6fa6802fd67`
+  in both profiles; `ppo.py` at
+  `25115dbf760ca05f7c1169b97e4de77944510aae0f012bd45d2fe732f007ca71`.
+  Static source parity is not measured critic saturation or optimizer invariance.
+
+Proposed parallel preparation uses three existing public boundaries:
+AccountingLifecycle (flat/hold/reverse/liquidation), RewardStateLifecycle
+(EMA/drawdown/history/reset/schedule), and ObjectiveScaleConditioning
+(caps/scale/discount/encoder/value saturation). No stress test was executed here.
+After recipe approval, the ranked learning ladder is unchanged legacy control
+versus existing net-return challenger, one-factor PnL-component ablations,
+justified scale/critic diagnostics, then a cost-aware Sharpe supplement.
+Do not fold a broad reward grid into the priority encoder screen.
+
+### Proper R0/R1 Screen: Ordered Prerequisites
+
+The existing [fixed-recipe draft](../../itrader/scripts/experiments/configs/phase_a_r1_corrected_compat_fixed_4x2x2_20261006.json)
+crosses R0/R1 with state-off/R4-v1, two seeds and fixed/ramped costs: 16 runs,
+12 updates x 4,800 nominal steps each, 921,600 nominal steps total. These are
+budgets, not achieved learning or precision. No PBT/native-API migration or
+reward mixture belongs in the initial encoder attribution.
+
+1. DEV-DEFAULT38 completed CUDA-default ablation training selection when no
+   interpreter is explicit; 57/57 focused tests and two independent reviews
+   pass. Existing owners preserve caller paths and explicit CPU controls; see
+   [DEV's exact-byte receipt](../coordination/dev.md). The root `.venv` is
+   still CPU-only. The historical draft explicitly selects that CPU interpreter
+   and `cpu_only=true`; it is not CUDA-ready merely because a profile exists.
+2. Resolve the `pnl_linear` versus `net_return` control recipe and cost-ramp
+   semantics before freezing a CUDA loadout. Current optimization-cost ramp
+   support requires `net_return`; mapping it to `pnl_linear` is not approved.
+   Reward challenger stress studies stay separately matched and labelled.
+3. Repair the three [DEV-REVIEW30 evidence blockers](../artifacts/research/dev-review30-r1-evaluation-review-2026-10-12.md),
+   then complete the existing terminal/reporting path with independent reviews.
+4. Implement/review Q23 quarantine and outcome-free metadata qualification.
+   [Acquisition preparation](../artifacts/research/q23-quarantined-acquisition-prep-2026-10-13.md)
+   is not fetch permission, source/exposure clearance or freshness certification.
+5. Freeze Q26's numerical process class, calendar support, centering, kernel,
+   bandwidth, Monte Carlo confidence/allocation, failure/precision budgets and
+   independent confirmation streams; qualify before opening market outcomes.
+6. Seal source/config/data identities and reviews, then authorize a bounded
+   market run. Keep inspected progress monitoring separate from fresh terminal
+   evaluation and the sealed final test. Training preparation grants no run lease.
+
+### Q26: Accepted Criteria, Not Yet Calibrated
+
+The primary candidate contrast is fixed-1-bp terminal net return of R1 + R4-v1
+minus R0 + R4-v1, averaging two frozen checkpoint pairs with equal-symbol Q24
+hierarchical weights. The claim is conditional on those checkpoints and the
+calendar panel, not a training-seed population claim. Sharpe per sqrt(bar),
+per-horizon net bps/bar, attribution and causal one-step return/cost diagnostics
+remain secondary; a single bar has no meaningful realized Sharpe.
+
+- Nominal central, equal-tailed **95% interval**, 2.5% per tail. Qualified uplift
+  requires its lower bound above zero; this does not establish absolute profit.
+- Every required synthetic scenario must have a simultaneous Monte Carlo
+  **lower coverage bound >=94%**, disclosing up to one percentage point of
+  undercoverage. This is not a 94% market interval or a solver test pass rate.
+- Each directional miss, including false-positive uplift under no uplift, must
+  have a simultaneous Monte Carlo **upper bound <=3%**, disclosing up to 0.5
+  percentage-point inflation relative to a nominal 2.5% tail.
+- Calendar-synchronized dependent multipliers are the first method candidate;
+  full exchange-session distance is the first inference clock. Both finite-lag
+  and bounded stable-decay generators under BOTH session and local-civil-day
+  clocks are mandatory. These generators do not alter trading OHLCV.
+- Support/ranges, centering/kernel/bandwidth, Monte Carlo confidence and sample
+  budgets, and frozen independent confirmation are still undecided. No method
+  has passed calibration. Optional volatility normalization remains off.
+
+Valid positive, zero and negative net returns remain descriptive if uncertainty
+is unqualified; invalid comparisons are retained but quarantined. No unsupported
+significance or promotion follows. The [evaluation contract](../evaluation/README.md)
+owns these evidence dispositions. Current dispatch and ownership:
+[GRILL](../coordination/grill.md), [DEV](../coordination/dev.md),
+[RESEARCH](../coordination/research.md), [TRAINING](../coordination/training-testing.md).
+
+## Historical Continuation Notices
+
+The dated notices below are scope-time records, superseded by the current status
+above where they describe CUDA or execution readiness.
+
+**CUDA28 installed:** obsolete global Torch bound removed; reviewed uv profiles/
+lock applied, locked sync and tiny GPU forward/backward passed on RTX5070Ti with
+the exact tested Torch2.9.0.dev20250801+cu128/CUDA12.8 wheel. CPU control and
+protected experiment pins remain;76 shared non-Torch versions changed and
+decorator left the lock. [Receipt](../artifacts/research/cuda28-known-error-repair-2026-10-11.md)
+is provisioning/tensor evidence, not PPO/throughput/economics. TRAINING-CUDA29
+reached zero cells: an added unreviewed PowerShell wrapper failed parsing.
+No owned workload survives; [GRILL](../coordination/grill.md) records closure,
+not a GPU experiment result or automatic retry authority.
+[Bounded Evaluation](../evaluation/README.md) records existing mechanics and
+pending scientific gates. CLOCK27 is delivered; shock/examiner wings remain
+research-only future ablations. Older notices below retain scope-time facts.
+
+**Q26 decision (2026-10-11):** exact finite-lag and bounded stable-decay families
+are both mandatory supported synthetic tests; every required scenario must pass
+the unchanged95/94/3 criteria. They do not perturb OHLCV. Human accepts full
+exchange-session distance as first inference candidate, challenged by both
+families under BOTH session and elapsed-local-civil-day DGP clocks.
+[CLOCK27](../coordination/grill.md) is delivered; support, numerical ranges/
+moments, method and confirmation terms remain open. The dated
+research packet's earlier pending labels are superseded by [decisions](../project-state/decisions.md),
+not evidence that calibration ran or qualified.
+
+**CUDA26 closure:** DEV stopped preparation at21:39UTC on Oct10 with the
+production packet still CHANGES; its absolute22:45 stop has elapsed. No
+provisioning or GPU run is recorded. The earlier conditional authority below
+is historical; the launcher component and CPU lifecycle remain separately passed.
+
+**Oct-10 continuation25:** human resumes Q26 and bounded implementation after the
+[Saluki advisory assessment](../artifacts/research/saluki-advisory-assessment-2026-10-10.md)
+([HTML](../artifacts/research/saluki-advisory-assessment-2026-10-10.html)) and a
+separate [adversarial-examiner wing](../artifacts/research/adversarial-llm-examiner-2026-10-10.md).
+The current [GRILL scope](../coordination/grill.md) prioritizes DEV26's actual
+CUDA profile/launcher repairs after DEV25's two CHANGES reviews. TRAINING25 GPU
+readiness is delivered; the four-cell CPU lifecycle passed. CUDA is the
+preferred forward training target after qualification; root CPU remains the
+frozen lifecycle control. Self-examiner research has no model-pilot or promotion
+authority. Q26's conditional process claim/roles and both dependence families
+are approved; numerical and later terms remain open. Existing R identities,
+action semantics, reward defaults and Q23/Q26 gates are unchanged; fresh weights
+cannot erase historical researcher/agent exposure.
+
+**Latest mechanical evidence:** all four R0/R1 x R4-state/off CPU synthetic
+PPO/update/checkpoint/restore/frozen-replay cases passed, zero failures/errors/
+skips,37.234 owned seconds and clean cleanup. See
+[the durable receipt](../artifacts/research/r1-lifecycle22/receipt.json);
+this is not throughput, market-performance or CUDA qualification.
+
+**Latest execution priority:** CPU lifecycle22 is closed. DEV23/24's fixture
+transport/platform-marker failures preceded real acquisition or root changes;
+their leases expired. DEV25's reviews found substantive launcher/provenance
+blockers. DEV26 implements the repairs and may provision one designated CUDA
+profile only after fresh review, routing and integrity
+gates pass. Matched CUDA public-stack qualification remains required; accounting/
+disposition checks follow. Keep native Ray API migration separate. RESEARCH25
+delivered selection-exposure/causal-feature evidence and the separate
+market-scenario stress wing. No actual split, scenario or data access is selected.
+Q26 dependence generators test intervals against imposed synthetic truth; they
+do not perturb historical OHLCV or know the real-market architecture effect.
 
 [History and operational log](#history-and-operational-log) preserves prior
 notices without obscuring the research map. Eight corrected-control terminal
@@ -21,6 +251,18 @@ exact bounds/clearance and Q26 remain pending. No new run, panel opening, acquis
 [repair audit](../artifacts/research/evaluation-mechanical-repairs-2026-10-07.md)
 for execution evidence and integration-first test-ROI recommendations. The
 Oct-6 publication-time approval labels below are historical, not current.
+
+**Historical R1 implementation boundary (2026-10-09):** R1's stateless 60x5
+window-LSTM/FiLM model and explicit `r0_r1_v1` selector/loadout/restore identity
+are present in the working tree; 31 focused synthetic checks pass, and final
+independent Sol/Spec and Astra/Standards reviews approve after restore-identity
+hardening. The public integration consumes the builder's actual environment
+config and covers separate policy/model-configuration mismatch rejection.
+This is not Ray lifecycle, checkpoint-round-trip, market-performance, or
+promotion evidence. R0 remains default. A separately leased synthetic Ray
+lifecycle smoke and Q21/Q23/Q24/Q25/Q26 panel prerequisites precede fixed-recipe
+R0/R0+R4-v1/R1/R1+R4-v1 attribution.
+Historical approval and exposure claims above are not changed by this update.
 
 The sixteen-cell scientific draft and read-only terminal preflight are now
 implemented; real terminal execution and final config/source sealing are not.
@@ -110,7 +352,7 @@ incomplete adapter records fail the build instead of being guessed in the UI.
   remains explicitly unavailable in the legacy learner record and must be
   captured before performance interpretation. Future replay receipts must stamp
   producer identity at creation time.
-- **Next solver attribution:** fixed-recipe Ray-2.58 comparison of matched R0,
+- **Next solver attribution (after prerequisites):** fixed-recipe Ray-2.58 comparison of matched R0,
   R0 + R4-v1, clean R1, and separately named `R1 + R4-v1`; then native R2 mechanics and the
   same-input `R2c-CARRY` versus `R2c-RESET` test.
 - **PBT boundary:** keep PBT off during representation attribution. Reopen it
@@ -121,9 +363,10 @@ incomplete adapter records fail the build instead of being guessed in the UI.
 
 | Horizon | Work | Why it is placed here |
 |---|---|---|
-| **Now** | Close review/diagnostic gaps, implement R1, then run fixed-recipe `R0 / R0 + R4-v1 / R1 / R1 + R4-v1` screen with fixed 1 bp and causal staging | G0 is closed; complete encoder-by-state attribution before new search |
+| **Now** | Resolve reward parity, close panel/reporting and Q26 gates | CUDA-default ablation wiring reviewed and 57 tests passed; CPU/CUDA lifecycles passed; market/throughput and evaluation qualification remain open |
+| **Next** | Run fixed-recipe `R0 / R0 + R4-v1 / R1 / R1 + R4-v1` on a frozen common reward/cost recipe with independent 1-bp scoring, after Q21/Q23/Q24/Q25/Q26 clearance | Encoder-by-state attribution before search; current draft's cost ramp remains conditional on explicit net-return approval |
 | **Next** | Implement native R2a lifecycle, then R2c placement and `CARRY / RESET` | This is the first valid carried-memory attribution |
-| **Parallel research, not bundled** | S1-P0 frozen CLM diagnostic planning; `ATX-EMA-EVAL-v0`; tiny direct AZR learning-progress reference design | Each can be specified independently, but none may rescue or reinterpret an R result |
+| **Parallel research, not bundled** | REWARD38 component/accounting/scale stress preparation; S1-P0 frozen CLM diagnostic planning; `ATX-EMA-EVAL-v0`; tiny direct AZR learning-progress reference design | Independent factors; no reward adoption or reinterpretation of an R result |
 | **After stable solver interface** | C0/C1/shuffled-C1 and S projection/PPO cells | These need a frozen control and evidence contract |
 | **Later** | PF predictive distribution, WM validation, and TTS diagnostics | Each depends on evidence missing today |
 | **Phase D advisory** | Market-JEPA | Future MarketFramer/representation hypothesis; intentionally non-concrete |
@@ -188,13 +431,15 @@ PBT behavior fixed unless that item is the named factor.
 
 | Axis | Type | Question | Checkout status | Prerequisite / next gate | Must remain separate from |
 |---|---|---|---|---|---|
-| **R — solver representation** | canonical wing | Which numerical policy/value representation supplies useful temporal, task, and endogenous-state information? | R0 implemented; R4-v1 qualified but economically rejected; R1/R2 unimplemented | G0 closed; diagnostics/review repairs, matched R screen, then carry/reset | C, S, reward, optimizer, proposer, PF/WM/TTS |
+| **R — solver representation** | canonical wing | Which numerical policy/value representation supplies useful temporal, task, and endogenous-state information? | R0 implemented; R4-v1 qualified but economically unpromoted; R1 bounded CPU and CUDA synthetic lifecycles passed, economics/throughput unqualified; R2 unimplemented | Reward parity, panel/evidence prerequisites, matched R screen, then carry/reset | C, S, reward, optimizer, proposer, PF/WM/TTS |
 | **C — causal market summaries** | canonical wing | Do trailing, train-fitted causal summaries add information beyond the current causal feature set? | C0 is the current causal-feature baseline; C1 and shuffled-C1 unimplemented | Stable R interface and exact causal fitting contract | Future-derived regime labels; R-memory claims |
 | **S — System One / CLM / Jev style** | canonical research wing | Does explicit state-to-candidate geometry help the three-action solver, task selection, or later framing/matching? | Research-only; assets and designs exist, no iTrader S experiment completed | Frozen R interface; begin S1-P0 diagnostic | R promotion, Market-JEPA, PF/WM/TTS, execution |
 | **ATX optimizer/evaluation** | provisional experiments | Can isolated EMA, schedule, filtering, or distributional-value factors improve a fixed solver recipe? | Proposal only | Trustworthy critic/advantage/clip/KL telemetry; R attribution first | Representation changes and PBT |
 | **Reward** | orthogonal factor | Which solver reward ranks economic outcomes without hiding risk or cost? | `pnl_linear` default; `net_return` implemented challenger; Sharpe variants experimental | Matched held-out reward study | R/C/S architecture cells |
 | **Cost curriculum** | orthogonal factor | Does causal cost staging help learning without changing the economic gate? | Named factor retained; exact 1 bp from update zero rejected as universal default | Use only as a matched ablation | R1 identity and promotion criteria |
 | **AZR proposer-credit / curriculum** | Phase-B ablation axis | Which credit signal and task-memory policy best improve a fixed solver recipe from pinned starting checkpoints at equal accepted compute? | Core loop is masterplan-owned; current code is one-shot handoff; ablations unimplemented | Direct uplift reference before surrogate or adaptive QD | Core loop ownership, solver reward, online execution authority |
+| **Adversarial LLM examiner** | provisional proposer/harness wing, no run ID | Does bounded dialogue catch more held-out task defects than static judging at controlled false rejection and cost? | Research/pilot design only; no calls or code | Deterministic-only and static-judge controls; blinded fixtures, independent labels, receipt/stop-rule design; budget not yet selected | Economic scoring, statistical qualification, proposer reward/LoRA, online authority |
+| **Market-scenario stress** | provisional robustness wing, no run ID | Does a frozen solver remain safe and interpretable under causal controlled price/return disturbances; can later training augmentation improve real held-out performance? | RESEARCH25 delivered; no simulator or scenario selected | Coherent OHLCV, causal/reset/accounting and scenario-manifest contract, unchanged-path control, then separately approved stress-only pilot | Q26 interval calibration, learned WM validity, forced activity, synthetic paths as fresh market evidence |
 | **PF — predictive state** | provisional axis | Can a causal calibrated predictive distribution improve a frozen accepted solver? | Proposal only | R and C evidence, proper-score/calibration gate | Belief-state claims, R4-v2, WM/TTS |
 | **WM — world/scenario model** | provisional axis | Can action-independent market scenarios support valid counterfactual portfolio rollouts? | Proposal only | Stable causal inputs plus multi-step scenario validity; PF is not a required component | Historical replay as counterfactual simulation |
 | **TTS — test-time search** | provisional axis | Does branch-safe root-action search beat a frozen blueprint under equal compute? | Direct use rejected now; hindsight diagnostic then deferred | Valid WM and calibrated blueprint; replay/shadow only | Policy training and deterministic execution shell |
@@ -205,7 +450,7 @@ PBT behavior fixed unless that item is the named factor.
 | ID | Fixed identity | Implementation | Evidence / decision | Next gate |
 |---|---|---|---|---|
 | **R0** | State-free `SolverMLPFiLM`; current FiLM is `tanh(gamma) * hidden + beta` | Implemented and selected | Immutable parity/economic control; not economically promoted | Preserve beside every challenger |
-| **R1** | Corrected reset-every-step LSTM over the supplied chronological window; no cross-step state | Unimplemented | Active next cell | Shape split, newest-bar convention, finite forward/backward, deterministic smoke, matched screen |
+| **R1** | Corrected reset-every-step LSTM over the supplied chronological window; no cross-step state | Implemented; bounded CPU and CUDA synthetic lifecycles passed | Market-performance and comparative throughput unqualified; R0 remains default | Reward parity; Q21/Q23/Q24/Q25/Q26; matched screen |
 | **R2a** | Native stateful LSTM with task concatenated into recurrent input | Unimplemented | Planned after R1 | Native sequence lifecycle, masks, reset/truncation, state-aware replay |
 | **R2b** | Stateful LSTM with task-conditioned initial `(h,c)` only | Deferred | Identity preserved | Explicit initial-state adapter/API |
 | **R2c** | Stateful LSTM with per-step task FiLM; readout placement is the first candidate | Unimplemented, active design candidate | Memory claim not yet tested | `R2c-CARRY` versus otherwise identical `R2c-RESET` |
@@ -468,6 +713,11 @@ direction and show conditional state dependence.
 
 - [Sharpe-Aware Reward Design](sharpe-reward-design.md)
 - [AZR stack review](../artifacts/research/azr-stack-review-2026-09-12.md)
+
+### Selection exposure and market-scenario stress
+
+- [Selection exposure and causal-feature investigation](../artifacts/research/saluki-methodology-research-2026-10-10.md#8-research25-selection-exposure-and-a-small-causal-feature-pilot): delivered; no remaining-alpha estimate or fresh-test certificate. The proposed C0/C1/shuffled-C1 pilot preserves the visible window and R4 state after the frozen R1 comparison. Derived summaries aid representation, not independent evidence.
+- [Market-scenario stress note](../artifacts/research/market-scenario-stress-2026-10-10.md): delivered, research-only. A decaying level displacement implies reversal; a decaying return disturbance need not restore the original price. Use an external immutable scenario manifest: task metadata is encoded and can reveal shock identity. Identity, prefix causality, OHLCV eligibility, economic reconciliation, reset lineage and matched-policy controls precede any stress-only pilot. Curriculum, learned adversaries and TaskSpec extensions remain deferred; synthetic robustness is not economic promotion.
 
 The complete categorized catalog, including imported reference-only HTML, lives
 in [the artifact research index](../artifacts/research/README.md).

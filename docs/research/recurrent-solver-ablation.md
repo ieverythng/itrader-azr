@@ -1,7 +1,17 @@
 # Recurrent Solver + FiLM Ablation
 
-Last reconciled: 2026-10-03
-Status: **focused R-series identity/design ledger; R1-R3 remain unimplemented**
+Last reconciled: 2026-10-13
+Status: **R1 passes bounded four-cell CPU and CUDA PPO/checkpoint/replay lifecycles; market performance and comparative throughput remain unqualified; R2-R3 remain unimplemented**
+
+[CUDA37 receipt](../coordination/training-testing.md#training-cuda37-release1---complete)
+records all four R0/R1 x R4-state/off GPU cases passing with `cuda:0` throughout
+and clean cleanup. Cold/warm timings do not measure encoder speedup. The
+[current dashboard](itrader_research_dashboard.md#current-evidence-and-next-study-2026-10-13)
+records reward parity and Q23/Q26 prerequisites before the sixteen-run screen.
+`pnl_linear` remains the default; the existing corrected draft explicitly uses
+`net_return`. Reward challengers must remain separate from initial encoder
+attribution. CUDA-default ablation wiring is reviewed with 57 focused tests
+passing, not a physical root-venv migration.
 
 Parent registry: [iTrader Research Dashboard](itrader_research_dashboard.md).
 The dashboard owns current status and evidence navigation; the
@@ -14,7 +24,10 @@ executable flags.
 
 ## Executive position
 
-The active branch has one implemented/default solver: `SolverMLPFiLM`. The
+`SolverMLPFiLM` remains the implemented/default R0 parity solver. The new R1
+window-LSTM/FiLM implementation uses the explicit accepted `r0_r1_v1` semantic
+profile and has bounded CPU/CUDA synthetic lifecycle evidence, not market
+performance qualification. The
 checked-in `SolverLSTMModel` is a legacy reset-every-forward window encoder that
 reshapes the full observation and discards returned LSTM state. Because the
 current observation appends a task embedding, its `flat_dim // window` inference
@@ -67,7 +80,7 @@ that path does not implement task concatenation. The identity-centred form
 | ID | Original identity | Current status | Attribution |
 |---|---|---|---|
 | R0 | `SolverMLPFiLM`, no cross-step state | **Implemented/default** | Control |
-| R1 | Corrected reset-every-step window LSTM + FiLM | **Unimplemented** | Within-window temporal inductive bias |
+| R1 | Corrected reset-every-step window LSTM + FiLM | **Implemented; bounded CPU/CUDA synthetic lifecycles passed, market performance unqualified** | Within-window temporal inductive bias |
 | R2a | True recurrent LSTM + task concat | **Unimplemented** | Original stateful recurrence baseline |
 | R2b | True recurrent LSTM + FiLM initial state only | **Deferred** | Current initial-state hook has no task input |
 | R2c | True recurrent LSTM + FiLM per step | **Active candidate; unimplemented** | Original per-step identity; placement/order remains open pending grill-me review |

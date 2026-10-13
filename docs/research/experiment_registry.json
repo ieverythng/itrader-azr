@@ -2,6 +2,16 @@
   "$schema": "../../itrader/scripts/experiments/schemas/experiment_registry.schema.json",
   "schema_version": 1,
   "title": "iTrader Phase A experiment browser",
+  "platform_qualifications": [
+    {
+      "id": "cuda-reuse07-kernel-qualification",
+      "title": "CUDA reuse07 bare-LSTM kernel qualification",
+      "date": "2026-10-09",
+      "adapter": "cuda_kernel_qualification_v1",
+      "source": "docs/artifacts/research/cuda-reuse07/benchmark-reuse07-result.json",
+      "source_sha256": "c25efdfd7d6f63911e56002bbc501816bf5427bd1fa0d99ec4a1c386aa088f12"
+    }
+  ],
   "experiments": [
     {
       "id": "corrected-compat-r0-r4-bridge-attempt04-20261005",

@@ -14,8 +14,11 @@ Before a meaningful change:
 3. Read `docs/architecture.md` and `docs/architecture/itrader_system_architecture.md`
    for active architecture.
 4. Read `docs/plans/itrader_masterplan.md` for phase ordering and current seams.
-5. Read nearby tests before touching training, environment, model, reward, or
-   task-contract code.
+5. Apply `itrader-architecture-check` at every meaningful implementation,
+   review, research, environment, or run/debug scope. Map the public entrypoint,
+   owning module, existing helpers, and nearest contract tests before adding
+   another wrapper. Read nearby tests before changing behavior. Record that map
+   and the selected validation boundary on the owned board.
 6. Run `tools/knowledge/status.sh` before architecture-sensitive work.
 
 Use `docs/project-state/` for handoff continuity. Treat `docs/knowledge/wiki/`,
@@ -44,6 +47,13 @@ TRAINING/TESTING owns authorized validation and experiment execution.
 - GRILL may send finite scoped dispatches. DEV, RESEARCH, and TRAINING/TESTING
   must not message or delegate to one another. Routine findings, blockers, and
   final handoffs belong on their owned boards, not unsolicited messages to GRILL.
+  Exception: the human authorizes bounded DEV--TRAINING repair loops under
+  `itrader-stack-iteration-loop`. GRILL must first name the paired scope, owners,
+  write sets, budgets, and stop rules. The pair may exchange concise defect/repro
+  and exact-byte repair handoffs within that scope; boards remain authoritative.
+  This does not authorize RESEARCH peer messaging, new runs, source drift after
+  review, resource-lease renewal, or Git operations. GRILL reconciles the boards
+  and owns advancement; the pair must stop on an unresolved decision or incident.
 - Urgent safety/resource incidents may be escalated directly to GRILL. A routine
   completion or stale board is not an urgent incident. Direct human instructions
   remain authoritative; record a resulting scope change on the owned board.
@@ -93,8 +103,10 @@ dependencies. Track the boundary caught, not just a larger green test count.
 - The solver learns policy/value behavior; it does not define broker semantics,
   risk limits, or live execution rules.
 - `SolverMLPFiLM` is the current implemented baseline solver head.
-- `SolverWindowLSTMFiLM` is a Phase B frontier under investigation and must not
-  be documented as available on this branch until code and tests land here.
+- `SolverWindowLSTMFiLM` is implemented as an opt-in, stateless-per-decision
+  60-bar encoder. Its bounded CPU and CUDA synthetic PPO/checkpoint/replay
+  lifecycles pass; CUDA37 records the tested runtime and four-cell scope.
+  Market performance and general throughput remain unqualified.
 - `BaseProposer` and proposer backends generate candidate tasks; invalid output
   must be contained by validation rather than crashing training.
 - `CandidateTask`, `ExecutionIntent`, `CapabilityProfile`, and `DecisionRecord`

@@ -18,6 +18,12 @@ from typing import Any, Callable
 from jsonschema import Draft202012Validator, FormatChecker
 from jsonschema.exceptions import ValidationError
 
+from itrader.scripts.experiments.browser_traces import load_run_traces
+from itrader.rl_lib.evaluation.evidence_values import action_fractions
+from itrader.rl_lib.evaluation.evaluation_disposition import (
+    build_evaluation_disposition,
+)
+
 
 class RegistryError(ValueError):
     """Raised when the experiment registry cannot be resolved safely."""
@@ -208,24 +214,13 @@ def _checkpoint_receipt(
 
 
 def _action_fractions(checkpoint: dict[str, Any], steps: int) -> list[float]:
-    fractions = checkpoint.get("fresh_action_fractions")
-    if (
-        not isinstance(fractions, list)
-        or len(fractions) != 3
-        or any(
-            not isinstance(value, (int, float))
-            or isinstance(value, bool)
-            or not math.isfinite(value)
-            or not 0.0 <= value <= 1.0
-            for value in fractions
-        )
-        or not math.isclose(sum(fractions), 1.0, rel_tol=0.0, abs_tol=1e-6)
-    ):
+    try:
+        return action_fractions(checkpoint.get("fresh_action_fractions"))
+    except ValueError as exc:
         raise RegistryError(
             f"G0 checkpoint {steps} must contain three finite action fractions "
             "in [0, 1] that sum to one"
-        )
-    return [float(value) for value in fractions]
+        ) from exc
 
 
 def _required_list(
@@ -411,7 +406,6 @@ def _adapt_ablation_summary(
     source_path: Path,
     repo_root: Path,
 ) -> list[dict[str, Any]]:
-    del source_path, repo_root
     primary_metric = source.get("primary_metric")
     if not isinstance(primary_metric, str) or not primary_metric.strip():
         raise RegistryError(
@@ -431,6 +425,10 @@ def _adapt_ablation_summary(
             {
                 "record_key": f"{experiment_id}:{series}",
                 "label": series,
+                "display_label": (
+                    f"{result.get('variant_id', series.split(':')[0])} · member {member}"
+                    if ":" in series else series
+                ),
                 "member": member,
                 "run_id": run_id,
                 "pbt_progress_steps": None,
@@ -442,6 +440,23 @@ def _adapt_ablation_summary(
                 "stable_report_csv": result.get("stable_report_csv"),
             }
         )
+    try:
+        traces = load_run_traces(
+            source_path.parent,
+            {record["label"]: record["metrics"][primary_metric] for record in records},
+            primary_metric,
+        )
+    except ValueError as exc:
+        raise RegistryError(f"invalid run traces for {experiment_id}: {exc}") from exc
+    for record in records:
+        trace = traces.get(record["label"])
+        if trace:
+            for item in trace["sources"]:
+                item["path"] = _repo_path(source_path.parent / item["file"], repo_root)
+            record["trace"] = trace
+            record["metrics"].update(trace["terminal_metrics"])
+            if trace["clock"] == "pbt_progress_steps":
+                record["pbt_progress_steps"] = trace["terminal_step"]
     return records
 
 
@@ -479,29 +494,57 @@ def _adapt_terminal_gate(
         decision = _required_text(arm, "decision", context)
         terminal_action = _required_text(arm, "terminal_action", context)
         terminal_steps = _required_int_list(arm, "terminal_steps", context)
-        records.append(
-            {
-                "record_key": f"{experiment_id}:{arm_id}:terminal",
-                "label": arm_id.replace("_", " "),
-                "member": "population",
-                "run_id": experiment_name,
-                "pbt_progress_steps": None,
-                "checkpoint_path": None,
-                "evidence_path": None,
-                "metrics": {
-                    "net_return": terminal_net_return,
-                    "sharpe_per_sqrt_bar": terminal_sharpe,
-                    "exploit_count": exploit_count,
-                    "lineage_receipts": lineage_receipts,
-                },
-                "attributes": {
-                    "decision": decision,
-                    "terminal_action": terminal_action,
-                    "review_threshold_steps": review_steps,
-                    "terminal_steps": terminal_steps,
-                },
+        if "evaluation_disposition" in arm:
+            raw_disposition = arm["evaluation_disposition"]
+            expected = {
+                "schema_version",
+                "evidence_validity",
+                "metric_availability",
+                "inference_qualification",
+                "promotion_eligibility",
             }
-        )
+            if (not isinstance(raw_disposition, dict)
+                    or set(raw_disposition) != expected
+                    or type(raw_disposition.get("schema_version")) is not int
+                    or raw_disposition["schema_version"] != 1):
+                raise RegistryError(f"{context} has an invalid evaluation_disposition schema")
+            try:
+                disposition = build_evaluation_disposition(
+                    evidence_validity=raw_disposition["evidence_validity"],
+                    metric_availability=raw_disposition["metric_availability"],
+                    inference_qualification=raw_disposition["inference_qualification"],
+                    promotion_eligibility=raw_disposition["promotion_eligibility"],
+                )
+            except (TypeError, ValueError) as exc:
+                raise RegistryError(
+                    f"{context} has an invalid evaluation_disposition: {exc}"
+                ) from exc
+        else:
+            disposition = None
+        record = {
+            "record_key": f"{experiment_id}:{arm_id}:terminal",
+            "label": arm_id.replace("_", " "),
+            "member": "population",
+            "run_id": experiment_name,
+            "pbt_progress_steps": None,
+            "checkpoint_path": None,
+            "evidence_path": None,
+            "metrics": {
+                "net_return": terminal_net_return,
+                "sharpe_per_sqrt_bar": terminal_sharpe,
+                "exploit_count": exploit_count,
+                "lineage_receipts": lineage_receipts,
+            },
+            "attributes": {
+                "decision": decision,
+                "terminal_action": terminal_action,
+                "review_threshold_steps": review_steps,
+                "terminal_steps": terminal_steps,
+            },
+        }
+        if disposition is not None:
+            record["evaluation_disposition"] = disposition
+        records.append(record)
     return records
 
 
@@ -513,6 +556,39 @@ ADAPTERS: dict[
     "ablation_summary_v1": _adapt_ablation_summary,
     "terminal_gate_v1": _adapt_terminal_gate,
 }
+
+_DISPOSITION_ATTRIBUTE_UNITS = {
+    "evaluation_evidence_validity_status": "text",
+    "evaluation_evidence_validity_reason": "text",
+    "evaluation_net_return_availability_status": "text",
+    "evaluation_net_return_availability_reason": "text",
+    "evaluation_sharpe_availability_status": "text",
+    "evaluation_sharpe_availability_reason": "text",
+    "evaluation_inference_qualification_status": "text",
+    "evaluation_inference_qualification_reason": "text",
+    "evaluation_promotion_eligibility_status": "text",
+    "evaluation_promotion_eligibility_reason": "text",
+}
+
+
+def _disposition_attributes(disposition: dict[str, Any]) -> dict[str, str]:
+    values = {
+        "evaluation_evidence_validity": disposition["evidence_validity"],
+        "evaluation_net_return_availability": disposition["metric_availability"]["net_return"],
+        "evaluation_sharpe_availability": disposition["metric_availability"][
+            "net_sharpe_per_sqrt_bar"
+        ],
+        "evaluation_inference_qualification": disposition["inference_qualification"],
+        "evaluation_promotion_eligibility": disposition["promotion_eligibility"],
+    }
+    return {
+        field: value
+        for name, item in values.items()
+        for field, value in (
+            (f"{name}_status", item["status"]),
+            (f"{name}_reason", item["reason"] or ""),
+        )
+    }
 
 
 def _comparability_id(
@@ -684,6 +760,151 @@ def _validate_records(
     return records
 
 
+def _platform_timing(source: dict[str, Any], context: str) -> dict[str, Any]:
+    median = _required_finite_number(source, "median_ms", context)
+    p10 = _required_finite_number(source, "p10_ms", context)
+    p90 = _required_finite_number(source, "p90_ms", context)
+    sample_count = _required_positive_int(source, "sample_count", context)
+    if not 0 < p10 <= median <= p90:
+        raise RegistryError(f"{context} requires 0 < p10 <= median <= p90")
+    return {
+        "median_ms": median,
+        "p10_ms": p10,
+        "p90_ms": p90,
+        "sample_count": sample_count,
+    }
+
+
+def _load_platform_qualification(
+    entry: dict[str, Any], repo_root: Path
+) -> dict[str, Any]:
+    """Resolve a digest-bound kernel report without making an economic record."""
+
+    context = f"platform qualification {entry['id']}"
+    if entry.get("adapter") != "cuda_kernel_qualification_v1":
+        raise RegistryError(f"{context} has an unsupported adapter")
+    source_ref = _required_text(entry, "source", context)
+    source_path = Path(source_ref)
+    if source_path.is_absolute() or PureWindowsPath(source_ref).is_absolute():
+        raise RegistryError(f"{context} source must be repository-relative")
+    repo_root = repo_root.resolve()
+    resolved_path = (repo_root / source_path).resolve()
+    try:
+        resolved_path.relative_to(repo_root)
+    except ValueError as exc:
+        raise RegistryError(f"{context} source must stay within the repository") from exc
+    if not resolved_path.is_file():
+        raise RegistryError(f"{context} source does not exist: {source_ref}")
+    expected_digest = _required_sha256(entry, "source_sha256", context)
+    actual_digest = _sha256(resolved_path)
+    if actual_digest != expected_digest:
+        raise RegistryError(
+            f"{context} source SHA-256 mismatch: expected {expected_digest}, "
+            f"got {actual_digest}"
+        )
+
+    source = _load_json(resolved_path)
+    # JSON booleans are Python ints, but are not valid report schema versions.
+    if type(source.get("schema")) is not int or source["schema"] != 1:
+        raise RegistryError(f"{context} requires report schema 1")
+    if _required_text(source, "arithmetic_autograd", context) != "pass":
+        raise RegistryError(f"{context} does not report arithmetic/autograd pass")
+    verdict = _required_text(source, "verdict", context)
+    if verdict != "synthetic_kernel_qualification_passed":
+        raise RegistryError(f"{context} has an unsupported report verdict: {verdict}")
+
+    packages = source.get("packages")
+    if not isinstance(packages, dict):
+        raise RegistryError(f"{context} requires reported package metadata")
+    package_metadata = {
+        name: _required_text(packages, name, context)
+        for name in ("torch", "ray", "gymnasium", "numpy")
+    }
+    runtime = {
+        "torch": _required_text(source, "torch", context),
+        "cuda": _required_text(source, "cuda", context),
+        "cudnn": _required_positive_int(source, "cudnn", context),
+        "device": _required_text(source, "device", context),
+        "threads": _required_positive_int(source, "threads", context),
+        "packages": package_metadata,
+    }
+
+    cases = _required_list(source, "cases", context)
+    batch_sizes = [
+        _required_positive_int(case, "batch", f"{context} case") for case in cases
+    ]
+    if len(batch_sizes) != 2 or set(batch_sizes) != {1, 128}:
+        raise RegistryError(f"{context} requires exactly the B=1 and B=128 cases")
+
+    normalized_cases = []
+    for case, batch_size in sorted(zip(cases, batch_sizes), key=lambda pair: pair[1]):
+        case_context = f"{context} B={batch_size}"
+        operators = case.get("cudnn_operators")
+        if (
+            not isinstance(operators, list)
+            or not all(isinstance(operator, str) for operator in operators)
+            or "aten::_cudnn_rnn" not in operators
+        ):
+            raise RegistryError(f"{case_context} does not report cuDNN RNN execution")
+        errors = case.get("max_absolute_errors")
+        if not isinstance(errors, dict):
+            raise RegistryError(f"{case_context} requires max_absolute_errors")
+        normalized_errors = {}
+        for name in ("output", "hidden", "cell", "input_gradient", "parameter_gradient"):
+            error = _required_finite_number(errors, name, case_context)
+            if error < 0:
+                raise RegistryError(f"{case_context} requires non-negative {name} error")
+            normalized_errors[name] = error
+
+        raw_timings = case.get("timings")
+        if not isinstance(raw_timings, dict):
+            raise RegistryError(f"{case_context} requires CPU and CUDA timings")
+        timings: dict[str, dict[str, Any]] = {}
+        for device_name in ("cpu", "cuda"):
+            device_timings = raw_timings.get(device_name)
+            if not isinstance(device_timings, dict):
+                raise RegistryError(f"{case_context} requires {device_name} timings")
+            timings[device_name] = {}
+            for workload in ("inference", "forward_backward"):
+                workload_timing = device_timings.get(workload)
+                if not isinstance(workload_timing, dict):
+                    raise RegistryError(
+                        f"{case_context} requires {device_name} {workload} timing"
+                    )
+                timings[device_name][workload] = _platform_timing(
+                    workload_timing, f"{case_context} {device_name} {workload}"
+                )
+
+        normalized_cases.append(
+            {
+                "batch": batch_size,
+                "window_bars": _required_positive_int(case, "T", case_context),
+                "feature_count": _required_positive_int(case, "input", case_context),
+                "hidden_size": _required_positive_int(case, "hidden", case_context),
+                "max_absolute_errors": normalized_errors,
+                "cudnn_operators": operators,
+                "timings": timings,
+            }
+        )
+    return {
+        "id": _required_text(entry, "id", "platform qualification registry"),
+        "title": _required_text(entry, "title", context),
+        "date": _required_text(entry, "date", context),
+        "source": _repo_path(resolved_path, repo_root),
+        "source_sha256": actual_digest,
+        "model": "Bare LSTM reference workload",
+        "runtime": runtime,
+        "arithmetic_autograd": "pass",
+        "verdict": verdict,
+        "cases": normalized_cases,
+        "limitations": (
+            "Synthetic bare-LSTM kernel qualification only. It does not establish "
+            "iTrader compatibility, PPO throughput, economic performance, or "
+            "promotion eligibility."
+        ),
+    }
+
+
 def build_browser_payload(
     registry_path: Path | str, *, repo_root: Path | str
 ) -> dict[str, Any]:
@@ -724,12 +945,30 @@ def build_browser_payload(
         normalized_factors = {factor: str(factors[factor]) for factor in factor_names}
         source = _load_json(source_path)
         identities = _source_identities(adapter_name, source, identity_names)
+        adapted_records = adapter(experiment_id, source, source_path, repo_root)
+        if any("evaluation_disposition" in record for record in adapted_records):
+            attribute_units.update(_DISPOSITION_ATTRIBUTE_UNITS)
+            for record in adapted_records:
+                disposition = record.pop("evaluation_disposition", None)
+                if disposition is not None:
+                    record["attributes"].update(_disposition_attributes(disposition))
         records = _validate_records(
             experiment_id,
-            adapter(experiment_id, source, source_path, repo_root),
+            adapted_records,
             metric_units=metric_units,
             attribute_units=attribute_units,
         )
+        for record in records:
+            record["source"] = _repo_path(source_path, repo_root)
+        run_source = entry.get("run_source")
+        if run_source:
+            run_records, identities = _adapt_population_runs(
+                entry, source, identities, repo_root, identity_names,
+            )
+            records = _validate_records(
+                experiment_id, records + run_records,
+                metric_units=metric_units, attribute_units=attribute_units,
+            )
         resolved.append(
             {
                 "id": experiment_id,
@@ -738,6 +977,7 @@ def build_browser_payload(
                 "status": str(entry.get("status", "evidence")),
                 "summary": str(entry.get("summary", "")),
                 "source": _repo_path(source_path, repo_root),
+                "run_source": run_source,
                 "report": str(entry.get("report", "")),
                 "legacy_dashboard": entry.get("legacy_dashboard"),
                 "factors": normalized_factors,
@@ -747,6 +987,18 @@ def build_browser_payload(
             }
         )
 
+    platform_entries = registry.get("platform_qualifications", [])
+    platform_ids: set[str] = set()
+    platform_qualifications = []
+    for entry in platform_entries:
+        platform_id = str(entry.get("id", "")).strip()
+        if platform_id in platform_ids:
+            raise RegistryError(f"duplicate platform qualification id: {platform_id}")
+        platform_ids.add(platform_id)
+        platform_qualifications.append(
+            _load_platform_qualification(entry, repo_root)
+        )
+
     return {
         "schema_version": registry["schema_version"],
         "title": str(registry.get("title", "iTrader Experiment Browser")),
@@ -754,12 +1006,44 @@ def build_browser_payload(
         "metric_units": metric_units,
         "attribute_units": attribute_units,
         "experiments": resolved,
+        "platform_qualifications": platform_qualifications,
         "comparisons": _build_comparisons(
             resolved,
             factor_names=factor_names,
             identity_names=identity_names,
         ),
     }
+
+
+def _adapt_population_runs(entry, source, identities, repo_root, identity_names):
+    """Bind an optional individual-run summary to its declared population."""
+    if entry["adapter"] != "terminal_gate_v1":
+        raise RegistryError("run_source is only supported beside terminal_gate_v1")
+    run_path = repo_root / entry["run_source"]
+    run_summary = _load_json(run_path)
+    arm_names = {arm["experiment_name"] for arm in source["arms"].values()}
+    if len(arm_names) != len(source["arms"]):
+        raise RegistryError("run_source requires unique arm population identities")
+    members = _required_positive_int(source, "expected_members", "terminal gate")
+    results = _required_list(run_summary, "results", "run_source")
+    result_names = [_required_text(result, "experiment_name", "run_source") for result in results]
+    if set(result_names) != arm_names or any(result_names.count(name) != members for name in arm_names):
+        raise RegistryError("run_source must match all declared arms and member counts")
+    run_records = _adapt_ablation_summary(entry["id"], run_summary, run_path, repo_root)
+    # Trial names are Windows-produced identities even when the portable browser
+    # is rebuilt elsewhere. Case-only variants cannot create another member.
+    if len({record["run_id"].casefold() for record in run_records}) != len(run_records):
+        raise RegistryError("run_source must contain unique individual runs")
+    run_identities = _source_identities("ablation_summary_v1", run_summary, identity_names)
+    combined = {}
+    for key in identity_names:
+        left, right = identities[key], run_identities[key]
+        if left is not None and right is not None and left != right:
+            raise RegistryError(f"run_source identity disagreement: {key}")
+        combined[key] = left if left is not None and right is not None else None
+    for record in run_records:
+        record["source"] = _repo_path(run_path, repo_root)
+    return run_records, combined
 
 
 def render_browser(

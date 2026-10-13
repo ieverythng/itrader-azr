@@ -1,19 +1,52 @@
 # Handoff
 
-**Current boundary (2026-10-07):** Q27's four mechanical repairs are implemented;
-Independent Sol and Luna reviews approve mechanics and the separate opt-in
-economics pilot. Final core validation (530 cases), healthcheck, clean scoped
-pre-commit rerun and diff checks pass. Reviewer pairs are requested dispatch
-metadata, not observed runtime telemetry. The approved
-Q23 `terminal_screen_only` role, dual dataset identities and certified intervals
-need their own implementation/review; no external-data validation relabeling.
-Metadata-first envelope planning is now approved; exact bounds/clearance and
-Q26 remain GRILL items before panel freeze and real all-16 execution. Optional
-volatility normalization is not a prerequisite when disabled. No acquisition,
-panel opening, new training, R1 or native integration has occurred. The eight
-accepted corrected-control receipts and original artifacts remain untouched.
-See the [Oct-7 repair audit](../artifacts/research/evaluation-mechanical-repairs-2026-10-07.md)
-for executed regressions, review fixes and test-ROI recommendations.
+**Current handoff (2026-10-13):** CUDA37 passed all four synthetic R0/R1 x
+R4-state/off PPO/update/checkpoint/restore/frozen-replay cells on the installed
+CUDA profile (Torch2.9.0.dev20250801+cu128, Ray2.58, RTX5070Ti). Zero failures,
+errors or skips; selected-device assertions and owned cleanup passed. See the
+[execution receipt](../coordination/training-testing.md#training-cuda37-release1---complete).
+Use that CUDA interpreter directly for future separately authorized training;
+no new venv/build is needed, and the CPU control is preserved. This closes the
+bounded GPU lifecycle gate only. Q23/Q26 and economic-evidence repairs still
+gate real performance runs. No active lease or automatic retry survives.
+
+**Current handoff (2026-10-11):** CUDA28 has applied the reviewed CPU/CUDA uv
+profiles and lock, installed the designated CUDA profile and passed real GPU
+tensor forward/backward. The global torch<2.4 requirement is gone; CPU `.venv`
+remains unchanged. [Receipt](../artifacts/research/cuda28-known-error-repair-2026-10-11.md)
+records exact identities, resource/cleanup evidence and the 76-package refresh.
+The [four-cell CPU lifecycle](../artifacts/research/r1-lifecycle22/receipt.json)
+already passed PPO/update/save/restore/replay. TRAINING-CUDA29 reached zero GPU
+cells: an added wrapper outside the reviewed packet failed PowerShell parsing.
+Budget remains zero and no owned workload survives. Preserve this closure;
+any repaired actual entrypoint needs review and separate launch authority from
+[GRILL](../coordination/grill.md), not an automatic retry;
+no market training, uncertainty qualification or economic promotion follows.
+[Environment Strategy](../environment_strategy.md) owns profile operations;
+[Bounded Evaluation](../evaluation/README.md) owns current evaluation boundaries.
+
+**Historical implementation handoff (2026-10-09):** R1's stateless reset-per-decision window
+LSTM/FiLM, explicit versioned selector, training loadout, and structural restore
+identity were implemented in the dirty `agent/Watson-dev` checkout. Focused
+synthetic verification passed 31 selected tests; independent Sol/Standards and
+Astra/Spec reviews approve after restore identity was bound across the
+algorithm, policy, and instantiated model. The integration also now consumes
+the actual builder-produced environment config. R0 remains default; no Ray
+algorithm/checkpoint round-trip, terminal replay, market-data evaluation or
+performance run had occurred for R1 at that time. CPU22 now supersedes the
+algorithm/checkpoint lifecycle absence only; no economic promotion.
+
+Test ROI: consolidate redundant public-path assertions only when diagnostic
+clarity and distinct safety invariants survive; keep the suite bounded rather
+than adding one test per field. Next request a separate resource lease for one
+synthetic Ray-2.58 update/save/restore/replay smoke; close Q21/Q23/Q24/Q25/Q26
+panel/reporting prerequisites; then run matched fixed-recipe R0,
+R0 + R4-v1, R1 and R1 + R4-v1 attribution with PBT off. Preserve all inherited
+dirty work and accepted R0/R4 receipts. No staging, commit or push.
+
+**Historical Oct-7 boundary:** Q27 repairs and approval remained valid for that
+snapshot. Its statement that R1 had not been implemented is superseded; panel
+qualification gates and preserved control evidence are not.
 
 The dated Oct-6 notices below retain their publication-time approval status;
 the Oct-7 boundary above supersedes that status, not their recovery evidence.

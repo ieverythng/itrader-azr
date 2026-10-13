@@ -27,6 +27,7 @@ Call out meaningful drift rather than silently selecting a convenient version.
 | All research wings, dependencies, statuses, and decisions | [iTrader Research Dashboard](research/itrader_research_dashboard.md) ([HTML](research/itrader_research_dashboard.html)) |
 | Search runs, members, checkpoints, and matched factors | [Experiment Browser](research/itrader_experiment_browser.html) ([registry](research/experiment_registry.json)) |
 | Independent change-review contract | [Review Contract](../REVIEW.md) |
+| Evidence, accounting, public tests, terminal gates and planned stress evaluation | [Bounded Evaluation](evaluation/README.md) ([HTML](evaluation/README.html)) |
 | GRILL dispatch, parent boards, resource leases, and review workflow | [Coordination](coordination/README.md) |
 | Current branch and experiment state | [Current State](project-state/current-state.md) |
 | Ordered continuation work | [Next Actions](project-state/next-actions.md) |
@@ -83,8 +84,20 @@ See [plans/README.md](plans/README.md) for plan ownership and archival rules.
 Boards are operational Markdown, not a second architecture or experiment
 ledger. They do not require generated HTML companions.
 
+## Evaluation
+
+- [evaluation/README.md](evaluation/README.md) ([HTML](evaluation/README.html))
+  records existing evaluator ownership, four named public integration scenarios,
+  CPU/GPU lifecycle versus market claims, return/duration accounting, Q23-Q26
+  gates, causal fit/proposer isolation, and planned frozen-policy shock evaluation.
+  It documents current limits; it is not a new evaluator or run authorization.
+
 ## Research
 
+- [Saluki advisory assessment (2026-10-10)](artifacts/research/saluki-advisory-assessment-2026-10-10.md)
+  ([HTML](artifacts/research/saluki-advisory-assessment-2026-10-10.html)) maps the
+  imported trading-RL proposals, source/methodology audits and separate
+  conversational-examiner research wing. Recommended experiments, not adoption.
 - [research/itrader_research_dashboard.md](research/itrader_research_dashboard.md)
   ([HTML](research/itrader_research_dashboard.html)) — canonical research
   registry. It distinguishes R/C/S identities, provisional ATX/PF/WM/TTS/AZR

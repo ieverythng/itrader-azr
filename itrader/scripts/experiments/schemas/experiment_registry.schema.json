@@ -67,6 +67,27 @@
     "$schema": {"type": "string"},
     "schema_version": {"const": 1},
     "title": {"type": "string", "minLength": 1},
+    "platform_qualifications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id", "title", "date", "adapter", "source", "source_sha256"
+        ],
+        "properties": {
+          "id": {"type": "string", "pattern": "\\S"},
+          "title": {"type": "string", "pattern": "\\S"},
+          "date": {"type": "string", "format": "date"},
+          "adapter": {"const": "cuda_kernel_qualification_v1"},
+          "source": {"type": "string", "minLength": 1},
+          "source_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
     "experiments": {
       "type": "array",
       "minItems": 1,

@@ -1,6 +1,212 @@
 # iTrader Masterplan
 
-**Current boundary (2026-10-07):** Q27's four mechanical repairs are implemented;
+**CUDA37 lifecycle closed (2026-10-13):** all four R0/R1 x R4-state/off synthetic
+GPU PPO/update/checkpoint/restore/frozen-replay cases pass, zero failures/errors/
+skips, selected cuda:0 placement throughout and clean owned cleanup. The
+[execution receipt](../coordination/training-testing.md#training-cuda37-release1---complete)
+binds source, commands and tested Torch2.9.0.dev20250801+cu128/Ray2.58 runtime.
+Use the installed CUDA profile for future authorized runs; no new environment
+build is needed. R0 remains default, `pnl_linear` remains the proven reward
+default, and Q23/Q26/economic-evidence gates remain open. This is not market
+edge or a throughput comparison. Earlier CUDA notices below are historical.
+
+**CUDA28 installed (2026-10-11):** obsolete global Torch restriction removed;
+reviewed mutually exclusive uv profiles and lock applied. Locked sync and tiny
+GPU tensor forward/backward passed with the exact Torch2.9.0.dev20250801+cu128
+wheel on RTX5070Ti/CUDA12.8. Ray2.58 and protected experiment pins remain;
+76 other shared versions changed and decorator left the lock. CPU `.venv` stays
+the control. [Receipt](../artifacts/research/cuda28-known-error-repair-2026-10-11.md)
+qualifies provisioning/tensor execution, not RLlib/PPO, throughput or economics.
+TRAINING-CUDA29 reached zero cells: an added unreviewed PowerShell wrapper
+failed parsing before PPO. No owned workload survives; no automatic retry.
+[GRILL](../coordination/grill.md) records closure and any future launch authority.
+[Bounded Evaluation](../evaluation/README.md)
+documents current accounting/evidence gates. CLOCK27 is delivered; shock
+robustness remains a future frozen-policy ablation, not an R1 recipe change.
+Earlier execution notices below retain historical facts, not active authority.
+
+**Q26 decision (2026-10-11):** both exact finite-lag and bounded stable-decay
+families are mandatory supported synthetic tests; each required scenario must
+pass the unchanged95/94/3 criteria. No postfailure dropping or relabeling.
+Human accepts full exchange-session distance as first inference candidate,
+challenged by both families under BOTH session and elapsed-local-civil-day DGP
+clocks. Next settle qualified outcome-free support and finite
+scenario ranges/moments before operational method and confirmation terms.
+These are interval tests, not shocks to OHLCV; no simulation or outcomes open.
+See [the decision log](../project-state/decisions.md).
+
+**CUDA26 closure:** DEV ended preparation at21:39UTC on Oct10 with two production
+packet CHANGES verdicts; its absolute22:45 stop has elapsed. No provisioning
+lease activated or acquisition/sync/root mutation occurred. Launcher approval
+and CPU lifecycle evidence stand separately. The conditional scope below is
+historical; further CUDA repair/execution needs a new bounded scope and reviews.
+
+**Current continuation (2026-10-10, CUDA26 / RESEARCH25):** human resumes Q26 and bounded
+implementation after the
+[Saluki advisory assessment](../artifacts/research/saluki-advisory-assessment-2026-10-10.md)
+([HTML](../artifacts/research/saluki-advisory-assessment-2026-10-10.html)) and a
+separate adversarial-examiner investigation. DEV integrates accepted accounting
+controls in the existing owner and prepares the reproducible CUDA uv bridge;
+TRAINING's four-cell CPU synthetic lifecycle passed. DEV26 implements the
+CUDA profile/launcher after DEV25's two CHANGES reviews; fresh reviews gate
+provisioning. TRAINING25 GPU readiness is delivered, not an executed run.
+Exact scopes are on the [GRILL board](../coordination/grill.md).
+CUDA is the preferred forward training target after proper-stack qualification;
+the CPU control is retained until qualification. RESEARCH25 delivered
+selection exposure, causal features and market-scenario stress; the separate
+self-examiner wing has no model-pilot authority. Preserve target-position Discrete(3),
+matched R0/R1 x solver-state ordering, `pnl_linear`, all-cell gates and existing
+Q23/Q26 terms. Q26's conditional process claim, three roles and both dependence
+families are approved; numerical and later terms remain open. No forced activity,
+five-action change, new data/split, real training or economic promotion follows.
+Fresh weights do not erase researcher/agent exposure to historical outcomes.
+
+**Latest mechanical evidence (2026-10-10):** all four R0/R1 x R4-state/off CPU
+synthetic PPO/update/checkpoint/restore/frozen-replay cases passed, zero failures/
+errors/skips,37.234 owned seconds and clean cleanup. See
+[the bound receipt](../artifacts/research/r1-lifecycle22/receipt.json). This is
+not throughput, market-performance or CUDA qualification.
+
+**Latest execution priority:** the frozen CPU lifecycle has closed. DEV23/24
+failed only fixture transport/platform-marker checks before any real download
+or root change; both leases expired. DEV25's reviews identified substantive
+launcher/provenance blockers; DEV26 repairs them and may activate
+after routing, fresh review/preflight to apply CUDA profiles/lock and provision
+one designated GPU profile under the finite GRILL lease. Keep native Ray API
+migration separate and never copy packages between venvs. CUDA public-stack
+qualification follows; accounting and
+execution-backed disposition closure remain queued. This is not another
+draft-only environment investigation or permission for market training.
+
+RESEARCH25 investigates a replacement common-calendar fresh-weight chronology
+with later validation/test and a separate causal market-shock wing. Explicit
+replacement of the older reserved envelope is possible, but actual bounds,
+access and freshness remain undecided. Q26 dependence fixtures do not perturb
+OHLCV; synthetic market scenarios and any TaskSpec reference need separate
+design/approval. Existing reward/action and calibration gates are unchanged.
+Research24 was superseded by the original Saluki audit; the latest human now
+explicitly dispatches25. Selection exposure is not a measurable remaining-gain
+budget; train-only causal-feature candidates are an orthogonal later C factor,
+not part of the frozen R1 comparison. Q26 calibration imposes synthetic truth
+to test interval reliability, not a known real-market effect. The research
+dashboard registers market-scenario stress independently of learned WM and Q26.
+
+**Q26 endpoint decision (2026-10-09):** fixed-1-bp R1 + R4-v1 minus R0 +
+R4-v1 Q24 terminal net, averaged over two frozen checkpoint pairs, is the
+accepted primary comparison. All four encoder/state cells remain required for
+synthetic lifecycle qualification and the full matched study; other contrasts
+remain diagnostic unless predeclared for confirmation. Checking the R4 pair
+first mechanically does not authorize interim fresh-market outcome inspection.
+Keep the 16-run budget and all-run-complete terminal opening gate. Human also
+selects calendar-synchronized dependent multipliers as the first candidate for
+qualification, not as a valid scored method. A two-sided 95% primary paired-net
+interval is now approved as policy; calendar support/parameterization and
+independent synthetic calibration remain pending. Human selects a central
+equal-tailed first candidate (nominal 2.5% per tail), not a qualified interval
+law. The coverage tolerance is accepted separately below. A positive lower bound would
+support uplift only after qualification, not positive absolute net or Sharpe
+significance. Sharpe and isolated one-step net remain descriptive diagnostics;
+this endpoint is not a profitability or training-seed-population claim.
+See [the decision log](../project-state/decisions.md).
+
+**Evaluation-framework direction (2026-10-09):** human corrects the prior
+larger-layout choice. Preserve results and research a common robust evaluator
+against algorithmic-trading/trading-RL practice; no panel enlargement is selected.
+Valid matched net estimates remain descriptive if inference fails; corrupt or
+source-unbound evidence remains raw/quarantined, not certified. Preserve the
+2020-2021 envelope, primary/weights,95/94/3 criteria and all-cell opening gates.
+Support, exact panel and calibration remain unresolved. No acquisition/outcomes.
+The primary-source investigation is now delivered in
+[section 11 of the existing Q23/Q26 note](../artifacts/research/q23-q26-decision-chain-2026-10-09.md#11-common-evaluation-contract-retain-evidence-qualify-claims-separately).
+Human now approves its common validity/availability/inference/promotion contract
+and four public integration oracles for bounded implementation and review.
+DEV19 implemented the bounded contract and109 focused tests pass. Standards
+review approves; Spec still requires execution-backed probes after lease
+withdrawal. The implementation is frozen and its two-review gate remains open;
+it is not statistical qualification and does not alter the Ray lifecycle snapshot.
+Reuse the current evaluator owners; preserve pnl_linear and matched-cell
+semantics. Research delivery does not qualify an interval or freeze a layout.
+
+**Historical readiness (2026-10-09):** lifecycle20 closed without activation at
+13:17:29UTC. Both command reviews approve and49 hashes/resources/process checks
+pass, but GRILL handed off only3s before the start cutoff; live preflight missed
+it by29s. Zero cells ran. Retain [the receipt](../artifacts/research/r1-lifecycle20/receipt.json)
+and repair scheduling before another separately authorized attempt; no deadline
+bypass or automatic retry. No heavy lease remains. [Section12's calibration packet](../artifacts/research/q23-q26-decision-chain-2026-10-09.md#12-remaining-calibration-terms-ordered-decisions-not-qualification)
+is delivered: first human decision is the supported process claim/scenario roles,
+then qualified metadata, operational method and independent confirmation terms.
+No process range, centering/kernel/bandwidth, MC confidence/allocation, failure
+cap, outer budget or statistical qualification is adopted by that packet.
+
+**Latest Q26 clarification:** human confirms the disclosed1percentage point
+synthetic undercoverage tolerance: simultaneous Monte Carlo lower coverage
+bound>=94% in every required predeclared scenario, against nominal95%.
+Human delegates the directional-error tolerance; GRILL selects simultaneous
+Monte Carlo upper bounds<=3% per directional miss, including positive-null
+declarations. The nominal target stays2.5% per tail. Report nominal95%,
+tolerance-qualified only after confirmation; never exact95%/2.5% validation.
+Failure/precision/allocation and method terms remain open; no outcome-based
+loosening of gates is permitted.
+
+**Mechanical unblock (2026-10-09):** fresh source-bound reviews and bounded
+new Ray log-directory authorization precede the four-cell root-CPU lifecycle.
+The original CPU-then-CUDA order is superseded: the CUDA benchmark completed
+using the existing installed interpreter while the CPU Ray lifecycle remains
+unqualified. At its original dispatch no new environment or build was authorized.
+CUDA-reuse07 has now passed bare-LSTM FP32 parity/cuDNN, exit0 in26.282s, without
+package changes. B128 forward/backward medians81.584ms CPU /3.989ms CUDA; B1
+is slower on CUDA. This is not PPO throughput or economic evidence. The four-cell
+Ray lifecycle remains unexecuted. See [GRILL's leases](../coordination/grill.md).
+Both initial leases subsequently closed before test launch at the5GiB RAM
+gate. Human now authorizes a fresh reviewed CUDA-only4GiB start/2GiB abort
+lease, which completed. Human subsequently approves one fresh four-cell Ray
+smoke at4GiB start/2GiB abort, retaining containment and unchanged recipe.
+No automatic retry, production-floor change or implicit root-runtime promotion.
+The Ray09 wrapper failed before pytest (zero cells); preserve the failed receipt.
+Human separately approves one repaired-launcher attempt only after executable
+argv/inventory checks, independent review and a fresh source/resource lease.
+TRAINING stopped its runaway receipt-finalization PowerShell process; available
+RAM recovered to9.017GiB at11:52UTC without stopping Codex or the four chats.
+
+**CUDA runtime priority:** human prioritizes a separately qualified uv-locked
+iTrader GPU bridge while preserving the frozen CPU environment. The kernel
+check passed; human now accepts the prebuilt3.06GB wheel/cache. Retain proper
+Ray/Gym dependencies and matched solver-cell runtimes;
+reconcile the legacy torch bound explicitly. Wheel reproducibility, storage/
+rollback, dependency consistency and public PPO/checkpoint parity precede root
+promotion. Reviewed configuration/lock work precedes isolated provisioning and
+public-stack checks. A kernel result alone is insufficient; no copied environment or new
+CUDA toolkit compilation. See [next actions](../project-state/next-actions.md).
+
+**Current dispatch boundary (2026-10-09):** human approves the 2020-2021
+candidate evaluation envelope and retrospective-clearance approach, not a
+freshness certificate or manual/external-access attestation. Exposure clearance,
+the `terminal_screen_only` role/dual identities, qualified metadata/panel and
+Q26's declared/calibrated uncertainty protocol remain run prerequisites.
+DEV is authorized to implement the accepted R1 window encoder, selector/restore
+identity and focused synthetic integrations now; old dated stop-before-R1
+notices below are historical, not a block on this new implementation dispatch.
+This does not authorize real training, terminal outcome opening, native migration
+or economic promotion. [Coordination](../coordination/README.md) links the owned
+boards; [decisions](../project-state/decisions.md) records approvals, and
+[the Q23/Q26 proposal](../artifacts/research/q23-q26-decision-chain-2026-10-09.md)
+orders the remaining human choices. Integration/E2E is preferred for new test
+work; pinned No-Mistakes remains an unactivated complementary workflow.
+
+**R1 implementation status (2026-10-09):** the accepted stateless window
+LSTM/FiLM model, explicit `r0_r1_v1` loadout/selector and restore identity now
+exist in the dirty branch. Thirty-one focused synthetic tests pass. This is an
+implementation milestone, not Ray lifecycle, checkpoint round-trip, market
+performance or economic promotion. R0 remains the default parity control.
+Independent Sol/Standards and Astra/Spec reviews approve the scoped diff after
+restore-identity hardening; the test-ROI review recommends consolidating
+redundant public-path assertions only where diagnostics remain clear. A
+separately leased synthetic Ray lifecycle smoke and Q21/Q23/Q24/Q25/Q26
+panel/reporting prerequisites precede the fixed-recipe
+R0/R0+R4-v1/R1/R1+R4-v1 comparison. PBT stays off for that representation
+attribution.
+
+**Historical boundary (2026-10-07):** Q27's four mechanical repairs are implemented;
 Independent Sol and Luna reviews approve mechanics and the separate opt-in
 economics pilot. Final core validation (530 cases), healthcheck, clean scoped
 pre-commit rerun and diff checks pass. Reviewer pairs are requested dispatch
@@ -46,8 +252,8 @@ stays isolated; dirty work and artifacts are preserved. See the
 [qualification audit](../artifacts/research/r1-panel-qualification-2026-10-06.md).
 The dated execution notices below are historical, not active launch authority.
 
-Last reconciled: 2026-10-07
-Status: **dataset-v2 R0 is the immutable negative/parity control; R0 + R4-v1 is architecture-qualified but economically unpromoted after G0 artifact-pair closure; fixed-recipe R1 attribution is next**
+Last reconciled: 2026-10-10
+Status: **R1 passes the bounded four-cell CPU synthetic lifecycle; CUDA and market performance remain unqualified; R0 remains default parity control; R0 + R4-v1 remains economically unpromoted**
 Branch snapshot: `agent/Watson-dev` plus the uncommitted R4-v1 implementation/evidence round
 
 ## North star
@@ -445,7 +651,8 @@ input schemas, task semantics, reward assignments, or state ownership.
 ### Solver standard (proposed, not settled)
 
 Keep R0 as the immutable parity control. Do not describe model registration as
-model selection. R1–R3 remain unimplemented. `R4-v1-min` has a
+model selection. R1 passes the bounded CPU synthetic lifecycle, not CUDA or
+market-performance qualification; R2–R3 remain unimplemented. `R4-v1-min` has a
 backwards-compatible position/remaining-horizon seam, a completed blocking 4x3
 gate, and a completed fresh 4x3x40 replication. On the fresh block, combined
 state improved terminal net over masked in all seeds and passed the pooled
@@ -461,7 +668,7 @@ Historical provenance is authoritative:
 | Cell | Identity | Status |
 |---|---|---|
 | R0 | MLP + implemented FiLM (`tanh(gamma)*hidden + beta`) | Implemented; immutable parity control |
-| R1 | Reset-every-step window LSTM + FiLM; explicit market/task split | Unimplemented; must be correct/measurable |
+| R1 | Reset-every-step window LSTM + FiLM; explicit market/task split | Implemented; bounded CPU synthetic lifecycle passed; CUDA and market performance unqualified |
 | R2a | Stateful LSTM + task concat | Unimplemented recurrence baseline |
 | R2b | Stateful LSTM + init-only FiLM | Deferred: task unavailable to current initial-state hook |
 | R2c | Stateful LSTM + per-step FiLM | Active candidate; readout placement first |

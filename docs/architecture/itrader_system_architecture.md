@@ -1,8 +1,14 @@
 # iTrader System Architecture
 
-Last reconciled: 2026-10-06
-Branch snapshot: `agent/Watson-dev` with the uncommitted R4-v1 implementation/evidence round
-Status: **active working architecture; R0 + R4-v1 is architecture-qualified but economically unpromoted, and R1-R3 remain unimplemented**
+Last reconciled: 2026-10-13
+Branch snapshot: `agent/Watson-dev` with inherited dirty work plus the bounded R1 implementation
+Status: **R1 passes bounded four-cell CPU and CUDA synthetic Ray lifecycles; market performance and general throughput remain unqualified; R0 remains default; R0 + R4-v1 remains economically unpromoted**
+
+[CUDA37 execution receipt](../coordination/training-testing.md#training-cuda37-release1---complete):
+all four R0/R1 x R4-state/off GPU cases passed PPO/update/save/restore/frozen
+replay with zero failures/errors/skips, cuda:0 throughout and clean cleanup.
+The tested Torch2.9.0.dev20250801+cu128/Ray2.58 profile is the preferred future
+GPU target; CPU remains a control. This does not qualify economic performance.
 
 Research identities and evidence status are indexed in the
 [iTrader Research Dashboard](../research/itrader_research_dashboard.md); the
@@ -15,20 +21,25 @@ Current platform: Ray 2.58 with explicit ModelV2/TorchPolicy compatibility APIs.
 The compatibility repair round adds shared structural model selection, opt-in
 semantic OHLCV contracts, same-loss clip diagnostics and measured post-restore
 learning-setting reconciliation. Scoped Sol/Astra evidence review approved these
-fixes; no performance promotion or R1 implementation follows automatically.
+fixes; R1 implementation is now present, but no performance promotion follows.
 The native RLModule/Learner/EnvRunner migration is deferred until R1 is compared
 on this corrected stack; then repeat R0, R0 + R4-v1, R1 and R1 + R4-v1.
 See [R1 readiness](../project-state/r1-development-readiness.md) for ownership,
-the accepted Q15/Q18 model contract, Q19 selection and Q20 budgets. R1 remains
-unimplemented; Q21 two-tier evaluation is accepted, with fresh-panel construction
-and execution gates still pending. Native API development may proceed in an
+the accepted Q15/Q18 model contract, Q19 selection and Q20 budgets. R1 is
+synthetically tested through config, environment observation and model interfaces;
+its separate [Oct-10 four-cell CPU lifecycle](../artifacts/research/r1-lifecycle22/receipt.json)
+now passes PPO/update/checkpoint/restore/frozen replay,37.234 owned seconds and
+clean cleanup. CUDA, throughput and market learning remain unqualified. Q21
+two-tier evaluation is accepted, with fresh-panel construction and execution
+gates still pending. Native API development may proceed in an
 isolated worktree; integration remains after the corrected-stack R1 comparison.
 
 Q22 freezes the same corrected optimizer recipe across all 16 screen cells;
 PBT stays off and entropy retains its original sampled-step schedule. Q23 panel
 sampling is accepted; eligibility/freeze gates remain pending. The completed
 R0/R4 one-update smoke and fresh replay
-qualify only that bounded compatibility path, not R1 or economic performance.
+qualify only that bounded compatibility path, not R1's Ray lifecycle or economic
+performance.
 
 The implemented offline path is:
 
@@ -44,8 +55,9 @@ historical OHLCV parquet
 Source anchors:
 
 - `itrader/rl_lib/train/train_solo_V2.py` uses the shared model registry;
-  `solver_mlp_film` remains the default. The R1 selector is reserved and fails
-  closed until its implementation lands; registration alone is not availability.
+  `solver_mlp_film` remains the default. `solver_window_lstm_film` requires the
+  explicit `r0_r1_v1` representation profile and cannot silently fall back to
+  R0 or the historical `solver_lstm_v2`.
 - `itrader/envs/itrader_env.py` owns rolling-window assembly, task-conditioned
   reset, episode state, and reward context.
 - `itrader/rl_lib/tasks/spec.py` owns `TaskSpec`.
@@ -206,7 +218,7 @@ They are design names, not current CLI flags, and do not settle the architecture
 | ID | Head and conditioning | State | Status and purpose |
 |---|---|---|---|
 | R0 | `SolverMLPFiLM` | None | **Implemented; immutable parity control** |
-| R1 | Corrected reset-every-step window LSTM + FiLM | None | Unimplemented; test temporal inductive bias inside the supplied window |
+| R1 | Corrected reset-every-step window LSTM + FiLM | None | Implemented; bounded CPU synthetic lifecycle passed; CUDA and market performance unqualified |
 | R2a | Stateful LSTM + task concat at recurrent input | `(h,c)` across steps | Unimplemented; original recurrence baseline |
 | R2b | Stateful LSTM + FiLM initial state only | `(h,c)` across steps | Deferred; `get_initial_state()` lacks task input under current RLlib contract |
 | R2c | Stateful LSTM + per-step FiLM | `(h,c)` across steps | **Active candidate; unimplemented**; placement remains open pending grill-me review |

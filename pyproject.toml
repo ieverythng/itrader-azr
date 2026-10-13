@@ -16,7 +16,6 @@ dependencies = [
   "duckdb==0.10.2",
   "ray[rllib]==2.58.0",
   "gymnasium==1.2.2",
-  "torch>=2.3,<2.4",
   "requests>=2.31",
   "websockets>=12.0",
   "fire",
@@ -51,6 +50,32 @@ llm-local = [
   "accelerate==0.27.2",
   "llama-cpp-python==0.3.9",
   "transformers==4.57.3",
+]
+
+# The default uv profile remains CPU-only. CUDA is an explicit, mutually
+# exclusive test profile and is supported only by the exact tested Win/CP311
+# artifact below. These are local uv groups, not published package extras.
+cpu-default = [
+  "torch==2.3.1+cpu; sys_platform == 'win32' or sys_platform == 'linux'",
+  "torch==2.3.1; sys_platform == 'darwin'",
+]
+cuda-tested = [
+  "torch==2.9.0.dev20250801+cu128; sys_platform == 'win32' and platform_machine == 'AMD64' and implementation_name == 'cpython' and python_version == '3.11'",
+]
+
+[tool.uv]
+default-groups = ["dev", "cpu-default"]
+conflicts = [[{ group = "cpu-default" }, { group = "cuda-tested" }]]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cpu", group = "cpu-default", marker = "sys_platform == 'win32' or sys_platform == 'linux'" },
+  { url = "https://download.pytorch.org/whl/nightly/cu128/torch-2.9.0.dev20250801%2Bcu128-cp311-cp311-win_amd64.whl", group = "cuda-tested", marker = "sys_platform == 'win32' and platform_machine == 'AMD64' and implementation_name == 'cpython' and python_version == '3.11'" },
 ]
 
 [project.scripts]

@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import Any, Dict, Optional
+import json
 
 from ray.rllib.algorithms.callbacks import DefaultCallbacks
 
@@ -173,6 +174,15 @@ class PSMetrics(DefaultCallbacks):
         evidence = info.get("episode_evidence")
         if isinstance(evidence, dict):
             self._record_episode_evidence(episode, evidence)
+            if "action_reward_trace_sha256" in evidence:
+                sums = info["ep_sums"]
+                steps = max(1, int(sums["steps"]))
+                row = {**evidence, "action_fractions": [
+                    count / steps for count in self._normalized_action_counts(sums["act_counts"])
+                ]}
+                episode.hist_data["replay_episode_payload"] = [
+                    json.dumps(row, sort_keys=True, allow_nan=False)
+                ]
 
         # 3) Action fractions + reward components (from env.ep_sums)
         if isinstance(info.get("ep_sums"), dict):

@@ -1,0 +1,11 @@
+# CUDA29 lifecycle closeout - 2026-10-11
+
+CUDA29 did not run any lifecycle cells. The final PowerShell preflight passed at 02:39:59Z: branch/HEAD were unchanged, all 75 reviewed identities matched, RTX 5070 Ti UUID `GPU-4f7482bc-745b-ee9d-97d9-4d2603265b80` / driver 617.42 was visible with 15,240 MiB free and 0% utilization, RAM was 4.155 GiB, and disk free was 49.692 GiB. This only established the preflight snapshot.
+
+The detached `authorized-pairs.ps1` wrapper was written after the review packet was frozen and is absent from its 75-entry identity manifest and approved launch plan. Its SHA256 is `403af54a8e20666c0e1d2cf666edd22d4eda8c3ae4a932ebf241366030de92cf`. A static PowerShell parse reports 11 `InvalidVariableReferenceWithDrive` errors at lines 16, 19, 21, 24, 26, 28, 31-33, 35, and 36 (`$Phase:` interpolation). The wrapper therefore did not reach either supervisor invocation. It is preserved at `docs/coordination/_local/training-cuda29/authorized-pairs.ps1`; it was not repaired or retried.
+
+Reconciliation found PID 58340 absent and no matching Python/Ray CUDA29 workload processes. `run/budget.json` remains `{"owned_seconds":0}`; `run/` contains no supervisor receipt, JUnit, inventory, or workload console output. No R4 or state-off cells started, so there is no lifecycle result or training outcome. No process needed termination. The first-launch cutoff (02:45Z) passed; this scope is closed without retry or renewal.
+
+The two independent approvals covered only the frozen packet, not the post-freeze wrapper. The fake-only public launcher contract test passed 6/6 before activation, but it does not qualify CUDA/Ray/PPO execution. The separate CUDA28 handoff remains valid only for isolated provisioning and a tiny CUDA forward/backward smoke: `%LOCALAPPDATA%\iTrader\envs\cuda-tested-cu128`, Torch `2.9.0.dev20250801+cu128`, CUDA 12.8. The repository `.venv` remains CPU-only (`torch 2.3.1+cpu`). CUDA28 evidence does not imply CUDA29 lifecycle qualification.
+
+No retry, environment change, source repair, market/PBT run, or Git shipping occurred. The failed wrapper and preparation evidence remain in ignored `docs/coordination/_local/training-cuda29/` for audit. Reconciliation performed at 02:52Z per GRILL's urgent instruction.

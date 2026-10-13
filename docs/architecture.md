@@ -1,8 +1,13 @@
 # iTrader Architecture Entry Point
 
-Last reconciled: 2026-10-06
-Branch snapshot: `agent/Watson-dev` with the uncommitted R4-v1 implementation/evidence round
-Status: **active working architecture; R0 + R4-v1 is architecture-qualified but economically unpromoted, and R1-R3 remain unimplemented**
+Last reconciled: 2026-10-13
+Branch snapshot: `agent/Watson-dev` with inherited dirty work plus the bounded R1 implementation
+Status: **R0 remains the default parity control; R1 passes bounded four-cell CPU and CUDA synthetic Ray lifecycles; market performance and general throughput remain unqualified; R0 + R4-v1 remains economically unpromoted**
+
+[CUDA37 execution evidence](coordination/training-testing.md#training-cuda37-release1---complete)
+records all four GPU PPO/update/checkpoint/restore/frozen-replay cases passing
+on the installed CUDA profile, with cuda:0 placement throughout and clean owned
+cleanup. This is a narrow lifecycle qualification, not a market-performance run.
 
 This is the compact compatibility entrypoint. Detailed architecture is in
 `docs/architecture/itrader_system_architecture.md` (+ `.html`); phase ordering is
@@ -19,13 +24,21 @@ is a deferred platform factor after R1, with a four-cell parity bridge.
 `models/observation_contract.py` owns opt-in semantic observation validation.
 `r0_r1_v1` pins OHLCV order, the 60-bar chronological window, task encoding,
 NoFilter/market_relative_v1 and zero_v1 state initialization. Historical profiles
-remain distinct. R1's selector is reserved and fails closed until implemented.
+remain distinct. `solver_window_lstm_film` is now registered and selected only
+with the explicit `r0_r1_v1` contract; it has no fallback to R0 or the legacy
+`solver_lstm_v2`. Focused synthetic tests cover configuration, observation,
+stateless model behavior, parameter count and restore identity, not an RLlib
+checkpoint lifecycle or learned performance. The separate
+[Oct-10 four-cell lifecycle receipt](artifacts/research/r1-lifecycle22/receipt.json)
+now records CPU PPO/update/checkpoint/restore/frozen replay passing,37.234 owned
+seconds and clean cleanup. That narrow recipe does not qualify CUDA, market
+performance or throughput; Q23/Q26 remain open. No native-stack cutover is implied.
 PPO diagnostics and restore reconciliation belong to the training adapter;
 replay/config/data/source identity belongs to evaluation provenance, not the env.
 Terminal screen completion and metadata qualification belong to the evaluation
 layer. Its new read-only preflight is not an evaluator or a freshness oracle:
 independently reviewed historical-start/session proofs and sealed identities
-remain required. No R1 implementation or native-stack cutover is implied.
+remain required. No R1 performance run or native-stack cutover is implied.
 
 ```text
 itrader/rl_lib/train/train_solo_V2.py
@@ -116,7 +129,7 @@ writes are atomic; licensed data and credentials remain ignored.
 | ID | Historical identity | Current status | Attribution rule |
 |---|---|---|---|
 | R0 | `SolverMLPFiLM`, no cross-step state | **Implemented; immutable parity control** | Historical control for all solver studies |
-| R1 | Reset-every-step window LSTM + FiLM, explicit market/task split | **Unimplemented** | Within-window temporal encoder only |
+| R1 | Reset-every-step window LSTM + FiLM, explicit market/task split | **Implemented; focused synthetic contract-tested, not run-qualified** | Within-window temporal encoder only; no cross-decision state |
 | R2a | Stateful LSTM + task concatenation | **Unimplemented / planned** | Original recurrence baseline |
 | R2b | Stateful LSTM + FiLM initial state only | **Deferred** | RLlib `get_initial_state()` does not receive the task under the current contract |
 | R2c | Stateful LSTM + per-step FiLM | **Active candidate / unimplemented** | Original per-step identity; placement remains open pending grill-me review |

@@ -1,0 +1,40 @@
+{
+  "command": {
+    "argv": [
+      "C:\\Users\\Admin\\itrader\\python.exe",
+      "-B",
+      "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\coordination\\_local\\cuda-qualification\\benchmark.py",
+      "--out",
+      "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\coordination\\_local\\cuda-qualification\\benchmark-reuse07-result.json"
+    ],
+    "cwd": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\coordination\\_local\\cuda-qualification",
+    "env": {
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "CUBLAS_WORKSPACE_CONFIG": ":4096:8",
+      "PYTHONDONTWRITEBYTECODE": "1"
+    },
+    "gpu_compute": true
+  },
+  "start_utc": "2026-10-09T11:02:14.315830+00:00",
+  "end_utc": "2026-10-09T11:02:40.606718+00:00",
+  "pid": 31852,
+  "exit_code": 0,
+  "stop_reason": null,
+  "elapsed_seconds": 26.28200000000652,
+  "cumulative_owned_seconds": 26.28200000000652,
+  "minimum_available_ram_gib": 3.2714004516601562,
+  "minimum_free_disk_gib": 62.220855712890625,
+  "sampled_peak_child_tree_rss_bytes": 1261215744,
+  "sampled_whole_gpu_peak_used_bytes": 1262485504,
+  "sampled_gpu_min_free_bytes": 15512633344,
+  "log": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\docs\\coordination\\_local\\cuda-qualification\\reuse07-receipt.log",
+  "process_cleanup": {
+    "process_scope_backend": "windows_job",
+    "cleanup_active_processes": 0,
+    "cleanup_errors": [],
+    "cleanup_survivors": []
+  }
+}

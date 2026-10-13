@@ -34,6 +34,8 @@ class DataPartition:
         purge_rows: int = 0,
         symbol_col: str | None = None,
         timestamp_col: str | None = None,
+        boundary_cols: Iterable[str] = (),
+        expected_bar_interval: str | pd.Timedelta | None = None,
     ):
         split = str(split).lower()
         if split not in _SPLITS:
@@ -48,40 +50,87 @@ class DataPartition:
         self.split = split
         self.fractions = fractions
         self.purge_rows = max(0, int(purge_rows))
-        self._segments = self._contiguous_segments(frame, symbol_col, timestamp_col)
+        self._symbol_ranges = self._contiguous_symbol_ranges(frame, symbol_col)
+        self._segments = self._contiguous_segments(
+            frame,
+            symbol_col,
+            timestamp_col,
+            tuple(boundary_cols),
+            expected_bar_interval,
+        )
+
+    @staticmethod
+    def _symbol_codes(
+        frame: pd.DataFrame,
+        symbol_col: str | None,
+    ) -> tuple[np.ndarray, list[str]]:
+        if symbol_col is None:
+            return np.zeros(len(frame), dtype=np.int8), ["__single__"]
+        categorical = pd.Categorical(frame[symbol_col].astype(str))
+        return categorical.codes, [str(value) for value in categorical.categories]
+
+    @classmethod
+    def _contiguous_symbol_ranges(
+        cls,
+        frame: pd.DataFrame,
+        symbol_col: str | None,
+    ) -> dict[str, tuple[int, int]]:
+        if frame.empty:
+            raise ValueError("Market dataframe is empty")
+        symbol_codes, labels = cls._symbol_codes(frame, symbol_col)
+        breaks = np.flatnonzero(
+            np.r_[True, symbol_codes[1:] != symbol_codes[:-1], True]
+        )
+        ranges: dict[str, tuple[int, int]] = {}
+        for start, end in zip(breaks[:-1], breaks[1:]):
+            symbol = labels[int(symbol_codes[start])]
+            if symbol in ranges:
+                raise ValueError("Market dataframe must group each symbol contiguously")
+            ranges[symbol] = (int(start), int(end))
+        return ranges
 
     @staticmethod
     def _contiguous_segments(
         frame: pd.DataFrame,
         symbol_col: str | None,
         timestamp_col: str | None,
+        boundary_cols: tuple[str, ...],
+        expected_bar_interval: str | pd.Timedelta | None,
     ) -> list[tuple[str, int, int]]:
         if frame.empty:
             raise ValueError("Market dataframe is empty")
-        symbols = (
-            frame[symbol_col].astype(str).to_numpy(copy=False)
-            if symbol_col is not None
-            else np.full(len(frame), "__single__", dtype=object)
-        )
+        missing_boundaries = [column for column in boundary_cols if column not in frame.columns]
+        if missing_boundaries:
+            raise ValueError(f"Episode boundary columns not in dataframe: {missing_boundaries}")
+        symbol_codes, labels = DataPartition._symbol_codes(frame, symbol_col)
         timestamps = (
-            pd.to_datetime(frame[timestamp_col]).to_numpy(copy=False)
+            pd.to_datetime(frame[timestamp_col], utc=True).array.asi8
             if timestamp_col is not None
             else None
         )
-        starts = [0]
-        for index in range(1, len(frame)):
-            symbol_changed = symbols[index] != symbols[index - 1]
-            time_restarted = timestamps is not None and timestamps[index] <= timestamps[index - 1]
-            if symbol_changed or time_restarted:
-                starts.append(index)
-        starts.append(len(frame))
+        boundaries = [pd.Categorical(frame[column]).codes for column in boundary_cols]
+        expected_delta = (
+            int(pd.Timedelta(expected_bar_interval).value)
+            if expected_bar_interval is not None
+            else None
+        )
+        breaks = symbol_codes[1:] != symbol_codes[:-1]
+        if timestamps is not None:
+            deltas = timestamps[1:] - timestamps[:-1]
+            breaks |= deltas <= 0
+            if expected_delta is not None:
+                breaks |= deltas != expected_delta
+        for values in boundaries:
+            breaks |= values[1:] != values[:-1]
+        starts = np.r_[0, np.flatnonzero(breaks) + 1, len(frame)]
         return [
-            (str(symbols[start]), start, end)
+            (labels[int(symbol_codes[start])], int(start), int(end))
             for start, end in zip(starts[:-1], starts[1:])
             if end > start
         ]
 
-    def _outcome_interval(self, start: int, end: int) -> tuple[int, int]:
+    def _outcome_interval(self, symbol: str) -> tuple[int, int]:
+        start, end = self._symbol_ranges[symbol]
         if self.split == "all":
             return start, end
         length = end - start
@@ -100,7 +149,9 @@ class DataPartition:
             raise ValueError("Episode horizon must be positive")
         ranges: list[StartRange] = []
         for symbol, segment_start, segment_end in self._segments:
-            outcome_start, outcome_end = self._outcome_interval(segment_start, segment_end)
+            split_start, split_end = self._outcome_interval(symbol)
+            outcome_start = max(segment_start, split_start)
+            outcome_end = min(segment_end, split_end)
             first = max(segment_start + self.window_size, outcome_start)
             last = outcome_end - horizon
             if last >= first:

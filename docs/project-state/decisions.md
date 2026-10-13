@@ -1,5 +1,429 @@
 # Decisions
 
+## 2026-10-13 - Prepare quarantined Q23 acquisition scope only
+
+- Human approves preparing a bounded Alpaca acquisition and metadata-
+  qualification scope for the reserved 2020-2021 envelope using existing feed
+  access. Preparation must include source/exposure evidence, reviewed data-role
+  isolation, and quarantine from proposer, training and evaluation.
+- This does not authorize a fetch, opening OHLCV outcomes, asserting freshness,
+  numerical Q26 calibration settings, or a real terminal screen. The resulting
+  scope still requires its own review and execution authorization.
+
+## 2026-10-11 - Torch restriction removed; CUDA28 provisioned
+
+- Human explicitly authorizes removing obsolete dependency restrictions and
+  reconciling real resolver conflicts while upgrading the uv-managed stack.
+  Root `torch>=2.3,<2.4` is removed; mutually exclusive CPU-default/CUDA-tested
+  groups retain the CPU control and exact Blackwell wheel. Ray2.58 and other
+  protected experiment pins stay fixed. The regenerated lock changes76 shared
+  non-Torch versions and removes decorator; record this breadth, not blanket
+  refreshed-dependency compatibility or unchanged-transitive parity.
+- CUDA27 acquired/hash-verified the exact wheel but failed on our unsupported
+  URL fragment; it is closed with evidence. Separately scoped CUDA28 repaired
+  the syntax, passed two source and two lock approvals, applied reviewed root
+  bytes, locked-synced one designated profile and passed real finite GPU forward/
+  backward on RTX5070Ti/CUDA12.8. No driver/toolkit/WSL or CPU-venv change.
+  [Receipt](../artifacts/research/cuda28-known-error-repair-2026-10-11.md) records
+  identities, cleanup and limits. This is not RLlib/PPO/PBT or economics.
+- GRILL conditionally dispatches TRAINING-CUDA29 under prior human four-cell
+  authorization with practical preparation/launch/cleanup margins, fresh frozen
+  source/runtime/argv reviews and unchanged resource/comparator gates. No
+  automatic retry, market access, unresolved Q26 adoption or Git shipping.
+  [Owned boards](../coordination/README.md) remain routine communication authority.
+- The [evaluation section](../evaluation/README.md) is documentation of existing
+  contracts/tests and pending scientific gates, not a new evaluation framework
+  or promotion certificate. Shock/examiner research stays separately scoped.
+
+## 2026-10-11 - CUDA install priority and Q26 clock candidate accepted
+
+- Human supersedes the installation deferral: prioritize actual CUDA provisioning
+  and a tiny installed-environment GPU probe today. R1 cells remain a separate
+  later lease. Keep the accepted RAM4/2GiB and disk30/15GiB provisioning gates;
+  this turn's intake reports RAM5.11GiB/disk58.55GiB, not a persistent
+  resource guarantee. DEV must refresh resources at activation, pass both source/
+  command reviews and review the generated complete portable lock before root
+  application. No new toolkit, package copying, Ray API migration or Git shipping.
+- Human selects full exchange-session ordinal distance as the first Q26
+  inference-clock candidate, challenged by both mandatory finite-lag and bounded
+  stable-decay families under BOTH session and elapsed exchange-local civil-day
+  DGP clocks. Preserve unselected open-session gaps and same-date coupling;
+  civil-day distance is not UTC-hours/24. Clock choice does not change Q24 weights.
+- Every required case must pass the unchanged nominal95 / simultaneous MC
+  coverage LOWER>=94% / directional-miss UPPER<=3% criteria. This supersedes
+  the earlier investigate-before-choosing instruction, not qualification itself.
+  Calendar support, numerical ranges/moments, centering/kernel/bandwidth and
+  independent-calibration terms remain open. No simulation or market access
+  follows from this clock decision.
+
+## 2026-10-11 - CUDA27 priority and evaluation documentation
+
+- Human makes actual CUDA execution the urgent priority, then explicitly asks
+  DEV own the implementation and subagent orchestration. GRILL's local takeover
+  notice is superseded before any CUDA source or package action. DEV27 receives
+  a fresh bounded implementation/review and conditional provisioning scope;
+  expired CUDA26 is not silently renewed. Preserve the passed CPU lifecycle and
+  approved launcher component, not a blanket packaging/runtime approval.
+- Human subsequently defers RAM-dependent execution until they fix memory,
+  requesting the executable CUDA gate and feasible lightweight probes now.
+  Preparation/reviews and disjoint documentation/research proceed; no lowered
+  floor, GPU-runtime claim or permission for GRILL to close apps follows.
+- Use the accepted exact tested CUDA wheel through reproducible uv groups,
+  preserve Ray2.58 compatibility and other matched pins, and retain the CPU
+  control. No venv package copying, native Ray merge, toolkit/driver/WSL change
+  or Git shipping. Free hostRAM is below the existing4/2GiB start/abort floors;
+  preparation proceeds but no heavy lease activates until resources qualify.
+- Add a dedicated evaluation documentation section over existing owners/tests
+  and claim classes. Keep both-clock investigation and all accepted Q26 terms.
+  Fold shock findings into planned frozen-policy robustness: coherent altered
+  observation/economic paths, external scenario manifest, no future leakage,
+  unchanged actions/rewards/cost/liquidation, and public-oracle gates before a
+  separately approved stress pilot. No simulator or curriculum is adopted.
+
+## 2026-10-11 - Q26: both dependence families required
+
+- Human approves exact finite-lag and bounded stable-decay cases as mandatory
+  supported synthetic families. They are alternative dependence constructions,
+  not sequential shocks or perturbations of trading OHLCV. Neither family may
+  be removed or relabeled diagnostic after failing qualification.
+- Every predeclared required scenario in both families must meet the accepted
+  simultaneous MC coverage LOWER>=94% and directional-miss UPPER<=3% gates.
+  The nominal central equal-tailed 95% interval and three scenario roles are
+  unchanged. This records a qualification requirement, not a passing result.
+- Human selects investigation of both exchange-session and elapsed-calendar-day
+  clocks before choosing either. This is research authority, not clock adoption.
+- Calendar clock/support, exact lag/persistence ranges, moments, centering,
+  kernel/bandwidth, MC confidence/allocation, failure cap, precision and frozen
+  independent development/confirmation streams remain undecided. Next compare
+  calendar units before interpreting numerical dependence ranges.
+- No simulation, market access/outcome opening, training, dependency change or
+  renewed CUDA lease follows. The earlier open dependence-subtype question is
+  superseded; dated research proposals retain their publication-time status.
+
+## 2026-10-10 - CUDA26: repair before qualification
+
+- DEV25's two independent reviews return CHANGES. The retained resolver
+  subchecks do not qualify interpreter bitness, protected env aliases,
+  artifact/hash/sync provenance, dev dependencies or PowerShell exit handling.
+  No real acquisition or root mutation occurred; the failed harness receipts
+  remain preserved rather than being relabeled green.
+- GRILL issues DEV26 actual implementation/test authority under the human's
+  CUDA-first request, with fresh two-review gate and one conditional acquisition/
+  sync lease. GPU opt-in belongs in the existing public checkpoint integration,
+  preserving default CPU CI and economic/recipe/restore semantics. TRAINING25
+  readiness is complete; CUDA execution binds only to the actual final handoff.
+- Keep native Ray API migration a separate matched factor. Root CPU control
+  stays intact until proper-stack GPU qualification; no package-directory merge,
+  extra full probe environment or shared-cache cleanup is authorized.
+
+## 2026-10-10 - Continuation25: CUDA and separate research wings
+
+- Human explicitly resumes the selection-exposure/causal-feature and
+  market-shock/decay investigations after the original Saluki audit. GRILL
+  dispatches RESEARCH25 and registers market-scenario stress as research-only,
+  independent of Q26 dependence fixtures and learned WM scenarios. No actual
+  split, data access, simulator, TaskSpec extension or reward change follows.
+- DEV23/24 failed fixture gates before real acquisition or root mutation; their
+  expired scopes close. DEV25 is a fresh bounded repair/application scope, with
+  enough review/preflight/provisioning slack and explicit limited harness repair
+  attempts, not automatic real-download retries. TRAINING prepares the CUDA
+  four-cell commands; execution needs the actual reviewed runtime handoff.
+- CUDA remains the preferred qualified learner target. Preserve the CPU control,
+  reuse one designated CUDA profile and its accepted cache, and inventory only
+  owned temporary paths for cleanup. Never merge packages between venvs. GRILL
+  keeps native Ray API migration separate to avoid changing two factors during
+  this bridge; root-runtime promotion is conditional on public-stack qualification.
+- Selection exposure is not a finite measurable stock of remaining dataset
+  gain. Synthetic interval calibration imposes truth and checks coverage/misses;
+  it does not establish a real calendar effect or remove selection bias. Q26
+  numerical dependence/support/construction/calibration decisions remain open.
+
+## 2026-10-10 - Lifecycle closure and new research boundaries
+
+- TRAINING22 records all four CPU synthetic PPO/update/checkpoint/restore/replay
+  cases passing,37.234 owned seconds, zero failures/errors/skips and clean owned
+  cleanup. The [receipt](../artifacts/research/r1-lifecycle22/receipt.json) is
+  mechanical CPU evidence, not trading uplift or CUDA qualification. Its sole
+  lease closes; the already-approved DEV23 CUDA application scope may activate
+  after fresh source/conflict/resource checks, without another scheduling ping.
+- Human asks to investigate replacing the reserved older evaluation route with
+  fresh-weight historical train -> validation -> later-test chronology. The
+  earlier reservation is not an architectural prohibition; explicit replacement
+  is possible. No actual cutoffs, reservation release or access is selected yet.
+  Fresh weights remove model/optimizer carryover, not prior outcome-driven
+  selection, transform/proposer exposure or evidence already inspected.
+- Human requests a separate market-shock/decay research wing. Q26's outcome-free
+  dependence generators test an interval procedure; they do not shock real OHLCV
+  or train the solver. Environment/TaskSpec scenario extensions remain proposals.
+  Dependence subtype/ranges and all later Q26 calibration terms remain open.
+
+## 2026-10-10 - Resume bounded implementation and Q26
+
+- Human resumes the Saluki continuation and Q26 grilling. Scheduling slack
+  must cover review, handoff, preflight and both synthetic lifecycle pairs;
+  tiny launch margins are not a model failure. GRILL records the finite new
+  attempt and resource authority on its board; expired leases stay preserved.
+- CUDA is the preferred forward training target after reproducible uv
+  provisioning and public-stack qualification. Retain the accepted portable
+  CPU installer default and frozen CPU control; no silent runtime replacement,
+  duplicate toolkit build or unqualified dependency promotion.
+  The human subsequently prioritizes real project/lock application over another
+  draft-only investigation. DEV23 prepares bounded reviews now and may activate
+  isolated provisioning only after the CPU lifecycle releases its heavy lease.
+- Implement accepted public cost-accounting diagnostics in the existing owner,
+  separating frozen-action repricing from retraining. Keep actions, rewards,
+  1 bp evaluation anchor and R0/R1 factor definitions unchanged.
+- Extend the existing examiner research for same-checkpoint fresh-context
+  examination. No model pilot, reward authority or independent validation
+  follows from self-agreement. UAH coupling remains deferred.
+- Fresh chronological retraining is a proposed separate protocol, not a
+  selected split or a way to erase researcher/agent exposure. Reserved
+  evaluation data cannot become training data without a new explicit decision.
+- Human approves Q26's conditional bounded fixed-symbol-mean process claim and
+  three frozen scenario roles: supported cases must pass coverage/miss gates;
+  observable structural defects must reject; excluded regime breaks/long memory
+  are diagnostic, not qualification evidence. Strong dependence inside declared
+  bounds cannot be dropped after failure. This is not an assertion that real
+  markets satisfy those assumptions. Primary/Q24 weights and accepted nominal95
+  / coverageLOWER94 / directionalUPPER3 remain fixed.
+- Exact finite-lag versus bounded stable decay, numeric ranges, calendar support
+  and operational/confirmation terms remain open. The next question proposes
+  qualifying both dependence constructions, not silently adopting either.
+  No real-market training, acquisition, outcome opening, calibration or promotion
+  is approved by the process/role decision.
+
+## 2026-10-09 - Shared evaluation disposition contract approved
+
+- Human approves separate evidence validity, metric availability, uncertainty
+  qualification and promotion eligibility through the existing runner/report/
+  browser. This supersedes section 11's pending-approval label for the contract
+  and four named public integration oracles, not its unaccepted method proposals.
+- Preserve every original attempt and reason. Valid positive, zero and negative
+  net estimates remain descriptive when inference fails; invalid or unbound
+  comparisons remain raw/quarantined, not averaged as zero or silently dropped.
+  Unavailable Sharpe must not masquerade as measured zero.
+- Implement AccountingLifecycle, CausalCompleteWindow, WeightedMatchedPanel and
+  EvidenceDisposition with independent expected values. Reuse existing owners
+  and tests; avoid another evaluator, ledger, reward or private-method test tree.
+- Q23 access/clearance and all-cell gates remain unchanged. Q26 primary/weights
+  and nominal95%/coverage LOWER>=94%/directional UPPER<=3% criteria stay fixed.
+  No uncertainty method parameters, calibration budget, layout enlargement,
+  market outcomes, real training or economic promotion are approved here.
+
+## 2026-10-09 - Retain results and design a robust evaluation framework
+
+- Human corrects the prior layout choice: preserve net-return results regardless
+  of uncertainty qualification; prepare for edge cases through a common robust
+  evaluation framework. Automatic larger-panel prioritization is superseded.
+- Retention is not certification. Valid matched net estimates remain descriptive
+  when inference fails; broken data/provenance/accounting stays preserved as
+  raw/quarantined evidence, not a certified comparison or invented zero.
+- RESEARCH should investigate primary algorithmic-trading and trading-RL sources
+  against existing evaluator ownership, controls, costs, dependence, uncertainty,
+  provenance and public integration/E2E oracles. No replacement framework,
+  new panel size, data acquisition, method/calibration or training is approved
+  by this investigation. Preserve fixed primary/weights and accepted95/94/3
+  criteria. A pre-outcome redesign requires its own declared review/decision.
+
+## 2026-10-09 - Larger evaluation layout direction (superseded below)
+
+- Human chooses prioritizing a larger evaluation layout now, rather than first
+  qualifying the proposed32-anchor layout. This supersedes that sample size as
+  the current qualification target, not the accepted2020-2021 envelope or the
+  fixed primary contrast, equal-symbol weighting and all-cell opening gates.
+- Design metadata-first: occupied calendar dates, within-symbol replication,
+  shared-date support, overlap/weight concentration and evaluation cost must be
+  explicit. More horizons/checkpoints do not add independent calendar support.
+- Exact size, session/anchor selection, revised panel/target identities and
+  calibration layout remain pending human review. No market outcomes,
+  acquisition, method selection, simulation or real training is authorized by
+  this layout direction. Preserve the32-anchor proposal as historical evidence.
+- Keep the accepted nominal95%, coverage LOWER>=94% and directional-error
+  UPPER<=3% criteria unchanged. Do not tune the panel or loosen gates using
+  market performance or calibration failures.
+  This direction was subsequently corrected by the human; the latest entry
+  above governs. No layout enlargement was dispatched or implemented.
+
+## 2026-10-09 - uv is the supported environment installer
+
+- Human selects uv as the supported installer. A normal `uv sync` must retain
+  the complete pinned CPU runtime; the exact tested Windows CP311 CUDA wheel
+  belongs to an explicit mutually exclusive `cuda-tested` group.
+- Moving PyTorch from published base dependencies into local uv groups is now
+  accepted. Document that `pip install .` alone does not install PyTorch and
+  that non-uv users must provision an explicitly supported PyTorch version.
+- This packaging decision permits reviewed project/lock implementation, not an
+  automatic root `.venv` sync or platform promotion. Preserve Ray/Gym/NumPy,
+  existing groups and non-Windows CPU support. Protect the CPU lifecycle until
+  its source-bound attempt closes; isolated CUDA installation and qualification
+  need their own finite resource scope. No CUDA/toolkit compilation.
+
+## 2026-10-09 - One repaired-launcher lifecycle attempt
+
+- Human approves one fresh four-cell synthetic Ray attempt after executable
+  argument-forwarding/inventory success and failure checks plus independent
+  review. Retain the same R0/R1 x state off/both recipe,4GiB start/2GiB abort,
+  process containment and no-retry rule. No real-market training is authorized.
+- Ray09 failed before pytest; zero cells ran. Preserve its original artifacts
+  and report it as a launcher failure, not a model result. Source/review/resource
+  checks and an explicit fresh GRILL lease precede the new attempt.
+- TRAINING's separate receipt-finalization PowerShell process was still running
+  and consumed8.574GiB RAM. Its owner stopped it after urgent reconciliation;
+  available RAM recovered to9.017GiB at11:52UTC. No Codex chat was stopped and
+  no lower RAM floor was adopted. Artifact finalization needs its own witness.
+
+## 2026-10-09 - Q26 directional-error qualification cap
+
+- Human delegates the per-tail calibration trade-off to GRILL, requiring explicit
+  disclosure of effects on certainty. GRILL selects the proposed simultaneous
+  Monte Carlo upper bound <=3% for each directional miss in every required
+  predeclared scenario, including positive-uplift declarations under no uplift.
+- The interval target remains central/equal-tailed95%, nominal2.5% per tail.
+  This is a0.5-percentage-point tolerance in qualification, not permission to
+  narrow the interval or tune it to market outcomes. A finite Monte Carlo upper
+  bound<=2.5% can reject a truly2.5% tail; the alternative would require a more
+  conservative method/claim or different predeclared precision budget.
+- If qualification succeeds, label evidence nominal95%, tolerance-qualified:
+  coverage lower bound>=94%, each directional-error upper bound<=3%, on the
+  declared synthetic stress class and fixed checkpoint/calendar estimand.
+  Do not claim exact95% coverage, exact2.5% positive-error control or universal
+  market guarantees. Monte Carlo simultaneous-confidence allocation,
+  scenario count and outer precision budget still require predeclaration.
+- A failed method cannot be rescued by widening these tolerances after seeing
+  results. Retain failures, reject/redesign under a new frozen protocol and keep
+  market outcomes closed. Failure-rate cap, method parameters and calibration
+  execution remain unaccepted/unqualified.
+
+## 2026-10-09 - One four-cell Ray smoke at 4 GiB and GPU runtime formalization
+
+- Human approves one fresh bounded R0/R1 x state off/both synthetic Ray smoke
+  at4GiB start/2GiB abort, preserving process containment, unchanged recipe,
+  source/review gates and no-retry rule. This supersedes the5GiB start requirement
+  for that one attempt only, not a production/PBT resource standard.
+- Human approves normal GitHub Desktop closure, not Codex/process-tree trimming.
+  It closed successfully; available RAM was4.713GiB at11:15UTC. All four working
+  chats remain intact. Serialize Ray and browser execution.
+- Human reiterates formalizing the currently tested CUDA-capable PyTorch build
+  into the proper iTrader uv environment. Candidate remains the exact prebuilt
+  2.9.0.dev20250801+cu128 CP311 Windows wheel, not an unspecified latest release.
+  Preserve CPU baseline and non-torch pins; actual Ray/PPO and device checks
+  precede GPU runtime promotion. No new CUDA compilation or real-market run.
+
+## 2026-10-09 - CUDA-only 4 GiB start and confirmed coverage tolerance
+
+- Human authorizes lowering the CUDA-only benchmark start floor from 5 to
+  4 GiB. Keep the 2 GiB abort floor, process containment, disk limits, unchanged
+  benchmark and fresh bound review/run lease. CPU/Ray remains at 5 GiB; no
+  closed job is automatically retried. GiB retains the existing resource units.
+- Human confirms the disclosed at-most-one-percentage-point synthetic
+  undercoverage tolerance: the simultaneous Monte Carlo lower coverage bound
+  must be >=94% in every required predeclared scenario. This criterion is accepted.
+  Target coverage remains nominally95%; do not advertise validated exact95%.
+- Coverage measures how often repeated synthetic intervals contain the known
+  population contrast, not solver win rate or the probability that this one
+  realized interval contains it. Undercoverage is too many misses, often from
+  overstated precision; it is not a reason to shrink a market interval. The
+  lower-bound gate accounts for uncertainty in the finite calibration tally.
+- This does not accept the proposed3% tail ceiling,0.1% failure ceiling,10,000
+  panels, family allocation, bandwidth/centering or any scored Q26 method.
+  No simulation, outcome opening or method qualification follows.
+- CUDA-reuse07 subsequently passes bare-LSTM FP32 parity/cuDNN checks at the
+  4GiB start floor. B128 forward/backward CPU/CUDA medians are81.584/3.989ms;
+  B1 is1.370/2.341ms. This is kernel evidence, not PPO or economic uplift.
+- Human separately authorizes the prebuilt GPU wheel/cache (3.06GB compressed)
+  and a reviewed reproducible uv GPU bridge, keeping the current CPU environment
+  and proper Ray/Gym/NumPy pins. No new toolkit compilation or silent fallback.
+  Expanded extraction/cache/venv disk needs remain subject to bounded resource
+  gates. Record the kernel and later lifecycle runs in the generated Experiment
+  Browser without inventing trading metrics. See GRILL for finite ownership.
+
+## 2026-10-09 - Q26 interval policy and existing CUDA reuse accepted
+
+- Human approves a two-sided 95% confidence interval for the already accepted
+  fixed-1-bp R1+R4 minus R0+R4 Q24 terminal-net contrast. This is a nominal
+  policy, not proof of calibrated coverage. Retain the two fixed checkpoint
+  pairs, calendar-synchronized candidate and fixed hierarchical weights.
+- Human subsequently selects a central equal-tailed construction as the first
+  interval candidate: nominal 2.5% per tail, positive uplift only when the lower
+  bound exceeds zero. This does not accept a particular basic/studentized law,
+  coverage tolerance or calibrated positive-error rate.
+- After independent method qualification, a lower bound above zero supports
+  representation uplift. Both policies can still lose money. Positive absolute
+  net, Sharpe significance and training-seed population claims are not certified
+  by this interval; separate confirmatory endpoints would need predeclaration.
+- Report absolute terminal net, per-bar episode Sharpe, controls and isolated
+  one-step net descriptively. A single bar has no realized sample Sharpe;
+  continuation net, actual terminal liquidation and hypothetical round-trip net
+  must stay distinct. Optional causal volatility normalization remains off.
+- Calendar support, centering/kernel/bandwidth, independent synthetic coverage/
+  false-positive calibration and failure thresholds remain pending. Do not
+  change a two-sided policy into a one-sided 5% test or tune it on market outcomes.
+- Human prohibits another CUDA/PyTorch build. Reuse the existing CUDA-capable
+  installation only for bounded tensor CPU/GPU qualification; retain root CPU
+  Ray2.58 for the four-cell synthetic lifecycle. Its other package versions are
+  not a qualified substitute for the iTrader runtime. See the finite leases on
+  [GRILL's board](../coordination/grill.md); no real training or shipping authority.
+- Human subsequently prioritizes porting a qualified CUDA-capable PyTorch
+  runtime into iTrader's reproducible uv setup, retaining its proper Ray/Gym
+  dependencies. Prepare a separately reviewed locked-runtime bridge; do not copy
+  site-packages, substitute the PATH environment, mix CPU/GPU versions across
+  solver cells, or claim root compatibility from a bare-LSTM benchmark. Preserve
+  the currently frozen CPU lifecycle until it closes. No dependency mutation or
+  large install is authorized by the planning dispatch; no new CUDA compilation.
+
+## 2026-10-09 - Q26 primary contrast and first method candidate accepted
+
+- Human approves fixed-1-bp R1 + R4-v1 minus R0 + R4-v1 as the primary
+  terminal-net comparison. Preserve Q24 horizon -> anchor -> symbol weights
+  and the mean of the two frozen checkpoint-pair estimates; report each pair.
+  This is conditional checkpoint/calendar evidence, not a training-seed
+  population claim or an absolute-profitability gate.
+- Retain R0, R1 and both R4-v1 counterparts in synthetic lifecycle qualification
+  and the full matched study. The R4 pair may be checked first mechanically;
+  a synthetic PPO/checkpoint/replay result is not evidence of market uplift.
+  Other contrasts remain diagnostic unless added to a predeclared confirmatory
+  family before outcomes. No cell is dropped or selected after its performance.
+- Keep the accepted 16-run budget and Q21 all-run-complete terminal opening
+  gate. Do not open the fresh market panel after only the primary pair.
+- Human subsequently approves calendar-synchronized dependent multipliers as
+  the first candidate for metadata/synthetic qualification. Share the calendar
+  perturbation across symbols/horizons/checkpoint pairs with common market time;
+  retain the fixed Q24 weights. Calendar geometry is not an outcome-derived
+  regime label; do not choose multipliers from observed market/model returns.
+- Endpoint/comparison and candidate-family selection are closed, not method
+  validity: calendar support, centering/kernel/bandwidth, interval calibration,
+  calibration criteria and implementation/review remain open. Optional
+  volatility normalization stays disabled/nonblocking.
+  Q23 exposure/data qualification and actual terminal execution are still gated.
+- See [GRILL's board](../coordination/grill.md) for finite preparation/CUDA
+  leases; this decision grants no real-market training or environment migration.
+
+## 2026-10-09 - Q23 envelope and board workflow accepted
+
+- Human approves the 2020-01-01 through 2021-12-31 candidate envelope and
+  artifact-backed retrospective-clearance approach. This is cross-period
+  representation evaluation, not forward-time trading validation. It is not
+  a manual/external-access attestation, SIP entitlement, or freshness certificate.
+  Resolve unknown exposure or conservative exclusions before qualifying data.
+- GRILL-IMPLEMENT owns cross-parent dispatch and human decisions. DEV, RESEARCH
+  and TRAINING/TESTING use single-writer boards with no peer delegation/messages;
+  urgent safety escalation and explicit human scope changes remain possible.
+  See [coordination](../coordination/README.md); boards link plans/evidence rather
+  than creating a second roadmap or launch authority.
+- Prioritize public-contract integration/E2E and independent review for new
+  behavior. Preserve distinct deterministic invariants and existing coverage;
+  no test-count deletion quota or unmeasured token-savings claim.
+- No-Mistakes is pinned advisory material, not activated or tool-qualified.
+  Existing independent review gates remain required; no shipping permission.
+- DEV may implement the accepted R1 selector/encoder/restore seams and focused
+  synthetic tests. Real training/terminal execution remains gated on Q23/Q26,
+  exact source/config/review seals and resource qualification. Native migration,
+  new reward/task families and economic promotion remain separate.
+- [The decision-ready Q23/Q26 note](../artifacts/research/q23-q26-decision-chain-2026-10-09.md)
+  proposed a sole fixed-1-bp R1+R4 versus R0+R4 contrast. The later entry above
+  accepts that primary endpoint and selects dependent calendar multipliers for
+  qualification, not a valid interval method or numerical calibration criteria.
+
 ## 2026-10-07 — Q27 scope and separate Q23 role approved
 
 - Direct human decisions in GRILL authorize four bounded mechanical corrections:

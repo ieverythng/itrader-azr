@@ -1,0 +1,19 @@
+# CUDA30 Candidate Review and Closeout
+
+**Recorded:** 2026-10-12 22:05 UTC
+**Branch / HEAD:** agent/Watson-dev / 8f9fcf94e028b51d883a1a484c2c9466a3d6b547
+**Candidate:** packet 3c0c643e6995931bf9e35575ecf0227c176c0d32ada0426ab96764c8788bce20; plan 012d9486f82a7a8b6f3ef5f1b8fea09d5919c8c81204e6e6b5d24b21567eafad; identity manifest 51285f9b44c27cf57f3f477a5b890e212a1b46d9fc398b68c1c0f91b3312b9d8; supervisor 39e78013518da8f6ac41384a731763d8e8f6f235b776f41ed6398073c4437144.
+
+The 129-entry source/profile/runtime identity set matched exactly in both final reviews. The live GRILL terms matched the 22:10Z preparation cutoff, 22:20Z first-launch cutoff, 22:45Z stop, synthetic four-cell recipe, resource ceilings/floors, and one-attempt rule.
+
+Two fresh reviews of these exact bytes disagreed. The Sol lane requested gpt-6.1-sol/max and returned APPROVE, with no static findings; all five REVIEW principles were OK. The Astra lane requested gpt-6-astra/max and returned CHANGES with one blocking finding. Actual serving model and reasoning-effort telemetry were unavailable for both lanes.
+
+Astra's BOMless fake supervisor/grandchild success probe found a race in supervise.py: it snapshots descendants, performs identity checks, then compares a later live process inventory with that earlier snapshot. A grandchild spawned between those checks is classified as external contention. The probe PID marker confirms that reported PID 54916 was its own grandchild. Expected result was child exit 0 followed by containment cleanup; actual result was supervisor exit 1, child exit 15, stop reason conflicting process: 54916 python.exe, before the fake child's success delay elapsed. Failure and timeout probes stopped as expected. Every probe reported Windows Job active count 0, errors [], survivors [], and independent PID checks found no remaining child or grandchild. The six recorded fake PIDs were gone.
+
+Sol's independent success/failure/timeout probes all passed with the same cleanup invariants. This passing run does not negate Astra's reproducible race; the conflicting-process check is timing-sensitive. Both reviewers passed the public fake launcher contract (6 tests), hash/linkage checks, dependency and .pth startup review, lease-boundary checks, and the -x fail-fast probe. The two supervisors also confirmed that inverse substitution of CUDA30's expiry literal reproduces CUDA29 supervisor bytes exactly.
+
+Astra's five-principle review marked Separation, Programming by Intention, High Cohesion, and Low Coupling OK; Encapsulation was a violation because process ownership is reconstructed from a transient PID snapshot outside the Windows Job containment owner. Sol marked all five OK. This split, plus Astra's blocking finding, means the required two exact-packet approvals were not obtained.
+
+**Disposition:** no CUDA lifecycle cell launched (0/4). No final GPU/resource preflight, Torch/Ray/CUDA import or query, installation, WSL command, or Git mutation was performed. The root project environment remains CPU-only; a separate installed CUDA profile exists, but this candidate did not qualify the PPO lifecycle. No attempt was consumed. The current candidate must not be activated. The concrete repair target for any future scope is the supervisor's stale descendant-snapshot contention classification, followed by a new frozen packet, two passing fresh reviews and fake cleanup probes, and GRILL's fresh scope/lease decision.
+
+Astra probe records are retained under docs/coordination/_local/cuda30-astra-final-cda883d1bb99478d8a0cc783fad58950/; Sol probe records are in its temporary review directory. The candidate remains unchanged.

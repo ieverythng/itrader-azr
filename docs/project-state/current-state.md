@@ -1,19 +1,123 @@
 # Current State
 
-**Current boundary (2026-10-07):** Q27's four mechanical repairs are implemented;
+**CUDA37 complete (2026-10-13 04:04 Europe/Madrid):** all four R0/R1 x
+R4-state/off synthetic GPU PPO/update/save/restore/frozen-replay cases passed,
+with zero failures/errors/skips. Each recorded `cuda:0` after construction,
+update and restore. Total supervised runtime119.078s including transport;
+minimum available RAM3.734GiB, clean Windows Job cleanup and35/35source
+identities unchanged. [Durable execution receipt](../coordination/training-testing.md#training-cuda37-release1---complete)
+binds exact commands, source hashes, runtime and raw evidence. The installed
+CUDA profile is tested for this lifecycle; root CPU `.venv` is unchanged.
+No market edge, throughput improvement, native-Ray migration or blanket
+dependency compatibility is claimed. Earlier preparation/launch failures below
+are historical, not remaining CUDA37 blockers. No job remains authorized.
+
+**CUDA28 installed (2026-10-11 02:08 UTC):** the obsolete global
+`torch>=2.3,<2.4` requirement is removed. Reviewed root metadata and lock now
+define mutually exclusive `cpu-default` and `cuda-tested` uv groups. One locked
+sync installed the designated Windows CPython3.11 profile; GPU tensor forward/
+backward passed with Torch2.9.0.dev20250801+cu128, CUDA12.8, cuDNN91002 and
+RTX5070Ti/CC12.0. Root CPU `.venv` is preserved. Ray2.58/Gym1.2.2/NumPy1.26.4/
+pandas2.1.4/PyArrow17 remain pinned; 76 other shared package versions changed
+and decorator left the generated lock. This is not blanket refreshed-dependency,
+RLlib/PPO, throughput or economic qualification. See [the durable receipt](../artifacts/research/cuda28-known-error-repair-2026-10-11.md)
+and [environment operations](../environment_strategy.md).
+TRAINING-CUDA29 reached no PPO cell: an added, unreviewed PowerShell wrapper
+failed parsing. TRAINING confirms zero workload/budget and no owned survivor;
+the running status was withdrawn. No automatic retry or market/PBT execution
+is authorized. [GRILL](../coordination/grill.md) owns the closure and any future
+reviewed launch. [Bounded Evaluation](../evaluation/README.md)
+documents accounting, evidence disposition and remaining Q23/Q26 gates; shock
+robustness stays a separate future frozen-policy ablation. Notices below retain
+their scope-time facts, not current installation authority.
+
+**Q26 decision (2026-10-11):** exact finite-lag and bounded stable-decay families
+are both mandatory supported synthetic tests, not trading-path shocks. Every
+required scenario must satisfy the unchanged95/94/3 criteria. Human accepts
+full exchange-session distance as first inference candidate, challenged by both
+families under BOTH session and elapsed-local-civil-day DGP clocks. CLOCK27 is
+delivered. Qualified support, numerical ranges/moments and method/confirmation
+terms remain open; no calibration or market significance is claimed. See
+[decisions](decisions.md) and [the CLOCK27 receipt](../coordination/grill.md).
+
+**Latest CUDA closure:** DEV closed preparation at21:39UTC on Oct10 with the
+production packet still CHANGES; the absolute22:45 stop has elapsed. No
+provisioning lease activated, acquisition/sync or root mutation is recorded.
+The launcher component approval and CPU lifecycle pass remain separate evidence.
+Earlier conditional CUDA26 authority below is historical, not an active lease.
+
+**Latest CUDA handoff (2026-10-10, CUDA26):** DEV25's two independent reviews
+returned CHANGES: process bitness, protected-env aliases, precise artifact/hash/
+sync provenance, dev dependencies and native exit handling need repair. No real
+wheel acquisition or root mutation occurred. DEV26 now owns implementation,
+focused public tests and fresh review-gated provisioning, not another draft-only
+review. TRAINING25 readiness is delivered; GPU execution awaits the actual final
+handoff and a separately bound lease. The root CPU control
+is preserved until qualification; venvs are rebuilt from uv, never merged by
+copying packages. Native Ray API migration remains a separate matched factor.
+Exact continuation is on the [GRILL board](../coordination/grill.md).
+
+**CUDA26 component receipt (21:12 UTC):** the launcher caller-state repair
+passed its six public cases in the author run and both fresh independent
+reviews, each APPROVE. Explicit GPU opt-in/device assertions are implemented
+in the existing checkpoint test. [The compact receipt](../artifacts/research/cuda26-review-and-test-roi-2026-10-10.md)
+does not qualify acquisition, full-lock/source binding, sync or CUDA execution.
+The first production packet was subsequently rejected by both reviews: concrete
+paths, process/resource containment, environment ownership/restoration and
+interpreter/platform eligibility are incomplete. These are packaging blockers,
+not R1 or CUDA hardware failures. Root project/lock/runtime are unchanged.
+
+**Latest focus (2026-10-10, continuation25):** the human resumes Q26 and
+implementation after the
+[Saluki advisory assessment](../artifacts/research/saluki-advisory-assessment-2026-10-10.md)
+([HTML](../artifacts/research/saluki-advisory-assessment-2026-10-10.html)).
+The original advisory MD/HTML remain unchanged. Accepted accounting controls
+are being integrated in the existing diagnostics owner. The newest human
+prioritizes actual CUDA project/lock application under DEV26, not draft-only
+preparation; provisioning stays separate from the frozen CPU control. All four
+CPU synthetic lifecycle cells passed PPO update, checkpoint restore and frozen
+replay, zero failures/errors/skips,37.234 owned seconds and cleanup survivors0.
+The [durable receipt](../artifacts/research/r1-lifecycle22/receipt.json) records
+these results, not the complete recipe or economic performance. TRAINING22's lease
+is closed; DEV26 may activate only after its declared reviews/preflight. See the current
+[GRILL scope](../coordination/grill.md) and owned boards for exact authority.
+CUDA is the preferred forward training target after reproducible provisioning
+and public-stack qualification, not a retroactive runtime change. Root `.venv`
+remains CPU-only at intake. Q26's conditional claim/roles and both dependence
+families are approved, while numerical and subsequent terms remain open; real
+training, outcome opening, new data/splits and economic promotion remain gated.
+Self-examiner research is not a model pilot or independent validation.
+RESEARCH25 delivered [selection-exposure/causal-feature evidence](../artifacts/research/saluki-methodology-research-2026-10-10.md#8-research25-selection-exposure-and-a-small-causal-feature-pilot)
+and the [market-scenario stress note](../artifacts/research/market-scenario-stress-2026-10-10.md).
+Research24 was superseded by the original Saluki audit; no24appendix is
+claimed. No split bounds, reservation release or OHLCV perturbation are selected.
+Q26's generators impose a known synthetic effect to test interval reliability;
+they neither know a real calendar effect nor filter architecture uplift.
+See the owned RESEARCH board and the research dashboard for the new wing.
+
+**Historical implementation boundary (2026-10-09):** R1's stateless-per-decision 60x5 window
+LSTM/FiLM encoder and explicit `r0_r1_v1` selection/loadout are implemented in
+the dirty `agent/Watson-dev` tree. R0 remains the default and historical selector
+identity is preserved. Focused synthetic checks pass (31 cases), and the final
+independent code/spec reviews approve after tightening restore identity and
+making the end-to-end test consume the builder's real environment config. The
+test-ROI review recommends consolidating redundant public-path assertions while
+retaining distinct safety invariants. This does not qualify Ray checkpoint
+lifecycle, replay, market performance, or economics. Continuation22 authorizes
+the separately reviewed bounded synthetic Ray lifecycle smoke; in
+parallel, close Q21/Q23/Q24/Q25/Q26 panel and reporting prerequisites before any
+fixed-recipe R0/R0+R4-v1/R1/R1+R4-v1 screen. No real training, panel opening, native
+migration, or economic promotion is authorized here. Q27's accepted corrected
+controls and historical evidence remain untouched. See
+[R1 readiness](r1-development-readiness.md) and the
+[Oct-7 repair audit](../artifacts/research/evaluation-mechanical-repairs-2026-10-07.md).
+
+**Historical Oct-7 boundary:** Q27's four mechanical repairs are implemented;
 Independent Sol and Luna reviews approve mechanics and the separate opt-in
-economics pilot. Final core validation (530 cases), healthcheck, clean scoped
-pre-commit rerun and diff checks pass. Reviewer pairs are requested dispatch
-metadata, not observed runtime telemetry. The approved
-Q23 `terminal_screen_only` role, dual dataset identities and certified intervals
-need their own implementation/review; no external-data validation relabeling.
-Metadata-first envelope planning is now approved; exact bounds/clearance and
-Q26 remain GRILL items before panel freeze and real all-16 execution. Optional
-volatility normalization is not a prerequisite when disabled. No acquisition,
-panel opening, new training, R1 or native integration has occurred. The eight
-accepted corrected-control receipts and original artifacts remain untouched.
-See the [Oct-7 repair audit](../artifacts/research/evaluation-mechanical-repairs-2026-10-07.md)
-for executed regressions, review fixes and test-ROI recommendations.
+economics pilot. The final core validation, healthcheck, scoped pre-commit and
+diff checks pass for that historical snapshot. Its statement that R1 had not
+been implemented is superseded by the 2026-10-09 status above. Q23/Q26 panel
+gates and all accepted control receipts retain their original evidence status.
 
 The dated Oct-6 notices below retain their publication-time approval status;
 the Oct-7 boundary above supersedes that status, not their recovery evidence.
@@ -46,10 +150,11 @@ stays isolated; dirty work and artifacts are preserved. See the
 [qualification audit](../artifacts/research/r1-panel-qualification-2026-10-06.md).
 The dated execution notices below are historical, not active launch authority.
 
-Last updated: 2026-10-07
+Last updated: 2026-10-10
 Branch: `agent/Watson-dev`
-Current HEAD: `3a3583d`; inherited dirty work is preserved without staging.
-The compatibility repair round is uncommitted for review on `agent/Watson-dev`.
+Current HEAD: `8f9fcf9`; inherited dirty work is preserved without staging.
+The coordination-only commit advanced HEAD after R1 implementation dispatch;
+R1 remains uncommitted for review on `agent/Watson-dev`.
 
 **Final closeout, 16:38:** corrected-control terminal replay is complete and
 independently accepted (8/8 receipts, 256 episodes). Healthcheck, 416 tests,
@@ -630,7 +735,9 @@ to a future LLM proposer fine-tune, not the numerical PPO/PBT solver.
 
 ## Solver truth
 
-R0 is the only implemented/default solver. `SolverMLPFiLM` uses
+R0 remains the default parity solver. R1's reset-per-decision window LSTM/FiLM
+and explicit selector are implemented and focused-synthetic-tested, but have no
+Ray lifecycle or performance qualification. `SolverMLPFiLM` uses
 `tanh(gamma(task))*hidden + beta(task)` and task dropout; non-`film` conditioning
 currently ignores task features rather than concatenating them.
 
@@ -640,7 +747,7 @@ returns incoming state unchanged. It is not a stateful recurrent solver.
 
 R-series design identities are preserved from commit `4732a98`:
 
-- R1 reset-window LSTM + FiLM — unimplemented;
+- R1 reset-window LSTM + FiLM — implemented; focused synthetic checks pass; Ray lifecycle/performance unqualified;
 - R2a concat — unimplemented;
 - R2b init-only FiLM — deferred because current initial-state hook has no task;
 - R2c per-step FiLM — active candidate, unimplemented;

@@ -15,6 +15,27 @@ reports that have an HTML review companion.
 
 ## Foundation, measurement, and platform
 
+- [Reward parity and challengers](reward-parity-and-challengers-2026-10-13.md):
+  source/primary-literature audit of legacy PnL versus exact net reward,
+  conditioning/accounting parity, PPO scale/critic effects, gross rolling Sharpe
+  versus differential Sharpe, and a ranked separate stress/ablation ladder.
+  Research only; matched R0/R1 recipe remains a human decision, no new reward,
+  stress execution or market result.
+- [Saluki advisory assessment](saluki-advisory-assessment-2026-10-10.md)
+  ([HTML](saluki-advisory-assessment-2026-10-10.html)): claim ledger, action/cost
+  semantics, chronological-exposure limits, orthogonal experiment queue and
+  separate [examiner wing](adversarial-llm-examiner-2026-10-10.md). Supporting
+  [source audit](saluki-source-audit-2026-10-10.md),
+  [methodology research](saluki-methodology-research-2026-10-10.md) and
+  [runtime inventory](saluki-runtime-inventory-2026-10-10.md). Investigation only;
+  original model-authored advisory is retained unchanged. The Q26 grill resumed;
+  its numerical method and calibration remain unqualified.
+- [Market-scenario stress](market-scenario-stress-2026-10-10.md): RESEARCH25's
+  research-only price/return-disturbance distinctions, immutable scenario seam,
+  causal/encoding/accounting controls and six proposed public oracles. Frozen
+  stress evaluation precedes any curriculum; no simulator or market result.
+  [Methodology section8](saluki-methodology-research-2026-10-10.md#8-research25-selection-exposure-and-a-small-causal-feature-pilot)
+  separately covers adaptive selection exposure and a small later C-factor pilot.
 - [Q27 mechanical repairs and bounded diagnostic pilot](evaluation-mechanical-repairs-2026-10-07.md) ([HTML](evaluation-mechanical-repairs-2026-10-07.html)): public red/green fixes, independent review findings and test-ROI audit; no real panel opening or new market run. Q23 role implementation and envelope/Q26 decisions remain distinct gates.
 - [Q23 metadata-first historical envelope](evaluation-metadata-first-envelope-2026-10-07.md) ([HTML](evaluation-metadata-first-envelope-2026-10-07.html)): outcome-blind retained-identity/exposure inventory, current calendar-only access receipt, candidate-envelope comparison, exact 2020-01-01 through 2021-12-31 draft request, bounded retrospective-clearance standard, and synthetic-Q26 boundary. The declaration and clearance still await human review; no bars or outcomes were opened.
 - [Experimental evaluation pilots and Q23 route](evaluation-experimental-pilots-q23-addendum-2026-10-07.md) ([HTML](evaluation-experimental-pilots-q23-addendum-2026-10-07.html)): records the bounded diagnostic-pilot and separate-data decisions; Q27 is now implementation/review closed, metadata-first planning is approved, and the exact declaration, Q23 owning seam, volatility choice, Q26 method/numbers, and outcome access remain gated.

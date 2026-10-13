@@ -1,7 +1,8 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>iTrader System Architecture</title><style>:root{color-scheme:light;--ink:#18201d;--muted:#5c6762;--line:#ccd3cf;--paper:#fbfcfa;--wash:#eef2ef;--accent:#1f6651}*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:16px/1.55 Georgia,serif}main{max-width:1120px;margin:32px auto;background:var(--paper);padding:48px 58px 64px;border:1px solid var(--line)}h1,h2,h3{line-height:1.2}h2{margin-top:40px;padding-top:18px;border-top:1px solid var(--line)}table{width:100%;border-collapse:collapse;margin:18px 0 24px;font-size:.9rem}th,td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}th{background:#e8eeea}tbody tr:nth-child(even){background:#f4f6f4}code{font:.9em Consolas,monospace;background:#edf0ee;padding:1px 4px}pre{overflow:auto;background:#edf0ee;padding:14px}a{color:var(--accent)}img{max-width:100%;height:auto;border:1px solid var(--line)}@media(max-width:760px){main{margin:0;padding:28px 18px}table{display:block;overflow:auto}}</style></head><body><main><h1>iTrader System Architecture</h1>
-<p>Last reconciled: 2026-10-06
-Branch snapshot: <code>agent/Watson-dev</code> with the uncommitted R4-v1 implementation/evidence round
-Status: <strong>active working architecture; R0 + R4-v1 is architecture-qualified but economically unpromoted, and R1-R3 remain unimplemented</strong></p>
+<p>Last reconciled: 2026-10-13
+Branch snapshot: <code>agent/Watson-dev</code> with inherited dirty work and the uncommitted R1 implementation
+Status: <strong>R1 passes bounded four-cell CPU and CUDA synthetic Ray lifecycles; market performance and general throughput remain unqualified; R0 remains default; R0 + R4-v1 is economically unpromoted</strong></p>
+<p><a href="../coordination/training-testing.md#training-cuda37-release1---complete">CUDA37 execution receipt</a>: all four R0/R1 x R4-state/off GPU cases passed PPO/update/save/restore/frozen replay with zero failures/errors/skips, cuda:0 throughout and clean cleanup. The tested Torch2.9.0.dev20250801+cu128/Ray2.58 profile is the preferred future GPU target; CPU remains a control. This does not qualify economic performance.</p>
 <p>Research identities and evidence status are indexed in the
 <a href="../research/itrader_research_dashboard.md">iTrader Research Dashboard</a>; the
 <a href="../plans/itrader_masterplan.md">masterplan</a> remains the phase-order and
@@ -11,12 +12,12 @@ promotion authority.</p>
 The compatibility repair round adds shared structural model selection, opt-in
 semantic OHLCV contracts, same-loss clip diagnostics and measured post-restore
 learning-setting reconciliation. Scoped Sol/Astra evidence review approved these
-fixes; no performance promotion or R1 implementation follows automatically.
+fixes; R1 implementation is present, but no performance promotion follows automatically.
 The native RLModule/Learner/EnvRunner migration is deferred until R1 is compared
 on this corrected stack; then repeat R0, R0 + R4-v1, R1 and R1 + R4-v1.
 See <a href="../project-state/r1-development-readiness.md">R1 readiness</a> for ownership,
-the accepted Q15/Q18 model contract, Q19 selection and Q20 budgets. R1 remains
-unimplemented; Q21 two-tier evaluation is accepted, with fresh-panel construction
+the accepted Q15/Q18 model contract, Q19 selection and Q20 budgets. R1 is
+focused-synthetic tested. The separate <a href="../artifacts/research/r1-lifecycle22/receipt.json">Oct-10 four-cell CPU lifecycle</a> now passes PPO/update/checkpoint/restore/frozen replay,37.234 owned seconds and clean cleanup. CUDA, throughput and market learning remain unqualified. Q21 two-tier evaluation is accepted, with fresh-panel construction
 and execution gates still pending. Native API development may proceed in an
 isolated worktree; integration remains after the corrected-stack R1 comparison.</p>
 <p>Q22 freezes the same corrected optimizer recipe across all 16 screen cells;
@@ -182,7 +183,7 @@ They are design names, not current CLI flags, and do not settle the architecture
 <td>R1</td>
 <td>Corrected reset-every-step window LSTM + FiLM</td>
 <td>None</td>
-<td>Unimplemented; test temporal inductive bias inside the supplied window</td>
+<td>Implemented; bounded CPU synthetic lifecycle passed; CUDA and market performance unqualified</td>
 </tr>
 <tr>
 <td>R2a</td>

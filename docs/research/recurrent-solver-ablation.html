@@ -286,8 +286,9 @@
     <p class="source-note">Source: <a href="recurrent-solver-ablation.md">recurrent-solver-ablation.md</a></p>
     <article class="markdown-content">
 <h1 id="recurrent-solver-film-ablation">Recurrent Solver + FiLM Ablation</h1>
-<p>Last reconciled: 2026-10-01<br>
-Status: <strong>focused R-series identity/design ledger; R1-R3 remain unimplemented</strong></p>
+<p>Last reconciled: 2026-10-13<br>
+Status: <strong>R1 passes bounded four-cell CPU and CUDA PPO/checkpoint/replay lifecycles; market performance and comparative throughput remain unqualified; R2-R3 remain unimplemented</strong></p>
+<p><a href="../coordination/training-testing.md#training-cuda37-release1---complete">CUDA37 receipt</a>: all four R0/R1 x R4-state/off GPU cases passed with <code>cuda:0</code> throughout and clean cleanup. Cold/warm timings do not measure encoder speedup. The <a href="itrader_research_dashboard.html#current-study">current dashboard</a> records reward parity and Q23/Q26 prerequisites before the sixteen-run screen. <code>pnl_linear</code> remains the default; the existing corrected draft explicitly uses <code>net_return</code>. Reward challengers remain separate from initial encoder attribution. CUDA-default ablation wiring is reviewed with 57 focused tests passing, not a physical root-venv migration.</p>
 <p>Parent registry: <a href="itrader_research_dashboard.html">iTrader Research Dashboard</a>.
 The dashboard owns current status and evidence navigation; the
 <a href="../plans/itrader_masterplan.html">masterplan</a> owns experiment order and promotion.</p>
@@ -296,7 +297,10 @@ preserves the original identities from <code>git show 4732a98:docs/research/recu
 it is not an accepted architecture contract. Names are design identities, not
 executable flags.</p>
 <h2 id="executive-position">Executive position</h2>
-<p>The active branch has one implemented/default solver: <code>SolverMLPFiLM</code>. The
+<p><code>SolverMLPFiLM</code> remains the implemented/default R0 parity solver. The new R1
+window-LSTM/FiLM implementation uses the explicit accepted <code>r0_r1_v1</code> semantic
+profile and has bounded CPU/CUDA synthetic lifecycle evidence, not market
+performance qualification. The
 checked-in <code>SolverLSTMModel</code> is a legacy reset-every-forward window encoder that
 reshapes the full observation and discards returned LSTM state. Because the
 current observation appends a task embedding, its <code>flat_dim // window</code> inference
@@ -353,7 +357,7 @@ that path does not implement task concatenation. The identity-centred form
 <tr>
 <td>R1</td>
 <td>Corrected reset-every-step window LSTM + FiLM</td>
-<td><strong>Unimplemented</strong></td>
+<td><strong>Implemented; bounded CPU/CUDA synthetic lifecycles passed, market performance unqualified</strong></td>
 <td>Within-window temporal inductive bias</td>
 </tr>
 <tr>

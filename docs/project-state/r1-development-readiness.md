@@ -1,6 +1,58 @@
 # R1 development readiness
 
-**Current boundary (2026-10-07):** Q27's four mechanical repairs are implemented;
+**Latest mechanical qualification (2026-10-13):** all four R0/R1 x R4-state/off
+CUDA synthetic cases passed PPO update, checkpoint/strict restore and frozen
+replay in one attempt, zero failures/errors/skips and `cuda:0` throughout.
+The [CUDA37 receipt](../coordination/training-testing.md#training-cuda37-release1---complete)
+records 119.078 supervised seconds, 35/35 unchanged identities and clean owned
+cleanup. No market edge, comparative throughput or calibrated significance is
+established. The execution lease is closed. CUDA-default ablation wiring is now
+reviewed with 57 focused tests passing. Reward parity,
+DEV-REVIEW30 repairs and Q23/Q26 still precede the proper screen; see the
+[current dashboard](../research/itrader_research_dashboard.md#current-evidence-and-next-study-2026-10-13).
+The existing corrected draft uses `net_return`, not the repository's default
+`pnl_linear`; no reward replacement or mixture is approved by optimizer parity.
+
+**Historical CPU qualification (2026-10-10):** the four expected R0/R1 x
+R4-state/off CPU synthetic cases passed PPO update, checkpoint serialization,
+strict restore and frozen replay; zero failures/errors/skips,37.234 owned
+seconds, both pair exits0 and no cleanup survivors. See
+[the durable lifecycle22 receipt](../artifacts/research/r1-lifecycle22/receipt.json).
+The receipt reports63identity entries and zero mismatches; it does not embed
+the complete source/configuration manifest. TRAINING's owned board separately
+records the600-row/12-sampled-step/one-SGD-epoch CPU recipe. This is not a market screen,
+throughput comparison or economic/statistical promotion. Preserve the disclosed
+preparation import incident. DEV26 CUDA provisioning and subsequent matched
+public-stack qualification are separate; Q23/Q26 still gate real runs.
+
+**Historical implementation status (2026-10-09):** `solver_window_lstm_film` is
+implemented in the dirty `agent/Watson-dev` tree with the accepted 60x5 reset-per-
+decision LSTM, 156-to-256 projection, shared task FiLM, separate actor/value
+heads, and optional zero-initialized R4-v1 residual. The explicit
+`r0_r1_v1` selector/loadout is fail-closed; R0 remains the default and the
+historical `solver_lstm_v2` identity is unchanged. Exact parameter counts are
+178,324 (R1) and 178,372 (R1 + R4-v1).
+
+The focused Windows test command passed **31 tests** across
+`test_solver_selection.py`, `test_semantic_observation_contract.py`, and
+`test_no_nan_forward.py`. Independent Sol/Standards and Astra/Spec reviews
+approve the final scoped diff. The review caught and closed a restore-identity
+gap: validation now checks Algorithm config, restored Policy config, exact model
+class, and the instantiated model's custom configuration. The tagged synthetic
+Parquet integration now uses `build_base_config`'s actual environment loadout,
+with only explicit synthetic task/start overrides; both policy-config and
+model-config mismatch rejection are exercised in that same integration. Test
+ROI decision: do not add one test per field or delete cases to hit a quota;
+consolidate repeated public-path chronology/width/stateless checks where
+diagnostic clarity is preserved, while keeping distinct FiLM arithmetic,
+gradient ownership, R4 neutrality, legacy compatibility, and adversarial
+restore/selector invariants. This is not a Ray PPO/checkpoint serialization/
+replay test, training run, or performance evidence. A separate synthetic Ray
+lifecycle smoke requires a new reviewed resource lease. Q21/Q23/Q26 panel
+prerequisites remain open and no R1 performance screen is authorized by this
+implementation.
+
+**Historical boundary (2026-10-07):** Q27's four mechanical repairs are implemented;
 Independent Sol and Luna reviews approve mechanics and the separate opt-in
 economics pilot. Final core validation (530 cases), healthcheck, clean scoped
 pre-commit rerun and diff checks pass. Reviewer pairs are requested dispatch
@@ -15,8 +67,9 @@ accepted corrected-control receipts and original artifacts remain untouched.
 See the [Oct-7 repair audit](../artifacts/research/evaluation-mechanical-repairs-2026-10-07.md)
 for executed regressions, review fixes and test-ROI recommendations.
 
-The dated Oct-6 notices below retain their publication-time approval status;
-the Oct-7 boundary above supersedes that status, not their recovery evidence.
+The dated Oct-6/Oct-7 notices below retain their publication-time approval
+status and recovery evidence. The 2026-10-09 status above supersedes their R1
+implementation claim only.
 
 **Evaluation audit completed (2026-10-06):** the bounded recovery maps 512
 recorded control rows to 48 starts; 26 randomized configs remain source-unbound.
@@ -46,11 +99,35 @@ stays isolated; dirty work and artifacts are preserved. See the
 [qualification audit](../artifacts/research/r1-panel-qualification-2026-10-06.md).
 The dated execution notices below are historical, not active launch authority.
 
-Updated: 2026-10-07. Compatibility/evidence repairs passed scoped independent
-Sol/Astra review; R1 itself remains unimplemented. Implementation review base: `d3eb4c5`; current checkout:
+Preparation snapshot: 2026-10-07. Compatibility/evidence repairs passed scoped
+independent Sol/Astra review; R1 was unimplemented at that snapshot. Implementation review base: `d3eb4c5`; current checkout:
 `3a3583d`, dirty `agent/Watson-dev` with inherited work preserved.
 
 ## Current implementation boundary
+
+**2026-10-09 R1 implementation:** the new model splits the declared 60x5
+chronological market window from the unchanged 32-value task embedding and
+optional 2-value state tail; only OHLCV enters the LSTM, whose h/c start at zero
+for every decision. The final chronological output uses the accepted
+`Linear(156,256) + ReLU -> tanh(gamma)*hidden + beta` readout and separate pi/vf
+heads. R1 returns no RLlib carried state. Its optional state residual is the
+existing zero_v1 width-8 connector and adds 48 parameters. R0's registered class,
+default selector and parameterized modules remain unchanged; the FiLM equation
+is shared as a pure operation.
+
+The 31-test result above exercises actual `build_base_config`, tagged synthetic
+environment observations, deterministic forward/value outputs, R1/R4 initial
+parity, batch order/prior-call independence, actor/critic gradient ownership,
+parameter counts, selector rejection, malformed schema and restore class
+identity. The “restore” in this test uses a small fake algorithm wrapper: no
+serialized checkpoint was saved or loaded. No Ray learner update, true
+checkpoint round-trip, multi-process replay, real market outcome, or economic
+claim has been tested.
+
+**Next:** request a separate lease for one bounded synthetic Ray 2.58 PPO
+update/save/restore/replay smoke. Q21/Q23/Q24/Q25/Q26 qualification and a
+matched R0/R0+R4-v1/R1/R1+R4-v1 screen remain separate gates. Do not change
+reward, optimizer, families, PBT or native RLModule APIs in R1.
 
 **Final closeout, 16:38:** corrected-control replay is independently accepted:
 8/8 terminals, 256 episodes, witnessed producer and checkpoint/payload/score
@@ -286,7 +363,8 @@ MLP widths 256/256, three action logits, default LSTM biases):
 R1 is 944 parameters (0.527%) smaller than R0 under the accepted shared-path design.
 The unchanged width-8 R4 residual adds 48 parameters. A disposable forward
 check produced `[2,60,156]` LSTM outputs and `[2,256]` final readouts. This is
-capacity/shape verification, not R1 implementation or a learning result.
+pre-implementation capacity/shape verification, not an implementation or
+learning result. The accepted implementation is now recorded above.
 
 Accepted Q18: share the market encoder, projection and task FiLM
 between actor and critic, with separate pi/vf heads, matching R0's ownership.
@@ -294,18 +372,20 @@ Both losses then train the same representation; a separate-encoder study would
 change sharing and capacity together. Shared weights do not imply equal actor
 and critic gradient contributions. Keep value-loss weighting and task-dropout
 semantics fixed, and report the respective gradients/critic fit before adding
-a new sharing ablation. This is an accepted design, not implemented R1 code.
+a new sharing ablation. This accepted design is the implementation contract now
+realized by the R1 model above; it is not evidence of learned behavior.
 
-The structural selector now reaches the ablation schema/runner, training builder,
+The structural selector reaches the ablation schema/runner, training builder,
 resolved manifests, untrained controls and checkpoint/diagnostic paths.
-`solver_window_lstm_film` fails explicitly as unimplemented; it is not registered
-to a placeholder or the historical `solver_lstm_v2` class.
+`solver_window_lstm_film` now resolves to the R1 class only under the explicit
+fixed semantic profile; it is not aliased to historical `solver_lstm_v2`.
+Full serialized checkpoint/replay behavior remains a follow-on synthetic gate.
 
 Accepted Q19: one structural `solver_model` selector with names
 `solver_mlp_film` and `solver_window_lstm_film`, independent of R/S experiment
-labels and solver-state/reward/curriculum factors. The first name already
-matches the current registered R0 key; the second has no current registration
-or implementation collision. Bind the selected model and versioned observation,
+labels and solver-state/reward/curriculum factors. The first name matches the
+registered R0 key and remains the default; the second now has its own registered
+R1 class. Bind the selected model and versioned observation,
 preprocessing and state contracts to the resolved manifest and restore path.
 Prefer one validated selection interface shared by schema/runner/training,
 model-matched baselines and replay; a plugin framework is unnecessary here.
@@ -342,16 +422,19 @@ Measure parameter count, wall time and memory separately
 from matched sampled environment steps. Do not describe equal steps as equal
 compute, or a parameter tolerance as satisfied without counts.
 
-Tests must include tagged chronological bars, malformed layout, batch-size and
-batch-order invariance in evaluation mode, repeated identical observations
-despite different prior calls, actor/critic gradients, state-mask parity,
-checkpoint class/config restoration and replay. Truncation/termination GAE
-behavior remains owned by environment/RLlib; do not redefine it for R1.
+The focused synthetic contract test currently covers tagged chronological bars,
+malformed layout, batch-order invariance in evaluation mode, repeated identical
+observations despite intervening calls, actor/critic gradients, state-mask
+parity, parameter counts and model-class/config identity. It does not serialize
+or replay a checkpoint; that remains a required separate lifecycle smoke before
+run readiness. Truncation/termination GAE behavior remains owned by
+environment/RLlib; do not redefine it for R1.
 
 ### Contract-freeze acceptance checklist (GRILL audit, 2026-10-04)
 
-These six planning concerns are acceptance criteria for implementation. They
-are not demonstrated R1 runtime defects: R1 remains unimplemented. They do not
+These six planning concerns were acceptance criteria for implementation. They
+were not demonstrated R1 runtime defects. The 2026-10-09 implementation adds
+focused synthetic coverage, not Ray checkpoint or learning evidence. They do not
 reopen Q15. Q18 sharing, Q19 selectors and Q20 budget were subsequently accepted
 on 2026-10-05; Q21's two-tier evaluation protocol is also accepted, with panel
 construction and enforcement still pending.

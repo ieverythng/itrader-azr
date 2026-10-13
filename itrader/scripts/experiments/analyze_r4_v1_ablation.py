@@ -6,6 +6,7 @@ import argparse
 import csv
 import json
 import math
+from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
@@ -14,6 +15,11 @@ from itrader.rl_lib.evaluation.block_uncertainty import (
     paired_anchor_interval,
     pooled_paired_anchor_interval,
 )
+from itrader.rl_lib.evaluation.provenance import (
+    canonical_json_sha256, evaluation_contract_sha256, is_sha256,
+)
+from itrader.rl_lib.evaluation.replay_evidence import episode_payload_sha256, verify_receipt
+from itrader.rl_lib.train.pbt_contract import checkpoint_metric_value
 
 
 TERMINAL_METRICS = {
@@ -33,6 +39,40 @@ TRAINING_SEEDS = (20260924, 20260925, 20260926)
 STATE_ARMS = ("masked", "position", "time", "both")
 CANDIDATE_STATE_ARMS = STATE_ARMS[1:]
 RELATIVE_METRICS = ("net_return", "net_sharpe_per_sqrt_bar")
+
+
+def matched_evidence_gate(cells: list[dict], controls: list[dict]) -> dict:
+    """Missing identities are ineligible, not permission to compare anything."""
+    errors = []
+    protected = ("dataset_sha256", "evaluation_panel_sha256", "source_tree_sha256",
+                 "evaluation_contract_sha256", "runtime_sha256")
+    records = cells + controls
+    for key in protected:
+        values = [row.get("provenance", {}).get(key) for row in records]
+        if not values or not all(is_sha256(value) for value in values) or len(set(values)) != 1:
+            errors.append(f"missing_or_mismatched:{key}")
+    for seed in {cell["training_seed"] for cell in cells}:
+        values = [cell["provenance"].get("attribution_config_sha256")
+                  for cell in cells if cell["training_seed"] == seed]
+        if not all(is_sha256(value) for value in values) or len(set(values)) != 1:
+            errors.append(f"undeclared_config_difference:seed={seed}")
+    if not cells or not controls:
+        errors.append("missing_candidates_or_controls")
+    return {"passes": not errors, "reasons": errors}
+
+
+def _attribution_config_hash(config: dict, dataset_hash: str) -> str:
+    cfg = deepcopy(config)
+    for key in ("source_provenance", "stable_metrics_root", "pbt_experiment_name"):
+        cfg.pop(key, None)
+    for env in (cfg.get("env_config", {}), cfg.get("evaluation_config", {}).get("env_config", {})):
+        env["df_path"] = f"sha256:{dataset_hash}"
+        env.pop("solver_state_mode", None)
+        env.get("semantic_observation_contract", {}).pop("solver_state_mode", None)
+    model_cfg = cfg.get("model", {}).get("custom_model_config", {})
+    model_cfg.pop("solver_state_mode", None)
+    model_cfg.get("semantic_observation_contract", {}).pop("solver_state_mode", None)
+    return canonical_json_sha256(cfg)
 
 
 def _json(path: Path) -> dict:
@@ -108,7 +148,7 @@ def evaluate_absolute_economic_gate(
             for cell in arm_cells
         ),
         "all_terminal_replays_exact": all(
-            bool(cell["replay"]["checkpoint_parity"]) for cell in arm_cells
+            cell["replay"]["checkpoint_parity"] is True for cell in arm_cells
         ),
     }
     return {
@@ -205,11 +245,92 @@ def _load_controls(evidence_root: Path) -> list[dict]:
                     "evaluation/net_sharpe_per_sqrt_bar_mean",
                 ),
                 "turnover": _float(result, "evaluation/turnover_mean"),
+                "provenance": result.get("provenance", {}),
             }
         )
     if not controls:
         raise ValueError("Expected at least one frozen policy-control result")
     return controls
+
+
+def _terminal_replay_matches(replay_path, episodes_path, episodes, stable_dir, resolved, terminal):
+    """Bind consumed evidence to the declared terminal checkpoint, not a claim flag."""
+    replay = _json(replay_path)
+    index_path = stable_dir / "checkpoint_index.jsonl"
+    if (type(replay.get("receipt_version")) is not int or replay["receipt_version"] != 1
+            or not index_path.is_file()):
+        return False
+    verify_receipt(replay_path)
+    indexed = [row for row in _jsonl(index_path)
+               if row.get("pbt_progress_steps") == int(terminal["pbt_progress_steps"])
+               and row.get("pbt_progress_updates") == int(terminal["pbt_progress_updates"])]
+    if len(indexed) != 1:
+        return False
+    from itrader.rl_lib.evaluation.policy_baselines import summarize_control_episodes
+
+    summary = summarize_control_episodes(episodes)
+    economic_columns = {
+        "evaluation/net_return_mean": "evaluation/net_return_mean",
+        "evaluation/net_sharpe_per_sqrt_bar_mean": "evaluation/net_sharpe_per_sqrt_bar_mean",
+        "evaluation/gross_return_mean": "evaluation/gross_return_mean",
+        "evaluation/custom_metrics/economic_turnover_mean": "evaluation/turnover_mean",
+        **{f"evaluation/custom_metrics/act_{action}_frac_mean":
+           f"evaluation/custom_metrics/act_{action}_frac_mean" for action in ("short", "flat", "long")},
+    }
+    if not all(math.isclose(_float(terminal, column), summary[metric], rel_tol=0, abs_tol=1e-12)
+               for column, metric in economic_columns.items()):
+        return False
+    checkpoint = indexed[0]
+    flags = ("checkpoint_parity", "payload_parity", "selection_score_parity")
+    if not all(replay.get(flag) is True for flag in flags):
+        return False
+    metric = checkpoint.get("selection_metric")
+    try:
+        expected_score = checkpoint["selection_score"]
+        observed_score = checkpoint_metric_value(metric, summary, resolved["config"])
+        scores = (expected_score, replay.get("selected_score"), replay.get("replayed_score"),
+                  replay.get("replay_delta"))
+        if not all(type(value) in (int, float) and math.isfinite(value) for value in scores):
+            return False
+        if (replay.get("selection_metric") != metric
+                or not math.isclose(expected_score, observed_score, rel_tol=0, abs_tol=1e-8)
+                or not math.isclose(replay["selected_score"], expected_score, rel_tol=0, abs_tol=1e-12)
+                or not math.isclose(replay["replayed_score"], observed_score, rel_tol=0, abs_tol=1e-12)
+                or not math.isclose(replay["replay_delta"], observed_score - expected_score,
+                                    rel_tol=0, abs_tol=1e-12)):
+            return False
+    except (KeyError, TypeError, ValueError):
+        return False
+    evaluation = resolved["config"]["evaluation_config"]
+    expected = {
+        "dataset_sha256": resolved["dataset_sha256"],
+        "source_panel_sha256": resolved["evaluation_panel_sha256"],
+        "evaluation_panel_sha256": resolved["evaluation_panel_sha256"],
+        "checkpoint_config_sha256": resolved["config_hash"],
+        "effective_env_config_sha256": canonical_json_sha256(evaluation["env_config"]),
+        "observation_schema": resolved["observation_schema"],
+        "evaluation_seed": evaluation.get("seed"),
+        "runtime": resolved.get("runtime"),
+        "checkpoint_sha256": checkpoint.get("checkpoint_sha256"),
+        "progress_steps": checkpoint.get("pbt_progress_steps"),
+        "restore_generation": checkpoint.get("pbt_restore_generation"),
+        "explore": False,
+    }
+    contract = replay.get("evaluation_contract", {})
+    return (
+        replay.get("checkpoint_parity") is True
+        and replay.get("producer", {}).get("operation") == "episode_replay"
+        and replay.get("checkpoint") == checkpoint.get("stable_checkpoint")
+        and checkpoint.get("config_hash") == resolved["config_hash"]
+        and is_sha256(checkpoint.get("checkpoint_sha256"))
+        and all(key in contract and contract[key] == value for key, value in expected.items())
+        and contract.get("explore") is False
+        and contract.get("replay_source", {}).get("source_tree_sha256")
+        == resolved.get("source_tree_fingerprint", {}).get("source_tree_sha256")
+        and any(record.get("file") == episodes_path.name for record in replay["artifacts"])
+        and all(is_sha256(row.get("action_reward_trace_sha256")) for row in episodes)
+        and episode_payload_sha256(episodes) == checkpoint.get("evaluation_payload_sha256")
+    )
 
 
 def analyze(
@@ -243,14 +364,13 @@ def analyze(
                 f"Cell does not have exactly {expected_updates} reports: {stable_dir}"
             )
         terminal = reports[-1]
-        replay = _json(
-            _cell_artifact(
+        replay_path = _cell_artifact(
                 replay_root,
                 training_seed=training_seed,
                 arm=arm,
                 suffix=".json",
             )
-        )
+        replay = _json(replay_path)
         diagnostics = _json(
             _cell_artifact(
                 diagnostics_root,
@@ -259,16 +379,17 @@ def analyze(
                 suffix=".state_diagnostics.json",
             )
         )
-        episodes = _jsonl(
-            _cell_artifact(
+        episodes_path = _cell_artifact(
                 replay_root,
                 training_seed=training_seed,
                 arm=arm,
                 suffix=".episodes.jsonl",
             )
-        )
+        episodes = _jsonl(episodes_path)
         if len(episodes) != 32:
             raise ValueError(f"Expected 32 terminal replay episodes: {stable_dir}")
+        verified_replay = _terminal_replay_matches(
+            replay_path, episodes_path, episodes, stable_dir, resolved, terminal)
 
         metrics = {name: _float(terminal, column) for name, column in TERMINAL_METRICS.items()}
         final_three = [
@@ -297,6 +418,7 @@ def analyze(
                 "replayed_score": replay["replayed_score"],
                 "replay_delta": replay["replay_delta"],
                 "checkpoint_parity": replay["checkpoint_parity"],
+                "receipt_verified": verified_replay,
             },
             "diagnostics": diagnostics["diagnostics"],
             "counterfactual_state_sensitivity": diagnostics.get(
@@ -309,6 +431,10 @@ def analyze(
                 "source_tree_sha256": resolved["source_tree_fingerprint"]["source_tree_sha256"],
                 "config_hash": resolved["config_hash"],
                 "comparison_config_hash": resolved["comparison_config_hash"],
+                "attribution_config_sha256": _attribution_config_hash(config, resolved["dataset_sha256"]),
+                "evaluation_contract_sha256": evaluation_contract_sha256(
+                    config["evaluation_config"]["env_config"], resolved["dataset_sha256"]),
+                "runtime_sha256": canonical_json_sha256(resolved["runtime"]) if resolved.get("runtime") else None,
                 "solver_state_residual_init": resolved["config"]
                 .get("model", {})
                 .get("custom_model_config", {})
@@ -348,6 +474,10 @@ def analyze(
         )
 
     controls = _load_controls(evidence_root)
+    provenance_gate = matched_evidence_gate(list(cells.values()), controls)
+    if not all(cell["replay"]["receipt_verified"] for cell in cells.values()):
+        provenance_gate["passes"] = False
+        provenance_gate["reasons"].append("unverified_or_mismatched_replay_receipt")
     strongest_control_net = max(control["net_return"] for control in controls)
     strongest_control_sharpe = max(control["sharpe"] for control in controls)
 
@@ -373,7 +503,8 @@ def analyze(
         "cell_count": len(cells),
         "provenance_unique_counts": {key: len(value) for key, value in provenance_uniques.items()},
         "provenance_values": provenance_uniques,
-        "all_terminal_replays_exact": all(cell["replay"]["checkpoint_parity"] for cell in cells.values()),
+        "matched_evidence_gate": provenance_gate,
+        "all_terminal_replays_exact": all(cell["replay"]["checkpoint_parity"] is True for cell in cells.values()),
         "cells": [cells[key] for key in sorted(cells)],
         "arm_terminal_means": arm_summaries,
         "per_seed_anchor_intervals": per_seed_intervals,
@@ -383,7 +514,7 @@ def analyze(
         "strongest_control_net": strongest_control_net,
         "strongest_control_sharpe": strongest_control_sharpe,
         "absolute_economic_gate": absolute_gate,
-        "promotion_passes": any(
+        "promotion_passes": provenance_gate["passes"] and any(
             absolute_gate[arm]["passes"]
             and (relative_gate[arm]["passes_net"] or relative_gate[arm]["passes_sharpe"])
             for arm in CANDIDATE_STATE_ARMS
