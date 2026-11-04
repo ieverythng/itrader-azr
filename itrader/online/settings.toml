@@ -83,7 +83,7 @@ max_asset_pct = 0.30           # one asset across strategies (net)
 max_name_pct = 0.30            # one base asset across instruments (BTC spot + BTC perp)
 max_gross_pct = 1.50
 gap_move = 0.15                # assume a 15% gap against every position at once
-max_gap_loss_pct = 0.05        # size so that gap costs at most this share of equity
+max_gap_loss_pct = 0.08        # size so that gap costs at most this share of equity: gross <= 0.08 / 0.15 = 0.53
 daily_loss_limit_pct = 0.03
 drawdown_lock_pct = 0.12
 cooldown_bars_after_stop = 24

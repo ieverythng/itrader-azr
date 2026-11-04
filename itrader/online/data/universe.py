@@ -28,7 +28,20 @@ DEFAULT_PAIRS = (
 )
 
 
+SPOT_SUFFIX = ".SPOT"   # book legs: "BTCUSDT" is the perp, "BTCUSDT.SPOT" the spot holding
+
+
+def leg_symbol(symbol: str) -> str:
+    """The market-data symbol behind a book leg ("BTCUSDT.SPOT" -> "BTCUSDT")."""
+    return symbol[: -len(SPOT_SUFFIX)] if symbol.endswith(SPOT_SUFFIX) else symbol
+
+
+def is_spot(symbol: str) -> bool:
+    return symbol.endswith(SPOT_SUFFIX)
+
+
 def base_asset(symbol: str) -> str:
+    symbol = leg_symbol(symbol)
     for quote in ("USDT", "USDC", "USD", "BUSD"):
         if symbol.endswith(quote):
             return symbol[: -len(quote)]

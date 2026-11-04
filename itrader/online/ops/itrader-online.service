@@ -1,0 +1,22 @@
+# systemd unit for the paper loop (Linux). Install:
+#   sudo cp itrader/online/ops/itrader-online.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now itrader-online
+# Secrets go in /etc/itrader-online.env (chmod 600), never in the repo. Paper mode needs none.
+[Unit]
+Description=iTRADER online paper loop
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=itrader
+WorkingDirectory=/opt/itrader-azr
+EnvironmentFile=-/etc/itrader-online.env
+ExecStart=/opt/itrader-azr/.venv/bin/python -m itrader.online paper
+Restart=on-failure
+RestartSec=30
+# Live mode is impossible from here unless ITRADER_LIVE=1, the key env vars and the confirmation
+# file are all present AND settings [live] enabled = true. Keep it that way until the ladder says otherwise.
+
+[Install]
+WantedBy=multi-user.target
