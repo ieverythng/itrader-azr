@@ -12,6 +12,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import ssl
 import time
 import urllib.error
 import urllib.parse
@@ -32,12 +33,26 @@ class FeedError(RuntimeError):
     pass
 
 
+def _ssl_context() -> Optional[ssl.SSLContext]:
+    """python.org builds on macOS ship without root certificates until 'Install Certificates'
+    is run. If certifi is installed (requests brings it) use its bundle; else the system default."""
+    try:
+        import certifi  # type: ignore
+
+        return ssl.create_default_context(cafile=certifi.where())
+    except Exception:  # noqa: BLE001
+        return None
+
+
+_CTX = _ssl_context()
+
+
 def _get(url: str, timeout: float = 30.0, tries: int = 4) -> bytes:
     last: Optional[Exception] = None
     for attempt in range(tries):
         try:
             req = urllib.request.Request(url, headers=UA)
-            with urllib.request.urlopen(req, timeout=timeout) as r:
+            with urllib.request.urlopen(req, timeout=timeout, context=_CTX) as r:
                 return r.read()
         except urllib.error.HTTPError as exc:
             last = exc
