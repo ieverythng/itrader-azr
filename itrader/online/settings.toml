@@ -1,0 +1,135 @@
+# iTRADER online settings. One file. Every threshold the bench, gate, portfolio, risk engine
+# and executor use lives here, so nothing is hidden in code. Override by copying this file and
+# pointing ITRADER_ONLINE_SETTINGS at the copy. Secrets are never here: env vars only.
+
+[general]
+mode = "paper"                 # paper | replay | live. live also needs ITRADER_LIVE=1, the env keys, and the confirmation file
+base_currency = "USDT"
+equity_start = 10000.0
+data_root = "data/online"
+out_root = "data/online/runs"
+timezone = "UTC"
+
+[data]
+universe = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT", "ADAUSDT", "DOGEUSDT", "AVAXUSDT", "LINKUSDT", "LTCUSDT"]
+bars = ["1d", "1h"]
+years = 4
+max_stale_bars = 2.0           # Quality marks data stale after this many bars without a close
+
+[costs]
+fee_bps = 5.0                  # USDT-M perp taker fee per side (Binance base tier)
+spot_fee_bps = 10.0            # spot taker per side without BNB discount
+maker_fee_bps = 2.0
+half_spread_bps = 1.0          # top-10 pairs; live value comes from the book ticker
+slippage_bps = 2.0             # market impact at the sizes this runs at
+
+[bench]
+holdout_days = 182             # final six months, untouched by any design decision
+fold_days = 182                # walk-forward fold length on the development period
+min_history_days = 365
+participation = 0.01           # share of a pair's daily volume we allow ourselves when estimating capacity
+default_n_trials = 1
+
+[gates.bench_to_paper]
+dsr_min = 0.90                 # deflated Sharpe on the development period
+holdout_sharpe_min = 0.30
+holdout_return_min = 0.0
+max_dd_max = 0.35
+folds_positive_min = 0.60      # share of walk-forward folds with positive net return
+cost_share_max = 0.50          # costs may eat at most half the gross return
+
+[gates.paper_to_small_live]
+paper_days_min = 60
+psr_min = 0.80                 # probabilistic Sharpe of the paper record against zero
+tracking_error_max = 0.50      # |paper Sharpe - bench holdout Sharpe|
+evidence_ratio_min = 0.50      # paper bars held / bars the evidence meter asks for
+
+[gates.small_live_to_full]
+live_days_min = 90
+slippage_ratio_max = 1.50      # realised cost / modelled cost
+dsr_min = 0.95
+
+[portfolio]
+strategy_vol_target = 0.10     # each sleeve scaled to this annualised vol before combination
+portfolio_vol_target = 0.12
+gross_cap = 1.50               # sum of absolute asset weights after combination
+max_single_asset = 0.25
+no_trade_band = 0.10           # do not re-trade an asset unless the target moved by this share of its size
+corr_penalty = 0.50            # 0 = plain inverse vol, 1 = full risk parity on the correlation matrix
+corr_window_days = 90
+vol_window_days = 60
+min_vol_floor = 0.02
+
+[allocator]                    # the Workbench allocator: capability-weighted meta-allocation with cash as an asset
+enabled = true
+lookback_days = 180
+temperature = 1.0              # softmax temperature over capability scores; higher = flatter
+shrink_to_equal = 0.50         # shrink the capability weights toward equal weight (small samples)
+max_weight = 0.50
+min_weight = 0.0
+cash_floor = 0.10              # WAIT/cash always keeps at least this share
+cash_score = 0.0               # cash's own score: zero return, zero risk
+evidence_discount = true       # weights scaled by the evidence ratio (how much of the needed record exists)
+
+[gate]
+min_confidence = 0.55
+min_expected_utility_bps = 1.0 # per bar, after modelled costs
+utility_cost_multiple = 1.50   # expected utility must exceed this multiple of the modelled round-trip cost
+max_candidates = 3
+
+[risk]
+max_position_pct = 0.25        # one strategy, one asset
+max_asset_pct = 0.30           # one asset across strategies (net)
+max_name_pct = 0.30            # one base asset across instruments (BTC spot + BTC perp)
+max_gross_pct = 1.50
+gap_move = 0.15                # assume a 15% gap against every position at once
+max_gap_loss_pct = 0.05        # size so that gap costs at most this share of equity
+daily_loss_limit_pct = 0.03
+drawdown_lock_pct = 0.12
+cooldown_bars_after_stop = 24
+loss_streak_cooldown = 3       # consecutive losing closed trades before a cooldown
+cooldown_bars_after_streak = 48
+max_spread_bps = 10.0
+stale_block = true
+kill_file = "data/online/KILL"
+calendar_file = "data/online/calendar.json"
+no_trade_keywords = ["FOMC", "CPI", "NFP", "ETF decision", "hard fork", "exchange outage", "ceasefire"]
+no_trade_windows_utc = []      # e.g. ["2026-12-10T18:30/2026-12-10T20:00"]
+fast_cancel_move_pct = 0.04    # a move of this size inside one cycle triggers the fast cancel path
+
+[execution]
+broker = "paper"
+latency_ms = 250
+partial_fill_prob = 0.15
+partial_fill_min = 0.30
+min_order_notional = 10.0
+order_ttl_s = 60
+use_live_book = true           # paper fills use the live top-of-book spread when reachable
+
+[live]
+enabled = false                # stays false. Flipping it does nothing without the env flag, keys and confirmation file.
+env_flag = "ITRADER_LIVE"
+confirmation_file = "data/online/I_UNDERSTAND_THIS_IS_REAL_MONEY"
+max_equity_fraction = 0.05
+binance_key_env = "ITRADER_BINANCE_KEY"
+binance_secret_env = "ITRADER_BINANCE_SECRET"
+alpaca_key_env = "ITRADER_ALPACA_KEY"
+alpaca_secret_env = "ITRADER_ALPACA_SECRET"
+
+[alerts]
+telegram_token_env = "ITRADER_TG_TOKEN"
+telegram_chat_env = "ITRADER_TG_CHAT"
+email_to_env = "ITRADER_ALERT_EMAIL"
+smtp_url_env = "ITRADER_SMTP_URL"     # smtp://user:pass@host:port
+on = ["risk_lock", "kill", "stale_data", "daily_summary", "error", "fast_cancel"]
+
+[runner]
+cycle_bar = "1h"
+decision_log = "data/online/runs/decisions.jsonl"
+state_file = "data/online/runs/state.json"
+dashboard = "data/online/runs/dashboard.html"
+
+[changelog]
+entries = [
+  "2026-11-05 v0.1  first version, written with the online build (bench, portfolio, gate, risk, paper execution)",
+]
