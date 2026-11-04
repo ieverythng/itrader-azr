@@ -1,13 +1,18 @@
 """Executor: approved book -> orders -> fills -> report. Deterministic normalisation only.
 
 Given the RiskEngine's approved weights, the current positions and marks, it computes the
-notional to trade per leg, drops anything under the minimum order size, submits market orders,
-polls until they are done or expire, and reports fills, fees and slippage against the mid at
-submission. It never changes a weight the risk engine approved, except to round to the
-venue's lot size when one is known.
+notional to trade per leg, submits market orders, polls until they are done or expire, and
+reports fills, fees and slippage against the mid at submission. It never changes a weight the
+risk engine approved, except to round to a lot size. Rules that keep "flatten" meaning flatten:
+a reducing order is clamped to the position and floor-rounded (never rounds past zero), and a
+reduction is sent even below the minimum notional (dust must be closable). Order ids are derived
+from symbol, time and reason, so a replay reproduces the same ids and therefore the same fills.
 """
 from __future__ import annotations
 
+import hashlib
+import math
+import time
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
@@ -17,6 +22,7 @@ import pandas as pd
 from ..data.universe import leg_symbol
 from ..settings import Settings, settings as default_settings
 from .broker import Broker, Order
+from .paper import mark_for
 
 
 @dataclass
@@ -48,15 +54,13 @@ class Executor:
     def current_weights(self, marks: Dict[str, float]) -> pd.Series:
         eq = self.broker.equity(marks)
         pos = self.broker.positions()
-        if eq <= 0 or not pos:
+        if not math.isfinite(eq) or eq <= 0 or not pos:
             return pd.Series(dtype=float)
-        return pd.Series({sym: q * (marks.get(leg_symbol(sym)) or 0.0) / eq for sym, q in pos.items()}, dtype=float)
+        return pd.Series({sym: q * (mark_for(marks, sym) or float("nan")) / eq for sym, q in pos.items()}, dtype=float)
 
-    def _round(self, symbol: str, qty: float) -> float:
-        step = self.lot_steps.get(leg_symbol(symbol))
-        if step and step > 0:
-            return (qty // step) * step
-        return round(qty, 6)
+    def _floor(self, symbol: str, qty: float) -> float:
+        step = self.lot_steps.get(leg_symbol(symbol)) or 1e-6
+        return math.floor(qty / step + 1e-9) * step
 
     def cancel_all(self, now: datetime) -> int:
         return self.broker.cancel_all(now)
@@ -64,44 +68,64 @@ class Executor:
     def rebalance(self, target: pd.Series, marks: Dict[str, float], now: datetime, reason: str = "rebalance",
                   wait: Optional[timedelta] = None) -> ExecutionReport:
         eq0 = self.broker.equity(marks)
+        skipped: List[Dict[str, Any]] = []
+        orders: List[Order] = []
+        if not math.isfinite(eq0) or eq0 <= 0:
+            return ExecutionReport([], eq0, eq0, 0.0, 0.0, 0.0, [{"symbol": "*", "why": f"equity not usable ({eq0}); no orders"}])
+        pos = self.broker.positions()
         cur = self.current_weights(marks)
         tgt = target.astype(float)
-        idx = tgt.index.union(cur.index)
-        delta = tgt.reindex(idx).fillna(0.0) - cur.reindex(idx).fillna(0.0)
+        idx = tgt.index.union(cur.index).union(pd.Index(pos))
         min_notional = float(self.s.execution.min_order_notional)
-        orders: List[Order] = []
-        skipped: List[Dict[str, Any]] = []
-        for sym, dw in delta.items():
+        for sym in idx:
+            t = float(tgt.get(sym, 0.0))
+            c = float(cur.get(sym, 0.0))
+            mark = mark_for(marks, sym)
+            if mark is None:
+                if sym in pos or abs(t) > 0:
+                    skipped.append({"symbol": sym, "why": "no usable mark", "target_w": t})
+                continue
+            if not math.isfinite(t) or not math.isfinite(c):
+                skipped.append({"symbol": sym, "why": "non-finite weight", "target_w": t, "current_w": c})
+                continue
+            dw = t - c
             notional = abs(dw) * eq0
-            mark = marks.get(leg_symbol(sym))
             if notional < 1e-9:
                 continue
-            if not mark:
-                skipped.append({"symbol": sym, "why": "no mark", "notional": notional})
-                continue
-            if notional < min_notional:
+            held = pos.get(sym, 0.0)
+            reducing = held != 0 and (dw * held) < 0
+            if notional < min_notional and not reducing:
                 skipped.append({"symbol": sym, "why": f"below min notional {min_notional}", "notional": notional})
                 continue
-            qty = self._round(sym, notional / mark)
+            qty = notional / mark
+            if reducing:
+                qty = min(qty, abs(held))
+                qty = abs(held) if abs(t) < 1e-9 or abs(qty - abs(held)) <= self._floor(sym, abs(held)) * 1e-6 else self._floor(sym, qty)
+            else:
+                qty = self._floor(sym, qty)
             if qty <= 0:
                 skipped.append({"symbol": sym, "why": "rounds to zero", "notional": notional})
                 continue
-            o = Order(symbol=sym, side="buy" if dw > 0 else "sell", qty=qty, notional=qty * mark, reason=reason,
-                      meta={"target_w": float(tgt.get(sym, 0.0)), "current_w": float(cur.get(sym, 0.0))})
+            oid = hashlib.sha1(f"{sym}|{now.isoformat()}|{reason}".encode()).hexdigest()[:12]
+            o = Order(symbol=sym, side="buy" if dw > 0 else "sell", qty=qty, notional=qty * mark, reason=reason, id=oid,
+                      meta={"target_w": t, "current_w": c, "reducing": reducing})
             orders.append(self.broker.submit(o, mark, now))
-        # poll until done, expired, or the wait is over (paper fills are instantaneous after latency)
         deadline = now + (wait or timedelta(seconds=int(self.s.execution.order_ttl_s)))
         t = now
         step = timedelta(milliseconds=max(50, int(self.s.execution.latency_ms)))
         while any(o.open for o in orders) and t <= deadline:
             t = t + step
+            if getattr(self.broker, "live", False):
+                time.sleep(step.total_seconds())
             self.broker.poll(t, marks)
+        cancelled = 0
         for o in orders:
             if o.open:
-                self.broker.cancel(o.id, t)
-                o.error = o.error or "ttl expired, cancelled"
+                if self.broker.cancel(o.id, t):
+                    cancelled += 1
+                    o.error = o.error or "ttl expired, cancelled"
         eq1 = self.broker.equity(marks)
         fills = [f for o in orders for f in o.fills]
         traded = sum(f.qty * f.price for f in fills)
         slip = sum(abs(f.slippage_bps) * f.qty * f.price for f in fills) / traded if traded > 0 else 0.0
-        return ExecutionReport(orders, eq0, eq1, traded, sum(f.fee for f in fills), slip, skipped)
+        return ExecutionReport(orders, eq0, eq1, traded, sum(f.fee for f in fills), slip, skipped, cancelled)

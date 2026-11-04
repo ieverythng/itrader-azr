@@ -144,10 +144,18 @@ class WorkbenchAllocator:
             s = (1 - lam) * s + lam * float(paper.get("sharpe", 0.0)) * float(paper.get("psr", 0.5))
         return {"score": float(max(0.0, s)), "sharpe_dev": sharpe, "sharpe_holdout": hold_sharpe, "dsr": dsr, "evidence_ratio": ratio}
 
-    def allocate(self, profiles: Dict[str, Dict[str, Any]], paper_stats: Optional[Dict[str, Dict[str, Any]]] = None) -> AllocatorDecision:
+    def allocate(self, profiles: Dict[str, Dict[str, Any]], paper_stats: Optional[Dict[str, Dict[str, Any]]] = None,
+                 vol_ratio: Optional[Dict[str, float]] = None) -> AllocatorDecision:
+        """`vol_ratio[n]` = the vol a sleeve actually reaches at its allowed leverage / the target vol (<= 1).
+        A sleeve that cannot reach the target (carry at 2x) is scored on the return it can deliver, not on
+        its Sharpe alone; otherwise risk parity hands most of the book to the lowest-vol sleeve."""
         cfg = self.cfg
         names = list(profiles)
         details = {n: self.score(profiles[n], (paper_stats or {}).get(n), bool(cfg.evidence_discount)) for n in names}
+        for n in names:
+            vr = float(min(1.0, max(0.0, (vol_ratio or {}).get(n, 1.0))))
+            details[n]["vol_ratio"] = vr
+            details[n]["score"] *= vr
         scores = {n: d["score"] for n, d in details.items()}
         scores[CASH] = float(cfg.cash_score)
         keys = list(scores)
@@ -180,7 +188,7 @@ class WorkbenchAllocator:
             strat_total = max_strat
         w[ci] = 1.0 - strat_total
         notes = [f"{n}: score {details[n]['score']:.3f} (dev SR {details[n]['sharpe_dev']:.2f}, holdout SR {details[n]['sharpe_holdout']:.2f}, "
-                 f"DSR {details[n]['dsr']:.2f}, evidence {details[n]['evidence_ratio']:.0%})" for n in names]
+                 f"DSR {details[n]['dsr']:.2f}, evidence {details[n]['evidence_ratio']:.0%}, reachable vol {details[n]['vol_ratio']:.0%} of target)" for n in names]
         if not active:
             notes.append("no strategy has a positive capability score: all capital in cash (WAIT)")
         return AllocatorDecision(pd.Series(w, index=keys), scores, raw, notes)
@@ -233,11 +241,16 @@ class Portfolio:
         scales = {n: vol_scale(rets[n] if n in rets else pd.Series(dtype=float), float(p.strategy_vol_target), int(p.vol_window_days), float(p.min_vol_floor)) for n in names}
         scaled_rets = pd.DataFrame({n: rets[n] * scales[n] for n in names if n in rets}) if len(rets) else pd.DataFrame(columns=names)
 
-        # 2. budgets: risk parity x capability
-        budgets = risk_budgets(scaled_rets if len(scaled_rets) else pd.DataFrame(np.nan, index=[0], columns=names), float(p.corr_penalty), int(p.corr_window_days), float(p.min_vol_floor))
+        # 2. budgets: risk parity x capability. After scaling every sleeve sits at or below the target vol, so the
+        #    vol floor is the target itself: budgets then come from correlations, not from who could not be levered.
+        budgets = risk_budgets(scaled_rets if len(scaled_rets) else pd.DataFrame(np.nan, index=[0], columns=names), float(p.corr_penalty), int(p.corr_window_days), float(p.strategy_vol_target))
+        vol_ratio = {}
+        for n in names:
+            v = realised_vol(rets[n], int(p.vol_window_days), float(p.min_vol_floor)) if n in rets else float("nan")
+            vol_ratio[n] = min(1.0, v * scales[n] / float(p.strategy_vol_target)) if np.isfinite(v) and v > 0 else 1.0
         alloc = None
         if self.allocator is not None and profiles:
-            dec = self.allocator.allocate({n: profiles[n] for n in names if n in profiles}, paper_stats)
+            dec = self.allocator.allocate({n: profiles[n] for n in names if n in profiles}, paper_stats, vol_ratio)
             alloc = dec.to_dict()
             cap_w = dec.weights.drop(CASH)
             cash = float(dec.weights[CASH])

@@ -37,7 +37,10 @@ class MeanReversion(Strategy):
         if p["trend_filter"] and m.daily_close is not None:
             d = m.daily_close
             trend_d = np.sign(d - d.rolling(p["trend_days"]).mean())
-            trend = trend_d.reindex(c.index, method="ffill").shift(1)  # yesterday's daily trend, known at the hourly bar
+            # Daily bars are indexed by OPEN time and hold that day's close, so the row for day D is only known
+            # at the end of D. Shift by one DAY before spreading onto the hourly index: every hour of day D sees
+            # the trend as of the close of D-1. (A one-hour shift here was a 23-hour lookahead.)
+            trend = trend_d.shift(1).reindex(c.index, method="ffill")
         else:
             trend = pd.DataFrame(1.0, index=c.index, columns=c.columns)
         sig = pd.DataFrame(0.0, index=c.index, columns=c.columns)

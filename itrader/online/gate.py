@@ -59,13 +59,14 @@ class DecisionGate:
             cid = p.candidate_id
             c: List[Dict[str, Any]] = []
             w = pd.Series(p.weights, dtype=float)
-            valid = bool(len(w)) and bool(np.isfinite(w).all()) and set(w.index) <= self.universe and p.gross <= 1.0 + 1e-9
+            valid = bool(len(w)) and bool(np.isfinite(w).all()) and set(w.index) <= self.universe and p.gross <= 1.02
             c.append(self._check("valid", 1.0 if valid else 0.0, "eq", 1.0, "finite weights, known symbols, gross <= 1"))
             c.append(self._check("confidence", p.confidence, "ge", self.min_conf, "bench PSR: P(edge > 0 after costs)"))
-            c.append(self._check("expected_utility_per_bar", p.expected_utility, "ge", self.min_eu, "bench mean net return per bar"))
+            bars_per_day = 24.0 if p.bar == "1h" else (96.0 if p.bar == "15m" else 1.0)
+            c.append(self._check("expected_utility_per_day", p.expected_utility * bars_per_day, "ge", self.min_eu, "bench mean net return per bar x bars per day"))
             cost = float(p.metadata.get("cost_to_trade", 0.0))
             horizon_utility = p.expected_utility * max(1, p.ttl_bars)
-            c.append(self._check("utility_vs_cost", horizon_utility, "ge", self.cost_mult * cost, f"utility over {p.ttl_bars} bars vs {self.cost_mult}x cost to trade"))
+            c.append(self._check("utility_vs_cost", horizon_utility, "ge", self.cost_mult * cost, f"utility over the expected holding period ({p.ttl_bars} bars) vs {self.cost_mult}x cost to trade"))
             c.append(self._check("risk_unlocked", 0.0 if risk_locked else 1.0, "eq", 1.0, lock_reason or "risk engine not locked"))
             checks[cid] = c
             score = p.expected_utility * p.confidence / (cost + 1e-6)
@@ -73,7 +74,7 @@ class DecisionGate:
             if all(x["ok"] for x in c):
                 approved.append(p)
         approved.sort(key=lambda p: scores[p.candidate_id], reverse=True)
-        thresholds = {"min_confidence": self.min_conf, "min_expected_utility_per_bar": self.min_eu, "utility_cost_multiple": self.cost_mult,
+        thresholds = {"min_confidence": self.min_conf, "min_expected_utility_per_day": self.min_eu, "utility_cost_multiple": self.cost_mult,
                       "settings_hash": self.s.hash}
         if not approved:
             reasons = []

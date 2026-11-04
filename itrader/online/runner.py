@@ -99,6 +99,9 @@ class PaperRunner:
         self.by_name = {x.name: x for x in self.strategies}
 
     # ------------------------------------------------------------------ helpers
+    def _kill_present(self) -> bool:
+        return self.s.resolve(self.s.risk.kill_file).exists()
+
     def _save(self) -> None:
         self.state_path.write_text(json.dumps(self.state, indent=1, default=str))
 
@@ -141,7 +144,19 @@ class PaperRunner:
         sleeve_w = {k: pd.Series(v, dtype=float) for k, v in self.state["sleeve_weights"].items()}
         current_raw = sum((w for w in sleeve_w.values()), pd.Series(dtype=float)) if sleeve_w else pd.Series(dtype=float)
         frame = framer.frame(now, current=current_raw if len(current_raw) else None)
+        # marks and spreads from the live book where reachable, so fills and equity use the same prices;
+        # otherwise the freshest close from the store
         marks = self._marks(frame)
+        spreads: Dict[str, Any] = {}
+        if store is None:
+            for sym in list(marks):
+                try:
+                    b = self.broker.book(sym, marks.get(sym))
+                    spreads[sym] = b.get("spread_bps")
+                    if b.get("source") == "live" and b.get("mid"):
+                        marks[sym] = float(b["mid"])
+                except Exception:  # noqa: BLE001
+                    spreads[sym] = None
         marks.update({f"{k}{SPOT_SUFFIX}": v for k, v in list(marks.items())})
         equity = self.broker.equity(marks)
         self.risk.mark(equity, now)
@@ -169,29 +184,27 @@ class PaperRunner:
         pdec = self.portfolio.build(legs, hist, current=current_book, profiles=self.profiles, paper_stats=self.paper_stats()) if legs else None
         book_target = pdec.asset_weights if pdec is not None else pd.Series(dtype=float)
 
-        spreads = {}
-        for sym in set(leg_symbol(x) for x in book_target.index) | set(leg_symbol(x) for x in current_book.index):
-            try:
-                spreads[sym] = self.broker.book(sym, marks.get(sym)).get("spread_bps")
-            except Exception:  # noqa: BLE001
-                spreads[sym] = None
-        verdict = self.risk.check(book_target, current_book, now, quality=frame.quality, prices=frame.prices,
+        verdict = self.risk.check(book_target, current_book, now, quality=frame.quality, prices={k: v for k, v in marks.items() if not k.endswith(SPOT_SUFFIX)},
                                   spreads_bps={k: v for k, v in spreads.items()} | {f"{k}{SPOT_SUFFIX}": v for k, v in spreads.items()})
         cancelled = self.executor.cancel_all(now) if verdict.fast_cancel else 0
         report = self.executor.rebalance(verdict.approved, marks, now, reason="cycle")
-        report.cancelled = cancelled
+        report.cancelled += cancelled
+        # closed trades feed the cooldown rules (loss streaks); a flatten by the risk engine counts as a stop-out
+        seen = int(self.state.get("closed_trades_seen", 0))
+        new_trades = self.broker.closed_trades[seen:] if hasattr(self.broker, "closed_trades") else []
+        for tr in new_trades:
+            self.risk.on_trade_closed(float(tr.get("pnl", 0.0)), now, stopped=bool(verdict.flatten and not self._kill_present()))
+        self.state["closed_trades_seen"] = seen + len(new_trades)
 
         # funding on perps at settlement bars (8h) in paper
         fund_paid = 0.0
-        m1d = framer.markets()["1d"] if False else None  # placeholder to keep the call site explicit
-        if frame.market_summary.get("symbols"):
-            daily = framer.markets()["1d"]
-            if daily.funding is not None and len(daily.funding):
-                last_ts = daily.funding.index[-1]
-                if str(last_ts) != self.state.get("last_funding_ts"):
-                    rates = daily.funding.iloc[-1].dropna().to_dict()
-                    fund_paid = self.broker.apply_funding(rates, marks, now)
-                    self.state["last_funding_ts"] = str(last_ts)
+        funding = framer.store.funding_panel(list(self.s.data.universe))
+        if len(funding):
+            last_ts = funding.index[-1]
+            if str(last_ts) != self.state.get("last_funding_ts"):
+                if self.state.get("last_funding_ts") is not None:        # never charge the first cycle's history
+                    fund_paid = self.broker.apply_funding(funding.iloc[-1].dropna().to_dict(), marks, now, key=str(last_ts))
+                self.state["last_funding_ts"] = str(last_ts)
 
         eq_after = self.broker.equity(marks)
         ret = eq_after / equity - 1.0 if equity else 0.0

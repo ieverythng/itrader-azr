@@ -39,10 +39,10 @@ cycle, `dashboard` to render `data/online/runs/dashboard.html`.
 
 ## 4. If the CTO wants it
 
-Give him the zip (`itrader_online_branch.zip` next to the handover) or the patch file in it:
+Give him the zip (`itrader_online_branch.zip` in your Downloads) or the patch file in it:
 
 ```bash
-git am < itrader_online_branch/0002-online-full.patch
+git am < online-branch.patch
 ```
 
 applied on top of `agent/Watson-dev` recreates the branch exactly. He decides where it goes; you push nothing.

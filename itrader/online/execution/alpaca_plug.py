@@ -13,8 +13,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from ..data.feeds import _CTX, UA
+from ..data.universe import leg_symbol
 from ..settings import Settings, settings as default_settings
-from .broker import Broker, LiveDisabled, Order, OrderState, live_guard
+from .broker import Broker, Fill, LiveDisabled, Order, OrderState, live_guard
 
 PAPER = "https://paper-api.alpaca.markets/v2"
 LIVE = "https://api.alpaca.markets/v2"
@@ -48,8 +49,20 @@ class AlpacaBroker(Broker):
             raw = r.read().decode()
             return json.loads(raw) if raw else {}
 
+    @staticmethod
+    def venue_symbol(symbol: str) -> str:
+        """Book legs are Binance style ("BTCUSDT", "BTCUSDT.SPOT"); Alpaca crypto wants "BTC/USD" and has no perps.
+        Spot legs map; a perp leg is refused rather than silently turned into a spot trade."""
+        from ..data.universe import base_asset, is_spot
+
+        if symbol.endswith(".SPOT"):
+            return f"{base_asset(symbol)}/USD"
+        if symbol.endswith("USDT") or symbol.endswith("USD"):
+            raise ValueError(f"{symbol} is a perpetual leg; Alpaca has no perpetual futures, refusing to route it as spot")
+        return symbol        # an equity ticker passes through unchanged
+
     def dry_run(self, order: Order) -> Dict[str, Any]:
-        return {"method": "POST", "path": "/orders", "payload": {"symbol": order.symbol, "qty": f"{order.qty:.6f}", "side": order.side,
+        return {"method": "POST", "path": "/orders", "payload": {"symbol": self.venue_symbol(order.symbol), "qty": f"{order.qty:.6f}", "side": order.side,
                                                                   "type": "market", "time_in_force": "day", "client_order_id": f"itr-{order.id}"},
                 "endpoint": self.base, "guard": self.guard}
 
@@ -72,6 +85,10 @@ class AlpacaBroker(Broker):
                 continue
             res = self._request("GET", f"/orders:by_client_order_id?client_order_id=itr-{o.id}")
             st = res.get("status", "")
+            done = float(res.get("filled_qty", 0) or 0)
+            if done > o.filled_qty + 1e-12:
+                avg = float(res.get("filled_avg_price", 0) or 0)
+                o.fills.append(Fill(now.isoformat(timespec="milliseconds"), done - o.filled_qty, avg, 0.0, float(marks.get(leg_symbol(o.symbol)) or avg)))
             if st == "filled":
                 o.state, o.closed_at = OrderState.FILLED, now.isoformat(timespec="milliseconds")
             elif st == "partially_filled":
@@ -86,12 +103,26 @@ class AlpacaBroker(Broker):
         o = self._orders.get(order_id)
         if not o or not o.open or not o.meta.get("venue_order_id"):
             return False
-        self._request("DELETE", f"/orders/{o.meta['venue_order_id']}")
+        try:
+            self._request("DELETE", f"/orders/{o.meta['venue_order_id']}")
+        except LiveDisabled:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            o.error = f"cancel failed: {type(exc).__name__}: {exc}"
+            return False
         o.state, o.closed_at = OrderState.CANCELLED, now.isoformat(timespec="milliseconds")
         return True
 
     def cancel_all(self, now: datetime) -> int:
-        return sum(1 for o in list(self._orders.values()) if self.cancel(o.id, now))
+        n = 0
+        for o in list(self._orders.values()):
+            try:
+                n += 1 if self.cancel(o.id, now) else 0
+            except LiveDisabled:
+                raise
+            except Exception:  # noqa: BLE001
+                continue
+        return n
 
     def positions(self) -> Dict[str, float]:
         return {p["symbol"]: float(p["qty"]) for p in self._request("GET", "/positions")}

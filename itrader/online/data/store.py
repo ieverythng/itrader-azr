@@ -148,18 +148,21 @@ class DataStore:
         return added
 
     # ------------------------------------------------------------------ quality
-    def quality(self, symbol: str, bar: str, max_stale_bars: float = 2.0, now: Optional[datetime] = None) -> Quality:
+    def quality(self, symbol: str, bar: str, max_stale_bars: float = 2.0, now: Optional[datetime] = None, recent_bars: int = 200) -> Quality:
+        """Staleness is judged on the last bar; gaps, bad prints and jumps on the last `recent_bars`
+        (a 70% day three years ago is history, not a reason to refuse to trade today)."""
         df = self.load(symbol, bar)
         now = now or datetime.now(timezone.utc)
         reasons: List[str] = []
         if not len(df):
             return Quality(symbol, bar, 0, None, None, None, 0, 0, 0, False, ["no data"])
         step = pd.Timedelta(milliseconds=BAR_MS[bar])
-        d = df.ts.diff().dropna()
+        recent = df.tail(int(recent_bars))
+        d = recent.ts.diff().dropna()
         gap_bars = (d / step).round().astype(int) - 1
         gaps = int((gap_bars > 0).sum())
         largest = int(gap_bars.max()) if len(gap_bars) else 0
-        bad = int(((df.high < df.low) | (df.close <= 0) | (df.open <= 0) | ~np.isfinite(df.close)).sum())
+        bad = int(((recent.high < recent.low) | (recent.close <= 0) | (recent.open <= 0) | ~np.isfinite(recent.close)).sum())
         stale_s = (pd.Timestamp(now) - (df.ts.iloc[-1] + step)).total_seconds()
         if stale_s > max_stale_bars * step.total_seconds():
             reasons.append(f"stale by {stale_s / 60:.0f} min")
@@ -168,7 +171,7 @@ class DataStore:
         if bad:
             reasons.append(f"{bad} impossible prices")
         # a 1-bar move beyond 40% is almost always a bad print on these pairs
-        jumps = int((df.close.pct_change().abs() > 0.40).sum())
+        jumps = int((recent.close.pct_change().abs() > 0.40).sum())
         if jumps:
             reasons.append(f"{jumps} moves over 40% in one bar")
         return Quality(symbol, bar, len(df), str(df.ts.iloc[0]), str(df.ts.iloc[-1]), stale_s, gaps, largest, bad, not reasons, reasons)

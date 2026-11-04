@@ -72,9 +72,12 @@ def test_risk_stale_calendar_cooldown_spread(tmp_path):
     v = r.check(tgt, cur, NOW)                                  # inside the FOMC window (pre 30 min)
     assert v.blocked and v.approved["BTCUSDT"] == 0.1 and v.approved["ETHUSDT"] == -0.1 and v.approved["SOLUSDT"] == 0.0
     later = NOW + timedelta(hours=3)
-    q = {"BTCUSDT": Quality("BTCUSDT", "1d", 10, None, None, 99999, 0, 0, 0, False, ["stale by 999 min"])}
+    ok = lambda s: Quality(s, "1d", 10, None, None, 10.0, 0, 0, 0, True, [])  # noqa: E731
+    q = {"BTCUSDT": Quality("BTCUSDT", "1d", 10, None, None, 99999, 0, 0, 0, False, ["stale by 999 min"]), "ETHUSDT": ok("ETHUSDT"), "SOLUSDT": ok("SOLUSDT")}
     v = r.check(tgt, cur, later, quality=q)
     assert v.approved["BTCUSDT"] == 0.1 and v.approved["SOLUSDT"] == 0.1 and not v.flatten
+    v = r.check(tgt, cur, later, quality={"BTCUSDT": ok("BTCUSDT")})          # no record at all counts as bad
+    assert v.approved["SOLUSDT"] == 0.0 and v.approved["ETHUSDT"] == -0.1 and v.approved["BTCUSDT"] == 0.2
     r.on_trade_closed(-1.0, later, stopped=True)
     v = r.check(tgt, cur, later + timedelta(hours=1))
     assert v.blocked and "cooldown" in " ".join(v.reasons)

@@ -99,7 +99,9 @@ class MarketFramer:
             for sym, q in qh.items():
                 if not q.ok:
                     quality[sym] = q
-        prices = {sym: float(daily.close[sym].iloc[-1]) for sym in daily.close.columns}
+        # marks: the freshest close we have (the 1h panel when loaded), never the still-open daily bar's stale close
+        px_src = mk.get("1h", daily).close
+        prices = {sym: float(px_src[sym].iloc[-1]) for sym in px_src.columns if np.isfinite(px_src[sym].iloc[-1])}
         vols = {sym: float(v) for sym, v in daily.close.pct_change().ewm(span=30, min_periods=10).std().iloc[-1].items() if np.isfinite(v)}
         cur = current if current is not None else pd.Series(dtype=float)
 
@@ -121,16 +123,26 @@ class MarketFramer:
             sleeve_targets[st.name] = w
             if w.empty:
                 continue
+            g = float(w.abs().sum())
+            if g > 1.0:                                   # buffers can leave gross a hair above 1; the contract is <= 1
+                w = w / g
             prof = self.profiles.get(st.name, {})
             meta = prof.get("metadata", {}) if prof else {}
-            eu = float(prof.get("expected_net_utility", 0.0)) if prof else 0.0
+            dev = meta.get("dev") or {}
+            # expected utility of THIS trade: the bench's mean net return per bar is averaged over flat bars too,
+            # so condition on being in a position (divide by the share of bars with exposure)
+            eu_all = float(prof.get("expected_net_utility", 0.0)) if prof else 0.0
+            eu = eu_all / max(0.05, float(dev.get("exposure_share", 1.0) or 1.0))
             conf = float(prof.get("estimated_p_solve", 0.0)) if prof else 0.0
             cost = float((w.reindex(w.index).fillna(0.0) - cur.reindex(w.index).fillna(0.0)).abs().sum() * self.costs.per_side(st.instrument) * self.costs.legs(st.instrument))
-            ttl = 24 if st.bar == "1h" else 1
+            # expected holding period from the bench: exposed bars per round trip (two trade bars), capped at 30 days
+            cap = 30 * (24 if st.bar == "1h" else 1)
+            ttl = int(max(1, min(cap, round(2.0 * float(dev.get("bars_exposed", 0) or 0) / max(1.0, float(dev.get("trade_bars", 0) or 1))))))
             proposals.append(Proposal(
                 strategy=st.name, family_id=st.family_id, bar=st.bar, weights={k: float(v) for k, v in w.items()},
                 expected_utility=eu, confidence=conf, rationale=st.rationale(m, w), instrument=st.instrument, ttl_bars=ttl,
-                metadata={"regime_tags": summ["regime_tags"], "cost_to_trade": cost, "profile_stage": (meta.get("promotion") or {}).get("stage", "none"),
+                metadata={"regime_tags": summ["regime_tags"], "cost_to_trade": cost, "holding_bars": ttl, "expected_utility_unconditional": eu_all,
+                          "profile_stage": (meta.get("promotion") or {}).get("stage", "none"),
                           "dev_sharpe": (meta.get("dev") or {}).get("sharpe"), "holdout_sharpe": (meta.get("holdout") or {}).get("sharpe"),
                           "evidence_ratio": (meta.get("evidence") or {}).get("ratio"), "has_profile": bool(prof)}))
         # rank by utility x confidence and keep the small set the spec asks for

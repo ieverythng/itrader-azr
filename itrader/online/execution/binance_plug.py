@@ -20,9 +20,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from ..data.feeds import _CTX, UA
-from ..data.universe import leg_symbol
+from ..data.universe import is_spot, leg_symbol
 from ..settings import Settings, settings as default_settings
-from .broker import Broker, LiveDisabled, Order, OrderState, live_guard
+from .broker import Broker, Fill, LiveDisabled, Order, OrderState, live_guard
 
 FAPI = "https://fapi.binance.com"
 
@@ -62,12 +62,15 @@ class BinanceBroker(Broker):
 
     def dry_run(self, order: Order) -> Dict[str, Any]:
         """What would be sent, with the signature redacted. Never sends."""
+        if is_spot(order.symbol):
+            raise ValueError(f"{order.symbol} is a spot leg; this adapter is USDT-M futures only and will not route it")
         params = {"symbol": leg_symbol(order.symbol), "side": order.side.upper(), "type": "MARKET", "quantity": f"{order.qty:.6f}",
                   "newClientOrderId": f"itr-{order.id}"}
         return {"method": "POST", "path": "/fapi/v1/order", "params": params, "signed": bool(self._secret), "guard": self.guard}
 
     # ------------------------------------------------------------------ broker api
     def book(self, symbol: str, mark: Optional[float] = None) -> Dict[str, float]:
+        # public, unauthenticated endpoint: the one call that is not behind the live guard (no key, no order)
         d = json.loads(urllib.request.urlopen(urllib.request.Request(f"{FAPI}/fapi/v1/ticker/bookTicker?symbol={leg_symbol(symbol)}", headers=UA),
                                               timeout=10, context=_CTX).read().decode())
         bid, ask = float(d["bidPrice"]), float(d["askPrice"])
@@ -90,6 +93,10 @@ class BinanceBroker(Broker):
                 continue
             res = self._request("GET", "/fapi/v1/order", {"symbol": leg_symbol(o.symbol), "origClientOrderId": f"itr-{o.id}"})
             st = res.get("status")
+            done = float(res.get("executedQty", 0) or 0)
+            if done > o.filled_qty + 1e-12:               # record the venue's fill so remaining/traded/fees are right
+                avg = float(res.get("avgPrice", 0) or 0) or float(marks.get(leg_symbol(o.symbol)) or 0)
+                o.fills.append(Fill(now.isoformat(timespec="milliseconds"), done - o.filled_qty, avg, 0.0, float(marks.get(leg_symbol(o.symbol)) or avg)))
             if st == "FILLED":
                 o.state, o.closed_at = OrderState.FILLED, now.isoformat(timespec="milliseconds")
             elif st == "PARTIALLY_FILLED":
@@ -104,12 +111,26 @@ class BinanceBroker(Broker):
         o = self._orders.get(order_id)
         if not o or not o.open:
             return False
-        self._request("DELETE", "/fapi/v1/order", {"symbol": leg_symbol(o.symbol), "origClientOrderId": f"itr-{o.id}"})
+        try:
+            self._request("DELETE", "/fapi/v1/order", {"symbol": leg_symbol(o.symbol), "origClientOrderId": f"itr-{o.id}"})
+        except LiveDisabled:
+            raise
+        except Exception as exc:  # noqa: BLE001  (already filled, unknown order): record and move on
+            o.error = f"cancel failed: {type(exc).__name__}: {exc}"
+            return False
         o.state, o.closed_at = OrderState.CANCELLED, now.isoformat(timespec="milliseconds")
         return True
 
     def cancel_all(self, now: datetime) -> int:
-        return sum(1 for o in list(self._orders.values()) if self.cancel(o.id, now))
+        n = 0
+        for o in list(self._orders.values()):
+            try:
+                n += 1 if self.cancel(o.id, now) else 0
+            except LiveDisabled:
+                raise
+            except Exception:  # noqa: BLE001  one failure must not stop the kill switch
+                continue
+        return n
 
     def positions(self) -> Dict[str, float]:
         res = self._request("GET", "/fapi/v2/positionRisk", {})

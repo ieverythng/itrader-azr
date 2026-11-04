@@ -75,11 +75,16 @@ def test_executor_rebalance_and_min_notional(tmp_path):
 
 def test_live_adapters_refuse_without_all_locks(tmp_path, monkeypatch):
     s = load_settings()
-    for cls in (BinanceBroker, AlpacaBroker):
+    for cls, sym in ((BinanceBroker, "BTCUSDT"), (AlpacaBroker, "BTCUSDT.SPOT")):
         br = cls(s, root=tmp_path)
         with pytest.raises(LiveDisabled):
-            br.submit(Order("BTCUSDT", "buy", 0.01, 500), 50000.0, NOW)
-        assert not br.guard["open"] and br.dry_run(Order("BTCUSDT", "buy", 0.01, 500))["guard"]["open"] is False
+            br.submit(Order(sym, "buy", 0.01, 500), 50000.0, NOW)
+        assert not br.guard["open"] and br.dry_run(Order(sym, "buy", 0.01, 500))["guard"]["open"] is False
+    with pytest.raises(ValueError):            # a spot leg never reaches the futures API
+        BinanceBroker(s, root=tmp_path).dry_run(Order("BTCUSDT.SPOT", "buy", 0.01, 500))
+    with pytest.raises(ValueError):            # a perp leg is never routed to Alpaca as spot
+        AlpacaBroker(s, root=tmp_path).dry_run(Order("BTCUSDT", "buy", 0.01, 500))
+    assert AlpacaBroker.venue_symbol("BTCUSDT.SPOT") == "BTC/USD" and AlpacaBroker.venue_symbol("AAPL") == "AAPL"
     monkeypatch.setenv("ITRADER_LIVE", "1")
     monkeypatch.setenv("ITRADER_BINANCE_KEY", "k")
     monkeypatch.setenv("ITRADER_BINANCE_SECRET", "s")

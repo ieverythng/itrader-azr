@@ -2,18 +2,22 @@
 
 Realistic in the ways that matter for a paper record to mean something:
 * price = mid +/- (half spread + slippage), where the spread is the venue's live book ticker
-  spread when reachable and the settings value otherwise;
-* taker fee per side (spot and perp rates differ);
+  spread when reachable and sane, and the settings value otherwise;
+* taker fee per side (spot and perp rates differ); realised pnl is net of the closing fee;
 * a fill arrives `latency_ms` after the order is acknowledged, and with probability
   `partial_fill_prob` only a fraction arrives first;
-* perp positions pay or receive funding when `apply_funding` is called at settlement;
-* spot legs cannot go short; an order that would do so is rejected.
-Everything is deterministic given the order ids (the RNG is seeded per order), so a replay
-reproduces the same fills.
+* perp positions pay or receive funding when `apply_funding` is called at settlement, once per
+  settlement key;
+* spot legs cannot go short: checked at submit and again at every fill;
+* non-finite marks, quantities or rates are refused rather than booked.
+Fills are deterministic given the order ids (the RNG is seeded per order and fill number); the
+Executor derives ids from symbol, time and reason, so a replay reproduces the same fills.
 """
 from __future__ import annotations
 
 import json
+import math
+import os
 import random
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -24,6 +28,15 @@ from ..data.feeds import Feed
 from ..data.universe import is_spot, leg_symbol
 from ..settings import Settings, settings as default_settings
 from .broker import OPEN_STATES, Broker, Fill, Order, OrderState
+
+
+def mark_for(marks: Dict[str, float], symbol: str) -> Optional[float]:
+    """The usable mark for a book leg: its own key, else the data symbol's. None when absent or not finite."""
+    for key in (symbol, leg_symbol(symbol)):
+        v = marks.get(key)
+        if v is not None and math.isfinite(float(v)) and float(v) > 0:
+            return float(v)
+    return None
 
 
 class PaperBroker(Broker):
@@ -41,8 +54,10 @@ class PaperBroker(Broker):
         self.pos: Dict[str, float] = {}
         self.avg_cost: Dict[str, float] = {}
         self.realised: Dict[str, float] = {}
+        self.last_marks: Dict[str, float] = {}
         self.fees_paid = 0.0
         self.funding_paid = 0.0
+        self.funding_keys: List[str] = []
         self.orders: Dict[str, Order] = {}
         self.closed_trades: List[Dict[str, Any]] = []
         self._book_cache: Dict[str, Dict[str, float]] = {}
@@ -51,14 +66,16 @@ class PaperBroker(Broker):
 
     # ------------------------------------------------------------------ persistence
     def snapshot(self) -> Dict[str, Any]:
-        return {"cash": self.cash, "pos": self.pos, "avg_cost": self.avg_cost, "realised": self.realised, "fees_paid": self.fees_paid,
-                "funding_paid": self.funding_paid, "orders": [o.to_dict() for o in self.orders.values() if o.open],
-                "closed_trades": self.closed_trades[-500:]}
+        return {"cash": self.cash, "pos": self.pos, "avg_cost": self.avg_cost, "realised": self.realised, "last_marks": self.last_marks,
+                "fees_paid": self.fees_paid, "funding_paid": self.funding_paid, "funding_keys": self.funding_keys[-50:],
+                "orders": [o.to_dict() for o in self.orders.values() if o.open], "closed_trades": self.closed_trades[-500:]}
 
     def save(self) -> None:
         if self.state_path:
             self.state_path.parent.mkdir(parents=True, exist_ok=True)
-            self.state_path.write_text(json.dumps(self.snapshot(), indent=1))
+            tmp = self.state_path.with_suffix(".tmp")
+            tmp.write_text(json.dumps(self.snapshot(), indent=1))
+            os.replace(tmp, self.state_path)
 
     def load(self) -> None:
         d = json.loads(self.state_path.read_text())
@@ -66,9 +83,12 @@ class PaperBroker(Broker):
         self.pos = {k: float(v) for k, v in d.get("pos", {}).items()}
         self.avg_cost = {k: float(v) for k, v in d.get("avg_cost", {}).items()}
         self.realised = {k: float(v) for k, v in d.get("realised", {}).items()}
+        self.last_marks = {k: float(v) for k, v in d.get("last_marks", {}).items()}
         self.fees_paid = float(d.get("fees_paid", 0.0))
         self.funding_paid = float(d.get("funding_paid", 0.0))
+        self.funding_keys = list(d.get("funding_keys", []))
         self.closed_trades = list(d.get("closed_trades", []))
+        # open orders are not restored: a restart cancels them, which is the safe reading
 
     # ------------------------------------------------------------------ market
     def book(self, symbol: str, mark: Optional[float] = None) -> Dict[str, float]:
@@ -76,9 +96,11 @@ class PaperBroker(Broker):
         if self.feed is not None and bool(self.x.use_live_book):
             try:
                 b = self.feed.book_ticker(data_sym)
-                out = {"bid": b["bid"], "ask": b["ask"], "mid": b["mid"], "spread_bps": b["spread_bps"], "source": "live"}
-                self._book_cache[data_sym] = out
-                return out
+                bid, ask = float(b["bid"]), float(b["ask"])
+                if math.isfinite(bid) and math.isfinite(ask) and 0 < bid <= ask:
+                    out = {"bid": bid, "ask": ask, "mid": (bid + ask) / 2, "spread_bps": 1e4 * (ask - bid) / ((ask + bid) / 2), "source": "live"}
+                    self._book_cache[data_sym] = out
+                    return out
             except Exception:  # noqa: BLE001
                 pass
         if data_sym in self._book_cache and mark is None:
@@ -88,22 +110,32 @@ class PaperBroker(Broker):
         return {"bid": m * (1 - hs), "ask": m * (1 + hs), "mid": m, "spread_bps": 2 * self.costs.half_spread_bps, "source": "settings"}
 
     # ------------------------------------------------------------------ orders
+    def _reduces(self, order: Order) -> bool:
+        p = self.pos.get(order.symbol, 0.0)
+        return (p > 0 and order.side == "sell") or (p < 0 and order.side == "buy")
+
     def submit(self, order: Order, mark: float, now: datetime) -> Order:
-        if order.qty <= 0 or mark <= 0:
-            order.state, order.error = OrderState.REJECTED, "non-positive qty or mark"
+        ok_mark = mark is not None and math.isfinite(float(mark)) and float(mark) > 0
+        if not (order.qty > 0 and math.isfinite(order.qty) and ok_mark and math.isfinite(order.notional)):
+            order.state, order.error = OrderState.REJECTED, "non-finite or non-positive qty, notional or mark"
         elif is_spot(order.symbol) and order.side == "sell" and order.qty > self.pos.get(order.symbol, 0.0) + 1e-12:
             order.state, order.error = OrderState.REJECTED, "spot leg cannot go short"
-        elif order.notional < float(self.x.min_order_notional):
+        elif order.notional < float(self.x.min_order_notional) and not self._reduces(order):
             order.state, order.error = OrderState.REJECTED, f"below min notional {self.x.min_order_notional}"
         else:
             order.state, order.acked_at = OrderState.ACKED, now.isoformat(timespec="milliseconds")
-            order.meta["mark_at_submit"] = mark
+            order.meta["mark_at_submit"] = float(mark)
         self.orders[order.id] = order
         if order.state == OrderState.REJECTED:
             order.closed_at = now.isoformat(timespec="milliseconds")
         return order
 
     def _fill(self, o: Order, qty: float, mark: float, now: datetime) -> None:
+        if is_spot(o.symbol) and o.side == "sell":
+            qty = min(qty, max(0.0, self.pos.get(o.symbol, 0.0)))
+            if qty <= 1e-12:
+                o.state, o.closed_at, o.error = OrderState.REJECTED, now.isoformat(timespec="milliseconds"), "spot leg cannot go short (at fill)"
+                return
         b = self.book(o.symbol, mark)
         half = max(0.0, b["spread_bps"] / 2.0) / 1e4
         slip = self.costs.slippage_bps / 1e4
@@ -113,12 +145,11 @@ class PaperBroker(Broker):
         signed = qty if o.side == "buy" else -qty
         prev = self.pos.get(o.symbol, 0.0)
         new = prev + signed
-        # realised pnl when reducing or flipping
         if prev != 0 and (signed * prev) < 0:
             closed = min(abs(signed), abs(prev))
-            pnl = closed * (px - self.avg_cost.get(o.symbol, px)) * (1 if prev > 0 else -1)
+            pnl = closed * (px - self.avg_cost.get(o.symbol, px)) * (1 if prev > 0 else -1) - fee * (closed / qty)
             self.realised[o.symbol] = self.realised.get(o.symbol, 0.0) + pnl
-            self.closed_trades.append({"ts": now.isoformat(timespec="seconds"), "symbol": o.symbol, "qty": closed, "pnl": pnl, "reason": o.reason})
+            self.closed_trades.append({"ts": now.isoformat(timespec="seconds"), "symbol": o.symbol, "qty": closed, "pnl": pnl, "reason": o.reason, "order_id": o.id})
             if abs(new) < 1e-12 or (new * prev) < 0:
                 self.avg_cost[o.symbol] = px if abs(new) > 1e-12 else 0.0
         else:
@@ -129,6 +160,7 @@ class PaperBroker(Broker):
             self.pos.pop(o.symbol, None)
         self.cash -= signed * px + fee
         self.fees_paid += fee
+        self.last_marks[o.symbol] = b["mid"]
         o.fills.append(Fill(now.isoformat(timespec="milliseconds"), qty, px, fee, b["mid"]))
         if o.remaining <= 1e-12:
             o.state, o.closed_at = OrderState.FILLED, now.isoformat(timespec="milliseconds")
@@ -145,16 +177,16 @@ class PaperBroker(Broker):
             acked = datetime.fromisoformat(o.acked_at) if o.acked_at else now
             if now < acked + lat:
                 continue
-            mark = marks.get(leg_symbol(o.symbol)) or marks.get(o.symbol)
-            if not mark:
+            mark = mark_for(marks, o.symbol)
+            if mark is None:
                 if now > acked + ttl:
-                    o.state, o.closed_at, o.error = OrderState.EXPIRED, now.isoformat(timespec="milliseconds"), "no mark"
+                    o.state, o.closed_at, o.error = OrderState.EXPIRED, now.isoformat(timespec="milliseconds"), "no usable mark"
                     changed.append(o)
                 continue
             rng = random.Random(f"{o.id}:{len(o.fills)}")
             partial = o.state == OrderState.ACKED and rng.random() < float(self.x.partial_fill_prob)
             qty = o.remaining * (rng.uniform(float(self.x.partial_fill_min), 0.95) if partial else 1.0)
-            self._fill(o, qty, float(mark), now)
+            self._fill(o, qty, mark, now)
             changed.append(o)
         self.save()
         return changed
@@ -176,30 +208,45 @@ class PaperBroker(Broker):
     def positions(self) -> Dict[str, float]:
         return dict(self.pos)
 
+    def _mark(self, marks: Dict[str, float], sym: str) -> Optional[float]:
+        m = mark_for(marks, sym)
+        if m is not None:
+            self.last_marks[sym] = m
+            return m
+        return self.last_marks.get(sym)       # last known, never the average cost (that would hide a loss)
+
     def equity(self, marks: Dict[str, float]) -> float:
         val = self.cash
         for sym, q in self.pos.items():
-            m = marks.get(leg_symbol(sym)) or marks.get(sym) or self.avg_cost.get(sym, 0.0)
+            m = self._mark(marks, sym)
+            if m is None:
+                return float("nan")           # an unpriced position: the risk engine locks on a NaN equity
             val += q * m
         return float(val)
 
     def weights(self, marks: Dict[str, float]) -> Dict[str, float]:
         eq = self.equity(marks)
-        if eq <= 0:
+        if not math.isfinite(eq) or eq <= 0:
             return {}
-        return {sym: q * (marks.get(leg_symbol(sym)) or marks.get(sym) or 0.0) / eq for sym, q in self.pos.items()}
+        return {sym: q * (self._mark(marks, sym) or 0.0) / eq for sym, q in self.pos.items()}
 
-    def apply_funding(self, rates: Dict[str, float], marks: Dict[str, float], now: datetime) -> float:
-        """Perp legs: long pays when the rate is positive. Returns the amount paid (negative = received)."""
+    def apply_funding(self, rates: Dict[str, float], marks: Dict[str, float], now: datetime, key: Optional[str] = None) -> float:
+        """Perp legs: long pays when the rate is positive. Idempotent per `key` (the settlement time).
+        Returns the amount paid (negative = received)."""
+        if key is not None and key in self.funding_keys:
+            return 0.0
         paid = 0.0
         for sym, q in self.pos.items():
             if is_spot(sym):
                 continue
             rate = rates.get(sym)
-            m = marks.get(sym)
-            if rate is None or not m:
+            m = mark_for(marks, sym)
+            if rate is None or m is None or not math.isfinite(float(rate)):
                 continue
-            paid += q * m * rate
+            paid += q * m * float(rate)
         self.cash -= paid
         self.funding_paid += paid
+        if key is not None:
+            self.funding_keys.append(key)
+        self.save()
         return paid
