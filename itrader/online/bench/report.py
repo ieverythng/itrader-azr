@@ -68,10 +68,13 @@ def render(results: List[Dict[str, Any]], equities: Dict[str, pd.Series], title:
             f"<td>{_pct(d['cagr'])}</td><td>{_num(d['sharpe'])}</td><td>{_pct(d['dsr'], 0)}</td><td>{_pct(d['max_dd'])}</td>"
             f"<td>{_pct(h['cagr'])}</td><td class='{_cls(h['sharpe'] > 0)}'>{_num(h['sharpe'])}</td><td>{_pct(h['max_dd'])}</td>"
             f"<td>{_pct(wf['folds_positive_share'], 0)}</td><td>{_num(d['turnover_per_year'], 0)}x</td><td>{_pct(min(d['cost_share'], 9.99), 0)}</td>"
-            f"<td>{_num(d['evidence'].get('years_needed'), 1)}y</td><td class='{_cls(st['stage'] != 'bench')}'>{st['stage']}</td></tr>")
+            f"<td>{_num(d['evidence'].get('years_needed'), 1)}y</td>"
+            f"<td>{html.escape(str(r.get('execution_style', 'taker')))} {_pct((r.get('execution') or {}).get('fill_rate'), 0) if r.get('execution_style') == 'maker' else ''}</td>"
+            f"<td class='muted'>{_num((r.get('alt') or {}).get('dev', {}).get('sharpe'))} / {_num((r.get('alt') or {}).get('holdout', {}).get('sharpe'))}</td>"
+            f"<td class='{_cls(st['stage'] != 'bench')}'>{st['stage']}</td></tr>")
     table = ("<table><tr><th>strategy</th><th>dev CAGR</th><th>dev Sharpe</th><th>DSR</th><th>dev maxDD</th>"
              "<th>holdout CAGR</th><th>holdout Sharpe</th><th>holdout maxDD</th><th>folds +</th><th>turnover/yr</th><th>cost share</th>"
-             "<th>evidence</th><th>stage</th></tr>" + "".join(rows) + "</table>")
+             "<th>evidence</th><th>execution, fill rate</th><th>other style: dev / holdout Sharpe</th><th>stage</th></tr>" + "".join(rows) + "</table>")
     cards = []
     for r in results:
         wf, st = r["walk_forward"], r["promotion"]

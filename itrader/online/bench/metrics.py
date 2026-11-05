@@ -190,7 +190,8 @@ def summarize(res: BacktestResult, n_trials: int = 1, participation: float = 0.0
         "bars": n, "years": years, "bars_exposed": exposed, "exposure_share": exposed / n if n else 0.0,
         "cagr": cagr(net, ppy), "total_return": float((1.0 + net.fillna(0.0)).prod() - 1.0),
         "ann_vol": ann_vol(net, ppy), "sharpe": sharpe(net, ppy), "sharpe_period": sr_p,
-        "sortino": float(mu / net[net < 0].std(ddof=1) * math.sqrt(ppy)) if (net < 0).sum() > 2 and net[net < 0].std(ddof=1) > 0 else 0.0,
+        # downside deviation from zero over all bars (not the spread of the losing bars around their own mean)
+        "sortino": float(mu / math.sqrt(float((net.clip(upper=0.0) ** 2).mean())) * math.sqrt(ppy)) if n > 2 and float((net.clip(upper=0.0) ** 2).mean()) > 0 else 0.0,
         "max_dd": max_drawdown(net), "worst_day": float(daily.min()) if len(daily) else 0.0,
         "best_day": float(daily.max()) if len(daily) else 0.0,
         "hit_rate_days": float((daily > 0).sum() / max(1, (daily != 0).sum())),
@@ -201,6 +202,8 @@ def summarize(res: BacktestResult, n_trials: int = 1, participation: float = 0.0
         "psr": probabilistic_sharpe(sr_p, n, sk, ku, 0.0),
         "mean_net_per_bar": mu,
     }
+    if res.meta:
+        out["execution"] = {k: (float(v) if isinstance(v, (int, float)) else v) for k, v in res.meta.items()}
     out.update(deflated_sharpe(sr_p, n, sk, ku, n_trials))
     out["evidence"] = evidence_meter(sr_p, sk, ku, ppy, n, trades_per_bar=trades / n if n else 0.0)
     if close is not None:

@@ -11,6 +11,7 @@
   unlock      clear a drawdown lock (operator action, logged)
   kill        create the kill file (the loop flattens and stops opening risk); --remove to delete it
   settings    print the effective settings and their hash
+  plan        project an account forward from the measured return record (--capital, --monthly, --horizons, --source)
 """
 from __future__ import annotations
 
@@ -25,7 +26,11 @@ from .settings import load_settings
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="python -m itrader.online", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["sync", "bench", "frame", "paper", "replay", "dashboard", "status", "sleeve", "unlock", "kill", "settings"])
+    ap.add_argument("command", choices=["sync", "bench", "frame", "paper", "replay", "dashboard", "status", "sleeve", "unlock", "kill", "settings", "plan"])
+    ap.add_argument("--capital", type=float, default=None, help="plan: starting amount (default: [general] equity_start)")
+    ap.add_argument("--monthly", type=float, default=0.0, help="plan: amount added every 30 days")
+    ap.add_argument("--horizons", default="1,3,5,10", help="plan: years to report, comma separated")
+    ap.add_argument("--source", default="workbench", help="plan: which measured return stream to project (workbench, equal_weight, btc_vol_matched, btc, ...)")
     ap.add_argument("--settings", help="override settings file (or set ITRADER_ONLINE_SETTINGS)")
     ap.add_argument("--years", type=float, default=None)
     ap.add_argument("--cycles", type=int, default=None)
@@ -56,6 +61,41 @@ def main(argv=None) -> int:
         from .bench.run import run_bench
 
         run_bench(s, names=a.strategies.split(",") if a.strategies else None)
+        return 0
+    if a.command == "plan":
+        import pandas as pd
+
+        from .bench.stress import block_bootstrap, wealth_paths, wealth_table
+
+        p = s.resolve(s.general.out_root) / "bench" / "portfolio_returns.parquet"
+        if not p.exists():
+            print("no portfolio returns yet: run `python -m itrader.online bench` first")
+            return 1
+        df = pd.read_parquet(p)
+        if a.source not in df.columns:
+            print(f"unknown source '{a.source}'. Available: {', '.join(df.columns)}")
+            return 1
+        r = df[a.source].dropna()
+        cap = float(a.capital if a.capital is not None else s.general.equity_start)
+        years = [int(x) for x in str(a.horizons).split(",") if x.strip()]
+        plan = wealth_paths(r, cap, float(a.monthly), years, int(s.bench.get("bootstrap_block_days", 20)), int(s.bench.get("bootstrap_draws", 2000)))
+        bs = block_bootstrap(r, int(s.bench.get("bootstrap_block_days", 20)), int(s.bench.get("bootstrap_draws", 2000)))
+        text = "\n".join([
+            f"# Wealth plan: `{a.source}`", "",
+            f"Built from {len(r)} days of measured, out-of-sample daily returns ({r.index[0].date()} to {r.index[-1].date()}), resampled in blocks.",
+            (f"Measured record: median {100 * bs['cagr']['p50']:.1f}% a year, bad case {100 * bs['cagr']['p05']:.1f}%, good case {100 * bs['cagr']['p95']:.1f}%; "
+             f"chance the record is a losing one {100 * bs['p_losing_record']:.0f}%.") if "cagr" in bs else "",
+            "", wealth_table(plan, str(s.general.base_currency)), "",
+            "How to read it. \"Paid in\" is what you would have with no return at all: the saving alone. The middle column is the typical",
+            "outcome if the future resembled the measured past; the bad and good cases are the 1-in-20 outcomes either side. Where the",
+            "middle sits close to \"paid in\", the saving is doing the work and the trading is adding little; where it sits below, the",
+            "trading is costing money. These ranges are too narrow at both ends: a strategy can stop working altogether, and no resample",
+            "of the years in which it worked contains that. This is a projection of a measurement, not a forecast and not advice.",
+        ])
+        out_path = s.resolve(s.general.out_root) / f"wealth_plan_{a.source}.md"
+        out_path.write_text(text + "\n")
+        print(text)
+        print(f"\nwritten to {out_path}")
         return 0
     if a.command == "sleeve":
         from .strategies import PredictionSleeve

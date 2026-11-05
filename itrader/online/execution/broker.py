@@ -48,7 +48,8 @@ class Order:
     qty: float
     notional: float
     reason: str = ""
-    type: str = "market"
+    type: str = "market"                # "market" (taker) | "limit" (post-only, rests until filled, cancelled or chased)
+    limit_price: Optional[float] = None
     id: str = field(default_factory=lambda: uuid.uuid4().hex[:12])
     state: OrderState = OrderState.NEW
     created: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat(timespec="milliseconds"))
@@ -80,7 +81,7 @@ class Order:
         return self.state in OPEN_STATES
 
     def to_dict(self) -> Dict[str, Any]:
-        return {"id": self.id, "symbol": self.symbol, "side": self.side, "qty": self.qty, "notional": self.notional, "type": self.type,
+        return {"id": self.id, "symbol": self.symbol, "side": self.side, "qty": self.qty, "notional": self.notional, "type": self.type, "limit_price": self.limit_price,
                 "state": self.state.value, "created": self.created, "acked_at": self.acked_at, "closed_at": self.closed_at, "reason": self.reason,
                 "filled_qty": self.filled_qty, "avg_price": self.avg_price, "fees": self.fees,
                 "fills": [{"ts": f.ts, "qty": f.qty, "price": f.price, "fee": f.fee, "mark": f.mark, "slippage_bps": f.slippage_bps} for f in self.fills],

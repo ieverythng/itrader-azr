@@ -34,6 +34,14 @@ A no-edge bettor at an implied 98.7% wins 16 in a row 81% of the time. To reject
 from a streak alone needs 229 straight wins. `itrader.online.bench.binary_evidence(0.987, 16)`
 prints this. Streaks are not evidence; records of known length with known variance are.
 
+## The benchmark question
+
+Passing the ladder says a strategy has a record that is unlikely to be luck. It does not say the strategy is worth
+running. For that, look at two more numbers the bench prints for every sleeve and for the portfolio: alpha against
+BTC with its t-statistic (below 2 means it could be chance), and the vol-matched BTC line in the portfolio table.
+Over 2023 to 2026 holding BTC at the portfolio's own risk made 8.5% a year; a strategy that cannot beat that on a
+risk-adjusted basis is complexity without reward. As of the second round nothing here does.
+
 ## Demotion
 
 Automatic, each cycle, through the Workbench allocator: a sleeve's capital share is its capability

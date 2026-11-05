@@ -181,13 +181,16 @@ class PaperRunner:
         if len(pr):
             hist = pd.concat([hist, pr.reindex(columns=hist.columns)]).sort_index() if len(hist) else pr
         current_book = self.executor.current_weights(marks)
-        pdec = self.portfolio.build(legs, hist, current=current_book, profiles=self.profiles, paper_stats=self.paper_stats()) if legs else None
+        pdec = self.portfolio.build(legs, hist, current=current_book, profiles=self.profiles, paper_stats=self.paper_stats(),
+                                    regime=frame.regime) if legs else None
         book_target = pdec.asset_weights if pdec is not None else pd.Series(dtype=float)
 
         verdict = self.risk.check(book_target, current_book, now, quality=frame.quality, prices={k: v for k, v in marks.items() if not k.endswith(SPOT_SUFFIX)},
                                   spreads_bps={k: v for k, v in spreads.items()} | {f"{k}{SPOT_SUFFIX}": v for k, v in spreads.items()})
         cancelled = self.executor.cancel_all(now) if verdict.fast_cancel else 0
-        report = self.executor.rebalance(verdict.approved, marks, now, reason="cycle")
+        # anything the risk engine forced (flatten, locks, reductions only) goes as a taker; the rest follows [execution] style
+        report = self.executor.rebalance(verdict.approved, marks, now, reason="cycle", ranges=frame.ranges,
+                                         urgent=bool(verdict.flatten or verdict.blocked))
         report.cancelled += cancelled
         # closed trades feed the cooldown rules (loss streaks); a flatten by the risk engine counts as a stop-out
         seen = int(self.state.get("closed_trades_seen", 0))
@@ -244,6 +247,18 @@ class PaperRunner:
         bad = [k for k, v in frame.quality.items() if not v.ok]
         if bad:
             self.alerts.send("stale_data", f"data not ok for {', '.join(bad)}", {k: frame.quality[k].reasons for k in bad})
+        # one summary per UTC day, at the first cycle of the day
+        today = now.date().isoformat()
+        if self.state.get("summary_day") != today:
+            if self.state.get("summary_day") is not None:
+                prev = float(self.state.get("summary_equity") or eq_after)
+                recent = self.state["paper_returns"][-24:]
+                self.alerts.send("daily_summary", f"equity {eq_after:,.2f} ({eq_after / prev - 1.0:+.2%} since the last summary), gross {verdict.approved.abs().sum():.2f}, "
+                                                  f"regime {frame.regime}, {self.state['cycles']} cycles, "
+                                                  f"{'LOCKED: ' + self.risk.state.lock_reason if self.risk.state.locked_until else 'risk ok'}",
+                                 {"equity": eq_after, "previous": prev, "cycles_last_day": len(recent), "sleeves": pdec.sleeve_capital if pdec is not None else {}})
+            self.state["summary_day"], self.state["summary_equity"] = today, eq_after
+            self._save()
         d = rec.to_dict()
         self.log(f"[{now:%Y-%m-%d %H:%M}] eq {eq_after:,.2f} ({ret:+.3%}) | {gd.reason} | gross {verdict.approved.abs().sum():.2f} | "
                  f"orders {len(report.orders)} fees {report.fees:.2f} | {'; '.join(verdict.reasons) or 'risk ok'}")

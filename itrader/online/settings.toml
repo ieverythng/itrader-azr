@@ -19,7 +19,9 @@ max_stale_bars = 2.0           # Quality marks data stale after this many bars w
 [costs]
 fee_bps = 5.0                  # USDT-M perp taker fee per side (Binance base tier)
 spot_fee_bps = 10.0            # spot taker per side without BNB discount
-maker_fee_bps = 2.0
+maker_fee_bps = 2.0            # USDT-M perp maker fee per side (base tier)
+maker_through_bps = 1.0        # a resting order fills only if the market trades this far THROUGH its price
+maker_max_wait_bars = 1        # bars (bench) or cycles (paper) a resting order waits before crossing as a taker
 half_spread_bps = 1.0          # top-10 pairs; live value comes from the book ticker
 slippage_bps = 2.0             # market impact at the sizes this runs at
 
@@ -29,6 +31,11 @@ fold_days = 182                # walk-forward fold length on the development per
 min_history_days = 365
 participation = 0.01           # share of a pair's daily volume we allow ourselves when estimating capacity
 default_n_trials = 1
+sim_rebalance_days = 7         # walk-forward portfolio simulation: re-allocate this often, using the past only
+sim_min_history_days = 365     # history needed before the first simulated allocation
+bootstrap_draws = 2000
+bootstrap_block_days = 20
+stress_cost_multiples = [1.0, 2.0, 3.0]
 
 [gates.bench_to_paper]
 dsr_min = 0.90                 # deflated Sharpe on the development period
@@ -70,6 +77,8 @@ min_weight = 0.0
 cash_floor = 0.10              # WAIT/cash always keeps at least this share
 cash_score = 0.0               # cash's own score: zero return, zero risk
 evidence_discount = true       # weights scaled by the evidence ratio (how much of the needed record exists)
+regime_aware = false           # score sleeves on their record in today's regime; the bench reports whether this helps out of sample
+regime_shrink_days = 180       # a regime's record gets weight n / (n + this) against the overall record
 
 [gate]
 min_confidence = 0.55
@@ -98,6 +107,7 @@ no_trade_windows_utc = []      # e.g. ["2026-12-10T18:30/2026-12-10T20:00"]
 fast_cancel_move_pct = 0.04    # a move of this size inside one cycle triggers the fast cancel path
 
 [execution]
+style = "maker"                # maker: resting limit orders at the touch with taker fallback; taker: cross at once. Risk-driven exits are always taker.
 broker = "paper"
 latency_ms = 250
 partial_fill_prob = 0.15
@@ -132,4 +142,5 @@ dashboard = "data/online/runs/dashboard.html"
 [changelog]
 entries = [
   "2026-11-05 v0.1  first version, written with the online build (bench, portfolio, gate, risk, paper execution)",
+  "2026-11-05 v0.2  [execution] style = maker (resting limit orders, taker fallback); [costs] maker_through_bps, maker_max_wait_bars; [bench] walk-forward portfolio simulation, bootstrap and cost stress settings; [allocator] regime_aware (off: it did not help out of sample) and regime_shrink_days",
 ]

@@ -45,12 +45,18 @@ def walk_forward(res: BacktestResult, n_trials: int = 1, holdout_days: int = 182
         res = res.slice(idx[warmup_bars], None)
         idx = res.net.index
     sp = split_points(idx, holdout_days, fold_days)
+
+    def part(a, b):
+        """Bars in [a, b): half open, so no bar is counted in two periods."""
+        sub = idx[(idx >= a if a is not None else True) & (idx < b if b is not None else True)]
+        return res.slice(sub[0], sub[-1]) if len(sub) else res.slice(idx[0], idx[0])
+
     full = summarize(res, n_trials, participation, close, volume)
-    dev = summarize(res.slice(None, sp["dev_end"]), n_trials, participation, close, volume) if sp["dev_end"] is not None else full
-    hold = summarize(res.slice(sp["holdout_start"], None), n_trials, participation, close, volume) if sp["holdout_start"] is not None else full
+    dev = summarize(part(None, sp["dev_end"]), n_trials, participation, close, volume) if sp["dev_end"] is not None else full
+    hold = summarize(part(sp["holdout_start"], None), n_trials, participation, close, volume) if sp["holdout_start"] is not None else full
     folds = []
     for a, b in sp["folds"]:
-        s = summarize(res.slice(a, b), n_trials, participation)
+        s = summarize(part(a, b), n_trials, participation)
         folds.append({"start": str(a.date()), "end": str(b.date()), "net": s["total_return"], "sharpe": s["sharpe"],
                       "max_dd": s["max_dd"], "bars": s["bars"], "turnover_per_year": s["turnover_per_year"]})
     pos = [f for f in folds if f["net"] > 0]

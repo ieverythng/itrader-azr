@@ -119,6 +119,17 @@ class DataStore:
         if start >= until:
             return 0
         new = self.feed.funding(symbol, start, until)
+        # The Binance archive is monthly and runs up to a month behind. Top the tail up from OKX's public history
+        # (same 8-hourly schedule; a close proxy, not the same venue) so carry is not starved of recent funding.
+        last = new.ts.iloc[-1] if len(new) else (have.ts.iloc[-1] if len(have) else None)
+        if last is None or (pd.Timestamp(until) - last) > pd.Timedelta(hours=16):
+            try:
+                gap_from = (last.to_pydatetime() + timedelta(hours=1)) if last is not None else start
+                extra = OKX().funding(symbol, gap_from, until)
+                if len(extra):
+                    new = pd.concat([new, extra]).drop_duplicates("ts").sort_values("ts")
+            except Exception:  # noqa: BLE001
+                pass
         if not len(new):
             return 0
         df = pd.concat([have, new]).drop_duplicates("ts").sort_values("ts").reset_index(drop=True)

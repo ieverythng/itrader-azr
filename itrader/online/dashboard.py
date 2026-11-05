@@ -36,6 +36,11 @@ def render_dashboard(out_dir: Path, s: Optional[Settings] = None, sleeve_status:
     wait_rate = sum(1 for r in recs if r.get("wait_selected")) / len(recs) if recs else 0.0
     blocks = sum(1 for r in recs if r.get("risk_decisions", {}).get("adjustments")) / len(recs) if recs else 0.0
     fees = sum(r.get("executor_action", {}).get("fees", 0.0) for r in recs)
+    mk = [r.get("executor_action", {}).get("maker") or {} for r in recs]
+    mk_n, tk_n = sum(m.get("maker_notional", 0.0) for m in mk), sum(m.get("taker_notional", 0.0) for m in mk)
+    maker_line = (f" Maker share of traded notional {100 * mk_n / (mk_n + tk_n):.0f}% ({sum(m.get('posted', 0) for m in mk)} posted, "
+                  f"{sum(m.get('filled_since_last_cycle', 0) for m in mk)} filled resting, {sum(m.get('chased_as_taker', 0) for m in mk)} chased).") if (mk_n + tk_n) > 0 else ""
+    regime = ((recs[-1].get("metadata") or {}).get("market_summary") or {}).get("regime") if recs else None
     last = recs[-1] if recs else {}
     port = (last.get("metadata") or {}).get("portfolio") or {}
     rows = "".join(
@@ -54,7 +59,8 @@ def render_dashboard(out_dir: Path, s: Optional[Settings] = None, sleeve_status:
     lock = risk.get("locked_until")
     return (f"<!doctype html><html><head><meta charset='utf-8'><title>iTRADER online</title><style>{CSS}</style></head><body>"
             f"<h1>iTRADER online: paper</h1><p class='sub'>mode {html.escape(str(s.general.mode))}, settings {s.hash}, cycles {state.get('cycles', 0)}, "
-            f"last equity {state.get('last_equity') or 0:,.2f}, WAIT rate {100 * wait_rate:.0f}%, cycles with a risk adjustment {100 * blocks:.0f}%, fees paid {fees:,.2f}. "
+            f"last equity {state.get('last_equity') or 0:,.2f}, WAIT rate {100 * wait_rate:.0f}%, cycles with a risk adjustment {100 * blocks:.0f}%, fees paid {fees:,.2f}."
+            f"{html.escape(maker_line)} Regime: {html.escape(str(regime))}. "
             f"<b class='{'bad' if lock else 'ok'}'>{'LOCKED: ' + html.escape(str(risk.get('lock_reason'))) if lock else 'risk engine unlocked'}</b>"
             f"{' | cooldown until ' + html.escape(str(risk.get('cooldown_until'))) if risk.get('cooldown_until') else ''}</p>"
             f"{equity_svg(eq) if len(eq) > 1 else '<p class=muted>no equity history yet</p>'}"

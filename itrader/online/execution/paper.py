@@ -42,6 +42,7 @@ def mark_for(marks: Dict[str, float], symbol: str) -> Optional[float]:
 class PaperBroker(Broker):
     name = "paper"
     live = False
+    supports_limit = True               # resting post-only orders, filled against the traded range since they were placed
 
     def __init__(self, s: Optional[Settings] = None, feed: Optional[Feed] = None, state_path: Optional[Path] = None,
                  equity_start: Optional[float] = None) -> None:
@@ -118,6 +119,8 @@ class PaperBroker(Broker):
         ok_mark = mark is not None and math.isfinite(float(mark)) and float(mark) > 0
         if not (order.qty > 0 and math.isfinite(order.qty) and ok_mark and math.isfinite(order.notional)):
             order.state, order.error = OrderState.REJECTED, "non-finite or non-positive qty, notional or mark"
+        elif order.type == "limit" and not (order.limit_price is not None and math.isfinite(float(order.limit_price)) and float(order.limit_price) > 0):
+            order.state, order.error = OrderState.REJECTED, "limit order without a usable price"
         elif is_spot(order.symbol) and order.side == "sell" and order.qty > self.pos.get(order.symbol, 0.0) + 1e-12:
             order.state, order.error = OrderState.REJECTED, "spot leg cannot go short"
         elif order.notional < float(self.x.min_order_notional) and not self._reduces(order):
@@ -130,17 +133,25 @@ class PaperBroker(Broker):
             order.closed_at = now.isoformat(timespec="milliseconds")
         return order
 
-    def _fill(self, o: Order, qty: float, mark: float, now: datetime) -> None:
+    def _fill(self, o: Order, qty: float, mark: float, now: datetime, limit: bool = False) -> None:
         if is_spot(o.symbol) and o.side == "sell":
             qty = min(qty, max(0.0, self.pos.get(o.symbol, 0.0)))
             if qty <= 1e-12:
                 o.state, o.closed_at, o.error = OrderState.REJECTED, now.isoformat(timespec="milliseconds"), "spot leg cannot go short (at fill)"
                 return
-        b = self.book(o.symbol, mark)
-        half = max(0.0, b["spread_bps"] / 2.0) / 1e4
-        slip = self.costs.slippage_bps / 1e4
-        px = b["mid"] * (1 + half + slip) if o.side == "buy" else b["mid"] * (1 - half - slip)
-        fee_bps = self.costs.spot_fee_bps if is_spot(o.symbol) else self.costs.fee_bps
+        if limit:                                   # a resting order fills at its own price and pays the maker fee: no spread, no slippage
+            px = float(o.limit_price)
+            mid = float(mark) if mark else px
+            fee_bps = self.costs.spot_fee_bps if is_spot(o.symbol) else self.costs.maker_fee_bps
+            o.meta["filled_as"] = "maker"
+        else:
+            b = self.book(o.symbol, mark)
+            half = max(0.0, b["spread_bps"] / 2.0) / 1e4
+            slip = self.costs.slippage_bps / 1e4
+            mid = b["mid"]
+            px = mid * (1 + half + slip) if o.side == "buy" else mid * (1 - half - slip)
+            fee_bps = self.costs.spot_fee_bps if is_spot(o.symbol) else self.costs.fee_bps
+            o.meta["filled_as"] = "taker"
         fee = qty * px * fee_bps / 1e4
         signed = qty if o.side == "buy" else -qty
         prev = self.pos.get(o.symbol, 0.0)
@@ -160,22 +171,37 @@ class PaperBroker(Broker):
             self.pos.pop(o.symbol, None)
         self.cash -= signed * px + fee
         self.fees_paid += fee
-        self.last_marks[o.symbol] = b["mid"]
-        o.fills.append(Fill(now.isoformat(timespec="milliseconds"), qty, px, fee, b["mid"]))
+        self.last_marks[o.symbol] = mid
+        o.fills.append(Fill(now.isoformat(timespec="milliseconds"), qty, px, fee, mid))
         if o.remaining <= 1e-12:
             o.state, o.closed_at = OrderState.FILLED, now.isoformat(timespec="milliseconds")
         else:
             o.state = OrderState.PARTIAL
 
-    def poll(self, now: datetime, marks: Dict[str, float]) -> List[Order]:
+    def poll(self, now: datetime, marks: Dict[str, float], ranges: Optional[Dict[str, Any]] = None) -> List[Order]:
+        """Market orders fill after the latency. Limit orders fill only when `ranges` shows the market traded
+        THROUGH their price: ranges = {data symbol: (low, high, bar_open_time)} for a bar that began no earlier
+        than the order was placed. Without a qualifying range a limit order simply keeps resting."""
         changed: List[Order] = []
         lat = timedelta(milliseconds=int(self.x.latency_ms))
         ttl = timedelta(seconds=int(self.x.order_ttl_s))
+        thr = self.costs.maker_through_bps / 1e4
         for o in list(self.orders.values()):
             if not o.open:
                 continue
             acked = datetime.fromisoformat(o.acked_at) if o.acked_at else now
             if now < acked + lat:
+                continue
+            if o.type == "limit":
+                rg = (ranges or {}).get(leg_symbol(o.symbol))
+                if rg is not None:
+                    lo, hi, bar_open = rg
+                    fresh = bar_open is None or bar_open >= acked - timedelta(seconds=120)
+                    if fresh and lo is not None and hi is not None and math.isfinite(float(lo)) and math.isfinite(float(hi)):
+                        hit = (o.side == "buy" and float(lo) <= o.limit_price * (1 - thr)) or (o.side == "sell" and float(hi) >= o.limit_price * (1 + thr))
+                        if hit:
+                            self._fill(o, o.remaining, mark_for(marks, o.symbol) or float(o.limit_price), now, limit=True)
+                            changed.append(o)
                 continue
             mark = mark_for(marks, o.symbol)
             if mark is None:

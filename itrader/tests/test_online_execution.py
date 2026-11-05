@@ -18,7 +18,7 @@ MARKS = {"BTCUSDT": 50000.0, "ETHUSDT": 2000.0}
 
 
 def _s(**x):
-    return load_settings(overrides={"execution": {"use_live_book": False, **x}})
+    return load_settings(overrides={"execution": {"use_live_book": False, "style": "taker", **x}})
 
 
 def test_paper_fill_price_fee_and_determinism(tmp_path):

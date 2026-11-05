@@ -65,5 +65,30 @@ DecisionRecord carries the settings hash, so a change in behaviour can be matche
 
 ## Running as a service (Linux)
 
-`itrader/online/ops/itrader-online.service` is a systemd unit for the paper loop. On the Mac, a `launchd`
-plist or simply `nohup .venv/bin/python -m itrader.online paper &` does the same.
+`itrader/online/ops/itrader-online.service` is a systemd unit for the paper loop (Linux).
+
+On the Mac: `bash itrader/online/ops/install_launchd.sh` installs a LaunchAgent that starts the loop at login,
+restarts it if it exits and prevents idle sleep while it runs (`--remove` undoes it). Stop any hand-started loop
+first with `pkill -f "itrader.online paper"`. macOS may ask once whether python may read the Documents folder.
+A closed laptop on battery still sleeps; the loop then resumes within 30 seconds of waking and carries on at the
+next hour, but those hours are missing from the record.
+
+## Second round additions
+
+* **Execution style.** `[execution] style = "maker"`: a change in position is posted as a resting limit order at the
+  bid or ask and left for one cycle. If the hour traded through it, it fills at its price with the maker fee; if not,
+  it is cancelled and sent as a market order. The dashboard shows the maker share of traded notional and how many
+  orders were chased. Anything the risk engine forces (flatten, locks, reductions only) is sent at once as a market
+  order. Set `style = "taker"` to go back to immediate market orders. A restart drops resting orders.
+* **Bench.** `python -m itrader.online bench` now takes about a minute: both execution styles per strategy, then the
+  walk-forward portfolio, BTC benchmark, bootstrap and cost stress. `data/online/runs/bench/portfolio.json` holds
+  all of it; `report.html` has a Portfolio section at the top.
+* **Plan.** `python -m itrader.online plan --capital 1000 --monthly 200 --horizons 1,3,5,10 --source workbench` projects
+  an account from the measured out-of-sample record. Sources are the columns of `portfolio_returns.parquet`:
+  `workbench`, `workbench_regime`, `equal_weight`, `btc`, `btc_vol_matched` and so on. Read "paid in" first.
+* **Regimes.** The dashboard and each DecisionRecord show the current regime (BTC above or below its 100-day mean,
+  30-day volatility above or below its one-year median). `[allocator] regime_aware = true` makes the allocator score
+  sleeves on their record in that regime. It is off because it was worse out of sample.
+* **Daily summary.** One alert at the first cycle of each UTC day: equity, change, gross, regime, lock state.
+* **Funding.** `sync` fills the last weeks of funding from OKX because the Binance archive is monthly. Carry stays flat
+  where funding data is missing.

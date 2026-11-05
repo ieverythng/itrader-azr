@@ -43,7 +43,7 @@ def test_funding_sign_conventions():
     assert math.isclose(perp.funding.iloc[2], -0.001)
     carry = backtest(w, m, cm, "spot+perp")
     assert carry.funding.iloc[1:].gt(0).all() and carry.gross.abs().sum() == 0.0, "carry is price neutral and receives funding"
-    assert math.isclose(backtest(w, m, CostModel(5, 10, 0, 0), "spot+perp").cost.iloc[1], 2 * 1.0 * 5 / 1e4), "two legs pay twice"
+    assert math.isclose(backtest(w, m, CostModel(5, 10, 0, 0), "spot+perp").cost.iloc[1], 1.0 * (5 + 10) / 1e4), "two legs: the spot fee plus the perp fee"
     spot = backtest(-w, m, cm, "spot")
     assert spot.weights.abs().sum().sum() == 0.0, "spot cannot be short"
 
@@ -72,7 +72,7 @@ def test_walk_forward_holdout_and_profile_format():
     assert stage["stage"] in ("bench", "paper") and stage["rungs"][0]["checks"]
     prof = capability_profile(st, wf, stage)
     d = prof.to_dict()
-    assert d["task_family"] == "11" and 0 <= d["estimated_p_solve"] <= 1 and d["metadata"]["n_variants_tried"] == 1
+    assert d["task_family"] == "11" and 0 <= d["estimated_p_solve"] <= 1 and d["metadata"]["n_variants_tried"] == st.n_variants_tried >= 1
     from itrader.rl_lib.tasks.validation import validate_capability_profile
 
     assert validate_capability_profile(d)["sample_count"] == d["sample_count"]

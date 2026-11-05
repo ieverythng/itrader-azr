@@ -46,17 +46,20 @@ itrader/online/
 | 13 executor standard | done | fills, acks, errors, audit in the record; never changes a weight except lot rounding |
 | 14.1 golden dataset | left | DecisionRecords hold the fields; an export job to the 14.1 row shape is not written |
 | 14.2 capability dataset | partial | `profiles.json` from the bench; no regime/horizon breakdown yet |
-| 17 tests | done | 26 tests: contracts, no-lookahead for every strategy, cost accounting, funding signs, metrics, ladder, gate/WAIT, every risk block, paper fills, live guard, full replay through the loop |
+| 17 tests | done | 40 tests: contracts, no-lookahead for every strategy and for the maker engine, cost accounting, funding signs, metrics, ladder, gate/WAIT, every risk block, paper fills, resting orders (fill, chase, stale range), live guard, walk-forward simulation uses only the past, regimes, bootstrap, the audit fixes, full replay through the loop |
+| 14.2 by regime | done | `profiles_by_regime.json`: one repo-format CapabilityProfile per strategy and regime (up/down x calm/wild from BTC, known a day ahead) |
 | 18.2 online metrics | mostly | dashboard shows WAIT rate, selected candidate, confidence, utility, risk adjustments, fees, slippage, equity; calibration by family and regime over time is left |
 | 19/20 phases | n/a | this is the Phase B "online shadow stack" (workstream 7) in paper form |
 
 ## What the bench found (4 years, 10 USDT pairs, holdout = last 182 days)
 
-See `docs/online/morning_brief.md` for the table. In one line: trend (two forms) and funding carry
-have a positive record after costs; cross-sectional momentum, pairs and seasonality lose to costs;
-mean reversion looked excellent until a 23-hour lookahead in its daily trend filter was fixed, after
-which it loses. No single sleeve passes the paper gate. The Workbench allocator over the survivors,
-vol-targeted, made 5.4% a year on development and 5.8% on the holdout at 7 to 10% vol.
+See `docs/online/morning_brief.md` for the tables (second round, which supersedes the first night's numbers).
+In one line: Turtle and funding carry have a positive record after costs, modern trend a weak one; momentum,
+pairs and seasonality lose; mean reversion looked excellent until a 23-hour lookahead in its daily trend
+filter was fixed, and after the audit fixes it is positive on development and loses badly on the holdout.
+No sleeve passes the paper gate. Walk-forward (weekly re-allocation from past data only, three years, live
+caps applied) the Workbench portfolio made about 1.6% a year at 10% vol, Sharpe 0.21, alpha against BTC
+3.5% a year with a t-statistic of 0.6. BTC sized to the same risk made 8.5%. No edge has been demonstrated.
 
 ## The independent review (risk.py and execution/)
 
@@ -86,3 +89,49 @@ idempotent, closed trades never reaching the cooldown rules. Left, by choice or 
   bump that counter: the deflated Sharpe depends on it.
 * The prediction sleeve (Polymarket) reports through the polyedge kit and never trades here. Polymarket's
   terms restrict the country the operator lives in; this stack does nothing to work around that.
+
+## Second round (5 Nov, daytime): what was added and what it showed
+
+New modules: `bench/portfolio_sim.py` (walk-forward portfolio simulation, regimes, alpha/beta against a benchmark),
+`bench/stress.py` (block bootstrap, wealth projection), `backtest_maker` in `bench/engine.py`, limit orders in the paper
+broker and executor, `ops/install_launchd.sh` and its plist, `python -m itrader.online plan`.
+
+**Independent audit of the strategy code.** A second reviewer read every strategy and the taker engine and ran two
+lookahead tests on the real data: truncation at many cut points, and replacing every future price, funding rate and
+daily row with noise. No lookahead; the mean-reversion fix is confirmed. It then found logic and accounting faults, all fixed:
+
+| where | fault | fix |
+|---|---|---|
+| `Pairs` | stop and time-out were inert (re-entry on the next bar); legs 1:1 although the spread used the hedge ratio | blocked until the spread is back inside the exit band; no entry beyond the stop level; legs sized 1 : beta, beta fixed at entry |
+| `Seasonality` | calendar read from the decision row, so the window traded an hour late; "last day" meant the last two | calendar read from the bar that is held; last day means one day |
+| `TrendModern` | inverse-vol normalisation removed forecast strength: always fully invested | position = forecast x inverse-vol share of the universe |
+| `CostModel` | spot+perp charged the perp fee on both legs (16 bps instead of 21) | per-leg average of spot and perp fees |
+| `FundingCarry` | hurdle used a third of the true round-trip cost; weights summed to 1.0 (no room for margin); edge-proportional sizing re-sized daily; missing funding treated as zero | engine cost in the hurdle, 30-day amortisation; 80% of equity; fixed slots with hysteresis; no data means no position |
+| `funding_per_bar` | a settlement at 00:00 was charged to the bar opening then | attributed to the bar that ends at the settlement |
+| `Turtle` | breakouts on closes not highs/lows; unit size and stop re-computed daily from current N; skipped breakouts not tracked | highs and lows; N, unit size and stop fixed at the fill; shadow trades for the System 1 filter |
+| `CrossSectionalMomentum` | weights re-scaled daily between weekly rebalances; rebalance day counted from the first row of the data | whole book frozen between Monday rebalances |
+| `MeanReversion` | hourly re-sizing and re-normalisation; daily trend shifted by rows | size fixed at entry; daily series re-labelled to the time it is known |
+| `walk_forward` | one-bar overlaps between folds | half-open slices |
+| `Sortino` | spread of losing bars around their own mean | downside deviation from zero |
+| data | funding archive up to a month stale | tail filled from OKX public history |
+
+`n_variants_tried` was raised on every strategy that changed. Not changed: the engine still treats weights as constant
+within a bar (no cost for drift); the 1h store has one two-hour gap (24 Mar 2023).
+
+**Maker execution.** `[execution] style = "maker"`. Bench: a limit at the touch, filled only on a trade-through of
+`maker_through_bps`, the fill marked to the bar's close (so adverse selection is in the numbers), taker fallback after
+`maker_max_wait_bars`. Paper: the order rests for one cycle; the broker fills it only if the last completed bar, which must
+have begun after the order was placed, traded through it; otherwise the executor cancels it and crosses. Risk-forced
+trades and hedged spot/perp pairs are always takers. The gate still prices trades at the taker cost (the conservative
+bound). Fill rates in the bench are 93 to 99%; paper has to confirm that before anyone believes it.
+
+**Walk-forward portfolio.** `simulate()` re-allocates weekly from past data only: profile each sleeve (development
+plus a trailing pseudo-holdout), apply the gate's confidence floor, vol-scale, ERC budgets, allocator, portfolio
+vol scale, cap each sleeve's exposure where the live per-asset cap would clip it, charge re-allocation at the taker
+cost. Variants run and reported, so the selection is visible: the allocator as designed, without the gate floor, regime-aware,
+equal weight, and the other execution style. An earlier run, before the audit fixes and without gate or caps, gave -1.9%;
+with the audit fixes and the gate, 3.5%; with the live caps, 1.6%. The last is the one that matches the running system.
+
+**What to take from it.** The allocator beats equal weight by about two points a year and loses to vol-matched BTC by
+about seven. Its timing of the trend sleeves is performance-chasing (trailing six-month vote) and cost it in 2024.
+If you redesign one thing, redesign that, and judge the redesign with `simulate()` and a count of what you tried.

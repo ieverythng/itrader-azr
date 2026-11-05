@@ -122,11 +122,19 @@ class WorkbenchAllocator:
         self.cfg = self.s.allocator
 
     @staticmethod
-    def score(profile: Dict[str, Any], paper: Optional[Dict[str, Any]] = None, evidence_discount: bool = True) -> Dict[str, float]:
-        """One number per strategy from its CapabilityProfile (dict form) and, if present, its paper record."""
+    def score(profile: Dict[str, Any], paper: Optional[Dict[str, Any]] = None, evidence_discount: bool = True,
+              regime: Optional[str] = None, regime_shrink_days: float = 180.0) -> Dict[str, float]:
+        """One number per strategy from its CapabilityProfile (dict form) and, if present, its paper record.
+        With `regime`, the development Sharpe is replaced by the sleeve's Sharpe in that regime, shrunk toward
+        the overall figure in proportion to how few days the regime has (n / (n + regime_shrink_days))."""
         meta = profile.get("metadata", {}) or {}
         dev = meta.get("dev", {}) or {}
         sharpe = float(dev.get("sharpe", 0.0) or 0.0)
+        if regime:
+            rg = (meta.get("regimes") or {}).get(regime)
+            if rg and float(rg.get("n", 0) or 0) > 0:
+                lam = float(rg["n"]) / (float(rg["n"]) + float(regime_shrink_days))
+                sharpe = lam * float(rg.get("sharpe", 0.0) or 0.0) + (1.0 - lam) * sharpe
         p_edge = float(profile.get("estimated_p_solve", 0.0) or 0.0)      # PSR on the development period
         dsr = float(dev.get("dsr", p_edge) or 0.0)
         ev = meta.get("evidence", {}) or {}
@@ -145,13 +153,15 @@ class WorkbenchAllocator:
         return {"score": float(max(0.0, s)), "sharpe_dev": sharpe, "sharpe_holdout": hold_sharpe, "dsr": dsr, "evidence_ratio": ratio}
 
     def allocate(self, profiles: Dict[str, Dict[str, Any]], paper_stats: Optional[Dict[str, Dict[str, Any]]] = None,
-                 vol_ratio: Optional[Dict[str, float]] = None) -> AllocatorDecision:
+                 vol_ratio: Optional[Dict[str, float]] = None, regime: Optional[str] = None) -> AllocatorDecision:
         """`vol_ratio[n]` = the vol a sleeve actually reaches at its allowed leverage / the target vol (<= 1).
         A sleeve that cannot reach the target (carry at 2x) is scored on the return it can deliver, not on
-        its Sharpe alone; otherwise risk parity hands most of the book to the lowest-vol sleeve."""
+        its Sharpe alone; otherwise risk parity hands most of the book to the lowest-vol sleeve.
+        `regime`: score each sleeve on its record in this market regime (see `score`)."""
         cfg = self.cfg
         names = list(profiles)
-        details = {n: self.score(profiles[n], (paper_stats or {}).get(n), bool(cfg.evidence_discount)) for n in names}
+        shrink = float(cfg.get("regime_shrink_days", 180.0))
+        details = {n: self.score(profiles[n], (paper_stats or {}).get(n), bool(cfg.evidence_discount), regime, shrink) for n in names}
         for n in names:
             vr = float(min(1.0, max(0.0, (vol_ratio or {}).get(n, 1.0))))
             details[n]["vol_ratio"] = vr
@@ -189,6 +199,8 @@ class WorkbenchAllocator:
         w[ci] = 1.0 - strat_total
         notes = [f"{n}: score {details[n]['score']:.3f} (dev SR {details[n]['sharpe_dev']:.2f}, holdout SR {details[n]['sharpe_holdout']:.2f}, "
                  f"DSR {details[n]['dsr']:.2f}, evidence {details[n]['evidence_ratio']:.0%}, reachable vol {details[n]['vol_ratio']:.0%} of target)" for n in names]
+        if regime:
+            notes.insert(0, f"regime: {regime} (scores use each sleeve's record in this regime, shrunk toward its overall record)")
         if not active:
             notes.append("no strategy has a positive capability score: all capital in cash (WAIT)")
         return AllocatorDecision(pd.Series(w, index=keys), scores, raw, notes)
@@ -229,7 +241,8 @@ class Portfolio:
         self.allocator = WorkbenchAllocator(self.s) if bool(self.s.allocator.enabled) else None
 
     def build(self, sleeve_targets: Dict[str, pd.Series], sleeve_returns: pd.DataFrame, current: Optional[pd.Series] = None,
-              profiles: Optional[Dict[str, Dict[str, Any]]] = None, paper_stats: Optional[Dict[str, Dict[str, Any]]] = None) -> PortfolioDecision:
+              profiles: Optional[Dict[str, Dict[str, Any]]] = None, paper_stats: Optional[Dict[str, Dict[str, Any]]] = None,
+              regime: Optional[str] = None) -> PortfolioDecision:
         """sleeve_targets: strategy -> Series(asset -> weight) as the strategy emitted them (gross <= 1).
         sleeve_returns: daily net returns per strategy (bench history, extended by the paper record)."""
         p = self.s.portfolio
@@ -250,7 +263,8 @@ class Portfolio:
             vol_ratio[n] = min(1.0, v * scales[n] / float(p.strategy_vol_target)) if np.isfinite(v) and v > 0 else 1.0
         alloc = None
         if self.allocator is not None and profiles:
-            dec = self.allocator.allocate({n: profiles[n] for n in names if n in profiles}, paper_stats, vol_ratio)
+            use_regime = regime if bool(self.s.allocator.get("regime_aware", False)) else None
+            dec = self.allocator.allocate({n: profiles[n] for n in names if n in profiles}, paper_stats, vol_ratio, regime=use_regime)
             alloc = dec.to_dict()
             cap_w = dec.weights.drop(CASH)
             cash = float(dec.weights[CASH])

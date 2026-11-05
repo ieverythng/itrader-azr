@@ -4,7 +4,7 @@ capability profiles the online loop consumes, and the promotion ladder.
     targets (weights) -> engine.backtest -> metrics.summarize -> walkforward -> profile -> report
 """
 
-from .engine import BacktestResult, CostModel, backtest, funding_per_bar  # noqa: F401
+from .engine import BacktestResult, CostModel, backtest, backtest_maker, funding_per_bar, run_style  # noqa: F401
 from .metrics import (  # noqa: F401
     binary_evidence,
     capacity_usd,

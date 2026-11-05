@@ -21,6 +21,7 @@ import pandas as pd
 from itrader.rl_lib.tasks.candidate_task import CandidateTask
 
 from .bench.engine import CostModel
+from .bench.portfolio_sim import regime_now
 from .bench.run import load_market
 from .contracts import Proposal, wait_candidate
 from .data.store import DataStore, Quality
@@ -40,6 +41,8 @@ class Frame:
     prices: Dict[str, float]
     vols: Dict[str, float]                      # daily vol per symbol (fraction)
     notes: List[str] = field(default_factory=list)
+    ranges: Dict[str, Any] = field(default_factory=dict)   # symbol -> (low, high, bar open time) of the last completed bar
+    regime: Optional[str] = None                # market regime from completed daily bars (see bench.portfolio_sim)
 
     @property
     def wait(self) -> CandidateTask:
@@ -104,6 +107,18 @@ class MarketFramer:
         prices = {sym: float(px_src[sym].iloc[-1]) for sym in px_src.columns if np.isfinite(px_src[sym].iloc[-1])}
         vols = {sym: float(v) for sym, v in daily.close.pct_change().ewm(span=30, min_periods=10).std().iloc[-1].items() if np.isfinite(v)}
         cur = current if current is not None else pd.Series(dtype=float)
+        # the last completed bar's traded range: what a resting order placed at the previous cycle has lived through
+        rm = mk.get("1h", daily)
+        ranges: Dict[str, Any] = {}
+        if rm.high is not None and rm.low is not None and len(rm.close):
+            bar_open = rm.close.index[-1].to_pydatetime()
+            for sym in rm.close.columns:
+                lo, hi = rm.low[sym].iloc[-1], rm.high[sym].iloc[-1]
+                if np.isfinite(lo) and np.isfinite(hi):
+                    ranges[sym] = (float(lo), float(hi), bar_open)
+        btc = daily.close["BTCUSDT"] if "BTCUSDT" in daily.close.columns else daily.close.iloc[:, 0]
+        regime = regime_now(btc)
+        summ["regime"] = regime
 
         proposals: List[Proposal] = []
         sleeve_targets: Dict[str, pd.Series] = {}
@@ -153,4 +168,4 @@ class MarketFramer:
             notes.append(f"{p.strategy}: not among the top {k} candidates this cycle")
         cands = [p.to_candidate(price_id="online_panel") for p in kept]
         cands.append(wait_candidate("WAIT is always available"))
-        return Frame(now.isoformat(timespec="seconds"), summ, ref, kept, cands, sleeve_targets, quality, prices, vols, notes)
+        return Frame(now.isoformat(timespec="seconds"), summ, ref, kept, cands, sleeve_targets, quality, prices, vols, notes, ranges, regime)
