@@ -30,6 +30,7 @@ import pandas as pd
 
 from itrader.rl_lib.tasks.capability_profile import CapabilityProfile
 
+from ..data.feeds import Yahoo
 from ..data.store import DataStore
 from ..settings import Settings, settings as default_settings
 from ..strategies import BENCHABLE, Market, Strategy, all_strategies
@@ -41,8 +42,8 @@ from .report import render
 from .stress import block_bootstrap
 from .walkforward import walk_forward
 
-WARMUP_BARS = {"1d": 130, "1h": 24 * 31}   # longest lookback a strategy needs before its weights mean anything
-BARS_PER_DAY = {"1d": 1.0, "1h": 24.0}
+WARMUP_BARS = {"1d": 130, "1h": 24 * 31, "1b": 260}   # longest lookback a strategy needs before its weights mean anything
+BARS_PER_DAY = {"1d": 1.0, "1h": 24.0, "1b": 1.0}
 
 
 def load_market(store: DataStore, universe: Iterable[str], bar: str, daily_close: Optional[pd.DataFrame] = None) -> Market:
@@ -56,6 +57,28 @@ def load_market(store: DataStore, universe: Iterable[str], bar: str, daily_close
     funding = store.funding_panel(universe)
     funding = funding.reindex(columns=close.columns) if len(funding) else None
     return Market(bar=bar, close=close, high=high, low=low, volume=vol, funding=funding, daily_close=daily_close)
+
+
+def load_macro_market(s: Settings, cutoff: Optional[pd.Timestamp] = None) -> Optional[Market]:
+    """Daily ETF panel for the macro trend sleeve (bar "1b"), with the risk-free return from a T-bill ETF.
+    `cutoff` hides everything not yet known at that time (replay)."""
+    uni = list(s.data.get("macro_universe", []))
+    if not uni:
+        return None
+    store = DataStore(s.resolve(s.data.get("macro_root", "data/online/macro")), feed=Yahoo())
+    close = store.panel(uni, "1d", "close")
+    if close.empty:
+        return None
+    high = store.panel(uni, "1d", "high").reindex(columns=close.columns)
+    low = store.panel(uni, "1d", "low").reindex(columns=close.columns)
+    vol = store.panel(uni, "1d", "volume").reindex(columns=close.columns)
+    bil = store.load("BIL", "1d")
+    rf = bil.set_index("ts")["close"].pct_change().reindex(close.index).fillna(0.0) if len(bil) else None
+    if cutoff is not None:
+        keep = close.index + pd.Timedelta(days=1) <= pd.Timestamp(cutoff)
+        close, high, low, vol = close[keep], high[keep], low[keep], vol[keep]
+        rf = rf[keep] if rf is not None else None
+    return Market(bar="1b", close=close, high=high, low=low, volume=vol, funding=None, rf=rf)
 
 
 def evaluate(strategy: Strategy, weights: pd.DataFrame, market: Market, costs: CostModel, s: Settings, style: str) -> Tuple[Dict[str, Any], BacktestResult]:
@@ -109,7 +132,11 @@ def run_bench(s: Optional[Settings] = None, store_root: Optional[str] = None, ou
     daily = load_market(store, universe, "1d")
     markets["1d"] = daily
     if any(x.bar == "1h" for x in strategies):
-        markets["1h"] = load_market(store, universe, "1h", daily_close=daily.close)
+        markets["1h"] = load_market(store, list(s.data.get("universe_1h", universe)), "1h", daily_close=daily.close)
+    if any(x.bar == "1b" for x in strategies):
+        mm = load_macro_market(s)
+        if mm is not None:
+            markets["1b"] = mm
     for bar, m in markets.items():
         log(f"  {bar}: {len(m.close)} bars x {len(m.close.columns)} symbols, {m.close.index[0].date()} to {m.close.index[-1].date()}, "
             f"funding {'yes' if m.funding is not None else 'no'}")

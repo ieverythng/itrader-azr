@@ -22,8 +22,9 @@ from itrader.rl_lib.tasks.candidate_task import CandidateTask
 
 from .bench.engine import CostModel
 from .bench.portfolio_sim import regime_now
-from .bench.run import load_market
+from .bench.run import load_macro_market, load_market
 from .contracts import Proposal, wait_candidate
+from .data.feeds import Yahoo
 from .data.store import DataStore, Quality
 from .settings import Settings, settings as default_settings
 from .strategies import BENCHABLE, Market, Strategy
@@ -51,20 +52,26 @@ class Frame:
 
 class MarketFramer:
     def __init__(self, strategies: List[Strategy], store: DataStore, s: Optional[Settings] = None,
-                 profiles: Optional[Dict[str, Dict[str, Any]]] = None) -> None:
+                 profiles: Optional[Dict[str, Dict[str, Any]]] = None, universe: Optional[List[str]] = None) -> None:
         self.s = s or default_settings()
         self.strategies = [x for x in strategies if x.name in BENCHABLE]
         self.store = store
         self.profiles = profiles or {}
         self.costs = CostModel.from_settings(self.s)
-        self.universe = list(self.s.data.universe)
+        self.universe = list(universe or self.s.data.universe)
+        self.universe_1h = [x for x in self.s.data.get("universe_1h", self.universe) if x in self.universe]
+        self.macro_store = DataStore(self.s.resolve(self.s.data.get("macro_root", "data/online/macro")), feed=Yahoo())
 
     # ------------------------------------------------------------------ data
     def markets(self) -> Dict[str, Market]:
         daily = load_market(self.store, self.universe, "1d")
         out = {"1d": daily}
         if any(x.bar == "1h" for x in self.strategies):
-            out["1h"] = load_market(self.store, self.universe, "1h", daily_close=daily.close)
+            out["1h"] = load_market(self.store, self.universe_1h, "1h", daily_close=daily.close)
+        if any(x.bar == "1b" for x in self.strategies):
+            mm = load_macro_market(self.s, cutoff=getattr(self.store, "cutoff", None))   # a replay store hides the future here too
+            if mm is not None and len(mm.close):
+                out["1b"] = mm
         return out
 
     def summary(self, m: Market, now: datetime) -> Dict[str, Any]:
@@ -98,13 +105,20 @@ class MarketFramer:
         ref = "ms_" + hashlib.sha1(json.dumps(summ, sort_keys=True, default=str).encode()).hexdigest()[:12]
         quality = {sym: self.store.quality(sym, "1d", max_stale_bars=float(self.s.data.max_stale_bars), now=now) for sym in self.universe}
         if "1h" in mk:
-            qh = {sym: self.store.quality(sym, "1h", max_stale_bars=float(self.s.data.max_stale_bars), now=now) for sym in self.universe}
+            qh = {sym: self.store.quality(sym, "1h", max_stale_bars=float(self.s.data.max_stale_bars), now=now) for sym in self.universe_1h}
             for sym, q in qh.items():
                 if not q.ok:
                     quality[sym] = q
         # marks: the freshest close we have (the 1h panel when loaded), never the still-open daily bar's stale close
-        px_src = mk.get("1h", daily).close
-        prices = {sym: float(px_src[sym].iloc[-1]) for sym in px_src.columns if np.isfinite(px_src[sym].iloc[-1])}
+        prices = {sym: float(daily.close[sym].iloc[-1]) for sym in daily.close.columns if np.isfinite(daily.close[sym].iloc[-1])}
+        if "1h" in mk:
+            hc = mk["1h"].close
+            prices.update({sym: float(hc[sym].iloc[-1]) for sym in hc.columns if np.isfinite(hc[sym].iloc[-1])})
+        if "1b" in mk:                                   # listed markets: last daily close; weekends and holidays are normal, so staleness is judged loosely
+            mc = mk["1b"].close
+            prices.update({sym: float(mc[sym].iloc[-1]) for sym in mc.columns if np.isfinite(mc[sym].iloc[-1])})
+            for sym in mc.columns:
+                quality[sym] = self.macro_store.quality(sym, "1d", max_stale_bars=5.0, now=now)
         vols = {sym: float(v) for sym, v in daily.close.pct_change().ewm(span=30, min_periods=10).std().iloc[-1].items() if np.isfinite(v)}
         cur = current if current is not None else pd.Series(dtype=float)
         # the last completed bar's traded range: what a resting order placed at the previous cycle has lived through
@@ -150,9 +164,14 @@ class MarketFramer:
             eu = eu_all / max(0.05, float(dev.get("exposure_share", 1.0) or 1.0))
             conf = float(prof.get("estimated_p_solve", 0.0)) if prof else 0.0
             cost = float((w.reindex(w.index).fillna(0.0) - cur.reindex(w.index).fillna(0.0)).abs().sum() * self.costs.per_side(st.instrument) * self.costs.legs(st.instrument))
-            # expected holding period from the bench: exposed bars per round trip (two trade bars), capped at 30 days
-            cap = 30 * (24 if st.bar == "1h" else 1)
-            ttl = int(max(1, min(cap, round(2.0 * float(dev.get("bars_exposed", 0) or 0) / max(1.0, float(dev.get("trade_bars", 0) or 1))))))
+            # expected holding period of a unit of position, from the bench (twice the average gross over the turnover per
+            # bar), capped at 180 days. An earlier version counted bars between ANY trade in the book, which made a
+            # carry position held for months look like a ten-day trade and kept it from ever being opened.
+            cap = 180 * (24 if st.bar == "1h" else 1)
+            hold = dev.get("holding_bars")
+            if hold is None:
+                hold = 2.0 * float(dev.get("bars_exposed", 0) or 0) / max(1.0, float(dev.get("trade_bars", 0) or 1))
+            ttl = int(max(1, min(cap, round(float(hold)))))
             proposals.append(Proposal(
                 strategy=st.name, family_id=st.family_id, bar=st.bar, weights={k: float(v) for k, v in w.items()},
                 expected_utility=eu, confidence=conf, rationale=st.rationale(m, w), instrument=st.instrument, ttl_bars=ttl,

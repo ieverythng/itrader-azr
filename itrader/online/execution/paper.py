@@ -25,7 +25,7 @@ from typing import Any, Dict, List, Optional
 
 from ..bench.engine import CostModel
 from ..data.feeds import Feed
-from ..data.universe import is_spot, leg_symbol
+from ..data.universe import is_crypto, is_spot, leg_symbol
 from ..settings import Settings, settings as default_settings
 from .broker import OPEN_STATES, Broker, Fill, Order, OrderState
 
@@ -94,7 +94,7 @@ class PaperBroker(Broker):
     # ------------------------------------------------------------------ market
     def book(self, symbol: str, mark: Optional[float] = None) -> Dict[str, float]:
         data_sym = leg_symbol(symbol)
-        if self.feed is not None and bool(self.x.use_live_book):
+        if self.feed is not None and bool(self.x.use_live_book) and is_crypto(data_sym):   # listed markets have no book here
             try:
                 b = self.feed.book_ticker(data_sym)
                 bid, ask = float(b["bid"]), float(b["ask"])

@@ -302,6 +302,29 @@ class Portfolio:
                                  float(book.abs().sum()), notes)
 
 
+def build_from_exposures(s: Settings, sleeve_targets: Dict[str, pd.Series], expo: Dict[str, float], current: Optional[pd.Series] = None,
+                         policy: str = "", notes: Optional[List[str]] = None) -> PortfolioDecision:
+    """The book when a lab policy sets the exposure multiplier of each sleeve (the champion's policy):
+    book = sum over sleeves of exposure x the sleeve's own leg weights, then the same caps and no-trade band."""
+    p = s.portfolio
+    notes = list(notes or [])
+    assets = sorted({a for t in sleeve_targets.values() for a in t.index})
+    book = pd.Series(0.0, index=assets)
+    for n, t in sleeve_targets.items():
+        book = book.add(t.reindex(assets).fillna(0.0) * float(expo.get(n, 0.0)), fill_value=0.0)
+    gross = float(book.abs().sum())
+    if gross > float(p.gross_cap):
+        book = book * (float(p.gross_cap) / gross)
+        notes.append(f"gross {gross:.2f} capped to {float(p.gross_cap):.2f}")
+    book = book.clip(-float(p.max_single_asset), float(p.max_single_asset))
+    pre = book.copy()
+    if current is not None:
+        book = apply_no_trade_band(book, current, float(p.no_trade_band))
+    spot = float(sum(v for k, v in book.items() if k.endswith(".SPOT") and v > 0))
+    used = {n: float(expo.get(n, 0.0)) for n in sleeve_targets}
+    return PortfolioDecision(book, pre, used, {}, {"policy": policy, "notes": notes}, used, max(0.0, 1.0 - spot), 1.0, float(book.abs().sum()), notes)
+
+
 def load_bench_returns(bench_dir: str | Path) -> pd.DataFrame:
     p = Path(bench_dir) / "returns_daily.parquet"
     if not p.exists():

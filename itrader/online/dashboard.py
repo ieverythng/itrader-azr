@@ -41,6 +41,10 @@ def render_dashboard(out_dir: Path, s: Optional[Settings] = None, sleeve_status:
     maker_line = (f" Maker share of traded notional {100 * mk_n / (mk_n + tk_n):.0f}% ({sum(m.get('posted', 0) for m in mk)} posted, "
                   f"{sum(m.get('filled_since_last_cycle', 0) for m in mk)} filled resting, {sum(m.get('chased_as_taker', 0) for m in mk)} chased).") if (mk_n + tk_n) > 0 else ""
     regime = ((recs[-1].get("metadata") or {}).get("market_summary") or {}).get("regime") if recs else None
+    cj = s.resolve(s.lab.root) / "champion.json"
+    champ = json.loads(cj.read_text()) if cj.exists() else {}
+    champ_line = (f" Champion: {champ.get('name')} since {str(champ.get('since'))[:10]}, research Sharpe {(champ.get('research') or {}).get('sharpe', 0):.2f}, "
+                  f"{'confirmed' if champ.get('confirmed') else 'NOT confirmed'} in the vault ({100 * (champ.get('vault') or {}).get('total_return', 0):+.1f}%).") if champ.get("name") else ""
     last = recs[-1] if recs else {}
     port = (last.get("metadata") or {}).get("portfolio") or {}
     rows = "".join(
@@ -60,7 +64,7 @@ def render_dashboard(out_dir: Path, s: Optional[Settings] = None, sleeve_status:
     return (f"<!doctype html><html><head><meta charset='utf-8'><title>iTRADER online</title><style>{CSS}</style></head><body>"
             f"<h1>iTRADER online: paper</h1><p class='sub'>mode {html.escape(str(s.general.mode))}, settings {s.hash}, cycles {state.get('cycles', 0)}, "
             f"last equity {state.get('last_equity') or 0:,.2f}, WAIT rate {100 * wait_rate:.0f}%, cycles with a risk adjustment {100 * blocks:.0f}%, fees paid {fees:,.2f}."
-            f"{html.escape(maker_line)} Regime: {html.escape(str(regime))}. "
+            f"{html.escape(maker_line)} Regime: {html.escape(str(regime))}.{html.escape(champ_line)} "
             f"<b class='{'bad' if lock else 'ok'}'>{'LOCKED: ' + html.escape(str(risk.get('lock_reason'))) if lock else 'risk engine unlocked'}</b>"
             f"{' | cooldown until ' + html.escape(str(risk.get('cooldown_until'))) if risk.get('cooldown_until') else ''}</p>"
             f"{equity_svg(eq) if len(eq) > 1 else '<p class=muted>no equity history yet</p>'}"

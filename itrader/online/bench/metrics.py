@@ -197,6 +197,9 @@ def summarize(res: BacktestResult, n_trials: int = 1, participation: float = 0.0
         "hit_rate_days": float((daily > 0).sum() / max(1, (daily != 0).sum())),
         "skew": sk, "kurtosis": ku,
         "turnover_per_year": float(res.turnover.sum() / years), "trade_bars": trades,
+        # how long a unit of position is held on average: twice the average gross over the turnover per bar
+        "avg_gross": float(res.weights.abs().sum(axis=1).mean()) if n else 0.0,
+        "holding_bars": float(2.0 * res.weights.abs().sum(axis=1).sum() / res.turnover.sum()) if float(res.turnover.sum()) > 0 else float(n),
         "gross_return_total": gross_total, "cost_total": comp["cost"], "funding_total": comp["funding"],
         "cost_share": (comp["cost"] / abs(gross_total)) if abs(gross_total) > 1e-12 else math.inf,
         "psr": probabilistic_sharpe(sr_p, n, sk, ku, 0.0),

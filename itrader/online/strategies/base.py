@@ -26,6 +26,7 @@ class Market:
     volume: Optional[pd.DataFrame] = None
     funding: Optional[pd.DataFrame] = None     # 8-hourly rates, index ts, columns symbols
     daily_close: Optional[pd.DataFrame] = None  # for hourly strategies that need the daily trend
+    rf: Optional[pd.Series] = None             # risk-free return per bar (listed markets): margined positions earn excess returns only
 
     @property
     def symbols(self) -> List[str]:

@@ -107,15 +107,17 @@ weekly_review = true           # the paper loop re-runs the lab once a week and 
 
 [gate]
 min_confidence = 0.55
-min_expected_utility_bps = 1.0 # per bar, after modelled costs
+min_expected_utility_bps = 0.0 # per day, after modelled costs: must be positive. An absolute floor (it was 1 bp a day) shut out low-volatility sleeves
+                               # such as carry, which the lab's tested recipes include; the confidence check is the risk-adjusted test
 utility_cost_multiple = 1.50   # expected utility must exceed this multiple of the modelled round-trip cost
-max_candidates = 3
+max_candidates = 10            # the spec suggests 1 to 3; a stacked book approves each sleeve on its own, so every champion sleeve must be heard
 
 [risk]
 max_position_pct = 0.25        # one strategy, one asset
 max_asset_pct = 0.30           # one asset across strategies (net)
 max_name_pct = 0.30            # one base asset across instruments (BTC spot + BTC perp)
 max_gross_pct = 2.50
+gap_move_listed = 0.05         # the same stress for listed ETFs and futures, which gap far less than crypto
 hedged_gap_factor = 0.20       # a spot long hedged by a perp short counts at this share of its one-leg notional in the gap rule (basis risk)
 gap_move = 0.15                # assume a 15% gap against every position at once
 max_gap_loss_pct = 0.08        # size so that gap costs at most this share of equity: gross <= 0.08 / 0.15 = 0.53
@@ -168,6 +170,7 @@ dashboard = "data/online/runs/dashboard.html"
 [changelog]
 entries = [
   "2026-11-05 v0.1  first version, written with the online build (bench, portfolio, gate, risk, paper execution)",
+  "2026-11-05 v0.4  [gate] min_expected_utility_bps 1.0 -> 0.0 and max_candidates 3 -> 10, so the live gate admits exactly the sleeves the lab's policies were tested with; [risk] gap_move_listed for ETFs",
   "2026-11-05 v0.3  [data] universe widened to 25 coins (universe_1h keeps the ten majors for hourly sleeves), macro_universe of 20 ETFs; [costs] ETF costs; [lab] research loop settings; [risk] hedged_gap_factor 0.2 (was an implicit 0.4) and gross caps 2.5 so a carry core can sit under a directional overlay",
   "2026-11-05 v0.2  [execution] style = maker (resting limit orders, taker fallback); [costs] maker_through_bps, maker_max_wait_bars; [bench] walk-forward portfolio simulation, bootstrap and cost stress settings; [allocator] regime_aware (off: it did not help out of sample) and regime_shrink_days",
 ]

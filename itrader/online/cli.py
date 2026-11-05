@@ -11,6 +11,7 @@
   unlock      clear a drawdown lock (operator action, logged)
   kill        create the kill file (the loop flattens and stops opening risk); --remove to delete it
   settings    print the effective settings and their hash
+  lab         the research loop: evaluate the pre-registered recipes, keep or replace the champion, write the advisor report
   plan        project an account forward from the measured return record (--capital, --monthly, --horizons, --source)
 """
 from __future__ import annotations
@@ -26,11 +27,12 @@ from .settings import load_settings
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="python -m itrader.online", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["sync", "bench", "frame", "paper", "replay", "dashboard", "status", "sleeve", "unlock", "kill", "settings", "plan"])
+    ap.add_argument("command", choices=["sync", "bench", "frame", "paper", "replay", "dashboard", "status", "sleeve", "unlock", "kill", "settings", "plan", "lab"])
+    ap.add_argument("--action", default="run", help="lab: run (evaluate every recipe, apply the champion rule, write the report) | report | show")
     ap.add_argument("--capital", type=float, default=None, help="plan: starting amount (default: [general] equity_start)")
     ap.add_argument("--monthly", type=float, default=0.0, help="plan: amount added every 30 days")
     ap.add_argument("--horizons", default="1,3,5,10", help="plan: years to report, comma separated")
-    ap.add_argument("--source", default="workbench", help="plan: which measured return stream to project (workbench, equal_weight, btc_vol_matched, btc, ...)")
+    ap.add_argument("--source", default="champion", help="plan: which measured return stream to project (workbench, equal_weight, btc_vol_matched, btc, ...)")
     ap.add_argument("--settings", help="override settings file (or set ITRADER_ONLINE_SETTINGS)")
     ap.add_argument("--years", type=float, default=None)
     ap.add_argument("--cycles", type=int, default=None)
@@ -62,16 +64,33 @@ def main(argv=None) -> int:
 
         run_bench(s, names=a.strategies.split(",") if a.strategies else None)
         return 0
+    if a.command == "lab":
+        from .lab.advisor import write_report
+        from .lab.evaluate import Lab
+
+        if a.action == "run":
+            Lab(s).cycle()
+        if a.action in ("run", "report"):
+            print(f"advisor report: {write_report(s)}")
+        if a.action == "show":
+            p = s.resolve(s.lab.root) / "advisor_report.md"
+            print(p.read_text() if p.exists() else "no report yet: run `python -m itrader.online lab`")
+        return 0
     if a.command == "plan":
         import pandas as pd
 
         from .bench.stress import block_bootstrap, wealth_paths, wealth_table
 
-        p = s.resolve(s.general.out_root) / "bench" / "portfolio_returns.parquet"
+        p = s.resolve(s.lab.root) / "returns.parquet"                    # the lab's recipes and benchmarks, if it has run
         if not p.exists():
-            print("no portfolio returns yet: run `python -m itrader.online bench` first")
+            p = s.resolve(s.general.out_root) / "bench" / "portfolio_returns.parquet"
+        if not p.exists():
+            print("no portfolio returns yet: run `python -m itrader.online lab` (or `bench`) first")
             return 1
         df = pd.read_parquet(p)
+        if a.source == "champion":
+            cj = s.resolve(s.lab.root) / "champion.json"
+            a.source = (json.loads(cj.read_text()).get("name") or "workbench") if cj.exists() else "workbench"
         if a.source not in df.columns:
             print(f"unknown source '{a.source}'. Available: {', '.join(df.columns)}")
             return 1

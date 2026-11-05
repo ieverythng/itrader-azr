@@ -18,7 +18,7 @@ import json
 import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import pandas as pd
 
@@ -28,11 +28,11 @@ from .alerts import Alerts
 from .bench.engine import funding_per_bar
 from .contracts import candidate_id
 from .data.store import DataStore
-from .data.universe import SPOT_SUFFIX, leg_symbol
+from .data.universe import SPOT_SUFFIX, is_crypto, leg_symbol
 from .execution import Executor, PaperBroker
 from .framer import MarketFramer
 from .gate import DecisionGate
-from .portfolio import Portfolio, load_bench_returns, load_profiles
+from .portfolio import Portfolio, build_from_exposures, load_bench_returns, load_profiles
 from .risk import RiskEngine
 from .settings import Settings, settings as default_settings
 from .strategies import Strategy, all_strategies
@@ -77,10 +77,17 @@ class PaperRunner:
         self.out = Path(out_dir) if out_dir else self.s.resolve(self.s.general.out_root)
         self.out.mkdir(parents=True, exist_ok=True)
         bench_dir = Path(bench_dir) if bench_dir else self.s.resolve(self.s.general.out_root) / "bench"
+        self.bench_dir = bench_dir
         self.profiles = load_profiles(bench_dir)
         self.bench_returns = load_bench_returns(bench_dir)
+        self._explicit_strategies = strategies
+        self.champion: Optional[Dict[str, Any]] = None
+        self.policy: Optional[str] = None
+        self.universe = list(self.s.data.universe)
         self.strategies = strategies or all_strategies()
-        self.framer = MarketFramer(self.strategies, self.store, self.s, self.profiles)
+        if strategies is None:
+            self._load_champion()
+        self.framer = MarketFramer(self.strategies, self.store, self.s, self.profiles, universe=self.universe)
         self.gate = DecisionGate(self.s)
         self.portfolio = Portfolio(self.s)
         self.risk = RiskEngine(self.s, state_path=self.out / "risk_state.json")
@@ -97,6 +104,92 @@ class PaperRunner:
                 pass
         self.sync = sync
         self.by_name = {x.name: x for x in self.strategies}
+
+    # ------------------------------------------------------------------ the lab's champion
+    def _load_champion(self) -> None:
+        """Adopt the lab's champion: its sleeves, its universe and its allocation policy. With no champion
+        (or one that uses the old allocator) the second-round Workbench book runs unchanged."""
+        p = self.s.resolve(self.s.lab.root) / "champion.json"
+        try:
+            c = json.loads(p.read_text()) if p.exists() else None
+        except Exception:  # noqa: BLE001
+            c = None
+        self.champion = c if c and c.get("name") else None
+        self.policy = None
+        if self.champion and self.champion.get("policy") in ("steady", "stack"):
+            names = list(self.champion.get("core", [])) + list(self.champion.get("overlay", []))
+            self.policy = self.champion["policy"]
+            self.strategies = all_strategies(names=names)
+            self.universe = (list(self.s.data.get("universe_core", self.s.data.universe)) if self.champion.get("universe") == "core10"
+                             else list(self.s.data.universe))
+
+    def _policy_exposures(self, now: datetime) -> Tuple[Dict[str, float], List[str]]:
+        """Exposure multiplier per sleeve from the champion's policy. Recomputed every `rebalance_days`, as in the
+        lab's simulation, from the sleeves' records up to (never beyond) the decision time."""
+        from .lab.policy import PolicyState, SleeveMeta, exposures
+
+        c = self.champion
+        ps = self.state.get("policy") or {}
+        every = int(self.s.lab.rebalance_days)
+        if ps.get("champion") == c["name"] and ps.get("date") and 0 <= (now - datetime.fromisoformat(ps["date"])).days < every:
+            return dict(ps["expo"]), [f"{c['name']} ({self.policy}): exposures set on {ps['date'][:10]}, reviewed every {every} days"]
+        root = self.s.resolve(self.s.lab.root)
+        key = c.get("universe", "wide25")
+        R = pd.read_parquet(root / f"sleeve_returns_{key}.parquet")
+        R.index = pd.to_datetime(R.index, utc=True)
+        raw = json.loads((root / f"sleeve_meta_{key}.json").read_text())
+        names = [n for n in self.by_name if n in R.columns and n in raw]
+        R = R[R.index < pd.Timestamp(now).normalize()]
+        start = R["turtle"].first_valid_index() if "turtle" in R.columns and R["turtle"].notna().any() else R.index[0]
+        priors = {n: R[n][R.index < start].dropna() for n in names if R[n].first_valid_index() is not None and R[n].first_valid_index() < start}
+        metas = {n: SleeveMeta(n, "core" if n in c.get("core", []) else "overlay", int(raw[n]["n_trials"]), float(raw[n]["expo_cap"]),
+                               float(raw[n]["gap_per_unit"]), float(raw[n]["cost_per_unit"])) for n in names}
+        st = PolicyState.from_dict(ps.get("state"))
+        expo, info = exposures(self.policy, R.loc[R.index >= start, names].fillna(0.0), metas, self.s, st, priors)
+        self.state["policy"] = {"champion": c["name"], "date": now.isoformat(timespec="seconds"), "expo": {k: float(v) for k, v in expo.items()}, "state": st.to_dict()}
+        on = sorted(k for k, v in info["on"].items() if v)
+        return {k: float(v) for k, v in expo.items()}, [f"{c['name']} ({self.policy}): exposures recomputed; sleeves on: {', '.join(on) or 'none'}"]
+
+    def _sync(self, now: datetime) -> None:
+        quiet = lambda *_: None  # noqa: E731
+        try:
+            self.store.sync(self.universe, ["1d"], years=0.1, log=quiet)
+            hourly = [x for x in self.s.data.get("universe_1h", self.universe) if x in self.universe]
+            if any(x.bar == "1h" for x in self.strategies):
+                self.store.sync(hourly, ["1h"], years=0.1, funding=False, log=quiet)
+            day = now.date().isoformat()
+            if any(x.bar == "1b" for x in self.strategies) and self.state.get("macro_sync_day") != day:
+                self.framer.macro_store.sync(list(self.s.data.get("macro_universe", [])) + ["BIL"], ["1d"], years=0.1, funding=False, log=quiet)
+                self.state["macro_sync_day"] = day
+        except Exception as exc:  # noqa: BLE001
+            self.alerts.send("error", f"data sync failed: {type(exc).__name__}: {exc}")
+
+    def _weekly_review(self, now: datetime) -> None:
+        """Once a week: re-run the bench and the lab on the new data, apply the champion rule, write the advisor's
+        report, and adopt a new champion only if the lab's own criteria say so."""
+        try:
+            from .bench.run import run_bench
+            from .lab.advisor import write_report
+            from .lab.evaluate import Lab
+
+            quiet = lambda *_: None  # noqa: E731
+            before = (self.champion or {}).get("name")
+            run_bench(self.s, log=quiet)
+            self.profiles = load_profiles(self.bench_dir)
+            self.bench_returns = load_bench_returns(self.bench_dir)
+            out = Lab(self.s, log=quiet).cycle()
+            report = write_report(self.s)
+            after = out["champion"].get("name")
+            self.alerts.send("daily_summary", f"weekly review: champion {after}" + (f" (was {before})" if after != before else " (unchanged)")
+                             + f"; {out['champion'].get('note')}; confirmed in the vault: {out['champion'].get('confirmed')}; report: {report}")
+            if self._explicit_strategies is None:
+                self._load_champion()
+                if after != before:
+                    self.state["policy"] = {}
+                self.by_name = {x.name: x for x in self.strategies}
+            self.framer = MarketFramer(self.strategies, self.store, self.s, self.profiles, universe=self.universe)
+        except Exception as exc:  # noqa: BLE001
+            self.alerts.send("error", f"weekly review failed: {type(exc).__name__}: {exc}")
 
     # ------------------------------------------------------------------ helpers
     def _kill_present(self) -> bool:
@@ -136,11 +229,8 @@ class PaperRunner:
         now = now or datetime.now(timezone.utc)
         t0 = time.time()
         if self.sync and store is None:
-            try:
-                self.store.sync(list(self.s.data.universe), list(self.s.data.bars), years=0.1, log=lambda *_: None)
-            except Exception as exc:  # noqa: BLE001
-                self.alerts.send("error", f"data sync failed: {type(exc).__name__}: {exc}")
-        framer = self.framer if store is None else MarketFramer(self.strategies, store, self.s, self.profiles)
+            self._sync(now)
+        framer = self.framer if store is None else MarketFramer(self.strategies, store, self.s, self.profiles, universe=self.universe)
         sleeve_w = {k: pd.Series(v, dtype=float) for k, v in self.state["sleeve_weights"].items()}
         current_raw = sum((w for w in sleeve_w.values()), pd.Series(dtype=float)) if sleeve_w else pd.Series(dtype=float)
         frame = framer.frame(now, current=current_raw if len(current_raw) else None)
@@ -150,6 +240,8 @@ class PaperRunner:
         spreads: Dict[str, Any] = {}
         if store is None:
             for sym in list(marks):
+                if not is_crypto(sym):                    # listed markets: no live book here, marked at the last close
+                    continue
                 try:
                     b = self.broker.book(sym, marks.get(sym))
                     spreads[sym] = b.get("spread_bps")
@@ -181,8 +273,12 @@ class PaperRunner:
         if len(pr):
             hist = pd.concat([hist, pr.reindex(columns=hist.columns)]).sort_index() if len(hist) else pr
         current_book = self.executor.current_weights(marks)
-        pdec = self.portfolio.build(legs, hist, current=current_book, profiles=self.profiles, paper_stats=self.paper_stats(),
-                                    regime=frame.regime) if legs else None
+        if self.policy and legs:                           # the lab's champion sets each sleeve's exposure
+            expo, pnotes = self._policy_exposures(now)
+            pdec = build_from_exposures(self.s, legs, expo, current=current_book, policy=f"{self.champion['name']} ({self.policy})", notes=pnotes)
+        else:
+            pdec = self.portfolio.build(legs, hist, current=current_book, profiles=self.profiles, paper_stats=self.paper_stats(),
+                                        regime=frame.regime) if legs else None
         book_target = pdec.asset_weights if pdec is not None else pd.Series(dtype=float)
 
         verdict = self.risk.check(book_target, current_book, now, quality=frame.quality, prices={k: v for k, v in marks.items() if not k.endswith(SPOT_SUFFIX)},
@@ -259,6 +355,15 @@ class PaperRunner:
                                  {"equity": eq_after, "previous": prev, "cycles_last_day": len(recent), "sleeves": pdec.sleeve_capital if pdec is not None else {}})
             self.state["summary_day"], self.state["summary_equity"] = today, eq_after
             self._save()
+        if store is None and bool(self.s.lab.get("weekly_review", False)):      # the system reviews itself once a week
+            wk = f"{now.isocalendar()[0]}-W{now.isocalendar()[1]:02d}"
+            if self.state.get("lab_week") is None:
+                self.state["lab_week"] = wk
+                self._save()
+            elif self.state["lab_week"] != wk:
+                self.state["lab_week"] = wk
+                self._save()
+                self._weekly_review(now)
         d = rec.to_dict()
         self.log(f"[{now:%Y-%m-%d %H:%M}] eq {eq_after:,.2f} ({ret:+.3%}) | {gd.reason} | gross {verdict.approved.abs().sum():.2f} | "
                  f"orders {len(report.orders)} fees {report.fees:.2f} | {'; '.join(verdict.reasons) or 'risk ok'}")

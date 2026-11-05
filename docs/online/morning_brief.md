@@ -1,121 +1,116 @@
-# Status brief, 5 November 2026 (second round)
+# Status brief, 5 November 2026 (third round: the lab)
 
-Roman, this replaces this morning's brief. The system is considerably better than it was twelve hours
-ago. The headline number is worse, and that is the improvement: the earlier figure was too kind, and the
-new tests are the ones that would have cost you money to learn any other way.
+Roman, the numbers went up, by a lot, and I can show you exactly why and exactly how far to trust them.
 
 ## The one paragraph to read
 
-Tested the hard way (re-allocating every week using only what was known at the time, for three years, with
-realistic costs and the live system's own limits), the portfolio made **about 1.6% a year at 10% volatility**.
-That is not distinguishable from zero: there is roughly a 38% chance the true record is a losing one. Over the
-same three years, simply holding BTC at the same level of risk made about 8.5% a year. **No strategy here has
-earned promotion past paper, and the honest reading is that no edge has been demonstrated.** What you own is
-an instrument that can tell real edge from luck, and it is currently saying "not yet".
+Over the same three years, every day out of sample, the portfolio went **from 1.6% a year at a Sharpe of 0.21
+to 8.7% a year at a Sharpe of 0.99**, with a smaller worst drawdown (-8.7% against -17.4%). On the two and a half
+years used for choosing it reads 11.0% at 1.21. The catch, stated as plainly as the gain: on the most recent
+six months, which were held back and looked at once, it lost 1.0%. So this is a much better system that is
+**not yet confirmed**. It is running in paper now, and the next 60 days of that record are the test nobody has
+seen the answer to.
 
-## What I got wrong this morning, and why
+## How it got better: a research loop that cannot fool itself
 
-This morning's brief said the Workbench portfolio made 5.4% a year on development and 5.8% on the holdout.
-Both numbers were computed correctly and both were too generous, for three reasons that the second round found:
+You asked for something that notices its mistakes and improves on itself. That is now a module, `itrader/online/lab/`:
 
-1. The allocator's weights for the development period were set with knowledge of the whole development period.
-   The holdout was honest, but it was a single six-month window. The new walk-forward simulation never lets the
-   allocator see past the day it is deciding on, and covers three years.
-2. An independent audit of the strategy code found no lookahead (it scrambled all future data and nothing
-   changed), but it found real faults in six of the seven strategies. Fixing them moved results in both directions.
-3. The first simulation levered the carry sleeve to 1.7x, which the live book's per-asset cap would never allow.
-   Capped where the live system caps it, the result dropped from 3.5% to 1.6%.
+1. **Rules first.** Eight experiments, their hypotheses and the way a winner is chosen were written into
+   `lab/registry.py` and committed before any of them was run (commit `dbbe1a4`).
+2. **Walk-forward judging.** Each recipe is run month by month using only what was known at the time, with costs,
+   double costs, 2,000 resampled histories and benchmarks.
+3. **Every attempt is counted.** The ledger keeps every trial. Thirteen variants have been tried in all, and every
+   Sharpe ratio is marked down for that.
+4. **A vault.** The most recent six months choose nothing. They are opened once, for the winner, and reported.
+5. **Champion and challenger.** A new recipe replaces the champion only if it is better after the mark-down and its
+   daily returns beat the champion's with a t-statistic of at least 1.
+6. **An advisor.** Each run writes `advisor_report.md`: where things stand, what each change was worth, what to be
+   careful about, whether paper trading agrees with the model, and what to try next. Fixed rules over measured
+   numbers; it does not flatter.
+7. **It repeats.** Once a week the paper loop re-runs the bench and the lab on fresh data and applies the same rule.
 
-## What changed in the system
+## What the experiments found
 
-* **Independent audit of every strategy, all findings fixed.** Pairs: the stop never stopped (it re-entered on the
-  next bar), and the legs ignored the hedge ratio. Seasonality: traded its window an hour late. Modern trend: ignored
-  forecast strength and was always fully invested. Carry: costs understated by a third, sized as if the account had
-  more capital than it does, re-sized daily for no reason. Turtle: used closes where the 1983 rules use highs and
-  lows, and re-sized units daily instead of fixing them at entry. Momentum: churned daily and rebalanced on different
-  days in backtest and live. Each strategy's honesty counter (`n_variants_tried`) went up accordingly.
-* **Maker execution with an honest fill model.** Orders rest at the touch and fill only if the market trades through
-  them; whatever does not fill within one bar is crossed as a taker at full cost. In the bench this cut trend's costs
-  from about 20% of gross profit to 2%. It did not rescue any losing strategy. The paper loop now trades this way;
-  anything the risk engine forces is still sent at once as a taker.
-* **Walk-forward portfolio simulation**, with BTC as the benchmark, a block bootstrap and a cost stress.
-* **Regime-aware capability profiles** (four regimes from BTC trend and volatility, per-regime CapabilityProfiles as the
-  spec's section 14.2 asks). Tested out of sample, regime-aware allocation was worse (0.6% against 1.6%), so it is built,
-  reported, and switched off.
-* **Alpha against BTC** for every sleeve and for the portfolio, so "is this just being long crypto?" has a number.
-* **Fresh funding data** (the exchange archive runs a month behind; the gap is now filled from OKX), a daily summary
-  alert, a wall-clock sleep so a sleeping laptop cannot skip cycles, Mac service files.
-* **40 tests**, all passing.
+Research window, 6 Nov 2023 to 7 May 2026, every day out of sample:
 
-## The numbers
-
-Per strategy, maker execution, each at its own raw size. Development is Nov 2022 to May 2026; the holdout is the last 182 days.
-
-| sleeve | dev CAGR | dev Sharpe | DSR | dev max DD | holdout CAGR | holdout Sharpe | alpha vs BTC (t) | verdict |
-|---|---|---|---|---|---|---|---|---|
-| turtle | 14.1% | 0.54 | 67% | -44% | 9.9% | 0.45 | 15.6%/yr (0.8) | best of the set, not proven |
-| trend_modern | 4.5% | 0.30 | 50% | -30% | 1.6% | 0.18 | 12.6%/yr (0.9) | weak |
-| funding_carry | 2.7% | 5.24 | 100% | -0.6% | 0.0% | 0.00 | 2.2%/yr (9.4) | real but small; nothing to earn since May |
-| mean_reversion | 4.0% | 0.28 | 37% | -39% | -26.7% | -1.38 | 5.1%/yr (0.4) | fails the holdout |
-| pairs | -1.2% | -0.10 | 24% | -14% | -3.0% | -0.48 | 0.4%/yr (0.1) | no edge |
-| xs_momentum | -5.2% | -0.16 | 21% | -38% | -28.3% | -2.20 | -5.3%/yr (-0.6) | loses |
-| seasonality | -24.5% | -1.36 | 0% | -69% | -8.0% | -0.45 | -38.9%/yr (-5.6) | loses, badly |
-
-A t-statistic below 2 means the figure could easily be chance. Only carry's is above 2, and carry earns about
-2% a year. Its Sharpe looks enormous because the bench does not model the gap between spot and perp prices,
-which is the real risk in that trade; do not read 5.24 as safety.
-
-The whole portfolio, walk-forward, every day out of sample (5 Nov 2023 to 5 Nov 2026):
-
-| | CAGR | vol | Sharpe | max DD | alpha vs BTC (t) | last 6 months |
+| recipe | what changed | per year | vol | Sharpe | worst DD | Sharpe at 2x costs |
 |---|---|---|---|---|---|---|
-| Workbench (as it runs live) | 1.6% | 10.3% | 0.21 | -17.4% | 3.5%/yr (0.6) | -5.2% |
-| Workbench, regime-aware | 0.6% | 8.3% | 0.12 | -18.0% | 0.7%/yr (0.1) | 0.0% |
-| equal weight across sleeves | -0.5% | 8.1% | -0.02 | -16.7% | -0.7%/yr (-0.2) | -7.4% |
-| BTC, buy and hold | 31.9% | 46.6% | 0.83 | -53.0% | | |
-| BTC, sized to the same risk | 8.5% | 12.7% | 0.71 | -22.8% | | |
+| R0 baseline | the system as it was | 3.1% | 10.6% | 0.34 | -16.2% | -0.06 |
+| R1 steady | a slower allocator, no trailing vote | 8.0% | 10.6% | 0.78 | -11.8% | 0.50 |
+| R2 stack | carry as the core, directional sleeves on top | 8.8% | 11.5% | 0.79 | -12.0% | 0.46 |
+| R3 + carry core | carry hurdle set by the cost of cash | 10.0% | 11.1% | 0.91 | -9.8% | 0.53 |
+| R4 + 25 coins | wider universe | 5.9% | 10.3% | 0.61 | -12.2% | 0.00 |
+| R5 + long-only trend | owning crypto while its trend is up | 13.7% | 11.4% | 1.18 | -10.4% | 0.65 |
+| R6 + multi-asset trend | the trend rule on 20 ETFs | 4.8% | 8.2% | 0.62 | -9.2% | -0.02 |
+| **R7 all three** | **champion** | **11.0%** | **8.9%** | **1.21** | **-8.7%** | **0.68** |
 
-* Resampled 2,000 times, the Workbench record ranges from -6.7% a year (bad case) to +10.8% (good case), median 1.6%.
-* At double the assumed costs it makes 1.3%; at triple, it loses 5.7%.
-* The allocator does beat equal weight, by about two points a year, by keeping the proven losers at zero. It does
-  not beat the benchmark, and its own timing of the trend sleeves cost it: it added to them after good runs.
-* BTC's own Sharpe over three years of a bull market is not proof of anything either. It is the bar a crypto strategy
-  has to clear to justify its complexity, and nothing here clears it.
+What each change was worth, measured against the recipe before it:
 
-## Your second surprise: the plan, in your own numbers
+* **The allocator was the biggest leak.** Slowing it down and removing its six-month performance vote more than doubled
+  the Sharpe ratio (+0.45). This is the most trustworthy gain: it is a logic fix, not a new bet.
+* **Long-only trend added the most return** (+7.8 points a year, t 2.4). Be clear about what it is: owning crypto while it
+  rises and standing aside when it falls. That is market exposure with a brake, not an edge. In a long decline it earns
+  nothing.
+* **Carry with a sensible hurdle helped a little** (+0.12 Sharpe) and then lost about 2% a year in the last six months,
+  when funding hovered around its hurdle and it paid to get in and out. That is most of the vault's loss.
+* **Twenty-five coins instead of ten made it worse** (-0.31). More names, more cost, no more independence.
+* **Multi-asset trend did not raise the Sharpe ratio here.** On 20 years of ETF history, after costs and financing, the rule
+  earns a Sharpe of only 0.22. It lowered volatility and drawdown, which is why the combined recipe edged out R5.
 
-`python -m itrader.online plan --capital 1000 --monthly 200` projects an account forward from the measured record:
+## How far to trust it
+
+* **Chosen with hindsight of the research window.** After marking down for 13 trials, the probability the champion's
+  Sharpe is better than luck is 58%. The bar for "established" is 90%.
+* **The vault did not confirm it:** -1.0% over the last six months (Sharpe -0.20, worst drawdown -5.3%).
+* **Alpha is borderline:** 10.5% a year against BTC (t 1.9) and 11.6% against the S&P 500 (t 2.1). Around 2 is where
+  "probably real" begins; this sits on the line.
+* **Resampled:** from 0.7% a year in the bad case to 23.4% in the good case, median 10.7%.
+* **Benchmarks in the same window:** the S&P 500 made 24.8% a year at 15.7% volatility, an exceptional run against a
+  long-run average near 10%. BTC made 40% with a 50% drawdown.
+
+## On 18 to 22% a year
+
+The champion runs at about 9% volatility because the risk limits hold it there. At the stock market's volatility (about
+16%) the same record would read roughly 19% a year in the research window and 15% over the whole three years, with
+drawdowns nearly doubled. That dial exists (`portfolio_vol_target` and the gap rule) and I have not turned it. Turning up
+risk on a result the vault has not confirmed is how accounts are lost. If 60 days of paper agree with the model, it is
+a two-line settings change, and the advisor's report will say when that case can be made.
+
+## Your plan, on the new record
+
+`python -m itrader.online plan --capital 1000 --monthly 200` (it now uses the champion):
 
 | years | paid in | bad case | middle | good case | chance of less than you paid in |
 |---|---|---|---|---|---|
-| 1 | 3,400 | 3,122 | 3,418 | 3,830 | 47% |
-| 3 | 8,200 | 7,220 | 8,437 | 9,964 | 39% |
-| 5 | 13,000 | 11,235 | 13,594 | 16,862 | 36% |
+| 1 | 3,400 | 3,256 | 3,568 | 4,035 | 21% |
+| 3 | 8,200 | 7,998 | 9,371 | 11,418 | 9% |
+| 5 | 13,000 | 13,244 | 16,281 | 20,973 | 4% |
 
-Read the "paid in" column first. After five years, 13,000 of the 13,594 in the middle case is money you put in.
-The trading adds about 600, and a third of the time it takes some away. At this size, **what you save decides the
-outcome and what the system earns barely registers**. That is the real wealth code, and it is unglamorous: keep
-adding, do not blow up, and do not pay real money for an edge that has not been shown. The tool takes any measured
-return stream (`--source`), so when a strategy does earn its place, you will see it in this table before you risk a cent.
+This morning the five-year middle was 13,594. It is now 16,281, and even the bad case ends above what you paid in.
+The saving still does most of the work; the trading now adds something visible.
 
 ## Running now
 
-The paper loop is running again on the upgraded code, in maker style, with the trend sleeves approved and the rest at
-zero. Equity stands near 9,991 on a 10,000 paper start. To keep it alive across restarts on the Mac:
-`bash itrader/online/ops/install_launchd.sh` (it needs the Mac awake; a closed laptop on battery will pause it).
+The paper loop runs the champion: carry core on eight coins, long-only trend, Turtle, modern trend and the multi-asset
+sleeve, with resting limit orders and the weekly self-review. Entering the carry core cost about 0.14% of equity, as
+modelled. Dashboard and `python -m itrader.online lab --action show` show the current state.
 
-## What is not done
+## What is not done, and what I would not claim
 
-* Live adapters remain behind four locks and untested against a venue. Nothing here justifies opening them.
-* WatsonOW and the golden-dataset export are still for the CTO (see `handover_cto.md`).
+* This is not a finished product a buyer could value. It is a disciplined research platform with one unconfirmed
+  champion. Its worth depends on a live record it does not have yet.
+* The multi-asset sleeve assumes margined instruments; ETF history stands in for them and the paper loop marks them at
+  daily closes.
+* The 25-coin list contains only coins that survived, which flatters long-biased results a little.
+* Carry's real risks (an exchange failing, spot and perpetual prices pulling apart) are not in these numbers.
+* Live trading is still behind four locks, untested against a venue, and nothing here justifies opening them.
 
 ## Three next steps
 
-1. **Leave the paper loop alone for 60 days.** The useful question now is whether paper matches the bench, especially
-   the maker fill rate. If real fills are worse than modelled, the ladder's cost gate will say so.
-2. **Put the CTO's solver in the experimental slot.** It gets the same bench, the same walk-forward test and the same
-   benchmark. If it has an edge, this is now a fair and strict place to show it.
-3. **Bring one new idea at a time**, state the rule before looking at the result, and let the bench judge it. Every
-   variant tried is counted against it. That discipline is worth more than any strategy in this repository.
+1. **Leave it alone for 60 days.** Read the advisor's report each Monday. Change nothing.
+2. **One observation worth a new experiment:** the wider universe hurt and long-only trend helped, so "ten coins plus
+   long-only trend" may beat the champion. I did not test it, because adding recipes after seeing results is exactly
+   how backtests lie. If you want it, it goes into the registry as trial 14 and the lab judges it.
+3. **Give the experimental slot the CTO's solver.** It is judged by the same lab against the same champion.
 
 This is a measurement of software against historical data, not financial advice.

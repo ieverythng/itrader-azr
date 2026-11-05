@@ -118,6 +118,8 @@ class DataStore:
         start = have.ts.iloc[-1].to_pydatetime() + timedelta(hours=1) if len(have) else (since or until - timedelta(days=365 * 3))
         if start >= until:
             return 0
+        if len(have) and (pd.Timestamp(until) - have.ts.iloc[-1]) < pd.Timedelta(hours=8, minutes=10):
+            return 0                                   # settlements are eight hours apart: nothing new can exist yet
         new = self.feed.funding(symbol, start, until)
         # The Binance archive is monthly and runs up to a month behind. Top the tail up from OKX's public history
         # (same 8-hourly schedule; a close proxy, not the same venue) so carry is not starved of recent funding.

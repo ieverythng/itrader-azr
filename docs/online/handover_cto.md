@@ -135,3 +135,40 @@ with the audit fixes and the gate, 3.5%; with the live caps, 1.6%. The last is t
 **What to take from it.** The allocator beats equal weight by about two points a year and loses to vol-matched BTC by
 about seven. Its timing of the trend sleeves is performance-chasing (trailing six-month vote) and cost it in 2024.
 If you redesign one thing, redesign that, and judge the redesign with `simulate()` and a count of what you tried.
+
+## Third round (5 Nov, later): the lab
+
+New package `itrader/online/lab/`:
+
+| file | what it is |
+|---|---|
+| `registry.py` | Pre-registered recipes (hypothesis, sleeves, policy, universe) and the selection criteria. Committed before any evaluation (`dbbe1a4`). Add a recipe here to test an idea; it is counted as one more trial. |
+| `policy.py` | `exposures(policy, past, metas, s, state)`: exposure multiplier per sleeve from past returns only. `steady` (slow gate with memory, equal risk, monthly, 20% band) and `stack` (market-neutral core at its own notional, directional overlay sized by risk, gap budget shared). The same function drives the walk-forward simulation and the live loop. |
+| `evaluate.py` | `Lab.cycle()`: sleeve returns per universe and cost level, walk-forward per recipe, research and vault windows, deflated Sharpe over all trials, eligibility constraints, champion and challenger rule, `ledger.jsonl`, `champion.json`, `league.json`, `returns.parquet`, sleeve returns and metadata for the live loop. |
+| `advisor.py` | `write_report()`: deterministic review from the league, the champion, the ledger and the paper records. |
+
+New sleeves: `carry_core` (hurdle at the cost of cash plus amortised costs, two-week funding, more and smaller slots),
+`trend_long` (the modern trend forecast, long side only), `macro_trend` (the same rule on 20 ETFs, bar `1b`, instrument
+`etf`, excess returns over a T-bill ETF, 2 bps a side, a borrow fee on shorts). New feed `Yahoo` (daily, adjusted). The
+crypto universe is 25 coins for daily sleeves; hourly sleeves stay on the ten majors (`universe_1h`).
+
+Live wiring: `PaperRunner` adopts `champion.json` (its sleeves, universe and policy), computes exposures with
+`lab.policy.exposures` every `rebalance_days`, builds the book with `portfolio.build_from_exposures`, syncs the listed
+markets once a day, and once a week re-runs the bench and the lab and applies the champion rule. Without a champion the
+second-round Workbench path runs unchanged.
+
+Three live settings were changed so that what runs is what was tested, each in the changelog: the gate's absolute
+utility floor (1 bp a day) became "positive after costs", because it shut out carry; `max_candidates` went from 3 to
+10, because a stacked book approves each sleeve on its own (the spec's 1 to 3 is a default, see 10.3); and the gate's
+holding-period estimate is now position-weighted (twice average gross over turnover), because counting bars between
+any trade made a carry position look like a ten-day trade. The risk engine gained `hedged_gap_factor` (0.2 of one-leg
+notional for a hedged pair) and `gap_move_listed` (5% for listed markets); gross caps are 2.5 so a carry core fits.
+
+Results and caveats are in `morning_brief.md` and `advisor_report.md` (a snapshot is committed in `docs/online/`). The
+short version: champion `R7_stack_wide_all`, 11.0% a year at Sharpe 1.21 on the research window, -1.0% in the vault,
+58% deflated probability after 13 trials. Unconfirmed. The allocator fix (R0 to R1) is the gain I would bet on.
+
+Things I would look at first if this were mine: (1) the survivor universe: rebuild it point-in-time from exchange
+listings; (2) the macro sleeve's instrument: it needs a real margined venue and its own cost model; (3) carry's churn
+around the hurdle in low-funding regimes, visible in the vault; (4) the lab's research window is two and a half years
+of one crypto regime: every conclusion is conditional on that.

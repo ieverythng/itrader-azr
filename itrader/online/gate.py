@@ -45,7 +45,7 @@ class DecisionGate:
         self.min_conf = float(g.min_confidence)
         self.min_eu = float(g.min_expected_utility_bps) / 1e4
         self.cost_mult = float(g.utility_cost_multiple)
-        self.universe = set(self.s.data.universe)
+        self.universe = set(self.s.data.universe) | set(self.s.data.get("macro_universe", []))
 
     def _check(self, name: str, value: float, op: str, limit: float, detail: str = "") -> Dict[str, Any]:
         ok = {"ge": value >= limit, "gt": value > limit, "le": value <= limit, "eq": value == limit}[op]

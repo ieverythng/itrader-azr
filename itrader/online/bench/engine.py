@@ -158,8 +158,10 @@ def backtest(weights: pd.DataFrame, market: Market, costs: CostModel, instrument
     elif instrument == "spot+perp":
         gross = pd.Series(0.0, index=close.index)
         fund = (w_app * fpb).sum(axis=1)
-    elif instrument == "etf":                              # signed, no funding; shorts pay a borrow fee
-        gross = (w_app * r).sum(axis=1)
+    elif instrument == "etf":                              # signed, margined: excess returns over the risk-free rate; shorts pay a borrow fee
+        rf = getattr(market, "rf", None)
+        rf = rf.reindex(close.index).fillna(0.0) if rf is not None else pd.Series(0.0, index=close.index)
+        gross = (w_app * r.sub(rf, axis=0)).sum(axis=1)
         fund = -(w_app.clip(upper=0.0).abs().sum(axis=1)) * costs.etf_short_borrow_ann / PPY[market.bar]
     else:
         raise ValueError(f"unknown instrument {instrument}")

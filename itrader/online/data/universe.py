@@ -40,6 +40,11 @@ def is_spot(symbol: str) -> bool:
     return symbol.endswith(SPOT_SUFFIX)
 
 
+def is_crypto(symbol: str) -> bool:
+    """True for the crypto book legs; False for listed instruments such as ETFs."""
+    return leg_symbol(symbol).endswith(("USDT", "USDC", "BUSD"))
+
+
 def base_asset(symbol: str) -> str:
     symbol = leg_symbol(symbol)
     for quote in ("USDT", "USDC", "USD", "BUSD"):

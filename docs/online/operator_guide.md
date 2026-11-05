@@ -92,3 +92,27 @@ next hour, but those hours are missing from the record.
 * **Daily summary.** One alert at the first cycle of each UTC day: equity, change, gross, regime, lock state.
 * **Funding.** `sync` fills the last weeks of funding from OKX because the Binance archive is monthly. Carry stays flat
   where funding data is missing.
+
+## The lab (third round)
+
+| command | what it does |
+|---|---|
+| `python -m itrader.online lab` | evaluate every recipe in `lab/registry.py` on the current data, apply the champion rule, write the advisor's report (about a minute) |
+| `python -m itrader.online lab --action show` | print the latest advisor report |
+| `python -m itrader.online lab --action report` | rewrite the report without re-running (picks up new paper records) |
+| `python -m itrader.online plan --capital 1000 --monthly 200` | project an account from the champion's measured record (`--source` for any other column of `lab/returns.parquet`) |
+
+Files in `data/online/lab/`: `champion.json` (what the paper loop runs, with its research and vault figures and its
+history), `ledger.jsonl` (every evaluation ever made), `league.json`, `returns.parquet`, `advisor_report.md`.
+
+The paper loop reads `champion.json` at start and after each weekly review. The weekly review runs at the first cycle of
+each ISO week (`[lab] weekly_review`): bench, lab, report, and an alert saying whether the champion changed. A champion
+only changes when the lab's criteria say so; you never need to pick one by hand. To go back to the second-round book,
+delete `champion.json` and restart the loop.
+
+To test an idea of your own: add a `Recipe` to `itrader/online/lab/registry.py` with its hypothesis, commit it, run the
+lab. Do not edit a recipe after seeing its result; add another one. Each addition raises the bar for all of them.
+
+Listed markets (`macro_trend`): daily history from Yahoo's public feed into `data/online/macro/`, refreshed once a day.
+The paper loop marks them at the last daily close and trades them at any hour; that is a paper convenience, not how a
+real venue behaves.

@@ -32,7 +32,7 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from .data.store import Quality
-from .data.universe import base_asset, is_spot, leg_symbol
+from .data.universe import base_asset, is_crypto, is_spot, leg_symbol
 from .settings import Settings, settings as default_settings
 
 
@@ -323,8 +323,11 @@ class RiskEngine:
             # 10. gap sizing
             gross = float(tgt.abs().sum())
             exposure = 0.0
+            listed = float(r.get("gap_move_listed", r.gap_move)) / float(r.gap_move)   # diversified listed markets gap less than crypto
             for nm in {base_asset(s_) for s_ in tgt.index}:
                 legs_ = tgt[[s_ for s_ in tgt.index if base_asset(s_) == nm]]
+                if not any(is_crypto(s_) for s_ in legs_.index):
+                    legs_ = legs_ * listed
                 long_, short_ = float(legs_[legs_ > 0].sum()), float(-legs_[legs_ < 0].sum())
                 exposure += abs(long_ - short_) + float(r.get("hedged_gap_factor", 0.2)) * min(long_, short_)
             gap_loss = exposure * float(r.gap_move)
