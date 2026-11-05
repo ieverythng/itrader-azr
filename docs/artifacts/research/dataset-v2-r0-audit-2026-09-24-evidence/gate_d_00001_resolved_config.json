@@ -1,0 +1,743 @@
+{
+  "schema_version": 1,
+  "trial_id": "35bc1_00001",
+  "trial_name": "training_fn_ITraderEnv_35bc1_00001",
+  "trial_dir": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\phaseA_r0_dataset_v2_p0_post_restore_gate_35d_20260924_043231_no_cost_post_restore_gate_d\\training_fn_ITraderEnv_35bc1_00001_1_seed=927203_2026-09-24_04-32-38",
+  "stable_trial_dir": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\_stable_metrics\\training_fn_ITraderEnv_35bc1_00001_1_seed=927203_2026-09-24_04-32-38",
+  "git_commit": "891fcaa2ba2200d0affe2c97a6d9ada592dbcfaa",
+  "source_tree_fingerprint": {
+    "git_commit": "891fcaa2ba2200d0affe2c97a6d9ada592dbcfaa",
+    "algorithm": "sha256(sorted relative-path TAB file-sha256 LF)",
+    "python_file_count": 82,
+    "source_tree_sha256": "9374f7710665a4c557de9784a33909265592ea70ee25b21b9094caf30a66e7de"
+  },
+  "config_hash": "da01c465c80e7b99e01341266018fd7869ffebf4ed3bce55108320c11881b2e2",
+  "dataset_path": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\data\\datasets\\dataset_v2_20220103_20260922_alpaca_sip_split\\bars",
+  "dataset_sha256": "20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9",
+  "config": {
+    "env": "ITraderEnv",
+    "source_provenance": {
+      "git_commit": "891fcaa2ba2200d0affe2c97a6d9ada592dbcfaa",
+      "algorithm": "sha256(sorted relative-path TAB file-sha256 LF)",
+      "python_file_count": 82,
+      "source_tree_sha256": "9374f7710665a4c557de9784a33909265592ea70ee25b21b9094caf30a66e7de"
+    },
+    "optimization_cost_schedule": [],
+    "env_config": {
+      "df_path": "C:/Users/Admin/PROJECTS/iTRADER/itrader-azr/itrader/data/datasets/dataset_v2_20220103_20260922_alpaca_sip_split/bars",
+      "window_size": 60,
+      "start_idx_mode": "stream_worker",
+      "stream_jump_every_episodes": 5,
+      "stream_jump_on_wrap": true,
+      "stream_stride": 0,
+      "ret_norm_reset": "stream",
+      "observation_transform": "market_relative_v1",
+      "t_embed_mode": "concat",
+      "t_scale": 1.0,
+      "task_encoder_version": "semantic_v2",
+      "data_split": "train",
+      "data_sessions": [
+        "regular"
+      ],
+      "data_symbols": [
+        "AAPL",
+        "MSFT",
+        "AMZN",
+        "NVDA",
+        "AMD",
+        "AVGO",
+        "GOOGL",
+        "META",
+        "SPY",
+        "QQQ",
+        "IWM",
+        "TLT"
+      ],
+      "episode_boundary_cols": [
+        "session_id"
+      ],
+      "expected_bar_interval": "1min",
+      "split_fractions": [
+        0.7,
+        0.15,
+        0.15
+      ],
+      "split_purge_rows": 200,
+      "evidence_cost_bps": 1.0,
+      "evidence_periods_per_year": 0.0,
+      "task_sampler": {
+        "window_size": 60,
+        "n_features": 5,
+        "t_embed_dim": 32,
+        "action_dim": 3,
+        "seed": 1237143,
+        "bar_resolution": "1m",
+        "horizons": [
+          96,
+          128,
+          160,
+          200
+        ],
+        "reward_ids": [
+          "net_return"
+        ],
+        "turnover_w_choices": [
+          0.0,
+          0.0005,
+          0.001,
+          0.002
+        ],
+        "dd_modes": [
+          "delta"
+        ],
+        "dd_w_range": [
+          0.0,
+          0.04
+        ],
+        "turnover_cap": 0.02,
+        "dd_cap": 0.1,
+        "reward_params_by_id": {
+          "net_return": {
+            "cost_bps": 0.0,
+            "reward_scale": 1000.0
+          }
+        }
+      }
+    },
+    "evaluation_interval": 1,
+    "evaluation_num_workers": 0,
+    "evaluation_duration": 32,
+    "evaluation_duration_unit": "episodes",
+    "metrics_num_episodes_for_smoothing": 32,
+    "evaluation_config": {
+      "explore": false,
+      "seed": 30260943,
+      "env_config": {
+        "df_path": "C:/Users/Admin/PROJECTS/iTRADER/itrader-azr/itrader/data/datasets/dataset_v2_20220103_20260922_alpaca_sip_split/bars",
+        "window_size": 60,
+        "start_idx_mode": "random_episode",
+        "stream_jump_every_episodes": 5,
+        "stream_jump_on_wrap": true,
+        "stream_stride": 0,
+        "ret_norm_reset": "episode",
+        "observation_transform": "market_relative_v1",
+        "t_embed_mode": "concat",
+        "t_scale": 1.0,
+        "task_encoder_version": "semantic_v2",
+        "data_split": "validation",
+        "data_sessions": [
+          "regular"
+        ],
+        "data_symbols": [
+          "AAPL",
+          "MSFT",
+          "AMZN",
+          "NVDA",
+          "AMD",
+          "AVGO",
+          "GOOGL",
+          "META",
+          "SPY",
+          "QQQ",
+          "IWM",
+          "TLT"
+        ],
+        "episode_boundary_cols": [
+          "session_id"
+        ],
+        "expected_bar_interval": "1min",
+        "split_fractions": [
+          0.7,
+          0.15,
+          0.15
+        ],
+        "split_purge_rows": 200,
+        "evidence_cost_bps": 1.0,
+        "evidence_periods_per_year": 0.0,
+        "task_sampler": {
+          "window_size": 60,
+          "n_features": 5,
+          "t_embed_dim": 32,
+          "action_dim": 3,
+          "seed": 30260943,
+          "bar_resolution": "1m",
+          "horizons": [
+            96,
+            128,
+            160,
+            200
+          ],
+          "reward_ids": [
+            "net_return"
+          ],
+          "turnover_w_choices": [
+            0.0,
+            0.0005,
+            0.001,
+            0.002
+          ],
+          "dd_modes": [
+            "delta"
+          ],
+          "dd_w_range": [
+            0.0,
+            0.04
+          ],
+          "turnover_cap": 0.02,
+          "dd_cap": 0.1,
+          "reward_params_by_id": {
+            "net_return": {
+              "cost_bps": 0.0,
+              "reward_scale": 1000.0
+            }
+          },
+          "fixed_tasks": [
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 96,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 152726,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 128,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 261685,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 160,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 99249,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 200,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 538486,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 96,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 294227,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 128,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 667759,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 160,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 125658,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 200,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 777438,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 96,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 585213,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 128,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 666668,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 160,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 477914,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 200,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 257055,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 96,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 652069,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 128,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 774425,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 160,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 751525,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 200,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 563667,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 96,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 946613,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 128,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 965909,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 160,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 297128,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 200,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 981005,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 96,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 903603,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 128,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 302147,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 160,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 608314,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 200,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 376416,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 96,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 428288,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 128,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 900046,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 160,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 16833,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 200,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 884218,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 96,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 761590,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 128,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 682013,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 160,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 157994,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            },
+            {
+              "family_id": "00",
+              "price_id": "SIM",
+              "horizon": 200,
+              "reward_id": "net_return",
+              "reward_params": {
+                "cost_bps": 0.0,
+                "reward_scale": 1000.0
+              },
+              "seed": 148220,
+              "obs_dim": 332,
+              "action_dim": 3,
+              "start_idx": null,
+              "bar_resolution": "1m"
+            }
+          ]
+        }
+      }
+    },
+    "checkpoint_consistent_evaluation": true,
+    "model": {
+      "custom_model": "solver_mlp_film",
+      "custom_model_config": {
+        "window_size": 60,
+        "t_embed_dim": 32,
+        "fcnet_hiddens": [
+          256,
+          256
+        ],
+        "conditioning": "film",
+        "t_keep_p": 0.7,
+        "t_proj": 64
+      }
+    },
+    "num_gpus": 0,
+    "num_gpus_per_worker": 0,
+    "num_workers": 1,
+    "seed": 1237143,
+    "framework": "torch",
+    "callbacks": "<class '__main__.MetricsOnlyCallback'>",
+    "observation_filter": "NoFilter",
+    "grad_clip": 10.0,
+    "train_batch_size": 4800,
+    "batch_mode": "complete_episodes",
+    "metrics_sinks": [],
+    "prometheus_export_port": null,
+    "stop_iters": 35,
+    "checkpoint_interval": 5,
+    "pbt_synch": true,
+    "pbt_target_steps": 168000,
+    "pbt_interval_steps": 24000,
+    "checkpoint_interval_steps": 24000,
+    "stable_metrics_root": "C:\\itrader-ray\\v2p0-post-restore-gate35d-20260924\\_stable_metrics",
+    "auto_plot_on_end": false,
+    "pbt_promotion_eligible": false,
+    "pbt_selection_min_sharpe": 0.0,
+    "pbt_selection_max_flat_action_fraction": 0.98,
+    "resume_rewind_to_checkpoint": false,
+    "restore_progress_steps": 0,
+    "restore_progress_updates": 0,
+    "lr": 0.0002958012017141846,
+    "entropy_coeff_schedule": [
+      [
+        0,
+        0.02
+      ],
+      [
+        96000,
+        0.01
+      ],
+      [
+        240000,
+        0.003
+      ]
+    ],
+    "clip_param": 0.1,
+    "lambda": 0.95,
+    "gamma": 0.98,
+    "sgd_minibatch_size": 128,
+    "num_sgd_iter": 30,
+    "vf_clip_param": 10.0,
+    "vf_loss_coeff": 1.0
+  }
+}

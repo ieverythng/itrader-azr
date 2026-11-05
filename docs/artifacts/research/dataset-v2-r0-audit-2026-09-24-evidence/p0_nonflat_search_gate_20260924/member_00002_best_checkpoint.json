@@ -1,0 +1,23 @@
+{
+  "schema_version": 2,
+  "metric": "evaluation/economic_search_score",
+  "score": 1.0005785450278413,
+  "economically_eligible": true,
+  "training_iteration": 18,
+  "pbt_progress_steps": 87920,
+  "stable_checkpoint": "C:\\itrader-ray\\v2p0-nonflat-search-sync30-20260924\\_stable_metrics\\training_fn_ITraderEnv_b5ac0_00002_2_seed=1593933_2026-09-24_15-41-56\\checkpoints\\iter_000018_140030555199",
+  "recorded_at_utc": "2026-09-24T14:00:30.625476+00:00",
+  "selection_scope": "ineligible_evaluation_improvement_for_forensics",
+  "requires_fresh_process_replay": true,
+  "trial_id": "b5ac0_00002",
+  "pbt_progress_updates": 18,
+  "pbt_restore_generation": 0,
+  "pbt_parent_exploit_id": null,
+  "checkpoint_sha256": "e926f5923ba8ea49d7a65efe4377f86a56f74c4bab8c343614c6ce752cbf8028",
+  "config_hash": "5e11e441e9e6ea4f621c7d08e966d8b746811dc5c577d55b76f32900db3c2c34",
+  "comparison_config_hash": "57cef1082d00adf79354bccbe6eef905c813667f21151a2d5e25243ee2cf3c98",
+  "source_tree_sha256": "b984951c2d390d91653f8e41ef37dc4fc79936d8f489fc9f78ef108c1a13bade",
+  "dataset_sha256": "20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9",
+  "evaluation_panel_sha256": "2314a55ceac6aceed575203d91daa0d1468fcd88158ff4d0839751c3b8b36b9f",
+  "config_snapshot": "C:\\itrader-ray\\v2p0-nonflat-search-sync30-20260924\\_stable_metrics\\training_fn_ITraderEnv_b5ac0_00002_2_seed=1593933_2026-09-24_15-41-56\\resolved_configs\\generation_0000_initial.json"
+}

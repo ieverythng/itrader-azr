@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "status": "research_only_not_authorization_to_train",
+  "baseline": "SolverMLPFiLM_R0",
+  "primary_search_metric": "evaluation/net_return_mean_at_1bp",
+  "frozen_invariants": [
+    "dataset_v2_RTH_snapshot_and_split_hashes",
+    "chronological_purge_contract",
+    "crossed_development_panel_task_identities",
+    "semantic_v2_task_encoding",
+    "target_position_v1_action_semantics",
+    "EpisodeEvidence_schema_v1",
+    "training_and_evaluation_seeds",
+    "cost_and_fresh_replay_contract",
+    "sealed_final_test"
+  ],
+  "experiments": [
+    {
+      "id": "S1-P0",
+      "question": "Does released CLM-v0.1-8B contain any usable zero-shot signal for the three target positions?",
+      "single_factor": "Frozen Qwen3-8B plus released CLM heads over deterministic causal state text.",
+      "budget": {
+        "train_split_states": 10000,
+        "ppo_updates": 0,
+        "seeds": 1
+      },
+      "metrics": [
+        "macro_accuracy",
+        "log_loss",
+        "brier_score",
+        "expected_calibration_error",
+        "action_distribution",
+        "cold_latency_ms",
+        "warm_latency_ms",
+        "peak_vram_bytes"
+      ],
+      "decision": "diagnostic_only"
+    },
+    {
+      "id": "S1-P1",
+      "question": "Can the released CLM projection heads learn a valid three-choice trading decision surface while Qwen3-8B stays frozen?",
+      "single_factor": "Fine-tune only the released state/action projection heads with the per-question choice objective; the generic duplicate-action InfoNCE path is forbidden.",
+      "budget": {
+        "examples": 250000,
+        "seeds": 3,
+        "maximum_epochs": 20,
+        "early_stopping_patience_epochs": 5,
+        "economic_replay": "equal_and_fixed_per_seed"
+      },
+      "decision": "keep_only_if_label_space_validation_economic_scalar_collapse_gates_and_exact_replay_pass"
+    },
+    {
+      "id": "S1-P2",
+      "question": "Does explicit agent-state observability improve the CLM probe and a matched R0 control?",
+      "single_factor": "Add agent_state_v1 to CLM state serialization and to R0 with identical timing and normalization.",
+      "budget": {
+        "seeds": 3,
+        "clm_head_budget": "same_as_S1_P1",
+        "matched_R0_budget": "same_seeds_and_economic_replay"
+      },
+      "decision": "attribute_to_R4_v1_observability_not_CLM"
+    },
+    {
+      "id": "S1-P3",
+      "question": "Can CLM-style matching select better offline tasks than rule or random curricula?",
+      "single_factor": "Rank only validated TaskSpec candidates from causal market summaries and versioned capability gaps while freezing the solver architecture and total solver compute.",
+      "budget": {
+        "seeds": 3,
+        "candidate_sets": "fixed_and_hashed",
+        "solver_compute": "equal_across_selectors"
+      },
+      "decision": "keep_only_on_held_out_solver_uplift_without_final_test_access"
+    },
+    {
+      "id": "S1-P4a",
+      "question": "Can a future CLM-style MarketFramer rank validated CandidateTask objects plus WAIT safely?",
+      "single_factor": "Replay-only CandidateTask ranking with a frozen deterministic capability-eligibility mask and frozen solver outputs.",
+      "budget": {
+        "seeds": 3,
+        "candidate_sets": "fixed_and_hashed",
+        "capability_eligibility": "fixed_and_versioned",
+        "live_execution": false
+      },
+      "decision": "future_only_after_S1_P1_and_S1_P3_evidence"
+    },
+    {
+      "id": "S1-P4b",
+      "question": "Given frozen MarketFramer candidates, can a separate CapabilityMatcher select a valid solver profile or no match?",
+      "single_factor": "Rank versioned held-out CapabilityProfile rows for fixed candidates while freezing candidate order, solver outputs, and capability snapshots.",
+      "budget": {
+        "seeds": 3,
+        "candidate_sets": "same_as_S1_P4a",
+        "solver_outputs": "frozen",
+        "live_execution": false
+      },
+      "decision": "keep_only_if_utility_and_calibration_beat_rule_matching"
+    },
+    {
+      "id": "S1-P5",
+      "question": "If exact CLM has useful signal but fails resource gates, can its geometry be distilled into the numerical solver?",
+      "single_factor": "Replace only R0 Linear(hidden,3) with a normalized state projection, three learned action prototypes, and a bounded learned temperature.",
+      "budget": {
+        "seeds": 3,
+        "correctness_gate_updates": 20,
+        "maximum_updates": 60
+      },
+      "decision": "no_LLM_follow_on_not_evidence_about_released_CLM_8B"
+    }
+  ],
+  "promotion_gates": [
+    "finite_complete_evidence",
+    "positive_net_return_at_1bp",
+    "positive_net_sharpe_per_sqrt_bar",
+    "beats_flat_and_strongest_matched_directional_control",
+    "flat_action_fraction_below_0_98",
+    "paired_block_uplift_nonnegative",
+    "positive_net_return_at_2bp",
+    "exact_fresh_process_replay",
+    "independent_seed_replication"
+  ],
+  "immediate_stop_conditions": [
+    "feature_or_label_leakage",
+    "nonfinite_logits_or_embeddings",
+    "unexplained_single_action_collapse",
+    "action_index_semantic_mismatch",
+    "missing_or_nonreproducible_checkpoint_evidence",
+    "no_offline_uplift_for_a_supervised_probe",
+    "resource_ceiling_breach",
+    "license_or_model_access_incompatible_with_claim"
+  ]
+}

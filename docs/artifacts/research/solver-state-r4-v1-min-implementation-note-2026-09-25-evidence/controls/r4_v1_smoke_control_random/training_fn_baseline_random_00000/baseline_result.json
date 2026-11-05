@@ -1,0 +1,22 @@
+{
+  "training_iteration": 0,
+  "pbt_progress_steps": 0,
+  "episode_len_mean": 146.0,
+  "evaluation/optimization_reward_mean": -12.144269507437444,
+  "evaluation/gross_return_mean": 0.0009182304925625517,
+  "evaluation/net_return_mean": -0.012144269507437449,
+  "evaluation/net_sharpe_per_sqrt_bar_mean": -0.24465488414213393,
+  "evaluation/turnover_mean": 130.625,
+  "custom_metrics/act_0_frac_mean": 0.32859375,
+  "custom_metrics/act_short_frac_mean": 0.32859375,
+  "evaluation/custom_metrics/act_0_frac_mean": 0.32859375,
+  "evaluation/custom_metrics/act_short_frac_mean": 0.32859375,
+  "custom_metrics/act_1_frac_mean": 0.3429036458333333,
+  "custom_metrics/act_flat_frac_mean": 0.3429036458333333,
+  "evaluation/custom_metrics/act_1_frac_mean": 0.3429036458333333,
+  "evaluation/custom_metrics/act_flat_frac_mean": 0.3429036458333333,
+  "custom_metrics/act_2_frac_mean": 0.32850260416666666,
+  "custom_metrics/act_long_frac_mean": 0.32850260416666666,
+  "evaluation/custom_metrics/act_2_frac_mean": 0.32850260416666666,
+  "evaluation/custom_metrics/act_long_frac_mean": 0.32850260416666666
+}

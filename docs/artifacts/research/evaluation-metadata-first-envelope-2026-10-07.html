@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Metadata-first feasibility analysis and draft declaration for a separate Q23 terminal-screen-only historical envelope; acquisition, market outcomes, and Q26 method selection remain unauthorized.">
+<title>Q23 metadata-first historical envelope: feasibility and draft declaration &mdash; 2026-10-07</title>
+<style>
+:root{--bg:#101a20;--panel:#17252e;--panel-2:#23303a;--text:#e6eff3;--muted:#afbdc6;--link:#8bdac0;--line:#3a4b56;--accent:#e5b56b;--code:#1a2933;--approved:#93e2c4;--pending:#f0c98b}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1100px;margin:auto;padding:40px 28px 64px}
+a{color:var(--link);text-underline-offset:3px}
+a:hover,a:focus{color:#b7f0dc}
+h1,h2,h3{line-height:1.25;scroll-margin-top:20px}
+h1{font-size:clamp(2rem,5vw,3.15rem);margin:10px 0 14px;max-width:980px}
+h2{margin-top:42px;padding-top:6px;border-top:1px solid var(--line)}
+h3{margin-top:28px;color:#dce8ed}
+p{max-width:90ch}
+.eyebrow,.muted{color:var(--muted)}
+.eyebrow{margin:0 0 6px;font-size:.93rem;letter-spacing:.02em}
+.source-links{margin-bottom:24px;color:var(--muted)}
+.source-links span{padding:0 7px}
+.status{display:grid;grid-template-columns:max-content 1fr;gap:5px 18px;max-width:960px;margin:18px 0 28px;padding:16px 20px;background:var(--panel);border:1px solid var(--line);border-radius:5px}
+.status dt{font-weight:700;color:#f1f6f8}
+.status dd{margin:0;color:var(--muted)}
+.gate{margin:24px 0 34px;border-left:4px solid var(--accent);padding:16px 22px;background:var(--panel-2)}
+.gate h2{margin:0 0 8px;padding:0;border:0;font-size:1.35rem;color:#ffd69b}
+.gate p{margin:0}
+.toc{margin:26px 0 34px;padding:18px 22px;background:var(--panel);border:1px solid var(--line);border-radius:5px}
+.toc h2{margin:0 0 8px;padding:0;border:0;font-size:1.15rem}
+.toc ol{columns:2;column-gap:40px;margin:8px 0 0}
+.toc li{break-inside:avoid;margin:5px 0}
+.label{display:inline-block;padding:1px 8px;border:1px solid currentColor;border-radius:999px;font-size:.8rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.label.approved{color:var(--approved)}
+.label.pending{color:var(--pending)}
+code,pre{background:var(--code)}
+code{padding:2px 5px;border-radius:3px;font:.92em ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}
+pre{padding:18px;overflow:auto;border:1px solid #2f424e;border-radius:5px;line-height:1.45}
+pre code{padding:0;background:transparent;font-size:.92rem}
+ul,ol{max-width:92ch;padding-left:1.55rem}
+li{margin:8px 0}
+table{display:block;width:100%;overflow-x:auto;border-collapse:collapse;margin:20px 0 28px}
+th,td{min-width:150px;padding:11px 13px;border:1px solid var(--line);vertical-align:top;text-align:left}
+th{background:var(--panel-2);color:#f1f6f8}
+tbody tr:nth-child(even){background:var(--panel)}
+strong{color:#fff}
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.92rem}
+.skip-link{position:absolute;left:-9999px;top:0;background:#fff;color:#000;padding:8px 12px;z-index:2}
+.skip-link:focus{left:10px;top:10px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media (max-width:650px){main{padding:28px 18px 48px}h1{font-size:2rem}th,td{min-width:135px}.status{grid-template-columns:1fr}.status dd{margin-bottom:8px}.toc ol{columns:1}}
+@media print{:root{--bg:#fff;--panel:#f6f7f8;--panel-2:#eef1f3;--text:#111;--muted:#555;--link:#075d4d;--line:#bbb;--accent:#9c5c00;--code:#f1f3f4;--approved:#075d4d;--pending:#765000}body{font-size:11pt}main{max-width:none;padding:0}a{color:inherit}pre,table,.gate{break-inside:avoid}.toc{display:none}}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#report">Skip to report</a>
+<main id="report">
+<header>
+<p class="eyebrow">agent/Watson-dev &middot; research artifact &middot; 2026-10-07</p>
+<nav class="source-links" aria-label="Companion documents"><a href="evaluation-metadata-first-envelope-2026-10-07.md">Markdown source</a><span aria-hidden="true">&middot;</span><a href="../../plans/itrader_masterplan.md">Masterplan</a><span aria-hidden="true">&middot;</span><a href="../../project-state/r1-development-readiness.md">R1 readiness contract</a><span aria-hidden="true">&middot;</span><a href="../../architecture/itrader_system_architecture.md">System architecture</a></nav>
+<h1>Q23 metadata-first historical envelope: feasibility and draft declaration</h1>
+<dl class="status">
+<dt>Date</dt><dd>2026-10-07, Europe/Madrid</dd>
+<dt>Branch</dt><dd><code>agent/Watson-dev</code></dd>
+<dt>Status</dt><dd><strong>metadata-first planning is approved; the exact 2020-01-01 through 2021-12-31 acquisition declaration below is a research recommendation awaiting human review. No bar data was acquired, no market or model outcome was opened, and no Q26 method or numerical gate was selected.</strong></dd>
+</dl>
+</header>
+
+<aside class="gate" aria-labelledby="authorization-boundary">
+<h2 id="authorization-boundary">Authorization boundary</h2>
+<p><span class="label approved">Approved</span> Metadata-first planning. <span class="label pending">Pending</span> Human review of the exact 2020-01-01 through 2021-12-31 declaration and bounded retrospective clearance. No bar data was acquired, no market or model outcome was opened, and no Q26 method or numerical gate was selected.</p>
+</aside>
+
+<nav class="toc" aria-labelledby="contents-heading">
+<h2 id="contents-heading">Contents</h2>
+<ol>
+<li><a href="#decision-result">Decision result</a></li>
+<li><a href="#architecture-and-authority-boundary">Architecture and authority boundary</a></li>
+<li><a href="#outcome-blind-source-and-calendar-receipts">Outcome-blind source and calendar receipts</a></li>
+<li><a href="#all-twelve-symbol-support-known-versus-unknown">All-twelve-symbol support: known versus unknown</a></li>
+<li><a href="#candidate-contiguous-envelope-disposition">Candidate contiguous-envelope disposition</a></li>
+<li><a href="#draft-bounded-retrospective-clearance-standard">Draft bounded retrospective-clearance standard</a></li>
+<li><a href="#draft-acquisition-declaration-for-review">Draft acquisition declaration for review</a></li>
+<li><a href="#q26-synthetic-calibration-boundary">Q26 synthetic-calibration boundary</a></li>
+<li><a href="#ordered-gates-after-the-next-decision">Ordered gates after the next decision</a></li>
+<li><a href="#one-next-grill-decision">One next GRILL decision</a></li>
+<li><a href="#limitations">Limitations</a></li>
+<li><a href="#evidence-and-provenance">Evidence and provenance</a></li>
+</ol>
+</nav>
+
+<article>
+<section aria-labelledby="decision-result">
+<h2 id="decision-result">Decision result</h2>
+<p>The recommended historical envelope is the two complete exchange-calendar years
+immediately before dataset-v2:</p>
+<pre><code class="language-text">2020-01-01 through 2021-12-31, inclusive request bounds
+Alpaca / SIP / 1Min / split-adjusted / America/New_York
+builder-supported sessions retained; regular session only is terminal-eligible
+fixed twelve-symbol universe
+</code></pre>
+<p>The first returned exchange session is 2020-01-02. The interval contains 505
+exchange sessions and three venue-calendar early closes, hence 6,060 requested
+symbol/session slots before any symbol-level bar qualification. It is the
+closest contiguous pair of complete pre-v2 calendar years. The rule uses only
+source boundaries and calendar topology; it does not use returns, volatility,
+regimes, actions, checkpoint scores, or method performance. Choosing two years
+is a reviewable design judgment, not evidence that this duration will support a
+Q26 method; synthetic calibration must test that separately.</p>
+<p>The interval is a <strong>recommended candidate; retrospective clearance is still
+pending</strong>. It is disjoint from the retained dataset-v2 interval and the raw date
+coverage of legacy dataset-v1, but retained artifacts cannot prove the absence
+of deleted copies, unlogged external tools, or human chart inspection.
+Acquisition cannot begin until the bounded retrospective-clearance standard and
+exact declaration are approved and the first-class <code>terminal_screen_only</code> role
+passes DEV review. The first post-approval sealed explicit-SIP request is the
+entitlement check and first acquisition step; outcome inspection or use remains
+blocked until all downstream gates pass.</p>
+<table>
+<caption class="sr-only">Current decision, authorization status, and boundaries</caption>
+<thead>
+<tr>
+<th scope="col">Item</th>
+<th scope="col">Current decision</th>
+<th scope="col">Boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Metadata-first sequence</th>
+<td>Approved</td>
+<td>Envelope metadata first; synthetic Q26 calibration second; real outcomes last</td>
+</tr>
+<tr>
+<th scope="row">Exact envelope</th>
+<td>Recommended request: 2020-01-01 through 2021-12-31; first session 2020-01-02</td>
+<td>Human review pending; not collection authority</td>
+</tr>
+<tr>
+<th scope="row">Q23 role</th>
+<td>First-class <code>terminal_screen_only</code> with separate dataset identity is approved</td>
+<td>DEV implementation and independent review pending</td>
+</tr>
+<tr>
+<th scope="row">Current calendar access</th>
+<td>Confirmed on 2026-10-07</td>
+<td>Does not prove SIP bar entitlement</td>
+</tr>
+<tr>
+<th scope="row">Current SIP entitlement</th>
+<td>Unknown by design</td>
+<td>Calendar has no feed/plan claim; no bar endpoint was called; the first post-approval sealed request must prove the declared feed</td>
+</tr>
+<tr>
+<th scope="row">Q26 calibration sequence</th>
+<td>Synthetic null calibration, then separately named simulated-effect power, is approved as the research order</td>
+<td>No method, calendar unit, block choice, alpha, coverage target, seed, draw count, threshold, or multiplicity rule is adopted; no calibration run occurred</td>
+</tr>
+<tr>
+<th scope="row">Optional volatility pilot</th>
+<td>Separate and still unset</td>
+<td>Not a base-Q24 blocker when disabled</td>
+</tr>
+<tr>
+<th scope="row"><code>CapabilityProfile</code></th>
+<td>Future online/shadow contract only</td>
+<td>Offline work may emit identity-compatible evidence for a later versioned transfer; it does not create an operational profile or feed <code>r_prop</code></td>
+</tr>
+<tr>
+<th scope="row">Acquisition / outcome access</th>
+<td>Not authorized</td>
+<td>No bars, final test, terminal panel, replay, or model run was opened</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section aria-labelledby="architecture-and-authority-boundary">
+<h2 id="architecture-and-authority-boundary">Architecture and authority boundary</h2>
+<p>This is a dated research artifact. The
+<a href="../../plans/itrader_masterplan.md">masterplan</a>,
+<a href="../../project-state/r1-development-readiness.md">R1 readiness contract</a>, and
+current source/tests remain operational authority. Some deeper active-doc
+passages still use the older <code>validation-only</code> label; the newest decision log
+and top-level status correctly require first-class <code>terminal_screen_only</code>, and
+DEV must reconcile those passages without aliasing the roles. DEV owns the role
+contract, qualification code, terminal runner, active documentation, and
+implementation review. This report owns only metadata/access/exposure evidence
+and a draft declaration for the next human decision.</p>
+<pre><code class="language-text">retained metadata + exposure ledger + calendar-only provider response
+                              |
+                              v
+                 reviewed acquisition-envelope seal
+                              |
+                              v
+            sealed terminal_screen_only snapshot (future)
+                              |
+                              v
+             metadata-only candidate-layout lock
+                              |
+                              v
+                  synthetic Q26 calibration
+                              |
+                              v
+         human Q26 decision + final panel/Q26 joint seal
+                              |
+                              v
+             all-16 training completion gate -&gt; outcomes
+</code></pre>
+<p>No artifact from this path may enter <code>TaskSpec</code> generation, proposer/curriculum
+updates, PPO reward/loss, tuning, PBT, early stopping, checkpoint selection,
+the old sealed final test, or an operational <code>CapabilityProfile</code>. A later
+offline-to-online calibration adapter would require a separate versioned
+decision and an adaptive-validation source that excludes terminal evidence.</p>
+</section>
+<section aria-labelledby="outcome-blind-source-and-calendar-receipts">
+<h2 id="outcome-blind-source-and-calendar-receipts">Outcome-blind source and calendar receipts</h2>
+<h3 id="retained-identities">Retained identities</h3>
+<table>
+<caption class="sr-only">Retained metadata identities and scopes</caption>
+<thead>
+<tr>
+<th scope="col">Evidence</th>
+<th scope="col">Identity and scope</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Dataset-v2 build request</th>
+<td>SHA-256 <code>e2fd032d9af90dc74a2ae2b1762a96ef8b7d47c49bd957706f9e646ceee4df62</code>; Alpaca/SIP, 1Min, split, twelve symbols, 2022-01-03 through 2026-09-22</td>
+</tr>
+<tr>
+<th scope="row">Dataset-v2 manifest file</th>
+<td>SHA-256 <code>4c6202883a46cbe5bfbf4986003dcd1eb05b3738ac2d48eeb42d9a57fe974ca5</code></td>
+</tr>
+<tr>
+<th scope="row">Dataset-v2 content</th>
+<td>SHA-256 <code>fac41f6d42f8c5b1eac739755667bb38407461f82c168d7955de26bb2e5fb79c</code>; 10,370,064 total rows and 5,515,061 regular-session rows</td>
+</tr>
+<tr>
+<th scope="row">Retained raw calendar</th>
+<td>Gzip SHA-256 <code>0bb92722b805a05af29f11db1922081b279e6b5142265f4ad371e3266ac44a72</code>; 1,185 sessions through 2026-09-23</td>
+</tr>
+<tr>
+<th scope="row">Legacy dataset-v1 parquet</th>
+<td>SHA-256 <code>5f2e449548532ff71f419431df86962a2aedf7275d7bff5592729bbb8a900f73</code>; raw naive timestamps span 2023-07-05 through 2025-07-03 across only AAPL, AMZN, and MSFT</td>
+</tr>
+<tr>
+<th scope="row">Retained exposure inventory</th>
+<td>SHA-256 <code>74b4fff809a85ebb22c055b3fd0a33e9c2c3e145a044e366d296622ded81162f</code>; 163 configs, including 42 with unresolved start provenance; all 163 are bound by the inventory-level dataset SHA to dataset-v2 and therefore date-disjoint from 2020-2021; explicitly not a complete exposure certificate</td>
+</tr>
+<tr>
+<th scope="row">Recovered control evidence</th>
+<td>512 episode rows reduce to 48 starts; 26 randomized configurations remain start-unbound within the exact dataset-v2 source</td>
+</tr>
+</tbody>
+</table>
+<p>The current builder is stronger than the old v2 manifest: every raw response
+records retrieval time and request metadata; the final manifest records usage,
+missing-bar policy, raw-file hashes, creation time, and content identity. A new
+terminal snapshot must use that contract rather than copy the old manifest.</p>
+<h3 id="fresh-calendar-only-provider-checks">Fresh calendar-only provider checks</h3>
+<p>The existing
+<a href="../../../itrader/inputs/market_data/alpaca.py"><code>AlpacaMarketDataSource.fetch_calendar</code></a>
+path succeeded with locally configured credentials on 2026-10-07. No bar,
+quote, trade, account, or model endpoint was called and no credential value,
+prefix, length, or digest was emitted.</p>
+<table>
+<caption class="sr-only">Fresh calendar-only provider receipts</caption>
+<thead>
+<tr>
+<th scope="col">Calendar receipt</th>
+<th scope="col">Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">2016-01-01 through 2026-10-07</th>
+<td>2,706 sessions; 2,685 standard sessions; 21 early closes; no non-09:30 opens; payload SHA-256 <code>1b64dc77a9dada951d4a5fa3d3d0460b2224c3836c48d7e42ce00a5be7c3ad1f</code></td>
+</tr>
+<tr>
+<th scope="row">Exact retained-calendar re-fetch</th>
+<td>1,185 rows; current and retained canonical payload SHA-256 both <code>82b35d5b218cb02dc364b7de9a680eab89955c8d4aa1154de807005d37e4d080</code></td>
+</tr>
+<tr>
+<th scope="row">2020-01-01 through 2021-12-31 calendar slice</th>
+<td>First/last sessions 2020-01-02 / 2021-12-31; 505 sessions; three early closes</td>
+</tr>
+<tr>
+<th scope="row">2019-01-01 through 2021-12-31 comparison slice</th>
+<td>757 sessions; six early closes; broader reserve, not an approved fallback</td>
+</tr>
+<tr>
+<th scope="row">2026-09-23 through 2026-10-07</th>
+<td>11 sessions; clean chronology alone does not supply a broad current terminal envelope</td>
+</tr>
+</tbody>
+</table>
+<p>The current calendar response proves that the adapter/credential path works and
+that Alpaca returned exchange-session topology. It cannot prove all-twelve bar
+presence, minute completeness, a market-data subscription, or freshness.
+<a href="evaluation-metadata-first-envelope-2026-10-07-evidence/alpaca-access-and-calendar.md">The access evidence</a>
+records the request and response hashes plus the first-party Alpaca references.</p>
+</section>
+<section aria-labelledby="all-twelve-symbol-support-known-versus-unknown">
+<h2 id="all-twelve-symbol-support-known-versus-unknown">All-twelve-symbol support: known versus unknown</h2>
+<p>The fixed universe remains:</p>
+<pre><code class="language-text">AAPL, MSFT, AMZN, NVDA, AMD, AVGO, GOOGL, META, SPY, QQQ, IWM, TLT
+</code></pre>
+<p>The retained v2 metadata provides a useful qualification baseline without making
+v2 eligible for the new terminal role. All twelve symbols have rows on all
+1,184 exchange dates through the snapshot end, but minute completeness differs
+by symbol. Across all twelve, 622 v2 dates support both accepted decision
+offsets with a continuous 60-bar lookback and 200-bar longest outcome. None of
+the nine early closes supports either full all-twelve offset. Those facts show
+why calendar membership alone is insufficient and why no forward fill is
+permitted. Same-date all-twelve completeness is a useful diagnostic, not a
+panel-selection requirement: the accepted contract is 32 distinct
+symbol/session anchors across all twelve symbols, with at least two per symbol.</p>
+<p>For the recommended 2020-2021 envelope, only venue-calendar facts are known:
+505 sessions, 6,060 requested symbol/session slots, and three early closes.
+Actual rows, symbol-session presence, gaps, duplicates, complete 260-minute
+windows, and offset eligibility are unknown until a declared sealed acquisition.
+The metadata-only post-ingestion audit must report all of them for every symbol.
+Failure is reported; the interval is not silently widened and missing bars are
+not imputed.</p>
+<p>The complete per-symbol v2 comparison is retained in the
+<a href="evaluation-metadata-first-envelope-2026-10-07-evidence/calendar-metadata-receipt.json">calendar receipt</a>.
+It is context for the validator, not a candidate terminal panel.</p>
+</section>
+<section aria-labelledby="candidate-contiguous-envelope-disposition">
+<h2 id="candidate-contiguous-envelope-disposition">Candidate contiguous-envelope disposition</h2>
+<table>
+<caption class="sr-only">Candidate contiguous-envelope dispositions</caption>
+<thead>
+<tr>
+<th scope="col">Envelope</th>
+<th scope="col">Metadata disposition</th>
+<th scope="col">Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Legacy/v2 overlap, 2022-01-03 through 2026-09-22</th>
+<td><strong>Ruled out</strong> for the separate terminal role</td>
+<td>Dataset-v2 fed training/development/evaluation consumers; randomized validation starts remain unresolved within that source; the existing final partition remains sealed</td>
+</tr>
+<tr>
+<th scope="row">Legacy dataset-v1 raw dates, 2023-07-05 through 2025-07-03</th>
+<td><strong>Ruled out</strong></td>
+<td>Known historical value-bearing source, only three symbols, weak provenance, and overlap with v2</td>
+</tr>
+<tr>
+<th scope="row">Post-v2, 2026-09-23 through 2026-10-07</th>
+<td><strong>Conditionally clean but presently too short for the declared historical-envelope purpose</strong></td>
+<td>Only 11 completed exchange sessions as of the decision date; prospective accumulation remains the strongest future clearance route</td>
+</tr>
+<tr>
+<th scope="row">2020-01-01 through 2021-12-31</th>
+<td><strong>Recommended candidate; clearance pending</strong></td>
+<td>Nearest two complete pre-v2 calendar years; first returned session 2020-01-02; 505 sessions; disjoint from retained v1/v2 date coverage; still requires bounded retrospective clearance, current SIP proof, and post-ingestion metadata qualification</td>
+</tr>
+<tr>
+<th scope="row">2019-01-01 through 2021-12-31</th>
+<td><strong>Broader reserve / unknown</strong></td>
+<td>757 sessions and six early closes, but no outcome-blind reason has yet approved the extra year; it cannot become an automatic fallback after a calibration failure</td>
+</tr>
+<tr>
+<th scope="row">Earlier history or another provider/feed</th>
+<td><strong>Unknown and outside this declaration</strong></td>
+<td>Requires a new metadata, access, temporal-shift, and provenance review</td>
+</tr>
+</tbody>
+</table>
+<p>“Ruled out” is about use as the new separate terminal source, not permission to
+delete historical evidence. “Clearance pending” means exactly that: the known
+v1/v2 date ranges do not overlap, but opaque retained sources and manual/external
+access still need bounded resolution or attestation. A new file hash, an older
+date, or a different storage path cannot establish freshness.</p>
+</section>
+<section aria-labelledby="draft-bounded-retrospective-clearance-standard">
+<h2 id="draft-bounded-retrospective-clearance-standard">Draft bounded retrospective-clearance standard</h2>
+<p>The proposed <code>bounded_retrospective_clearance_v1</code> is deliberately stronger than
+date non-overlap and weaker than an impossible claim of omniscience. It would
+permit a historical envelope only when all of the following are recorded:</p>
+<ol>
+<li><strong>Semantic non-overlap:</strong> every full <code>[start-60, start+200)</code> symbol/UTC window
+   lies outside every retained training, validation, final-test, proposer,
+   tuning, calibration, checkpoint-selection, diagnostic, plot, and manually
+   inspected value-bearing interval.</li>
+<li><strong>All known sources:</strong> the scan covers dataset-v2, legacy dataset-v1, every
+   retained experiment/config root, recovered and unresolved exposure records,
+   repository history, local analysis artifacts, and declared external tools or
+   copies. Legacy-v1 is not omitted merely because v2 superseded it.</li>
+<li><strong>Uncertainty is exclusionary:</strong> an unresolved source that might overlap the
+   proposed dates blocks clearance. Start-unbound randomness cannot be narrowed
+   from a convenient seed reconstruction, while an exact dataset identity may
+   still bound the dates that randomness could have touched.</li>
+<li><strong>Consumer completeness:</strong> the ledger names training, progress monitoring,
+   proposer/curriculum, tuning/PBT, calibration, checkpoint choice, diagnostics,
+   plots, human inspection, agents, and later online/capability consumers.</li>
+<li><strong>Human boundary statement:</strong> the owner records whether any unlogged chart,
+   notebook, broker UI, external drive, or prior copy exposed 2020-2021 values.
+   Filesystem absence cannot answer this on its own.</li>
+<li><strong>Append-only continuation:</strong> declaration, acquisition, metadata selection,
+   Q26 calibration, terminal opening, and every rejected/failed attempt enter one
+   access ledger. Hashes establish identity and drift; they do not prove truth.</li>
+</ol>
+<p>The present evidence supports proposing 2020-2021 for clearance review because
+it is disjoint from known exact-hash v1/v2 file dates. In particular, the 42
+unresolved v2 inventory records are source-bound to dataset-v2; their uncertainty
+does not reach backward into 2020-2021. Clearance still has not passed: 120 older
+run configs bind only a canonical path without a historical hash, three retained
+configs name a now-absent external checkout, twelve task pools and six candidate
+ledgers lack dataset/time coordinates, and the human boundary statement cannot
+be supplied by filesystem evidence. No report can prove that an unretained
+external copy never existed.</p>
+</section>
+<section aria-labelledby="draft-acquisition-declaration-for-review">
+<h2 id="draft-acquisition-declaration-for-review">Draft acquisition declaration for review</h2>
+<p>Declaration ID: <code>q23_terminal_screen_only_20200101_20211231_v0</code></p>
+<table>
+<caption class="sr-only">Frozen values in the draft acquisition declaration</caption>
+<thead>
+<tr>
+<th scope="col">Field</th>
+<th scope="col">Frozen proposed value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<th scope="row">Purpose</th>
+<td>Separate Q23 terminal-screen-only evaluation source; never adaptive validation or final-test replacement</td>
+</tr>
+<tr>
+<th scope="row">Provider / feed</th>
+<td>Alpaca historical stock bars / explicit <code>sip</code>; no fallback feed</td>
+</tr>
+<tr>
+<th scope="row">Exact inclusive request bounds</th>
+<td>2020-01-01 through 2021-12-31; first calendar session expected 2020-01-02</td>
+</tr>
+<tr>
+<th scope="row">Universe</th>
+<td>The twelve symbols above, in that fixed order</td>
+</tr>
+<tr>
+<th scope="row">Time / adjustment</th>
+<td><code>1Min</code>, split-adjusted, <code>America/New_York</code>; dividends not applied</td>
+</tr>
+<tr>
+<th scope="row">Sessions</th>
+<td>Retain the builder's supported <code>pre_market</code>, <code>regular</code>, and <code>after_hours</code> rows as immutable raw evidence; qualify and expose only <code>regular</code> rows to the terminal role</td>
+</tr>
+<tr>
+<th scope="row">Missing data</th>
+<td>Preserve provider omissions; no forward fill, synthetic bars, symbol substitution, or date extension</td>
+</tr>
+<tr>
+<th scope="row">Storage identity</th>
+<td>New immutable snapshot root; usage classification <code>terminal_screen_only_q23_evaluation_only</code>; raw calendar/pages and request metadata retained and hashed</td>
+</tr>
+<tr>
+<th scope="row">Role identity</th>
+<td>First-class <code>terminal_screen_only</code>, separate training and terminal dataset identities, certified eligible-interval hash; never relabel as <code>validation</code></td>
+</tr>
+<tr>
+<th scope="row">Permitted pre-opening projection</th>
+<td>Symbol, aware UTC timestamp, session, opaque session ID, calendar open/close, row existence/count, duplicate/gap flags, and provenance hashes</td>
+</tr>
+<tr>
+<th scope="row">Forbidden pre-opening fields</th>
+<td>OHLCV values, trade count/VWAP, returns, directions, volatility/regime labels, task difficulty, actions, logits, rewards, policy/control outcomes</td>
+</tr>
+<tr>
+<th scope="row">Panel rule</th>
+<td>Accept 32 distinct symbol/session anchors across the twelve symbols, at least two per symbol and the remaining eight by a predeclared recorded seed; only the accepted 60/120-minute decision offsets; every anchor must have a continuous same-session 60-bar lookback and full 200-bar future support before crossing 96/128/160/200</td>
+</tr>
+<tr>
+<th scope="row">Outcome gate</th>
+<td>No outcome access until declaration, snapshot, exposure, layout, Q26 method, all-16 completion, checkpoint, control, and producer identities are sealed</td>
+</tr>
+</tbody>
+</table>
+<p>This declaration is <strong>not yet approved</strong> and must not be passed to the snapshot
+builder as collection authority.</p>
+<h3 id="stop-rules">Stop rules</h3>
+<p>Stop without fallback or reinterpretation if:</p>
+<ul>
+<li>the retrospective-clearance review or human boundary statement is incomplete;</li>
+<li>the DEV role/certificate seam has not landed and passed independent review;</li>
+<li>the first sealed explicit-SIP request fails authentication/entitlement,
+  returns a mismatched feed, defaults to another feed, or would require a paid
+  upgrade;</li>
+<li>any provider, feed, timeframe, adjustment, universe, date, or session policy
+  differs from the declaration;</li>
+<li>raw request/response retention, retrieval time, usage classification, or hashes
+  are missing;</li>
+<li>metadata finds duplicate/reversed timestamps, cross-session windows, or
+  insufficient eligible anchors to satisfy the frozen 32-anchor/twelve-symbol
+  rule or the later predeclared Q26 calendar-support gate;</li>
+<li>a prohibited consumer or human opens value-bearing data before authorization;</li>
+<li>no predeclared candidate Q26 procedure qualifies on the locked candidate
+  layout under the approved synthetic calibration contract; or</li>
+<li>anyone proposes redrawing dates, dropping a difficult symbol/null family, or
+  widening the envelope in place after seeing calibration or market results.</li>
+</ul>
+<p>A failed declaration is never edited in place to make a result pass. If its
+predeclared metadata support fails, or no candidate procedure qualifies on its
+locked layout, GRILL may authorize a genuinely new declaration only with an
+independent support rationale, preserved failed receipt, new hash/layout lock,
+and complete recalibration. A method-specific failure is preserved against that
+method, not mislabeled as proof that the layout itself is inadequate. This is
+not permission to iterate envelopes until a preferred result appears.</p>
+</section>
+<section aria-labelledby="q26-synthetic-calibration-boundary">
+<h2 id="q26-synthetic-calibration-boundary">Q26 synthetic-calibration boundary</h2>
+<p>The approved sequence permits candidate-method work on synthetic outcomes after
+the envelope and metadata layout are frozen. It does not approve a method or
+numbers. The
+<a href="evaluation-metadata-first-envelope-2026-10-07-evidence/q26-synthetic-calibration-boundary.md">Q26 calibration contract</a>
+requires two distinct studies:</p>
+<ol>
+<li><strong>Synthetic null calibration:</strong> empirical Type-I error, interval coverage,
+   numerical/support failure, and stability under predeclared serial,
+   cross-symbol, within-anchor/horizon, heavy-tail/asymmetric, heterogeneous-
+   scale, and combined dependence families.</li>
+<li><strong>Separately named simulated-effect power:</strong> rejection probability under
+   predeclared nonzero synthetic Q24 effects, reported with Monte Carlo
+   uncertainty and never described as solver profitability or expected return.</li>
+</ol>
+<p>Every null family, method attempt, invalid replicate, and failure remains in the
+ledger. Power cannot rescue failed null calibration. The procedure may not tune
+panel dates, remove a failing null, change block settings until Type-I/coverage
+gates pass, later change them until terminal significance appears, or select the
+narrowest interval. If no predeclared candidate procedure qualifies on the
+locked layout, the neutral result is <code>Q26_UNRESOLVED_FOR_LAYOUT</code>; GRILL decides
+what happens next without opening market outcomes.</p>
+<p>Still-open numerical decisions include the confirmatory contrast family,
+calendar unit, candidate methods, synthetic generators/parameters, block or
+bandwidth rule, interval construction, alpha, coverage/error tolerances,
+replication count, RNG streams/seeds, multiplicity family, support/failure
+thresholds, and the limited simulated-effect grid. Two training seeds remain a
+descriptive mechanics/attribution screen, not population-level inference.</p>
+</section>
+<section aria-labelledby="ordered-gates-after-the-next-decision">
+<h2 id="ordered-gates-after-the-next-decision">Ordered gates after the next decision</h2>
+<ol>
+<li>Human approves or rejects the retrospective-clearance standard and exact
+   draft declaration below; no acquisition yet if either changes.</li>
+<li>DEV completes and independently reviews the first-class role, dual-identity,
+   certificate, qualification, evidence, and terminal-reporting path.</li>
+<li>The approved declaration is serialized and hashed; storage/access policy and
+   append-only ledger are active before the first provider call.</li>
+<li>The existing adapter makes the first explicit-SIP request into sealed storage.
+   An entitlement/feed mismatch stops the run; there is no IEX or paid fallback.</li>
+<li>Acquisition completes under the exact request. A metadata-only independent
+   audit either qualifies the snapshot or fails it without reading values.</li>
+<li>The frozen outcome-blind algorithm/seed selects one <strong>candidate layout</strong> and
+   locks its coordinates, windows, weights, calendar, exposure, dataset, and
+   code hashes solely for synthetic calibration.</li>
+<li>Candidate Q26 procedures run on predeclared synthetic nulls and separate
+   simulated effects over that exact candidate layout. Failed batteries are
+   retained.</li>
+<li>GRILL selects Q26 or leaves the screen descriptive. The final panel and Q26
+   contract are jointly sealed before any of the sixteen target-screen training
+   runs; this final seal cannot inspect market outcomes.</li>
+<li>Only after all sixteen target cells complete and checkpoint, control,
+   producer, dataset, panel, and method identities pass preflight may the
+   terminal executor open sealed values. The old final test remains sealed.</li>
+</ol>
+<p>Autoresearch is not active in these gates. A later bounded loop may optimize
+runtime or memory on fixed synthetic fixtures while requiring byte/semantic
+equivalence. It may never optimize dates, methods, block choices, alpha,
+thresholds, scenario membership, or conclusions.</p>
+</section>
+<section aria-labelledby="one-next-grill-decision">
+<h2 id="one-next-grill-decision">One next GRILL decision</h2>
+<p><strong>Approve <code>bounded_retrospective_clearance_v1</code> and the exact
+<code>q23_terminal_screen_only_20200101_20211231_v0</code> declaration, subject to the human
+external/manual-access statement and every stop rule above; or require
+prospective-only accumulation instead?</strong></p>
+<p>Recommendation: approve the declaration conditionally, not retrospective
+clearance itself. The proposed interval is
+the nearest reproducibly defined two-year block outside both retained datasets,
+has substantially more calendar breadth than the eleven currently available
+post-v2 sessions, and can be rejected without market inspection if clearance,
+entitlement, or metadata support fails. This recommendation is not a freshness
+certificate and does not pre-answer Q26.</p>
+<p>Only after this one decision should GRILL ask which Q24 contrast family is the
+sole confirmatory Q26 target.</p>
+</section>
+<section aria-labelledby="limitations">
+<h2 id="limitations">Limitations</h2>
+<ul>
+<li>No bar endpoint was called, no bar value was read, and no acquisition occurred.</li>
+<li>Current SIP entitlement remains unknown; historical old-SIP success is not a
+  plan or pricing claim.</li>
+<li>Venue sessions do not prove per-symbol bar completeness or eligible anchors.</li>
+<li>The retained exposure inventory is bounded and contains unresolved records; it
+  cannot certify deleted, remote, or manually viewed material.</li>
+<li>Because dataset-v2 begins in 2022, this pre-v2 block is a backward-time,
+  cross-period retrospective representation screen. It is not prospective
+  forward-time validation, a live-economic promotion gate, or evidence that the
+  selected solver will generalize to current markets. Its temporal/provider
+  shift must remain explicit in every interpretation.</li>
+<li>Synthetic calibration can reject bad inference procedures but cannot prove its
+  generators match markets, create training-seed replication, or establish a
+  profitable solver.</li>
+<li>The recommended interval, role implementation, snapshot, panel, Q26 method,
+  terminal execution, and any operational capability inference all remain
+  uncompleted.</li>
+</ul>
+</section>
+<section aria-labelledby="evidence-and-provenance">
+<h2 id="evidence-and-provenance">Evidence and provenance</h2>
+<ul>
+<li><a href="evaluation-metadata-first-envelope-2026-10-07-evidence/alpaca-access-and-calendar.md">Alpaca access and calendar evidence</a></li>
+<li><a href="evaluation-metadata-first-envelope-2026-10-07-evidence/calendar-metadata-receipt.json">Calendar and value-blind metadata receipt</a></li>
+<li><a href="evaluation-metadata-first-envelope-2026-10-07-evidence/retained-identities-and-exposure.md">Retained identities and exposure evidence</a></li>
+<li><a href="evaluation-metadata-first-envelope-2026-10-07-evidence/q26-synthetic-calibration-boundary.md">Q26 synthetic-calibration boundary</a></li>
+<li><a href="evaluation-experimental-pilots-2026-10-07-evidence/q23-evaluation-only-metadata-feasibility.md">Q23 role and metadata-feasibility contract</a></li>
+<li><a href="evaluation-code-audit-2026-10-06-evidence/exposure-recovery.md">Historical exposure recovery</a></li>
+<li><a href="evaluation-quant-methodology-2026-10-06-evidence/statistical-protocol-primary-sources.md">Statistical protocol primary sources</a></li>
+<li><a href="../../architecture/itrader_system_architecture.md">Current architecture</a></li>
+<li><a href="../../plans/itrader_masterplan.md">Canonical masterplan</a></li>
+</ul>
+</section>
+</article>
+
+<footer>
+<p>HTML companion rendered from the <a href="evaluation-metadata-first-envelope-2026-10-07.md">Markdown source of truth</a>. This dated research artifact does not replace the masterplan, active architecture, current source, or tests.</p>
+</footer>
+</main>
+</body>
+</html>

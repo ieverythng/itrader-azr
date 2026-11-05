@@ -1,0 +1,43 @@
+{
+  "name": "sharpe_reward_ablation",
+  "python_exe": "python",
+  "train_module": "itrader.rl_lib.train.train_solo_V2",
+  "common_args": {
+    "iters": 30,
+    "workers": 6,
+    "timeout_hours": 8,
+    "window": 60,
+    "gamma": 0.99,
+    "lambda": 0.95,
+    "train_batch_size": 4800,
+    "sgd_minibatch_size": 128,
+    "num_sgd_iter": 30,
+    "vf_clip_param": 10.0,
+    "clip_param": 0.2,
+    "vf_loss_coeff": 1.0,
+    "data_path": "itrader/data/ohlcv.parquet",
+    "start_idx_mode": "random_episode",
+    "ret_norm_reset": "episode",
+    "task_horizons": "128"
+  },
+  "variants": [
+    {
+      "id": "r0_pnl_linear_h128",
+      "args": {
+        "task_reward_ids": "pnl_linear"
+      }
+    },
+    {
+      "id": "r0_sharpe_only_h128",
+      "args": {
+        "task_reward_ids": "sharpe_only"
+      }
+    },
+    {
+      "id": "r0_pnl_sharpe_blend_h128",
+      "args": {
+        "task_reward_ids": "pnl_sharpe"
+      }
+    }
+  ]
+}

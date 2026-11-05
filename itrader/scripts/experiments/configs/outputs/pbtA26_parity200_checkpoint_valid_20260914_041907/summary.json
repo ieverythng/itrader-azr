@@ -1,0 +1,58 @@
+{
+  "run_tag": "pbtA26_parity200_checkpoint_valid_20260914_041907",
+  "config": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\phase_a_pbt_parity_200_checkpoint_valid_20260914.json",
+  "results": [
+    {
+      "variant_id": "control",
+      "series_id": "control",
+      "experiment_name": "pbtA26_parity200_checkpoint_valid_20260914_041907_control",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_pbt_parity_200_checkpoint_valid_20260914\\ray\\pbtA26_parity200_checkpoint_valid_20260914_041907_control\\training_fn_ITraderEnv_ae09f_00000_0_2026-09-14_04-19-14",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_pbt_parity_200_checkpoint_valid_20260914\\ray\\_stable_metrics\\training_fn_ITraderEnv_ae09f_00000_0_2026-09-14_04-19-14\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_pbt_parity_200_checkpoint_valid_20260914\\ray\\_stable_metrics\\training_fn_ITraderEnv_ae09f_00000_0_2026-09-14_04-19-14\\plots",
+      "final_metric": 0.0003397857718591
+    },
+    {
+      "variant_id": "pbt200_checkpoint_valid",
+      "series_id": "pbt200_checkpoint_valid:training_fn_ITraderEnv_c55da_00000_0_seed=20388672_2026-09-14_04-19-53",
+      "experiment_name": "pbtA26_parity200_checkpoint_valid_20260914_041907_pbt200_checkpoint_valid",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_pbt_parity_200_checkpoint_valid_20260914\\ray\\pbtA26_parity200_checkpoint_valid_20260914_041907_pbt200_checkpoint_valid\\training_fn_ITraderEnv_c55da_00000_0_seed=20388672_2026-09-14_04-19-53",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_pbt_parity_200_checkpoint_valid_20260914\\ray\\_stable_metrics\\training_fn_ITraderEnv_c55da_00000_0_seed=20388672_2026-09-14_04-19-53\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_pbt_parity_200_checkpoint_valid_20260914\\ray\\_stable_metrics\\training_fn_ITraderEnv_c55da_00000_0_seed=20388672_2026-09-14_04-19-53\\plots",
+      "final_metric": -0.0005557122979728
+    },
+    {
+      "variant_id": "pbt200_checkpoint_valid",
+      "series_id": "pbt200_checkpoint_valid:training_fn_ITraderEnv_c55da_00001_1_seed=20475355_2026-09-14_04-19-53",
+      "experiment_name": "pbtA26_parity200_checkpoint_valid_20260914_041907_pbt200_checkpoint_valid",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_pbt_parity_200_checkpoint_valid_20260914\\ray\\pbtA26_parity200_checkpoint_valid_20260914_041907_pbt200_checkpoint_valid\\training_fn_ITraderEnv_c55da_00001_1_seed=20475355_2026-09-14_04-19-53",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_pbt_parity_200_checkpoint_valid_20260914\\ray\\_stable_metrics\\training_fn_ITraderEnv_c55da_00001_1_seed=20475355_2026-09-14_04-19-53\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_pbt_parity_200_checkpoint_valid_20260914\\ray\\_stable_metrics\\training_fn_ITraderEnv_c55da_00001_1_seed=20475355_2026-09-14_04-19-53\\plots",
+      "final_metric": -0.0010690643835004
+    },
+    {
+      "variant_id": "pbt200_checkpoint_valid",
+      "series_id": "pbt200_checkpoint_valid:training_fn_ITraderEnv_c55da_00002_2_seed=20403070_2026-09-14_04-19-53",
+      "experiment_name": "pbtA26_parity200_checkpoint_valid_20260914_041907_pbt200_checkpoint_valid",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_pbt_parity_200_checkpoint_valid_20260914\\ray\\pbtA26_parity200_checkpoint_valid_20260914_041907_pbt200_checkpoint_valid\\training_fn_ITraderEnv_c55da_00002_2_seed=20403070_2026-09-14_04-19-53",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_pbt_parity_200_checkpoint_valid_20260914\\ray\\_stable_metrics\\training_fn_ITraderEnv_c55da_00002_2_seed=20403070_2026-09-14_04-19-53\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_pbt_parity_200_checkpoint_valid_20260914\\ray\\_stable_metrics\\training_fn_ITraderEnv_c55da_00002_2_seed=20403070_2026-09-14_04-19-53\\plots",
+      "final_metric": -0.0018658190599411
+    },
+    {
+      "variant_id": "pbt200_checkpoint_valid",
+      "series_id": "pbt200_checkpoint_valid:training_fn_ITraderEnv_c55da_00003_3_seed=20614210_2026-09-14_04-19-53",
+      "experiment_name": "pbtA26_parity200_checkpoint_valid_20260914_041907_pbt200_checkpoint_valid",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_pbt_parity_200_checkpoint_valid_20260914\\ray\\pbtA26_parity200_checkpoint_valid_20260914_041907_pbt200_checkpoint_valid\\training_fn_ITraderEnv_c55da_00003_3_seed=20614210_2026-09-14_04-19-53",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_pbt_parity_200_checkpoint_valid_20260914\\ray\\_stable_metrics\\training_fn_ITraderEnv_c55da_00003_3_seed=20614210_2026-09-14_04-19-53\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_pbt_parity_200_checkpoint_valid_20260914\\ray\\_stable_metrics\\training_fn_ITraderEnv_c55da_00003_3_seed=20614210_2026-09-14_04-19-53\\plots",
+      "final_metric": -0.0039057133902749
+    }
+  ],
+  "primary_metric": "evaluation/net_return_mean",
+  "compare_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\pbtA26_parity200_checkpoint_valid_20260914_041907\\ablation_compare.csv",
+  "compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\pbtA26_parity200_checkpoint_valid_20260914_041907\\ablation_compare.png",
+  "sharpe_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\pbtA26_parity200_checkpoint_valid_20260914_041907\\ablation_compare_validation_sharpe.png",
+  "entropy_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\pbtA26_parity200_checkpoint_valid_20260914_041907\\ablation_compare_entropy.png",
+  "episode_len_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\pbtA26_parity200_checkpoint_valid_20260914_041907\\ablation_compare_episode_len.png",
+  "diagnostics_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\pbtA26_parity200_checkpoint_valid_20260914_041907\\ablation_compare_diagnostics.png"
+}

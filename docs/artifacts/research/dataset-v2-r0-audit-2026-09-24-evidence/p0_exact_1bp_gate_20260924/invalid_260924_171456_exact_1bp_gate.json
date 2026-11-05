@@ -1,0 +1,74 @@
+{
+  "decision": "stop",
+  "exact_receipt_count": 4,
+  "expected_members": 4,
+  "experiment_name": "v2p0_nonflat_search_sync30_20260924_171456_exact_1bp",
+  "exploit_count": 1,
+  "free_gb": 61.435447692871094,
+  "invalid_receipts": [],
+  "lineage_pending": [],
+  "lineage_problems": [
+    {
+      "exploit_id": "153a45299692d5761cd724f955bf6427ed19dbc7c2a066a1290b42255bcc34e0",
+      "reason": "lineage is awaiting restore receipt and first post-restore report"
+    }
+  ],
+  "members": [
+    {
+      "at_review": true,
+      "exact_checkpoint": true,
+      "net_return": -0.002882015470115224,
+      "pbt_progress_steps": 48960,
+      "report_count": 10,
+      "sharpe_per_sqrt_bar": -0.06562730220087874,
+      "status": "running",
+      "trial_id": "b87fc_00000"
+    },
+    {
+      "at_review": true,
+      "exact_checkpoint": true,
+      "net_return": 0.0,
+      "pbt_progress_steps": 53616,
+      "report_count": 11,
+      "sharpe_per_sqrt_bar": 0.0,
+      "status": "running",
+      "trial_id": "b87fc_00001"
+    },
+    {
+      "at_review": true,
+      "exact_checkpoint": true,
+      "net_return": 0.0,
+      "pbt_progress_steps": 63504,
+      "report_count": 13,
+      "sharpe_per_sqrt_bar": 0.0,
+      "status": "running",
+      "trial_id": "b87fc_00002"
+    },
+    {
+      "at_review": true,
+      "exact_checkpoint": true,
+      "net_return": -5.120087138880877e-06,
+      "pbt_progress_steps": 53672,
+      "report_count": 11,
+      "sharpe_per_sqrt_bar": -0.003828166666454205,
+      "status": "running",
+      "trial_id": "b87fc_00003"
+    }
+  ],
+  "members_at_review": 4,
+  "minimum_exploits": 1,
+  "minimum_free_gb": 20.0,
+  "missing_receipts": [],
+  "observed_members": 4,
+  "pending": [],
+  "reasons": [
+    "1 strict lineage verification problem(s)"
+  ],
+  "results_root": "C:\\itrader-ray\\v2p0-nonflat-search-sync30-20260924",
+  "review_steps": 48000,
+  "run_status": "completed",
+  "schema_version": 2,
+  "stale_targets": [],
+  "strict_lineage_required": true,
+  "verified_lineage_receipt_count": 0
+}

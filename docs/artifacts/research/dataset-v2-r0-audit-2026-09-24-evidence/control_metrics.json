@@ -1,0 +1,41 @@
+{
+  "evaluation_episodes": 32,
+  "reporting_cost_bps": 1.0,
+  "policies": {
+    "flat": {
+      "gross_return": 0.0,
+      "net_return": 0.0,
+      "net_sharpe_per_sqrt_bar": 0.0,
+      "turnover": 0.0,
+      "actions": {"short": 0.0, "flat": 1.0, "long": 0.0}
+    },
+    "long_only": {
+      "gross_return": 0.0007970439525288849,
+      "net_return": 0.000597043952528885,
+      "net_sharpe_per_sqrt_bar": 0.007569573630772035,
+      "turnover": 2.0,
+      "actions": {"short": 0.0, "flat": 0.0, "long": 1.0}
+    },
+    "short_only": {
+      "gross_return": -0.0007970439525288849,
+      "net_return": -0.0009970439525288847,
+      "net_sharpe_per_sqrt_bar": -0.016492160715418203,
+      "turnover": 2.0,
+      "actions": {"short": 1.0, "flat": 0.0, "long": 0.0}
+    },
+    "random": {
+      "gross_return": 0.0003154413594481232,
+      "net_return": -0.012559558640551877,
+      "net_sharpe_per_sqrt_bar": -0.29842442026684185,
+      "turnover": 128.75,
+      "actions": {"short": 0.3347298177083333, "flat": 0.3355240885416667, "long": 0.32974609375}
+    },
+    "untrained_mlp_film": {
+      "gross_return": -0.0002748585139535476,
+      "net_return": -0.0019186085139535473,
+      "net_sharpe_per_sqrt_bar": -0.028117090275903887,
+      "turnover": 16.4375,
+      "actions": {"short": 0.725625, "flat": 0.25, "long": 0.024375}
+    }
+  }
+}

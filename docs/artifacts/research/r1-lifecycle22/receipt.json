@@ -1,0 +1,142 @@
+{
+    "schema_version":  1,
+    "scope":  "R1-LIFECYCLE22",
+    "lease":  "LEASE-R1-LIFECYCLE22",
+    "completed_utc":  "2026-10-10T18:57:24.0022401Z",
+    "branch":  "agent/Watson-dev",
+    "head":  "8f9fcf94e028b51d883a1a484c2c9466a3d6b547",
+    "incident":  {
+                     "utc":  "2026-10-10T18:30:00Z",
+                     "description":  "A diagnostic imported root repo Torch and queried CUDA despite the no-import gate; it reported 2.3.1+cpu, cuda=None, unavailable, zero devices. It ended before Ray/PPO/GPU/pair execution. GRILL allowed continuation after refresh."
+                 },
+    "cuda_assessment":  {
+                            "root_torch":  "2.3.1+cpu",
+                            "root_cuda_version":  null,
+                            "root_cuda_available":  false,
+                            "root_device_count":  0,
+                            "separate_existing_cuda_receipt":  "docs/artifacts/research/cuda-reuse07/reuse07-receipt.json",
+                            "separate_cuda_build":  "2.9.0.dev20250801+cu128",
+                            "separate_cuda_runtime":  "Ray 2.9 / Gymnasium 1.0 / NumPy 2.3.5",
+                            "root_stack_qualified_by_reuse07":  false,
+                            "accepted_next_step":  "Separate conditional CUDA-UV23 provisioning/qualification using the accepted uv group and exact Windows CP311 wheel; keep CPU as default/control."
+                        },
+    "supervisor":  {
+                       "sha256":  "3f5087000fa1ce2dfef473702fd2dc942afbece86d3bee36b44abacb611100bd",
+                       "fresh_fix_reviews":  [
+                                                 "gpt-6.1-sol: APPROVE",
+                                                 "gpt-6-astra: APPROVE"
+                                             ],
+                       "identity_entries":  63,
+                       "identity_mismatches":  0
+                   },
+    "fake_validation":  {
+                            "mocked_resume_gate_cases":  7,
+                            "all_passed":  true,
+                            "denied_resumes_cleanup_active_processes":  0,
+                            "second_pair_cutoff_exemption_passed":  true,
+                            "existing_structured_argv_tests":  2,
+                            "transport_output":  "Ran 2 tests; OK",
+                            "combined_runtime_seconds":  3.2,
+                            "setup_note":  "Two local-only helper setup corrections preceded the successful gate probe; no tracked or product code changed."
+                        },
+    "preflight":  {
+                      "branch":  "agent/Watson-dev",
+                      "head":  "8f9fcf94e028b51d883a1a484c2c9466a3d6b547",
+                      "identity_manifest_entries":  63,
+                      "identity_mismatches":  0,
+                      "first_pair_started_utc":  "2026-10-10T18:52:10.500946Z",
+                      "first_launch_cutoff_utc":  "2026-10-10T19:10:00Z",
+                      "no_owned_processes_between_pairs":  true,
+                      "resources_above_start_gates":  true
+                  },
+    "pairs":  [
+                  {
+                      "name":  "r4-pair",
+                      "start_utc":  "2026-10-10T18:52:10.500946+00:00",
+                      "end_utc":  "2026-10-10T18:52:33.929470+00:00",
+                      "elapsed_seconds":  23.42200000002049,
+                      "exit_code":  0,
+                      "stop_reason":  null,
+                      "junit_tests":  2,
+                      "junit_failures":  0,
+                      "junit_errors":  0,
+                      "junit_skipped":  0,
+                      "junit_case_ids":  [
+                                             "test_representation_survives_ppo_checkpoint_and_frozen_replay[r0-r4-state]",
+                                             "test_representation_survives_ppo_checkpoint_and_frozen_replay[r1-r4-state]"
+                                         ],
+                      "process_scope":  "windows_job",
+                      "cleanup_active_processes":  0,
+                      "cleanup_errors":  [
+
+                                         ],
+                      "minimum_ram_gib":  5.199,
+                      "minimum_disk_gib":  59.13,
+                      "results_root_configured":  "C:/Users/Admin/ray_results",
+                      "results_root_resolved":  "D:\\iTRADER-offload\\active\\ray_results",
+                      "new_result_directories":  [
+                                                     "2026-10-10_20-52-22ig8_8ir9",
+                                                     "2026-10-10_20-52-294ak940mm",
+                                                     "2026-10-10_20-52-30j1_moos7",
+                                                     "2026-10-10_20-52-31chd0_3vk"
+                                                 ],
+                      "removed_result_directories":  [
+
+                                                     ]
+                  },
+                  {
+                      "name":  "state-off-pair",
+                      "start_utc":  "2026-10-10T18:55:04.687044+00:00",
+                      "end_utc":  "2026-10-10T18:55:18.503815+00:00",
+                      "elapsed_seconds":  13.812000000034459,
+                      "exit_code":  0,
+                      "stop_reason":  null,
+                      "junit_tests":  2,
+                      "junit_failures":  0,
+                      "junit_errors":  0,
+                      "junit_skipped":  0,
+                      "junit_case_ids":  [
+                                             "test_representation_survives_ppo_checkpoint_and_frozen_replay[r0-state-off]",
+                                             "test_representation_survives_ppo_checkpoint_and_frozen_replay[r1-state-off]"
+                                         ],
+                      "process_scope":  "windows_job",
+                      "cleanup_active_processes":  0,
+                      "cleanup_errors":  [
+
+                                         ],
+                      "minimum_ram_gib":  5.277,
+                      "minimum_disk_gib":  59.124,
+                      "results_root_configured":  "C:/Users/Admin/ray_results",
+                      "results_root_resolved":  "D:\\iTRADER-offload\\active\\ray_results",
+                      "new_result_directories":  [
+                                                     "2026-10-10_20-55-12fv4m427c",
+                                                     "2026-10-10_20-55-14o0ooe3ll",
+                                                     "2026-10-10_20-55-153nkqzy8y",
+                                                     "2026-10-10_20-55-15sjhhuh5s"
+                                                 ],
+                      "removed_result_directories":  [
+
+                                                     ]
+                  }
+              ],
+    "aggregate":  {
+                      "synthetic_cells":  4,
+                      "passed":  4,
+                      "failed":  0,
+                      "skipped":  0,
+                      "owned_seconds":  37.234000000054948,
+                      "cpu":  1,
+                      "threads":  1,
+                      "workers":  0,
+                      "gpu":  0,
+                      "cuda_visible_devices":  "",
+                      "supervisor_cleanup_active_processes":  0,
+                      "market_data_used":  false,
+                      "training_edge_proven":  false
+                  },
+    "limitations":  [
+                        "This validates the bounded synthetic lifecycle and CPU execution only.",
+                        "It does not qualify CUDA in the root environment or establish trading performance.",
+                        "Inherited working-tree edits were preserved; no staging, commit, push or unrelated validation was performed."
+                    ]
+}

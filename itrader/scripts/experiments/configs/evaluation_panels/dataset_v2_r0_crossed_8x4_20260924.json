@@ -1,0 +1,49 @@
+{
+  "schema_version": 1,
+  "name": "dataset_v2_r0_crossed_8x4_20260924",
+  "purpose": "Development-only validation panel crossing eight direction-balanced predeclared starts with every R0 horizon.",
+  "dataset_sha256": "20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9",
+  "data_split": "validation",
+  "sessions": ["regular"],
+  "tasks": [
+    {"family_id":"00","price_id":"SIM","horizon":96,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":297128,"obs_dim":332,"action_dim":3,"start_idx":1717127,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":128,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":297128,"obs_dim":332,"action_dim":3,"start_idx":1717127,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":160,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":297128,"obs_dim":332,"action_dim":3,"start_idx":1717127,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":200,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":297128,"obs_dim":332,"action_dim":3,"start_idx":1717127,"bar_resolution":"1m"},
+
+    {"family_id":"00","price_id":"SIM","horizon":96,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":777438,"obs_dim":332,"action_dim":3,"start_idx":4495469,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":128,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":777438,"obs_dim":332,"action_dim":3,"start_idx":4495469,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":160,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":777438,"obs_dim":332,"action_dim":3,"start_idx":4495469,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":200,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":777438,"obs_dim":332,"action_dim":3,"start_idx":4495469,"bar_resolution":"1m"},
+
+    {"family_id":"00","price_id":"SIM","horizon":96,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":946613,"obs_dim":332,"action_dim":3,"start_idx":786049,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":128,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":946613,"obs_dim":332,"action_dim":3,"start_idx":786049,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":160,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":946613,"obs_dim":332,"action_dim":3,"start_idx":786049,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":200,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":946613,"obs_dim":332,"action_dim":3,"start_idx":786049,"bar_resolution":"1m"},
+
+    {"family_id":"00","price_id":"SIM","horizon":96,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":148220,"obs_dim":332,"action_dim":3,"start_idx":811613,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":128,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":148220,"obs_dim":332,"action_dim":3,"start_idx":811613,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":160,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":148220,"obs_dim":332,"action_dim":3,"start_idx":811613,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":200,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":148220,"obs_dim":332,"action_dim":3,"start_idx":811613,"bar_resolution":"1m"},
+
+    {"family_id":"00","price_id":"SIM","horizon":96,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":302147,"obs_dim":332,"action_dim":3,"start_idx":1247988,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":128,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":302147,"obs_dim":332,"action_dim":3,"start_idx":1247988,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":160,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":302147,"obs_dim":332,"action_dim":3,"start_idx":1247988,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":200,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":302147,"obs_dim":332,"action_dim":3,"start_idx":1247988,"bar_resolution":"1m"},
+
+    {"family_id":"00","price_id":"SIM","horizon":96,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":16833,"obs_dim":332,"action_dim":3,"start_idx":2655648,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":128,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":16833,"obs_dim":332,"action_dim":3,"start_idx":2655648,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":160,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":16833,"obs_dim":332,"action_dim":3,"start_idx":2655648,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":200,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":16833,"obs_dim":332,"action_dim":3,"start_idx":2655648,"bar_resolution":"1m"},
+
+    {"family_id":"00","price_id":"SIM","horizon":96,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":884218,"obs_dim":332,"action_dim":3,"start_idx":4010095,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":128,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":884218,"obs_dim":332,"action_dim":3,"start_idx":4010095,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":160,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":884218,"obs_dim":332,"action_dim":3,"start_idx":4010095,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":200,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":884218,"obs_dim":332,"action_dim":3,"start_idx":4010095,"bar_resolution":"1m"},
+
+    {"family_id":"00","price_id":"SIM","horizon":96,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":477914,"obs_dim":332,"action_dim":3,"start_idx":1754560,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":128,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":477914,"obs_dim":332,"action_dim":3,"start_idx":1754560,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":160,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":477914,"obs_dim":332,"action_dim":3,"start_idx":1754560,"bar_resolution":"1m"},
+    {"family_id":"00","price_id":"SIM","horizon":200,"reward_id":"net_return","reward_params":{"cost_bps":1.0,"reward_scale":1000.0},"seed":477914,"obs_dim":332,"action_dim":3,"start_idx":1754560,"bar_resolution":"1m"}
+  ]
+}

@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Decision addendum and DEV/GRILL checklist: Q27 and the bounded diagnostic-pilot shell are review-closed; the Q23 owning seam, exact historical-envelope declaration, Q26 method and numbers, estimator, guard, and autoresearch remain pending.">
+<title>Experimental evaluation pilots and Q23 route: DEV addendum &mdash; 2026-10-07</title>
+<style>
+:root{--bg:#101a20;--panel:#17252e;--panel-2:#23303a;--text:#e6eff3;--muted:#afbdc6;--link:#8bdac0;--line:#3a4b56;--accent:#e5b56b;--code:#1a2933;--approved:#93e2c4;--pending:#f0c98b}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1100px;margin:auto;padding:40px 28px 64px}
+a{color:var(--link);text-underline-offset:3px}
+a:hover,a:focus{color:#b7f0dc}
+h1,h2,h3{line-height:1.25;scroll-margin-top:20px}
+h1{font-size:clamp(2rem,5vw,3.15rem);margin:10px 0 14px;max-width:950px}
+h2{margin-top:42px;padding-top:6px;border-top:1px solid var(--line)}
+h3{margin-top:28px;color:#dce8ed}
+p{max-width:88ch}
+.eyebrow,.muted{color:var(--muted)}
+.eyebrow{margin:0 0 6px;font-size:.93rem;letter-spacing:.02em}
+.source-links{margin-bottom:24px;color:var(--muted)}
+.source-links span{padding:0 7px}
+.status{display:grid;grid-template-columns:max-content 1fr;gap:5px 18px;max-width:900px;margin:18px 0 28px;padding:16px 20px;background:var(--panel);border:1px solid var(--line);border-radius:5px}
+.status dt{font-weight:700;color:#f1f6f8}
+.status dd{margin:0;color:var(--muted)}
+.gate{margin:24px 0 34px;border-left:4px solid var(--accent);padding:16px 22px;background:var(--panel-2)}
+.gate h2{margin:0 0 8px;padding:0;border:0;font-size:1.35rem;color:#ffd69b}
+.gate p{margin:0}
+.toc{margin:26px 0 34px;padding:18px 22px;background:var(--panel);border:1px solid var(--line);border-radius:5px}
+.toc h2{margin:0 0 8px;padding:0;border:0;font-size:1.15rem}
+.toc ol{columns:2;column-gap:40px;margin:8px 0 0}
+.toc li{break-inside:avoid;margin:5px 0}
+.label{display:inline-block;padding:1px 8px;border:1px solid currentColor;border-radius:999px;font-size:.8rem;font-weight:700;letter-spacing:.03em;text-transform:uppercase}
+.label.approved{color:var(--approved)}
+.label.pending{color:var(--pending)}
+code,pre{background:var(--code)}
+code{padding:2px 5px;border-radius:3px;font:0.92em ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}
+pre{padding:18px;overflow:auto;border:1px solid #2f424e;border-radius:5px;line-height:1.45}
+pre code{padding:0;background:transparent;font-size:.92rem}
+ul,ol{max-width:90ch;padding-left:1.55rem}
+li{margin:8px 0}
+.checklist{list-style:none;padding-left:0}
+.checklist li{position:relative;padding-left:1.9rem}
+.checklist li::before{content:"";position:absolute;left:0;top:.34rem;width:1rem;height:1rem;border:2px solid var(--muted);border-radius:2px;background:var(--panel)}
+.checklist li[aria-checked="true"]::before{content:"\2713";display:grid;place-items:center;color:#0d181d;background:var(--approved);border-color:var(--approved);font-size:.78rem;font-weight:800;line-height:1}
+table{display:block;width:100%;overflow-x:auto;border-collapse:collapse;margin:20px 0 28px}
+th,td{min-width:150px;padding:11px 13px;border:1px solid var(--line);vertical-align:top;text-align:left}
+th{background:var(--panel-2);color:#f1f6f8}
+tbody tr:nth-child(even){background:var(--panel)}
+strong{color:#fff}
+footer{margin-top:48px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.92rem}
+.skip-link{position:absolute;left:-9999px;top:0;background:#fff;color:#000;padding:8px 12px;z-index:2}
+.skip-link:focus{left:10px;top:10px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media (max-width:650px){main{padding:28px 18px 48px}h1{font-size:2rem}th,td{min-width:135px}.status{grid-template-columns:1fr}.status dd{margin-bottom:8px}.toc ol{columns:1}}
+@media print{:root{--bg:#fff;--panel:#f6f7f8;--panel-2:#eef1f3;--text:#111;--muted:#555;--link:#075d4d;--line:#bbb;--accent:#9c5c00;--code:#f1f3f4;--approved:#075d4d;--pending:#765000}body{font-size:11pt}main{max-width:none;padding:0}a{color:inherit}pre,table,.gate{break-inside:avoid}.toc{display:none}}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#report">Skip to report</a>
+<main id="report">
+<header>
+<p class="eyebrow">agent/Watson-dev &middot; research artifact &middot; 2026-10-07</p>
+<nav class="source-links" aria-label="Companion documents"><a href="evaluation-experimental-pilots-q23-addendum-2026-10-07.md">Markdown source</a><span aria-hidden="true">&middot;</span><a href="evaluation-quant-methodology-2026-10-06.md">Evaluation methodology</a><span aria-hidden="true">&middot;</span><a href="../../plans/itrader_masterplan.md">Masterplan</a><span aria-hidden="true">&middot;</span><a href="../../architecture/itrader_system_architecture.md">System architecture</a></nav>
+<h1>Experimental evaluation pilots and Q23 route: DEV addendum</h1>
+<dl class="status">
+<dt>Date</dt><dd>2026-10-07</dd>
+<dt>Branch</dt><dd><code>agent/Watson-dev</code></dd>
+<dt>Status</dt><dd>Q27 mechanics and the bounded diagnostic-pilot shell are implemented, independently approved, and review-closed. The separate-data route, first-class terminal-screen-only eligible intervals, and separate training/terminal dataset identities are approved, but their owning Q23 seam is still pending implementation and review. Metadata-first envelope planning is approved; an exact 2020-01-01 through 2021-12-31 request is recommended for the next declaration decision, not authorized for collection. The volatility estimator, numerical guard, Q26 method and numbers, and autoresearch objective remain unapproved. No market outcome was opened, no bar data was acquired, and no terminal run was authorized.</dd>
+</dl>
+</header>
+
+<aside class="gate" aria-labelledby="authorization-boundary">
+<h2 id="authorization-boundary">Authorization boundary</h2>
+<p><span class="label approved">Closed</span> Q27 repairs and the bounded default-off diagnostic-pilot shell are implemented, independently reviewed, and validated. <span class="label approved">Approved scope</span> Metadata-first sequencing and the separate-data route with first-class <code>terminal_screen_only</code> eligible intervals and dual dataset identities. <span class="label pending">Pending</span> The owning Q23 implementation/review seam, retrospective clearance and exact acquisition declaration, the estimator and numerical guard, Q26 method and numbers, and autoresearch. No bar acquisition, market-outcome access, or terminal run is authorized.</p>
+</aside>
+
+<nav class="toc" aria-labelledby="contents-heading">
+<h2 id="contents-heading">Contents</h2>
+<ol>
+<li><a href="#decision-checkpoint">Decision checkpoint</a></li>
+<li><a href="#architecture-boundary">Architecture boundary</a></li>
+<li><a href="#pilot-a">Pilot A: episode attribution</a></li>
+<li><a href="#pilot-b">Pilot B: one-step diagnostic</a></li>
+<li><a href="#module-seams">Recommended module seams</a></li>
+<li><a href="#q23">Q23 terminal-screen dataset</a></li>
+<li><a href="#q26">Q26 and future autoresearch</a></li>
+<li><a href="#dev-checklist">DEV and GRILL completion checklist</a></li>
+<li><a href="#evidence">Evidence and provenance</a></li>
+</ol>
+</nav>
+
+<article>
+<section aria-labelledby="decision-checkpoint">
+<h2 id="decision-checkpoint">Decision checkpoint</h2>
+<p>This addendum records the human decisions made after the <a href="evaluation-quant-methodology-2026-10-06.md">evaluation methodology report</a>. The direct human decision makes that report's <strong>Q27-pending and Q23-route/role-pending labels obsolete</strong>; its derivations, limits, primary-source evidence, Q24/Q25 authority, and unresolved Q26 choices remain in force. This dated artifact records the coordination delta but does not supersede active architecture/masterplan files. DEV has reconciled the active <a href="../../plans/itrader_masterplan.md">masterplan</a> and <a href="../../project-state/r1-development-readiness.md">R1 readiness contract</a> with the completed Q27 evidence. Phase ordering is unchanged.</p>
+<table>
+<caption class="sr-only">Decisions made on 2026-10-07 and their boundaries</caption>
+<thead><tr><th scope="col">Item</th><th scope="col">Decision on 2026-10-07</th><th scope="col">Boundary</th></tr></thead>
+<tbody>
+<tr><th scope="row">Q27 mechanics</th><td>Implemented; independent Sol and Luna reviews approve; repository validation is closed</td><td>Preserve the approved scope and evidence; this does not authorize a terminal panel</td></tr>
+<tr><th scope="row">Episode attribution</th><td>Approved as a secondary experimental report</td><td>Not reward, a headline metric, or training feedback</td></tr>
+<tr><th scope="row">One-step probe</th><td>Approved as a bounded diagnostic pilot</td><td>The specific volatility estimator and numerical guard below are recommendations for GRILL, not adopted defaults</td></tr>
+<tr><th scope="row">Q23 route and role</th><td>Approved: a separately declared terminal-screen-only dataset, first-class certified eligible intervals, and separate training/terminal identities</td><td>Owning-seam code/review pending; complete exclusion from training, proposer/curriculum, tuning, calibration, checkpoint selection, and the old sealed final test</td></tr>
+<tr><th scope="row">Metadata-first envelope</th><td>Planning sequence approved; exact 2020-01-01 through 2021-12-31 request recommended for declaration review</td><td>Recommended candidate; retrospective clearance remains pending; no bars acquired and no outcome opened</td></tr>
+<tr><th scope="row">Q26</th><td>Synthetic-null calibration before outcomes is approved; method and every numerical choice remain pending</td><td>Null Type-I error, coverage, and stability are distinct from separately named simulated-effect power; no grouping, method, block length, interval, multiplicity, threshold, or seed interpretation is adopted</td></tr>
+<tr><th scope="row"><code>CapabilityProfile</code></th><td>Remains a future online/shadow contract</td><td>Offline work may produce transferable evidence, not an operational profile</td></tr>
+<tr><th scope="row">Autoresearch</th><td>Staged only after the contracts and gates below are implemented and reviewed</td><td>No optimization loop is authorized now</td></tr>
+</tbody>
+</table>
+<p>The four completed Q27 repairs are: reject remapped explicit starts; reject ambiguous terminal selection; make physical-EOF/reset/evidence identities agree; and require an explicit state-tail schema before state intervention. The dated <a href="evaluation-code-audit-2026-10-06.md">code audit</a> remains the historical finding owner, while the <a href="evaluation-mechanical-repairs-2026-10-07.md">Q27 report</a> owns implementation, review, and validation evidence.</p>
+<p>The dependency order is also explicit. The optional volatility-normalized pilot does <strong>not</strong> block the headline Q24 terminal-net screen when disabled. Q27 mechanics and the Q23 qualified-metadata gate are required for reliable terminal execution. Q26 design can proceed in parallel, but its final support/calibration decision depends on the selected Q23 calendar layout. No real panel is open.</p>
+</section>
+
+<section aria-labelledby="architecture-boundary">
+<h2 id="architecture-boundary">Architecture boundary</h2>
+<p>The pilots are evaluation modules downstream of a frozen policy decision. They must not change <code>TaskSpec</code>, observations, <code>RewardEngine</code>, PPO advantages, solver actions, proposer rewards, curriculum selection, terminal checkpoint selection, or Phase C broker/risk semantics.</p>
+<pre><code class="language-text">frozen offline episode/decision trace
+              |
+              +--&gt; versioned experimental diagnostic sidecars
+              |       - episode direction/timing/cost attribution
+              |       - causal one-step action diagnostic
+              |
+              +--&gt; existing Q24/Q25 reducers (unchanged)
+
+qualified offline evidence
+              |
+              +--&gt; future, separately versioned reducer/calibrator
+                          |
+                          v
+                 online/shadow CapabilityProfile
+</code></pre>
+<p><code>CapabilityProfile</code> therefore stays on the future online path described by the <a href="../../architecture/itrader_system_architecture.md">system architecture</a>. An offline evidence record may use compatible identities so it can be transferred later, but it is not itself a profile, must not populate an uncalibrated <code>estimated_p_solve</code>, and must not enter <code>r_prop</code>. Any later Phase B capability-to-curriculum adapter needs separate approval, versioning, a declared adaptive-validation source, and a hard exclusion of terminal-screen and final-test evidence.</p>
+</section>
+
+<section aria-labelledby="pilot-a">
+<h2 id="pilot-a">Pilot A: episode direction, timing, and cost</h2>
+<h3 id="pilot-a-estimand">Exact estimand</h3>
+<p>For the exact <code>H</code> decision steps already used by <code>EpisodeEvidence</code>, let <code>p_k</code> be the signed target position applied for step <code>k</code>, and let <code>r_k</code> be that step's recorded simple close-to-close asset return. Do not reconstruct either series from a different index convention.</p>
+<pre><code class="language-text">G            = sum_(k=0..H-1) p_k * r_k
+p_bar        = (1 / H) * sum_(k=0..H-1) p_k
+L            = sum_(k=0..H-1) r_k
+directional  = p_bar * L
+timing       = G - directional
+C_actual     = c * (sum_(k=0..H-1) |p_k - p_(k-1)| + |p_(H-1)|)
+net          = directional + timing - C_actual
+</code></pre>
+<p>Here <code>p_(-1)</code> is the episode's recorded starting position (zero in the current reset contract) and <code>c = evidence_cost_bps * 1e-4</code>. <code>C_actual</code> includes the one real terminal liquidation already included by <a href="../../../itrader/rl_lib/evaluation/episode_evidence.py"><code>EpisodeEvidence</code></a>; it must not be added twice.</p>
+<p>This is an <strong>additive simple-return identity</strong>, matching the current <a href="../../../itrader/envs/itrader_env.py"><code>ITraderEnv</code></a> evidence arithmetic. It is not a compounded wealth decomposition. <code>timing</code> is the observed-horizon residual relative to constant signed exposure <code>p_bar</code>. It is not clipped and is not automatically alpha, forecasting skill, causality, or a market-timing estimate.</p>
+<p>The identity cancels exactly: <code>directional + timing = G</code>, so attribution cannot change net. For example, if <code>G = 30 bps</code>, <code>directional = 20 bps</code>, <code>timing = 10 bps</code>, and cost is <code>4 bps</code>, net remains <code>26 bps</code>. <code>L</code> is the unselected always-long gross return on the same bars; it is not a hindsight "best direction," and neither <code>L</code> nor <code>directional</code> is clamped. Signed negative exposure works unchanged. A constant long or short path has zero timing residual because <code>G = p_bar * L</code>; flat from zero does too. None of this is a capability, alpha, or causal-skill claim.</p>
+<p>Compute the fields per complete episode, then apply the unchanged Q24 order: four horizons within anchor, anchors within symbol, and twelve symbols equally. Q25 continues to normalize each episode before aggregation. A pooled step mean or the raw 128-task mean may be secondary only; neither replaces Q24.</p>
+
+<h3 id="pilot-a-tests">Required reconciliation tests</h3>
+<ul>
+<li>Reconcile <code>G</code> exactly with stored gross return and reconcile both <code>net = G - C_actual</code> and <code>net = directional + timing - C_actual</code> within one declared numerical tolerance.</li>
+<li>Cover every prior/target position transition and charge exactly one actual terminal liquidation.</li>
+<li>Make constant long and constant short have zero timing residual; make an all-flat, zero-start episode have zero gross, direction, timing, and cost.</li>
+<li>Include a path where additive and compounded calculations differ, and assert that this pilot follows the additive result.</li>
+<li>Reject missing, duplicated, censored, mismatched-step, non-finite, or wrong-cost traces. Never repair them by clipping or partial aggregation.</li>
+<li>Prove row-order invariance and preserve the accepted Q24/Q25 reducers.</li>
+</ul>
+</section>
+
+<section aria-labelledby="pilot-b">
+<h2 id="pilot-b">Pilot B: causal one-step realized-return diagnostic</h2>
+<h3 id="freeze-first">Freeze first, score second</h3>
+<p>For a decision at source row <code>i</code>, persist the decision identity, policy action, prior position, and the 60 visible close levels from rows <code>i-60</code> through <code>i-1</code> before row <code>i</code> is exposed. Those levels produce exactly 59 trailing simple returns. The subsequently attached outcome is the return from row <code>i-1</code> to row <code>i</code>; it is not part of the scale window.</p>
+<p>The following scale is a <strong>recommended candidate for the next GRILL, not an adopted estimator</strong>. It is deliberately narrow and versioned:</p>
+<pre><code class="language-text">scale_id = lagged_close_std_60c_59r_ddof1_v0
+u_j      = (C_j - C_(j-1)) / max(C_(j-1), 1e-8), j=i-59,...,i-1
+sigma_i  = sqrt(sum_j (u_j - mean(u))^2 / 58)
+</code></pre>
+<p>Its unit is dimensionless one-minute return. If the candidate is approved, use the same <code>sigma_i</code> for the policy and every reference action at that decision. The proposed invalid-scale rule is: if the scale is non-finite or <code>sigma_i &lt;= 1e-12</code>, keep all raw fields, set normalized fields explicitly unavailable, record the reason, and increment coverage counters. The estimator and cutoff both require human approval. The cutoff is a proposed numerical-degeneracy guard aligned with current evidence code, not a significance threshold or a literature-derived permanent choice.</p>
+<p>Only after the frozen record is durable may the next simple asset return <code>r_next</code> be attached. For prior position <code>q</code>, candidate target position <code>a in {-1, 0, +1}</code>, and cost rate <code>c</code>:</p>
+<pre><code class="language-text">gross(a)           = a * r_next
+switch_cost(a)     = c * |a - q|
+continuation_net(a)= gross(a) - switch_cost(a)
+hypothetical_roundtrip_net_return(a) = continuation_net(a) - c * |a|
+volatility_scaled_continuation_net_return(a)
+                       = continuation_net(a) / sigma_i  # only when valid
+</code></pre>
+<p><code>continuation_net</code> is the primary one-step diagnostic. <code>hypothetical_roundtrip_net_return</code> is a separately named hypothetical forced close. Neither may alter the episode's actual terminal liquidation or <code>EpisodeEvidence</code>.</p>
+<p>At every eligible decision, score the policy action and the named references <code>hold_prior</code>, <code>flat</code>, <code>long</code>, and <code>short</code> with the same <code>q</code>, outcome, cost, and scale. Preserve semantic labels even when two labels resolve to the same action. A random draw adds no action coverage because all three actions are already enumerated; the seeded-random terminal control remains unchanged. <code>max_a continuation_net(a)</code> may be stored only as <code>oracle_diagnostic_only</code> and must never be described as attainable policy PnL.</p>
+<p>No output from this pilot may be named Sharpe. A single outcome does not supply a return series or dispersion estimate; the primary-source rationale remains in the <a href="evaluation-quant-methodology-2026-10-06-evidence/capability-diagnostics-primary-sources.md">capability diagnostics evidence</a> and <a href="https://web.stanford.edu/~wfsharpe/art/sr/sr.htm">Sharpe's differential-return definition</a>.</p>
+
+<h3 id="pilot-b-tests">Candidate pilot output and tests</h3>
+<p>The opt-in sidecar should retain raw and normalized action vectors, scale value and validity, selected action, references, cost convention, observation/trace identity, and an explicit diagnostic-only/oracle marker. If summarized, first form an episode-level result over common valid steps and record valid count and coverage; only then may the existing Q24 hierarchy be applied. Do not pool all steps into a new headline.</p>
+<p>Minimum tests:</p>
+<ul>
+<li>60 close levels produce 59 returns and sample standard deviation uses denominator 58 (<code>ddof=1</code>), verified against a hand calculation.</li>
+<li>Perturbing any future close cannot change the frozen action, prior position, trailing returns, or scale; it may change only the attached outcome fields.</li>
+<li>Exhaust all nine prior-position/target-action transition costs.</li>
+<li>Policy and references share one outcome and one scale at each decision.</li>
+<li>Zero, NaN, and infinite scales make normalized values unavailable while raw values survive; no epsilon substitution is allowed.</li>
+<li>Actual episode liquidation and hypothetical roundtrip liquidation remain separately identifiable and cannot be double-counted.</li>
+<li>Default-off execution produces no sidecar and no training/evaluation behavior change. Static checks should prevent any diagnostic field from entering rewards, observations, <code>TaskSpec</code>, proposer feedback, or checkpoint choice.</li>
+</ul>
+</section>
+
+<section aria-labelledby="module-seams">
+<h2 id="module-seams">Recommended module seams for DEV</h2>
+<p>These are interface recommendations, not adopted class names or implementation authority. DEV may preserve the approved default-off pilot shell while the estimator and reporting subdecisions remain unconfigured.</p>
+<ol>
+<li>A small frozen-decision trace interface owns causal serialization and outcome attachment. Its invariant is that decision-side fields exist before an outcome can be attached.</li>
+<li>A pure episode-attribution evaluator owns the additive identities, validation, and reconciliation. Callers should not duplicate formulas.</li>
+<li>A pure one-step evaluator owns the lagged-scale version, all three target actions, reference labels, invalid-scale policy, and oracle marking.</li>
+<li>An opt-in diagnostic reporter owns sidecar persistence and later aggregation. Prefer this to widening <code>EpisodeEvidence</code> before the pilot earns stability.</li>
+</ol>
+<p>Each output needs a schema version and joins to dataset, source, config, checkpoint, task, symbol/session/anchor, horizon, cost, policy/control, seed, producer, and method identities. The modules should expose compact validated records and hide their arithmetic and failure policy. This keeps the evaluation seam deep without leaking experimental fields into the solver or online shell.</p>
+<h3 id="shared-tree-checkpoint">Shared-tree implementation closeout</h3>
+<p>DEV's shared tree now contains <a href="../../../itrader/rl_lib/evaluation/economic_diagnostics.py"><code>economic_diagnostics.py</code></a>, a default-false <code>capture_step_economics</code> flag, and an opt-in pre-action context in <code>ITraderEnv</code>. Direct inspection confirms that the current draft freezes a past-close tuple before <code>step</code>, keeps continuation, hypothetical roundtrip, and actual terminal liquidation distinct, reconciles episode gross/cost/net before attribution, emits common-scale <code>hold_prior</code>/<code>flat</code>/<code>long</code>/<code>short</code> references, retains both gross and continuation-net normalization fields, and chooses no default volatility estimator. Q27 and the default-off pilot shell received independent approval and passed the final core suite, healthcheck, scoped pre-commit rerun, and diff checks recorded in the Q27 report.</p>
+<p>That is a sound foundation, not completion of the candidate contract. At this checkpoint the evaluator accepts any finite positive supplied scale and does not implement the named 60-close/59-return <code>ddof=1</code> candidate or the <code>&lt;= 1e-12</code> guard, which is correct until they receive human approval. Secondary Q24 reduction and durable sidecar receipts also remain outstanding. The pilot's current reconciliation tolerance is looser than the terminal reporter's, so it must be aligned or explicitly versioned and justified before Q24 integration. Those approved-pilot deltas and candidate subdecisions should be resolved without changing the environment's reward or evidence arithmetic.</p>
+</section>
+
+<section aria-labelledby="q23">
+<h2 id="q23">Q23: separate terminal-screen-only dataset</h2>
+<h3 id="q23-route">Chosen route and invariants</h3>
+<p>Historical recovery remains evidence: 512 recorded control rows reduce to 48 known starts (32 unpanelled, eight September, eight January), and zero candidate anchors were certified fresh under the conservative 2,052-anchor exposure bound. Those facts motivate the separate-data route; they do not select dates or certify a new panel.</p>
+<p>The new snapshot must have its own immutable dataset identity and the approved first-class <code>terminal_screen_only</code> role with certified eligible intervals and separate training/terminal dataset identities. Code and independent review are pending. The snapshot is not appended to dataset v2, passed through a new 70/15/15 split, used for training, proposer/curriculum generation, tuning, calibration, checkpoint selection, or treated as a replacement final test. The existing training/validation source stays unchanged, and the existing final test stays sealed.</p>
+<p>Reuse the existing <a href="../../../itrader/inputs/market_data/contracts.py"><code>HistoricalMarketDataSource</code></a>, <a href="../../../itrader/inputs/market_data/alpaca.py"><code>AlpacaMarketDataSource</code></a>, and immutable <a href="../../../itrader/inputs/market_data/snapshot.py">snapshot builder</a>. They already provide a read-only acquisition adapter, split-adjusted one-minute SIP requests, raw page/request retention, retrieval timestamps, UTC/session normalization, duplicate rejection, stable ordering, hashes, and no forward fill. Do not create a second provider backend for this route.</p>
+<p>The data layer is reusable, but the current evaluation path cannot yet express this route. <code>run_terminal_screen</code> requires the terminal dataset hash to equal the completed training screen's dataset hash; <code>panel_qualification</code> requires the candidate hash to equal the retained exposure inventory's hash and assumes that inventory is non-empty. The qualifier also assumes <code>data_split=validation</code>, 0.7/0.15/0.15, and a purge boundary. <code>terminal_panel_report</code> also rejects episode rows not labeled <code>validation</code>; <code>DataPartition</code>/<code>ITraderEnv</code> accept only the existing split vocabulary, <code>EpisodeEvidence</code> copies that split, and the experimental diagnostic runner currently admits only train/validation.</p>
+<p>The approved role therefore needs an end-to-end bridge, not just a preflight flag. Keep <code>terminal_screen_only</code> as a first-class role bound to the terminal dataset identity and certified-interval hash; do not alias it to <code>validation</code>. Certified intervals replace fractional splitting for eligibility, while the existing <code>DataPartition</code> continuity/session checks remain reusable. Environment reset/evidence, diagnostic collection, qualification, preflight, and terminal reporting must all preserve and validate the role plus certificate. DEV has been dispatched for scoped TDD and independent review. Every consumer must fail closed until that seam lands; relabeling the new snapshot as <code>validation</code> would misstate provenance.</p>
+
+<h3 id="metadata-gate">Metadata-only feasibility gate</h3>
+<p>Before any return, regime, solver action, or model outcome is inspected, bind and review:</p>
+<ul>
+<li>provider/feed, adjustment, timeframe, timezone, exchange-calendar identity, session policy, missing-bar/no-forward-fill policy, retrieval time, raw-page hashes, manifest hash, and usage classification;</li>
+<li>the same twelve symbols, unless a separately approved scientific question explicitly changes the universe;</li>
+<li>enough continuous same-session support for a 60-bar past window and each 96/128/160/200 future horizon at the declared 60/120-minute decision offsets;</li>
+<li>enough metadata support for 32 distinct symbol/session anchors, at least two per symbol, before crossing the four horizons;</li>
+<li>timestamp/session duplication, OHLC-schema presence, gap, early-close, and complete-final-bar checks without reading price values;</li>
+<li>calendar-component counts and breadth needed to evaluate Q26 candidates, without choosing a Q26 method; and</li>
+<li>an exposure registry covering training, curriculum/proposer generation, tuning, calibration, progress/terminal panels, diagnostics, plots, human inspection, and agent/tool access. Any uncertain interval is excluded.</li>
+</ul>
+<p>Selection must be outcome-blind. Do not choose a provider, period, date, anchor, or exclusion by return, volatility, regime, policy action, or solver result. Date novelty alone is not non-exposure proof. The complete feasibility contract is in the <a href="evaluation-experimental-pilots-2026-10-07-evidence/q23-evaluation-only-metadata-feasibility.md">Q23 evidence note</a>.</p>
+
+<h3 id="q23-next-decisions">The next GRILL question before acquisition</h3>
+<p>Same-stack parity is the recommendation: Alpaca/SIP, split adjustment, one-minute bars, New York exchange calendar, RTH selection, the same twelve symbols, raw-page retention, immutable manifests, and no forward fill. A different provider/feed would be a separately approved acquisition-shift factor, not a free freshness upgrade.</p>
+<p>The metadata-first sequence is approved. The outcome-blind calendar/access audit now recommends the exact request bounds 2020-01-01 through 2021-12-31; the first actual exchange session is 2020-01-02, giving 505 sessions and 6,060 symbol/session slots before bar qualification. This choice is the nearest two complete calendar years before dataset-v2, not a conclusion drawn from returns or solver behavior. Two years is a reviewable design judgment, not proof that the final layout can support Q26.</p>
+<p>The immediate question is now: <strong>approve <code>bounded_retrospective_clearance_v1</code> and the exact <code>q23_terminal_screen_only_20200101_20211231_v0</code> declaration, subject to a human manual/external-access statement and every fail-closed stop rule; or require prospective-only accumulation instead?</strong> The complete standard, declaration, access receipt, and stop rules are in the <a href="evaluation-metadata-first-envelope-2026-10-07.md">metadata-first envelope report</a>. Approval would authorize declaration preparation, not bypass the pending Q23 role/review gate or silently authorize outcome access.</p>
+<p>Either answer must separately declare prospective-only clearance or a retrospective interval cleared against the complete exposure ledger. Do not presume that "post-January 2026" or merely "after dataset v2" is fresh. A long historical slice can be eligible only because its retained access history proves it unused, never because its date looks new.</p>
+
+<h3 id="metadata-access-facts">Metadata and local-access facts behind the recommendation</h3>
+<p>The retained request/manifest proves that the established path already acquired Alpaca/SIP, split-adjusted, one-minute data for the fixed twelve symbols from 2022-01-03 through 2026-09-22. A 2026-09-24 authenticated gate also proved that old explicit <code>feed=sip</code> requests worked for this account at that time. On 2026-10-07 the existing calendar-only adapter path succeeded with locally configured credentials; no secret, bar, quote, trade, account, market outcome, or model output was accessed. This proves a current credential/calendar path and historical old-SIP access, <strong>not</strong> current SIP bar entitlement and not that SIP is free today. No paid upgrade or provider change is recommended or authorized.</p>
+<p>The old snapshot remains useful provenance but predates the current builder's retrieval-time, usage-classification, and per-raw-file hash ledger. Any new snapshot must use the current manifest contract. The retained calendar contains 1,185 sessions through 2026-09-23. The old metadata audit found 2,084 physically eligible anchors and 2,052 after the 32 known explicit exclusions across 176 dates, but <strong>zero certifiably fresh anchors</strong> because the start-unbound random-run exposure bound covers that whole dataset-v2 candidate domain. The 512 recovered rows and 48 starts remain evidence; they do not make another old date fresh.</p>
+<p>Accordingly, the exact historical request is proposed and <strong>retrospective clearance remains pending</strong>. It is disjoint from retained v1/v2 date coverage, yet retained metadata cannot prove that deleted copies, external tools, or manual chart inspection never exposed it. Any unresolved source that could overlap blocks clearance. Current calendar-only access succeeds, but current SIP bar entitlement remains unknown until the first post-approval sealed explicit-SIP request; no fallback feed or paid upgrade is authorized. Prospective-only collection gives the strongest freshness proof but cannot yet provide comparable calendar breadth.</p>
+<p>Because dataset-v2 begins in 2022, the proposed 2020-2021 block is a backward-time, cross-period retrospective representation screen. It is not prospective forward-time validation or a live-economic promotion gate. The temporal shift, all-twelve bar presence, minute continuity, gap/duplicate status, and early-close eligibility all remain conditional until a declared sealed acquisition and metadata-only qualification.</p>
+</section>
+
+<section aria-labelledby="q26">
+<h2 id="q26">Q26 and future autoresearch</h2>
+<p>Q26 method and numerical choices remain entirely unresolved: calendar grouping, resampling method, block length or grid, null calibration/coverage tolerance, interval construction, multiplicity family, failure policy, and the interpretation of two training seeds still require outcome-blind analysis and human approval. The approved research sequence first freezes the outcome-blind layout, then measures Type-I error, interval coverage, numerical/support failure, and stability on predeclared synthetic null dependence families. Separately named simulated-effect power cannot rescue a method that fails null calibration. Every failed null and method attempt remains recorded. Neither pilot may open the terminal panel early or expand the confirmatory family.</p>
+<p>Only after Q27 review closure, the two pilot contracts pass their remaining tests, the Q23 snapshot/panel is metadata-sealed, and Q26 is accepted may the <code>autoresearch-optimizer</code> loop be considered. One eligible first objective is:</p>
+<pre><code class="language-text">minimize median wall-clock seconds to produce both validated diagnostic
+sidecars on one frozen non-terminal fixture
+</code></pre>
+<p>The baseline and challenger must consume identical bytes and emit semantically identical validated records; the holdout stays frozen, one implementation factor changes per challenge, and tests plus a fixed memory ceiling are hard gates. This objective optimizes mechanics only. It may not change data, dates, rewards, economic thresholds, Q24/Q25, Q26, pilot formulas, or any market outcome.</p>
+</section>
+
+<section aria-labelledby="dev-checklist">
+<h2 id="dev-checklist">DEV and GRILL completion checklist</h2>
+<p>The Q27 repairs and default-off diagnostic-pilot shell are implemented and review-closed. The separate-data route, first-class terminal-screen-only intervals, and dual dataset identities are approved work. The exact historical envelope is a reviewed recommendation, not collection authority. Estimator, numerical guard, Q26 method and numbers, and autoresearch decisions remain pending.</p>
+<ul class="checklist">
+<li role="checkbox" aria-checked="true" aria-disabled="true">Land and independently review all four human-approved Q27 repairs.</li>
+<li role="checkbox" aria-checked="false" aria-disabled="true">Complete the approved pilot integration and versioned sidecars behind the implemented default-off shell, using small evaluation-side interfaces; leave the estimator unset until GRILL approves one.</li>
+<li role="checkbox" aria-checked="false" aria-disabled="true">Pass the reconciliation, edge-case, causality, reference-action, and no-training-coupling tests above on synthetic/non-terminal fixtures.</li>
+<li role="checkbox" aria-checked="false" aria-disabled="true">Confirm that Q24/Q25 outputs are byte/semantically unchanged when pilots are off, and use the same reducer ordering when pilot summaries are on.</li>
+<li role="checkbox" aria-checked="false" aria-disabled="true">Implement and independently review the approved first-class terminal-screen-only eligible-interval seam with dual dataset identities; carry role/certificate identity through env reset, <code>EpisodeEvidence</code>, diagnostics, qualification, preflight, and reporting; do not reuse the ordinary validation split by relabeling.</li>
+<li role="checkbox" aria-checked="true" aria-disabled="true">Approve metadata-first sequencing before outcome access; preserve the source-parity, no-fallback, and synthetic-before-real-outcome boundary.</li>
+<li role="checkbox" aria-checked="false" aria-disabled="true">GRILL <code>bounded_retrospective_clearance_v1</code> and the exact <code>q23_terminal_screen_only_20200101_20211231_v0</code> declaration before any bar acquisition; otherwise require prospective-only accumulation.</li>
+<li role="checkbox" aria-checked="false" aria-disabled="true">Run the Q23 metadata-only feasibility gate and independent review without reading returns or model outcomes; acquire no data from this document.</li>
+<li role="checkbox" aria-checked="false" aria-disabled="true">Resolve and seal Q26 separately before any terminal-panel access.</li>
+<li role="checkbox" aria-checked="false" aria-disabled="true">Keep offline evidence distinct from the future online/shadow <code>CapabilityProfile</code>; introduce no automatic <code>r_prop</code> path.</li>
+<li role="checkbox" aria-checked="false" aria-disabled="true">Update active project-state/architecture documentation only when DEV has implementation and review evidence.</li>
+</ul>
+</section>
+
+<section aria-labelledby="evidence">
+<h2 id="evidence">Evidence and provenance</h2>
+<ul>
+<li><a href="evaluation-experimental-pilots-2026-10-07-evidence/attribution-one-step-contract.md">Pilot contract evidence</a></li>
+<li><a href="evaluation-experimental-pilots-2026-10-07-evidence/q23-evaluation-only-metadata-feasibility.md">Q23 metadata feasibility</a></li>
+<li><a href="evaluation-metadata-first-envelope-2026-10-07.md">Metadata-first envelope, clearance standard, and draft declaration</a></li>
+<li><a href="evaluation-quant-methodology-2026-10-06.md">Primary evaluation methodology and source ledger</a></li>
+<li><a href="evaluation-code-audit-2026-10-06.md">Evaluation code audit and historical recovery</a></li>
+<li><a href="dataset-v2-r0-audit-2026-09-24.md">Dataset-v2 acquisition contract</a></li>
+<li><a href="../../plans/itrader_masterplan.md">Canonical masterplan</a></li>
+</ul>
+<p>The GitNexus index was stale and WSL remained off. Current source, tests, active architecture, and the masterplan remain the repository's durable authority; the direct human decision is the authority for the dispatched status delta, and DEV owns its reconciliation into those active surfaces.</p>
+</section>
+</article>
+<footer>Faithful HTML companion to <a href="evaluation-experimental-pilots-q23-addendum-2026-10-07.md">the Markdown source</a>. Q27 and the bounded diagnostic-pilot shell are review-closed; the Q23 owning seam, retrospective clearance and exact declaration, Q26 method and numbers, estimator, guard, and autoresearch remain pending.</footer>
+</main>
+</body>
+</html>

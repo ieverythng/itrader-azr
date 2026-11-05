@@ -1,0 +1,363 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-10-01",
+  "status": "research plan; no experiment in this matrix has been executed",
+  "id_policy": "id is the machine-readable ladder stage; research_label preserves the declared Markdown ablation name where one exists",
+  "execution_order_scope": "recommended_execution_order lists new work in this artifact; existing registered controls such as C0/C1/shuffled-C1 remain external prerequisites where stated",
+  "fixed_identity_constraints": {
+    "R4-v2": "unchanged nonlinear market/task by solver-state joint fusion",
+    "R4-v1": "position plus remaining-horizon observability factor",
+    "C-series": "causal market-feature factor",
+    "S-series": "System-One/CLM/Jev factor",
+    "TaskSpec": "canonical static task contract",
+    "online_shell": "MarketFramer, DecisionGate, RiskEngine, and Executor remain separate; WAIT stays first-class"
+  },
+  "budget_convention": {
+    "ppo_update_environment_steps": 4800,
+    "screen_updates_per_seed": 12,
+    "extension_updates_per_seed": 40,
+    "screen_note": "Two-seed screens can reject but cannot promote.",
+    "extension_note": "Promotion still requires the repository's chronological, replay, economic, directional-control, cost, and independent-seed gates."
+  },
+  "recommended_execution_order": [
+    "OPT-CONFIG-FORMULA-AUDIT",
+    "MECH-RECURRENT-EVAL",
+    "R-ATTR-SCREEN",
+    "R2C-MEMORY-ATTRIBUTION",
+    "OPT-EMA-DIAGNOSTIC",
+    "OPT-DD-SCREEN",
+    "OPT-AF-SCREEN",
+    "AZR-LP-DIRECT",
+    "AZR-LP-GRAD",
+    "AZR-QD-REPLAY",
+    "PF-PREDICTIVE-CALIBRATION",
+    "PF-POLICY-CROSS",
+    "TTS-HINDSIGHT-CEILING",
+    "WM-VALIDITY",
+    "TTS-FROZEN-OFF-ON"
+  ],
+  "experiment_catalog": [
+    {
+      "order": 0,
+      "id": "OPT-CONFIG-FORMULA-AUDIT",
+      "axis": "optimizer/training dynamics",
+      "purpose": "Establish what is already present before attributing novelty to Ataraxos.",
+      "checks": [
+        "resolve the actual entropy, learning-rate, behavior-KL, PPO-clipping, and gradient-clipping configuration for each retained checkpoint",
+        "verify the implemented KL direction and whether adaptive KL is effectively zero",
+        "repair or confirm clip-fraction, critic explained-variance, advantage-distribution, and top-two-logit-margin diagnostics",
+        "record that for three always-legal actions KL(pi || Uniform[3]) equals log(3) minus policy entropy"
+      ],
+      "budget": "existing artifacts and deterministic checkpoint replay; no new training",
+      "keep_gate": "a source-backed formula/config receipt that identifies the remaining distinct factor",
+      "stop_gate": "do not launch an apparent Ataraxos ablation if it merely renames the existing entropy objective"
+    },
+    {
+      "order": 1,
+      "id": "MECH-RECURRENT-EVAL",
+      "axis": "mechanics",
+      "purpose": "Make recurrent training and replay evidence valid before drawing carried-memory conclusions.",
+      "arms": [
+        "state ownership/reset unit tests",
+        "sequence mask and last-valid-state tests",
+        "state-aware compute_single_action replay parity"
+      ],
+      "budget": "tests and deterministic smoke only",
+      "keep_gate": "finite forward/backward, correct (h,c) lifecycle, padded-loss exclusion, exact checkpoint replay, evaluation/train state parity",
+      "stop_gate": "any leakage, state reset error, invalid mask, shared branch state, or replay mismatch"
+    },
+    {
+      "order": 2,
+      "id": "R-ATTR-SCREEN",
+      "axis": "existing R-series",
+      "purpose": "Complete the already-declared representation attribution before crossing in Ataraxos-derived optimizer or proposer factors.",
+      "arms": [
+        "matched R0 control",
+        "clean R1",
+        "R1 + R4-v1"
+      ],
+      "screen_budget": {
+        "arms": 3,
+        "seeds": 2,
+        "updates_per_seed": 12,
+        "estimated_environment_steps": 345600
+      },
+      "identity_rule": "R4-v2 remains the fixed nonlinear joint-fusion design and is neither changed nor redefined by this screen.",
+      "keep_gate": "recurrent mechanics pass and at least one challenger remains measurable under paired held-out economic and directional controls",
+      "stop_gate": "mechanics failure, replay mismatch, near-flat collapse, or a directional policy that cannot beat its matching static control"
+    },
+    {
+      "order": 5,
+      "id": "OPT-DD-SCREEN",
+      "research_label": "ATX-DAMP-SCHED-v0",
+      "axis": "optimizer/training dynamics",
+      "source_idea": "Ataraxos dynamically damped self-play RL; the candidate novelty is coordinated schedule dynamics and explicit behavior-policy KL, not the uniform magnet by itself",
+      "anchor": "one frozen accepted solver recipe after current R-series attribution closes; do not rename the solver",
+      "arms": [
+        "frozen current PPO recipe",
+        "learning-rate schedule only",
+        "regularization schedule only, with the entropy or distinct KL term predeclared after the formula audit",
+        "predeclared coupled schedule only if the isolated screens justify it"
+      ],
+      "screen_budget": {
+        "arms": 3,
+        "seeds": 2,
+        "updates_per_seed": 12,
+        "estimated_environment_steps": 345600
+      },
+      "extension_budget": {
+        "arms": 2,
+        "seeds": 3,
+        "updates_per_seed": 40,
+        "estimated_environment_steps": 1152000
+      },
+      "required_diagnostics": [
+        "net return and Sharpe at exact 1 bp",
+        "flat/long/short fractions",
+        "turnover and exposure",
+        "policy entropy",
+        "top-two action-logit margin",
+        "behavior KL and clip fraction",
+        "gradient norm and explained variance",
+        "flat and strongest directional controls",
+        "exact checkpoint replay"
+      ],
+      "keep_gate": "an isolated or subsequently coupled factor avoids hard-flat collapse in both screen seeds and improves the frozen economic scalar without replay failure; a concentrated directional policy must also beat its matching static control and demonstrate conditional state dependence",
+      "stop_gate": "greater than or equal to 98 percent flat, or greater than or equal to 98 percent short/long without beating the matching static control and demonstrating state dependence, or non-finite updates, control equivalence, or replay mismatch",
+      "caveat": "A uniform action magnet adds no objective beyond entropy for the current three always-legal actions and may increase switching/turnover. iTrader already tested multiple entropy schedules; this is not presumed to cure the basins."
+    },
+    {
+      "order": 6,
+      "id": "OPT-AF-SCREEN",
+      "research_label": "ATX-ADV-FILTER-v0",
+      "axis": "optimizer/data selection",
+      "source_idea": "Ataraxos large-advantage transition filtering",
+      "prerequisite": "OPT-CONFIG-FORMULA-AUDIT plus trustworthy critic, clip-fraction, and advantage-distribution diagnostics; then either an OPT-DD decision or the frozen original recipe",
+      "arms": [
+        "all valid PPO samples",
+        "train-split-defined large absolute-advantage subset",
+        "equal-count randomly retained samples"
+      ],
+      "screen_budget": {
+        "arms": 3,
+        "seeds": 2,
+        "updates_per_seed": 12,
+        "estimated_environment_steps": 345600
+      },
+      "accounting": "Report environment samples, retained learner examples, optimizer updates, and wall-clock separately.",
+      "keep_gate": "better held-out economic result or equal result at materially lower learner time, without action/position/regime/cost-stage selection bias",
+      "stop_gate": "weak-critic outlier selection, directional/symbol/horizon/volatility/cost-stage sampling skew, rare-event erasure, worse calibration, or an efficiency claim that ignores environment collection"
+    },
+    {
+      "order": 4,
+      "id": "OPT-EMA-DIAGNOSTIC",
+      "research_label": "ATX-EMA-EVAL-v0",
+      "axis": "evaluation/stability",
+      "source_idea": "Ataraxos exponential-moving-average parameters",
+      "arms": [
+        "raw checkpoint",
+        "EMA checkpoint from the identical run"
+      ],
+      "budget": "no additional training environment steps; paired replay only",
+      "keep_gate": "lower across-checkpoint variance and equal-or-better replay-valid held-out economics",
+      "stop_gate": "EMA obscures lineage, cannot restore exactly, or changes the selected policy without a recorded digest"
+    },
+    {
+      "order": 3,
+      "id": "R2C-MEMORY-ATTRIBUTION",
+      "axis": "existing R-series",
+      "source_idea": "Sequential partial observability motivates a carried-memory test; this matched comparison already exists in iTrader architecture and does not establish a belief-state model",
+      "arms": [
+        "R2c-RESET + R4-v1",
+        "R2c-CARRY + R4-v1"
+      ],
+      "screen_budget": {
+        "arms": 2,
+        "seeds": 2,
+        "updates_per_seed": 12,
+        "estimated_environment_steps": 230400
+      },
+      "extension_budget": {
+        "arms": 2,
+        "seeds": 3,
+        "updates_per_seed": 40,
+        "estimated_environment_steps": 1152000
+      },
+      "fixed_factors": [
+        "newest-bar input",
+        "causal warmup",
+        "task path and FiLM placement",
+        "parameter budget",
+        "optimizer and reward",
+        "episode horizon",
+        "data partitions and seeds"
+      ],
+      "keep_gate": "CARRY beats RESET on held-out chronological blocks with valid state norms, masks, replay, and economic controls",
+      "stop_gate": "gain appears only under zero-state intervention, invalid reset/mask behavior, or no paired held-out uplift"
+    },
+    {
+      "order": 10,
+      "id": "PF-PREDICTIVE-CALIBRATION",
+      "research_label": "PF-PRED-DIST-v0",
+      "axis": "new predictive-state/forecasting wing",
+      "source_idea": "A prerequisite suggested by Ataraxos belief-conditioned search, but not a direct belief-network transplant because trading has no labelled hidden opponent board or uniquely true latent regime",
+      "external_prerequisites": [
+        "close the existing C0/C1/shuffled-C1 causal-feature controls before PF policy crossing",
+        "retain the accepted existing R-series solver as the frozen policy anchor"
+      ],
+      "arms": [
+        "causal unconditional/marginal baseline",
+        "causal history-conditioned distributional predictor",
+        "shuffled-target negative control"
+      ],
+      "targets": [
+        "multi-horizon return distribution",
+        "realized volatility distribution",
+        "liquidity/spread proxy where available"
+      ],
+      "budget": "supervised train-only fit with three initialization seeds; measure examples, accelerator time, and peak memory before PPO",
+      "keep_gate": "held-out proper-score and calibration improvement across chronological blocks and regimes",
+      "stop_gate": "future leakage, train-fitted regime leakage, miscalibration, target unavailable online, or a claim that a forecast distribution is a supervised posterior over the true market state"
+    },
+    {
+      "order": 11,
+      "id": "PF-POLICY-CROSS",
+      "research_label": "PF-PRED-DIST-v0 policy cross",
+      "axis": "predictive-state factor by accepted solver cross",
+      "prerequisite": "PF-PREDICTIVE-CALIBRATION passes",
+      "arms": [
+        "accepted solver without predictive-state distribution",
+        "accepted solver with frozen predictive-state distribution",
+        "zeroed predictive-distribution control",
+        "shuffled predictive-distribution control"
+      ],
+      "screen_budget": {
+        "arms": 4,
+        "seeds": 3,
+        "updates_per_seed": 12,
+        "estimated_environment_steps": 691200
+      },
+      "identity_rule": "Cross as solver x PF; do not rename or absorb into R4-v2, C, or S.",
+      "keep_gate": "predictive-distribution arm beats all controls under matched capacity and held-out economics",
+      "stop_gate": "shuffled/zero predictive features match the gain, solver ignores the predictive distribution, or calibration degrades under policy-induced states"
+    },
+    {
+      "order": 13,
+      "id": "WM-VALIDITY",
+      "research_label": "WM-VALIDITY-v0",
+      "axis": "new world-model wing",
+      "source_idea": "A valid counterfactual simulator is a prerequisite for Ataraxos-style search.",
+      "contract": {
+        "market_transition": "P(next market observation | causal history), action-independent for the current historical no-impact environment",
+        "portfolio_transition": "exact deterministic function of position, action, turnover, cost, and termination"
+      },
+      "budget": "prediction-only validation before any policy search; report one-step and multi-step calibration versus simple baselines",
+      "keep_gate": "stable held-out multi-step proper scores, coverage, path statistics, and exact portfolio accounting",
+      "stop_gate": "uses actual future bars, invents action-driven price impact, or fails calibration/path statistics"
+    },
+    {
+      "order": 14,
+      "id": "TTS-FROZEN-OFF-ON",
+      "research_label": "ATX-TTS-DIAG-v0 frozen-search off/on",
+      "axis": "new test-time-search wing",
+      "source_idea": "Ataraxos belief samples plus depth-limited rollouts plus one regularized tabular policy update",
+      "prerequisite": "accepted frozen PF and WM artifacts plus a calibrated frozen policy/value blueprint",
+      "arms": [
+        "frozen policy without search",
+        "search with scenario budgets 8, 32, and 128",
+        "equal-latency repeated policy inference",
+        "shuffled or untrained world-model controls"
+      ],
+      "budget": "paired replay/shadow evaluation only; no solver weight updates; report milliseconds per decision and scenario count",
+      "root_update": "A stateless tabular/logit policy improvement at the current decision; do not describe it as online neural-weight fine-tuning.",
+      "keep_gate": "cost-aware held-out uplift over policy-only and equal-compute controls with calibrated uncertainty and first-class abstention",
+      "stop_gate": "branch state is not cloned, latency exceeds the declared shadow budget, improvement depends on actual future bars, or world-model controls perform similarly"
+    },
+    {
+      "order": 7,
+      "id": "AZR-LP-DIRECT",
+      "research_label": "AZR-LP-DIRECT-v0",
+      "axis": "AZR/proposer curriculum",
+      "source_idea": "Self-Play Pretraining with Zero Data learning-progress reward",
+      "prerequisite": "one frozen, repeatable solver recipe and untouched chronological final test",
+      "arms": [
+        "pre-update frozen solver checkpoint",
+        "cloned checkpoint after one equal-compute candidate-task micro-update",
+        "repeat-rollout and repeat-evaluation seeds",
+        "raw-difficulty and task-shuffled ranking baselines"
+      ],
+      "interpretation": "Repeated local intervention/reference estimate, not oracle truth.",
+      "pilot_budget": {
+        "candidate_tasks": 24,
+        "solver_snapshots": 2,
+        "seeds": 2,
+        "micro_updates_per_candidate": 1,
+        "estimated_environment_steps_if_each_micro_update_uses_4800_steps": 460800
+      },
+      "evidence_key": [
+        "task_hash",
+        "stable proposal_uid",
+        "solver_checkpoint_digest",
+        "behavior_policy_checkpoint_digest",
+        "optimizer_profile",
+        "rollout_batch_digest",
+        "code_hash",
+        "data_partition_hash",
+        "seed",
+        "capability_panel_identity",
+        "episode_realization_id"
+      ],
+      "keep_gate": "repeated pre/post held-out economic uplift yields a usable task ranking across checkpoints and seeds with uncertainty narrower than the decision margin",
+      "stop_gate": "proposer sees the sealed final test, changes verifier/reward semantics, or panel and rollout noise dominate the measured task differences",
+      "identity_rule": "This is an AZR curriculum factor, not R-, PF-, C-, S-, or R4-v2 evidence."
+    },
+    {
+      "order": 8,
+      "id": "AZR-LP-GRAD",
+      "research_label": "AZR-LP-GRAD-v0",
+      "axis": "AZR/proposer credit-assignment surrogate",
+      "source_idea": "Self-Play Pretraining with Zero Data optimizer-preconditioned gradient alignment",
+      "prerequisite": "AZR-LP-DIRECT produces a repeatable held-out economic-uplift ranking on pinned solver snapshots and rollout batches",
+      "scores": [
+        "signed optimizer-preconditioned alignment",
+        "absolute optimizer-preconditioned alignment",
+        "policy-head, value-head, and shared-trunk alignment reported separately",
+        "task loss/difficulty and gradient norm baselines",
+        "random and score-shuffled controls"
+      ],
+      "budget": "reuse the pinned candidate batches and checkpoints from AZR-LP-DIRECT; report gradient/JVP compute and memory separately from environment steps",
+      "keep_gate": "per-seed and pooled rank association with repeated direct uplift is positive, uncertainty excludes zero, and the score generalizes across checkpoints",
+      "stop_gate": "association is driven by reward scale or gradient norm, reverses across seeds/checkpoints, or uses sealed-test evidence",
+      "identity_rule": "A validated proposer-scoring factor only; it does not change solver architecture, TaskSpec semantics, or R4-v2."
+    },
+    {
+      "order": 9,
+      "id": "AZR-QD-REPLAY",
+      "research_label": "AZR-QD-REPLAY-v0",
+      "axis": "AZR/proposer curriculum memory",
+      "source_idea": "Self-Play Pretraining with Zero Data fresh/mutate/replay plus quality diversity",
+      "prerequisite": "stable proposal identity and centralized, versioned feedback; adaptive utility waits for AZR-LP-DIRECT or AZR-LP-GRAD validation",
+      "arms": [
+        "fixed validated TaskSpec sampler",
+        "Fixed-QD with identical typed fresh/mutate/replay machinery and no adaptive utility",
+        "one predeclared direct-or-validated-surrogate adaptive selector",
+        "score-shuffled adaptive control"
+      ],
+      "budget": "G7a uses two SRU; G7b adds at most two SRU per screen after Fixed-QD passes",
+      "keep_gate": "coverage improves without economic loss, then adaptive selection beats Fixed-QD and shuffled selection at equal accepted solver steps and eligible data",
+      "stop_gate": "invalid TaskSpec mutation, panel specialization, task collapse, process-local feedback loss, or unequal solver/proposal compute",
+      "identity_rule": "This extends the AZR proposer/curriculum wing; it does not create a market player or alter the solver's R-, C-, S-, or R4-v2 identity."
+    },
+    {
+      "order": 12,
+      "id": "TTS-HINDSIGHT-CEILING",
+      "research_label": "ATX-TTS-DIAG-v0 hindsight ceiling",
+      "axis": "offline diagnostic only",
+      "purpose": "Measure the maximum value of action alternatives under the realized action-invariant price path without confusing hindsight with deployable search.",
+      "contract": "Alternative portfolio accounting may reuse the realized market path only under the explicit price-taker assumption; the result is labelled oracle/hindsight and may never select a live or held-out decision.",
+      "budget": "deterministic replay over the frozen evaluation panel",
+      "keep_gate": "quantifies whether decision-time search has enough theoretical headroom to justify a learned scenario model",
+      "stop_gate": "any claim that the oracle is an online policy, or any use of actual future bars as solver input"
+    }
+  ]
+}

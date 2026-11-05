@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "status": "research_only_not_runtime_contract",
+  "decision_time": "t_before_action",
+  "action_semantics": {
+    "schema_id": "target_position_v1",
+    "space": "Discrete(3)",
+    "candidates": [
+      {
+        "action_index": 0,
+        "target_position": -1,
+        "name": "short",
+        "clm_description": "set the next target position to -1"
+      },
+      {
+        "action_index": 1,
+        "target_position": 0,
+        "name": "flat",
+        "clm_description": "set the next target position to 0"
+      },
+      {
+        "action_index": 2,
+        "target_position": 1,
+        "name": "long",
+        "clm_description": "set the next target position to +1"
+      }
+    ],
+    "forbidden_aliases": [
+      "sell",
+      "hold",
+      "buy"
+    ],
+    "reason": "The environment action selects a target position, not an order instruction."
+  },
+  "state_groups": {
+    "market_state_v1": {
+      "availability": "current_after_normalization_review",
+      "fields": [
+        "chronological_causal_ohlcv_window",
+        "causal_return_or_volatility_features",
+        "known_at_t_calendar_features"
+      ],
+      "forbidden": [
+        "future_returns",
+        "target_window_statistics",
+        "ex_post_regime_labels"
+      ]
+    },
+    "task_state_v1": {
+      "availability": "current_via_versioned_TaskEncoder",
+      "fields": [
+        "task_family",
+        "horizon_bars",
+        "reward_semantics",
+        "bar_resolution",
+        "regime_tags",
+        "difficulty_target"
+      ]
+    },
+    "agent_state_v1": {
+      "availability": "proposed_R4_v1_matched_factor_only",
+      "fields": [
+        "current_target_position",
+        "previous_action",
+        "position_age",
+        "causal_realized_net_return",
+        "causal_unrealized_pnl",
+        "causal_drawdown",
+        "causal_turnover",
+        "remaining_horizon_or_episode_progress",
+        "recent_causal_strategy_return_statistics"
+      ],
+      "matching_rule": "Add identical normalized fields to feed-forward and recurrent controls.",
+      "forbidden": [
+        "terminal_episode_pnl",
+        "terminal_sharpe",
+        "future_fill_or_position_information"
+      ]
+    }
+  },
+  "training_target_options": [
+    {
+      "id": "ppo_advantage",
+      "recommended_for": "native_numeric_cosine_action_head",
+      "meaning": "Train the three cosine logits through the existing PPO objective without inventing oracle labels."
+    },
+    {
+      "id": "teacher_distillation",
+      "recommended_for": "frozen_clm_or_head_probe_only",
+      "meaning": "Copy a frozen solver and claim only compression or teacher generalization."
+    },
+    {
+      "id": "hindsight_cost_aware_choice",
+      "recommended_for": "supervised_diagnostic_only",
+      "meaning": "Use future outcomes only in labels under an explicit horizon, cost, tie, and abstention rule; policy inputs remain causal."
+    }
+  ],
+  "loss_guardrail": "Do not use naive single-positive pairwise InfoNCE with repeated short, flat, and long action labels. Use per-question choice softmax, a multi-positive loss, or PPO.",
+  "calibration_guardrail": "A cosine softmax or CLM candidate probability is not expected net utility or trading confidence until calibrated on held-out chronological data."
+}

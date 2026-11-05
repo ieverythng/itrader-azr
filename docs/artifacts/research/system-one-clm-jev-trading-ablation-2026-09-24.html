@@ -1,0 +1,635 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>CLM and Jev for iTrader — 2026-09-24</title><style>
+:root{--ink:#172238;--muted:#5f6b7d;--paper:#f6f3ec;--card:#fffdf8;--line:#d9d5ca;--blue:#185fa5;--cyan:#0f6e74;--amber:#a05a00}*{box-sizing:border-box}body{margin:0;color:var(--ink);background:var(--paper);font:16px/1.62 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}main{width:min(1120px,calc(100% - 32px));margin:30px auto 80px}header{padding:40px 46px;color:white;border-radius:20px;background:#17375f}header h1{margin:0 0 10px;color:white;border:0;font:700 clamp(2rem,5vw,3.8rem)/1.04 Georgia,serif;letter-spacing:-.035em}header p{max-width:860px;margin:0;opacity:.9;font-size:1.08rem}.content{margin-top:28px}h1{margin:44px 0 14px;font:700 2.25rem/1.12 Georgia,serif}h2{margin:42px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--line);font:700 1.72rem/1.2 Georgia,serif}h3{margin:26px 0 9px;font-size:1.12rem}p{margin:10px 0}a{color:var(--blue)}code{padding:.12rem .34rem;border-radius:5px;background:#edf1f5;font:.9em ui-monospace,SFMono-Regular,Consolas,monospace}pre{overflow:auto;padding:16px 18px;border:1px solid #cad4df;border-radius:12px;background:#182235;color:#eef4ff;line-height:1.45}pre code{padding:0;background:transparent;color:inherit}table{display:block;width:100%;overflow-x:auto;margin:16px 0 28px;border-collapse:collapse;background:var(--card);font-size:.92rem}th,td{min-width:140px;padding:10px 12px;border:1px solid var(--line);text-align:left;vertical-align:top}th{background:#eaf0f5;color:#24354e}blockquote{margin:20px 0;padding:14px 18px;border-left:5px solid var(--blue);background:#eaf2fb}ol,ul{padding-left:1.35rem}li{margin:.45rem 0}strong{color:#102a4a}hr{border:0;border-top:1px solid var(--line);margin:40px 0}.notice{margin:0 0 24px;padding:14px 18px;border-left:5px solid var(--amber);border-radius:0 10px 10px 0;background:#fff4df}footer{margin-top:52px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}@media(max-width:720px){header{padding:30px 24px}main{width:min(100% - 20px,1120px)}th,td{min-width:125px}}
+</style></head><body><main><header><h1>CLM and Jev for iTrader</h1><p>Primary-source System One research, a Discrete(3) integration design, and a bounded evidence-gated ablation plan.</p></header><section class="content"><div class="notice"><strong>Status:</strong> research artifact only. Market-JEPA remains a separate, non-concrete future line and is not a dependency of this proposal.</div><h1 id="clm-and-jev-for-itrader-system-one-integration">CLM and Jev for iTrader: System One integration</h1>
+<p>Date: 2026-09-24</p>
+<p>Status: research artifact; design-only; not an active architecture or promotion decision</p>
+<p>Scope: primary-source review of Contrastive-LM/CLM and TypeSafe Jev, plus a
+bounded solver, offline task-ranking, and future online capability-matching
+ablation proposal. Market-JEPA is mentioned only to keep its separate future
+research boundary explicit.</p>
+<h2 id="executive-finding">Executive finding</h2>
+<p>There is a worthwhile ablation here. The concrete first experiment is to use the
+released CLM-8B state/action scorer against iTrader's three target-position
+actions, first zero-shot and then with only its small projection heads
+fine-tuned. This does <strong>not</strong> mean full-training an 8B model, and it does not
+replace the R-series.</p>
+<p>The released Contrastive Language Model, <code>Contrastive-LM/CLM-v0.1-8B</code>, is a
+non-generative decision model built from a frozen Qwen3-8B text encoder plus
+separate trainable state and action projection heads. It scores a supplied set
+of actions by scaled cosine similarity to the supplied state. This makes a
+three-candidate decision mechanically compatible with iTrader's
+<code>short / flat / long</code> target-position space. It does <strong>not</strong> predict future
+states, learn from OHLCV tensors natively, or produce absolute action values.
+Its "zero-shot" behavior is text state-to-text action retrieval learned from a
+large general corpus, not zero-shot financial policy learning. <a href="https://huggingface.co/Contrastive-LM/CLM-v0.1-8B">CLM model
+card</a>, <a href="https://github.com/Contrastive-LM/CLM#how-it-works">CLM README and
+method</a></p>
+<p>The immediate CLM-8B solver probe is:</p>
+<pre><code class="language-text">causal market/task/agent state -&gt; deterministic bounded text
+    -&gt; frozen Qwen3-8B pooling encoder -&gt; CLM state head
+
+three explicit target-position descriptions
+    -&gt; cached Qwen3-8B embeddings -&gt; CLM action head
+
+scaled cosine similarities -&gt; softmax -&gt; short / flat / long
+</code></pre>
+<p>The zero-shot form is evaluated directly as a policy in the existing environment.
+The heads-only form uses the released per-question <code>choice</code> objective or an
+equivalent multi-positive objective over the same three actions, then freezes the
+selected head for exact replay. Both forms preserve the environment's
+<code>short / flat / long</code> target-position semantics. CLM-8B is still an LLM encoder
+even though it generates no text; an all-numerical cosine-action head is a later
+distillation/follow-on ablation, not a substitute for testing the released model
+first. Market-JEPA is outside this experiment round.</p>
+<p>The proposed order is:</p>
+<ol>
+<li>retain <code>SolverMLPFiLM</code> R0 as the control;</li>
+<li>run frozen CLM-8B zero-shot over the three explicit action descriptions;</li>
+<li>if the interface and latency gates pass, fine-tune only CLM's projection heads
+   on a versioned three-choice trading corpus with explicit label provenance;</li>
+<li>use the same CLM/Jev-style state/candidate interface to rank an already
+   validated offline <code>TaskSpec</code> pool at equal solver compute;</li>
+<li>only after offline evidence, evaluate a future MarketFramer that ranks frozen
+   validated <code>CandidateTask</code> candidates plus <code>WAIT</code> in replay/shadow mode;</li>
+<li>with those candidates frozen, separately evaluate a capability matcher over
+   versioned solver/checkpoint profiles;</li>
+<li>distill a successful scorer into a numerical cosine-action head only if the
+   exact CLM-8B path establishes useful signal but misses deployment latency or
+   resource gates.</li>
+</ol>
+<h2 id="three-names-that-must-remain-separate">Three names that must remain separate</h2>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>What primary sources actually describe</th>
+<th>What it is not</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TypeSafe <strong>Jev</strong></td>
+<td>A hosted System One model that receives state plus typed <code>Choice</code>, <code>Score</code>, or <code>Noul</code> questions and returns structured decisions and probabilities in parallel. TypeSafe says it uses a new architecture, a parallel sampler, and Reinforcement Learning for Calibrated Decisions (RLCD), but does not publish the model architecture, parameter count, weights, or training code in the reviewed first-party material.</td>
+<td>Not an open 8B checkpoint; not JEPA; not presently self-hostable from official weights.</td>
+</tr>
+<tr>
+<td>Contrastive-LM <strong>CLM-v0.1-8B</strong></td>
+<td>A frozen Qwen3-8B last-token-pooled text encoder plus separate state/action MLP projection heads, trained with bidirectional InfoNCE. It exposes a TypeSafe-compatible typed-decision API and a direct ranking API.</td>
+<td>Not Jev weights; not a transition/world model; not a numerical market encoder; not LLM-free.</td>
+</tr>
+<tr>
+<td><strong>JEPA</strong> / proposed Market-JEPA</td>
+<td>A separate future joint-embedding predictive-representation hypothesis in the local research archive.</td>
+<td>Not part of this CLM/Jev integration, not an action classifier by itself, and not evidence of price direction or tradable edge.</td>
+</tr>
+</tbody>
+</table>
+<p>TypeSafe's own documentation says Jev evaluates typed questions against a state,
+returns probability distributions without text generation, and expects complex
+judgments to be decomposed into atomic questions and recombined in code.
+<a href="https://docs.typesafe.ai/introduction">TypeSafe introduction</a>, <a href="https://docs.typesafe.ai/introduction/machine-learning-primer">TypeSafe AI
+primer</a>,
+<a href="https://typesafe.ai/blog/introducing-system-one-models-and-jev">TypeSafe launch note</a></p>
+<p>The launch note is the strongest first-party architectural disclosure found for
+Jev: it names a "new model architecture," a parallel sampler, and RLCD, but gives
+no layers, parameter count, checkpoint, or reproducible training recipe. It also
+states that Jev returns all probabilities in parallel and that higher-cardinality
+choices can use a two-stage scoring-then-choice system. Claims beyond that would
+be inference, not source-grounded fact. <a href="https://typesafe.ai/blog/introducing-system-one-models-and-jev">TypeSafe launch
+note</a></p>
+<p>Market-JEPA is retained here only as a boundary: it would be a future predictive
+representation study, whereas CLM is a present state/action retrieval study.
+Nothing in the CLM experiment depends on Market-JEPA.</p>
+<h2 id="exact-released-clm-contract">Exact released CLM contract</h2>
+<h3 id="architecture-and-score">Architecture and score</h3>
+<p>The released checkpoint is locked to Qwen3-8B last-token pooling. Qwen3-8B has a
+4,096-wide hidden state, 36 transformer layers, 32 attention heads, and 8 KV
+heads. <a href="https://huggingface.co/Qwen/Qwen3-8B/raw/main/config.json">Qwen3-8B config</a></p>
+<p>CLM applies one MLP head to the state embedding and another to each action
+embedding. The public head implementation accepts checkpoint-configured width,
+depth, projection dimension, activation, layer normalization, and residual
+settings. Its default projection width is 512. Both outputs are L2-normalized,
+then scored as:</p>
+<pre><code class="language-text">score(state, action) = exp(logit_scale)
+                       * cosine(state_head(state), action_head(action))
+</code></pre>
+<p>The checkpoint contains <code>state_head</code>, <code>action_head</code>, <code>logit_scale</code>, and <code>cfg</code>.
+The released head file is reported as approximately 75 MB; the README describes
+the state/action head pair as approximately 20M trainable parameters over the
+frozen 8B encoder. <a href="https://github.com/Contrastive-LM/CLM/blob/main/src/clm/heads.py">projection-head
+source</a>, <a href="https://github.com/Contrastive-LM/CLM#architecture-data-recipe-and-scaling-laws">CLM
+README</a></p>
+<p>The model card names one base release, <code>CLM_v0.1-8B.pt</code>, under Apache-2.0. The
+code is Apache-2.0, and the Qwen3-8B base is also Apache-2.0. The checkpoint does
+not include a portable 8B encoder; inference still needs the compatible Qwen3-8B
+pooling server. <a href="https://huggingface.co/Contrastive-LM/CLM-v0.1-8B">CLM model
+card</a>, <a href="https://github.com/Contrastive-LM/CLM/blob/main/LICENSE">CLM
+license</a>, <a href="https://huggingface.co/Qwen/Qwen3-8B">Qwen3
+model card</a></p>
+<h3 id="training-objective-and-released-data-recipe">Training objective and released data recipe</h3>
+<p>For a batch of matched state/action pairs, CLM forms a full state-by-action
+similarity matrix and applies cross-entropy in both retrieval directions. The
+public trainer normalizes each head output, learns the logit scale, masks records
+sharing the same <code>(task_id, step_idx)</code>, and averages state-to-action and
+action-to-state cross-entropies. <a href="https://github.com/Contrastive-LM/CLM#training-algorithm">CLM method</a>,
+<a href="https://github.com/Contrastive-LM/CLM/blob/main/train/finetune.py#L161-L170">fine-tuning loss</a></p>
+<p>The authors report three stages:</p>
+<ul>
+<li>pre-training on about 60M Nemotron question/answer pairs;</li>
+<li>mid-training on about 30M synthetic hard negatives;</li>
+<li>post-training on about 1M agent trajectory pairs, with 40% question/answer
+  replay and 60% agentic trajectories.</li>
+</ul>
+<p>These are author-reported results and dataset counts, not independently verified
+in this artifact. <a href="https://github.com/Contrastive-LM/CLM#data-recipe">CLM data recipe</a></p>
+<p>For downstream work, <code>train/finetune.py</code> freezes the encoder embeddings and
+trains the projection heads. Its <code>clm</code> path accepts transition records containing
+<code>state</code>, <code>action</code>, <code>task_id</code>, and <code>step_idx</code>; it can also consume precomputed
+embedding datasets and task-disjoint holdout folds. Its <code>choice</code> path builds a
+closed candidate set for every question and supports bidirectional InfoNCE or
+per-question softmax cross-entropy with hard or soft targets. <a href="https://github.com/Contrastive-LM/CLM/blob/main/train/adapters.py">transition
+adapter</a>,
+<a href="https://github.com/Contrastive-LM/CLM/blob/main/train/finetune.py#L598-L646">trainer CLI</a></p>
+<p>The embedding recipe is important: states keep the <strong>tail</strong> of the tokenized
+context, actions keep the <strong>head</strong>, and Qwen3-8B is used as a last-token pooling
+model. The reference API converts objects and arrays into prose-like text; it
+does not preserve an arbitrary numerical tensor or JSON encoding verbatim.
+<a href="https://github.com/Contrastive-LM/CLM/blob/main/train/embed_utils.py">embedding recipe</a>,
+<a href="https://github.com/Contrastive-LM/CLM/blob/main/src/clm/schema.py">wire schema</a></p>
+<h3 id="inference-api-and-the-meaning-of-zero-shot">Inference API and the meaning of zero-shot</h3>
+<p>There are two useful interfaces:</p>
+<pre><code class="language-python">engine.rank(state_text, [candidate_a, candidate_b, candidate_c])
+</code></pre>
+<p>and the TypeSafe-compatible <code>POST /v1/systemone</code>, where a <code>choice</code> question has
+named criteria. The state head sees state text plus question instructions, the
+action head sees each candidate description, and a softmax over scaled cosine
+scores produces a distribution relative to that candidate set. Candidate
+embeddings can be cached independently. <a href="https://github.com/Contrastive-LM/CLM/blob/main/src/clm/engine.py">in-process engine</a>,
+<a href="https://github.com/Contrastive-LM/CLM#api-reference">API reference</a></p>
+<p>"Zero-shot" therefore means that the released state/action geometry is used to
+rank a new caller-supplied candidate set without task-specific head training.
+It does <strong>not</strong> mean:</p>
+<ul>
+<li>that the model has learned market dynamics;</li>
+<li>that it has seen iTrader's normalized OHLCV representation;</li>
+<li>that its relative softmax probabilities are calibrated expected returns;</li>
+<li>that it estimates counterfactual value for all three trading actions; or</li>
+<li>that it predicts a next state as JEPA does.</li>
+</ul>
+<p>The model card explicitly warns that CLM does not generate, only scores supplied
+candidates, that probabilities are relative to the candidate set, and that
+reported verifier results require fine-tuned heads. <a href="https://huggingface.co/Contrastive-LM/CLM-v0.1-8B#limitations">CLM model-card
+limitations</a></p>
+<p>The authors report zero-shot performance on par with Jev for computer-use,
+gaming, and tool-calling, with up to 9x lower latency; that comparison is not a
+financial benchmark. For only three fixed action candidates, independent action
+caching saves little compared with the cost of re-encoding every fresh market
+state through Qwen3-8B. This must be measured locally rather than inferred from
+their high-cardinality examples. <a href="https://github.com/Contrastive-LM/CLM#zero-shot-evaluation">CLM zero-shot
+results</a></p>
+<h2 id="current-itrader-evidence-and-the-documentation-drift">Current iTrader evidence and the documentation drift</h2>
+<p>No Jev- or Contrastive-LM-specific iTrader research exists in the current
+working tree or reachable document history found by text and Git-history search.
+The nearest prior artifact, <a href="./iTrader%20Market-JEPA.html"><code>iTrader Market-JEPA.html</code></a>,
+is separate provenance rather than the contract for this study. It describes a
+future MarketFramer representation and explicitly denies that such a model should
+execute directly or prove price direction. It also labels Market-JEPA "Phase C,"
+while the active masterplan now defers the optional idea to Phase D, behind
+stable market-window and candidate-task contracts. The active documents take
+precedence. See <a href="../../plans/itrader_masterplan.md"><code>itrader_masterplan.md</code></a>,
+<a href="../../architecture/itrader_system_architecture.md"><code>itrader_system_architecture.md</code></a>,
+and <a href="./azr-stack-review-2026-09-12.md"><code>azr-stack-review-2026-09-12.md</code></a>.</p>
+<p>The present runtime is materially different from the CLM input contract:</p>
+<ul>
+<li>observation is <code>[price_window_flat | task_embedding]</code>;</li>
+<li>action <code>0/1/2</code> means target position <code>short/flat/long</code>, not a buy/sell/hold
+  order;</li>
+<li>R0 does not observe its current position, previous action, cumulative PnL,
+  turnover, drawdown, episode progress, or recent strategy returns;</li>
+<li><code>TaskSpec</code> remains the canonical offline problem contract;</li>
+<li><code>CandidateTask</code>, <code>CapabilityProfile</code>, and <code>DecisionRecord</code> are future online
+  seams, not fields to fold back into <code>TaskSpec</code>.</li>
+</ul>
+<p>Those points are source-defined in <code>ITraderEnv</code>, the active architecture, and
+the typed task contracts. <a href="../../../itrader/envs/itrader_env.py"><code>itrader_env.py</code></a>,
+<a href="../../../itrader/rl_lib/tasks/candidate_task.py"><code>candidate_task.py</code></a>,
+<a href="../../../itrader/rl_lib/tasks/capability_profile.py"><code>capability_profile.py</code></a></p>
+<h3 id="latest-dev-panel-evidence-why-collapse-gates-matter">Latest Dev-panel evidence: why collapse gates matter</h3>
+<p>The most recent read-only Dev status at the time of this review showed no active
+iTrader training process. The latest completed non-flat-search review stopped
+at its approximately 96k-step continuation gate. All four members had reached
+97,656--102,248 trial-owned steps, yet all four reported exactly the static
+short-only control's development-panel metrics: <strong>+0.0578545% 1 bp mean net
+return and -0.01558 Sharpe per square-root bar</strong>. The gate also retained one
+lineage event still awaiting its first post-restore evidence. This is a stopped
+development result, not a promoted solver.
+<a href="./dataset-v2-r0-audit-2026-09-24-evidence/p0_nonflat_search_gate_20260924/gate_decision.json"><code>gate_decision.json</code></a></p>
+<p>Two nearby checkpoint replays reinforce the same warning:</p>
+<ul>
+<li>no-cost member <code>00002</code> produced +0.061768% 1 bp net return and -0.00976
+  Sharpe with 75% short, 0% flat, and 25% long actions. Its paired block interval
+  versus short-only was <code>[-0.18645%, +0.19428%]</code>, crossing zero;</li>
+<li>early-staged-cost member <code>00001</code> produced +0.066663% 1 bp net return and
+  -0.01483 Sharpe while taking the short action 99.967% of the time.</li>
+</ul>
+<p>Both analyses explicitly label themselves exploratory, frozen-selection-panel,
+and not selection-adjusted. They are evidence of directional collapse and panel
+dependence, not evidence of tradable edge or promotion.
+<a href="./dataset-v2-r0-audit-2026-09-24-evidence/p0_no_cost_gate_member02_analysis/checkpoint_evidence.json"><code>no-cost member02 evidence</code></a>,
+<a href="./dataset-v2-r0-audit-2026-09-24-evidence/p0_early_cost_member01_analysis/checkpoint_evidence.json"><code>early-cost member01 evidence</code></a></p>
+<p>This changes the emphasis of the System One study. A contrastive action geometry
+must not be rewarded merely for reproducing the panel's short prior. Every
+challenger needs action-distribution attribution, direct comparison with the
+matching static-direction control, and a selective-utility/reliability report
+for its score margin. A cosine softmax is not calibrated confidence by default.</p>
+<h2 id="what-should-count-as-the-state">What should count as the state?</h2>
+<p>The action must be matched against a <strong>causal decision state</strong>, not against an
+isolated OHLCV row and not against terminal performance statistics.</p>
+<p>Recommended versioned input groups are:</p>
+<table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Candidate fields</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>market_state_v1</code></td>
+<td>chronological normalized OHLCV window; causal returns/volatility/time features</td>
+<td>Describes the tradable context without future leakage.</td>
+</tr>
+<tr>
+<td><code>task_state_v1</code></td>
+<td><code>TaskSpec</code> family, horizon, reward semantics, bar resolution, regime tags, difficulty target</td>
+<td>Preserves task conditioning and avoids silently turning the model into one unconditional policy.</td>
+</tr>
+<tr>
+<td><code>agent_state_v1</code></td>
+<td>current target position, previous action, position age, realized cumulative net return, unrealized PnL, drawdown, turnover, remaining horizon/episode progress, recent causal strategy-return statistics</td>
+<td>Makes transaction costs and trade management observable. It must be added identically to feed-forward and recurrent controls under the existing <code>R4-v1</code> rule.</td>
+</tr>
+</tbody>
+</table>
+<p>OHLCV positions alone are insufficient because the same market window can
+require a different target action when the current position, cost already paid,
+remaining horizon, or task differs. Conversely, overall PnL or Sharpe alone is
+not a market state and cannot replace the window. They are path-dependent agent
+statistics. A cumulative or rolling Sharpe feature is especially noisy early in
+an episode and can leak information if computed from future or terminal returns;
+if used at all, it must be computed only from strategy returns available through
+time <code>t</code>, carry an observation-count/warmup indicator, and be matched on R0 and
+the challenger.</p>
+<p>For the exact CLM-8B probe, serialize a small, deterministic, precision-bounded
+summary of these fields and use semantically explicit action candidates:</p>
+<pre><code class="language-text">short: set the next target position to -1
+flat:  set the next target position to 0
+long:  set the next target position to +1
+</code></pre>
+<p>Do not call them <code>sell / hold / buy</code>; that would change the environment contract
+and make <code>flat</code> ambiguous when the current position is nonzero.</p>
+<h2 id="the-critical-three-action-training-problem">The critical three-action training problem</h2>
+<p>Naively placing iTrader transitions into CLM's generic <code>clm</code> fine-tuning path is
+incorrect. In a minibatch with thousands of rows but only three repeated action
+texts, the published loss treats every diagonal <code>(state_i, action_i)</code> as the
+unique positive and most off-diagonal entries as negatives. Repeated copies of
+the same <code>short</code>, <code>flat</code>, or <code>long</code> action would therefore become false negatives
+for one another. The public trainer masks records sharing a <code>(task_id, step_idx)</code>,
+not records sharing an action label. <a href="https://github.com/Contrastive-LM/CLM/blob/main/train/finetune.py#L161-L170">published loss
+implementation</a></p>
+<p>Three technically valid alternatives are:</p>
+<ol>
+<li>use the released <code>choice</code> path, where every state is scored against its own
+   three candidates with per-question softmax cross-entropy;</li>
+<li>replace single-positive InfoNCE with a supervised multi-positive contrastive
+   loss that treats all matching action labels as positives;</li>
+<li>avoid supervised state/action imitation and place the cosine-action head
+   directly inside the PPO policy, letting existing advantage estimates train
+   the three logits.</li>
+</ol>
+<p>Alternative 1 is the direct trained test of the released CLM and therefore the
+primary follow-up to the zero-shot probe, provided labels come from an explicit,
+versioned teacher. Alternative 3 is a later distillation study that cleanly
+isolates policy-logit geometry inside PPO and avoids inventing an oracle label,
+but it no longer tests the released CLM-8B model. Alternative 2 is useful only
+after the labeling question is settled.</p>
+<p>Possible offline labels have different meanings and must never be mixed:</p>
+<ul>
+<li>frozen solver distillation copies an R0/R-series teacher and can only test
+  compression/generalization of that teacher;</li>
+<li>behavior actions copy historical or policy behavior, including its mistakes;</li>
+<li>hindsight best-action labels use future information in the target, which is
+  acceptable for supervised training only if input features remain causal, but
+  require a declared horizon, costs, and tie/abstain rule;</li>
+<li>counterfactual utility distributions require an explicit simulator and are
+  not present in current <code>EpisodeEvidence</code> for all unchosen actions.</li>
+</ul>
+<h2 id="proposed-clmjev-focused-stack">Proposed CLM/Jev-focused stack</h2>
+<pre><code class="language-text">CLM-8B Discrete(3) solver probe
+causal state summary + {short target, flat target, long target}
+    -&gt; frozen CLM-8B zero-shot or heads-only fine-tuned choice scorer
+    -&gt; target position action -&gt; unchanged ITraderEnv/reward/evidence
+
+offline AZR-inspired curriculum selector
+validated TaskSpec catalog + causal market summary + solver capability gaps
+    -&gt; CLM-8B state/candidate ranker
+    -&gt; selected validated TaskSpec (or keep current curriculum)
+    -&gt; solver held-out success/utility
+    -&gt; capability profile + proposer/curriculum feedback
+
+future replay/shadow online shell
+market window -&gt; MarketFramer -&gt; CandidateTask set + WAIT
+    -&gt; CLM/Jev-style CapabilityMatcher(CandidateTask, CapabilityProfile)
+    -&gt; eligible solver scores
+    -&gt; DecisionGate -&gt; RiskEngine -&gt; Executor -&gt; DecisionRecord
+</code></pre>
+<p>The offline selector ranks only candidates that have already passed <code>TaskSpec</code>
+validation; it does not generate contract fields and it does not move execution
+semantics into <code>TaskSpec</code>. Its candidate text should contain canonical task
+semantics, while its state contains only causal market context and versioned
+held-out solver capability gaps. Curriculum uplift is measured at equal solver
+steps against rule/random selection.</p>
+<p>The <code>CapabilityMatcher</code> is shown explicitly to prevent role drift. MarketFramer
+describes which tasks the current market supports. The matcher determines which
+validated solver, if any, has relevant held-out capability. The solver scores an
+eligible candidate. <code>DecisionGate</code>, deterministic risk, and execution retain
+authority over whether and how an entry occurs. <code>WAIT</code> is a real candidate, not
+an afterthought. No broker/risk semantics enter <code>TaskSpec</code> or the solver.</p>
+<p>The same state/candidate interface can serve the future framer without making
+Market-JEPA a dependency:</p>
+<pre><code class="language-text">state encoder:  causal market summary + regime + liquidity + horizon context
+candidate encoder: CandidateTask semantics + required capability
+score: CLM scaled cosine, or a Jev `Choice` result as an external benchmark
+candidates: task candidates plus explicit WAIT
+</code></pre>
+<p>Unlike the action head, this matcher should be trained from chronological
+framing outcomes such as cost-aware solver success, expected net utility, and
+abstention correctness. Raw PPO logits are not capability estimates. The
+<code>CapabilityProfile</code> input must come from held-out or rolling evaluation slices,
+and candidate-specific recurrent state must not be mutated while comparing
+candidates.</p>
+<p>Jev is useful here as a hosted typed-decision comparator because the choice
+contract naturally accepts <code>CandidateTask + WAIT</code>. It is not the trainable local
+model: its weights and architecture are unpublished. CLM-8B is the reproducible,
+open-weight implementation path for local zero-shot and heads-only experiments.</p>
+<h2 id="bounded-baseline-to-challenger-program">Bounded baseline-to-challenger program</h2>
+<p>This is a predeclared autoresearch loop, not authorization to launch training.
+Every challenger changes one factor, runs against the same data/panel/budget,
+and ends in <code>keep</code>, <code>reject</code>, or <code>needs-repeat</code>.</p>
+<h3 id="frozen-experiment-contract">Frozen experiment contract</h3>
+<ul>
+<li><strong>Primary scalar search metric:</strong> mean held-out
+  <code>evaluation/net_return_mean</code> at exactly 1 bp on the fixed chronological
+  validation panel. This is the only rank-order metric.</li>
+<li><strong>Promotion gates, not optimization terms:</strong> positive net Sharpe per
+  square-root bar; beat flat and strongest matched directional control; flat
+  action fraction below 98%; finite evidence; no missing action; exact
+  fresh-process replay; nonnegative paired block-aware uplift; positive net at
+  2 bp before independent replication.</li>
+<li><strong>Data:</strong> immutable dataset-v2 RTH authority, identical train/validation/test
+  separation and purge, identical <code>TaskSpec</code> identities, and a sealed final
+  chronological test.</li>
+<li><strong>Optimization:</strong> the exact CLM-8B path freezes Qwen3-8B. <code>S1-P0</code> trains
+  nothing; <code>S1-P1/P2</code> train only the released projection heads with fixed data,
+  optimizer, and epoch budget. PPO is used only by the later numerical
+  distillation challenger, with fixed hyperparameters and no PBT mutation.</li>
+<li><strong>Budgets:</strong> heads-only studies use exactly 250,000 train-split examples,
+  three seeds, at most 20 epochs, and patience 5; the checkpoint is chosen by
+  label-space validation loss before economic replay. Policy evaluation uses
+  the same episode count and task identities as R0. The optional numerical PPO
+  distillation uses three seeds, a 20-update/~96k-step correctness gate, and the
+  same 60-update cap per healthy seed.</li>
+<li><strong>Repeat rule:</strong> a nominal win is <code>needs-repeat</code> until it improves the primary
+  scalar in at least two of three seeds and passes every gate. Re-run suspicious
+  wins with a fresh seed and exact replay.</li>
+<li><strong>Holdout rule:</strong> choose on the declared validation panel, replicate once on a
+  new non-overlapping chronological validation block, and open the sealed final
+  test only after configuration freeze.</li>
+</ul>
+<p>The scalar follows the current ablation contract and avoids optimizing directly
+for a noisy or mis-annualized Sharpe. Sharpe, turnover, drawdown, action balance,
+latency, memory, and calibration remain mandatory diagnostic/gating outputs.
+The current dataset-v2 audit already establishes the cost, replay, block, and
+independent-lineage standard that this study should inherit.
+<a href="./dataset-v2-r0-audit-2026-09-24.md"><code>dataset-v2-r0-audit-2026-09-24.md</code></a></p>
+<h3 id="challenger-ladder">Challenger ladder</h3>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Single factor</th>
+<th>Training budget</th>
+<th>Decision</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>S1-P0</code></td>
+<td>Frozen CLM-v0.1-8B ranks the three explicit target-position texts from a deterministic serialization of the same market-window and <code>TaskSpec</code> information available to R0. No fine-tuning, PPO, or production claim.</td>
+<td>Fixed 10,000 train-split diagnostic states plus the fixed validation panel; one pass; record cold/warm latency and 3-way distributions.</td>
+<td>Diagnostic only. Reject if actions collapse, serialization is unstable, or latency is unsuitable.</td>
+</tr>
+<tr>
+<td><code>S1-P1</code></td>
+<td>Fine-tune only CLM's state/action projection heads on a versioned three-choice trading corpus; Qwen3-8B stays frozen and the generic duplicate-action InfoNCE path is forbidden.</td>
+<td>Exactly 250k examples, 3 seeds, max 20 epochs, patience 5; equal fixed economic replay per seed.</td>
+<td>Keep only if label-space validation, the frozen economic scalar, collapse gates, and exact replay all pass.</td>
+</tr>
+<tr>
+<td><code>S1-P2</code></td>
+<td>Add <code>agent_state_v1</code> to CLM and to a matched R0 control; no other factor changes.</td>
+<td>Same heads-only budget plus matched R0 budget/seeds.</td>
+<td>This is an <code>R4-v1</code> observability study, not CLM evidence by itself.</td>
+</tr>
+<tr>
+<td><code>S1-P3</code></td>
+<td>CLM-8B offline task ranker scores only validated <code>TaskSpec</code> candidates from causal market summaries and versioned capability gaps; the evaluated solver is frozen.</td>
+<td>Fixed chronological curriculum corpus, 3 seeds, identical candidate sets and equal downstream solver steps.</td>
+<td>Keep only if downstream held-out solver improvement beats rule/random task selection without opening the final test.</td>
+</tr>
+<tr>
+<td><code>S1-P4a</code></td>
+<td>Future CLM-style <code>MarketFramer</code> ranks validated <code>CandidateTask</code> objects plus <code>WAIT</code>; a deterministic capability-eligibility mask and every solver are frozen.</td>
+<td>Replay/shadow-only chronological corpus, 3 seeds, fixed candidate sets.</td>
+<td>Search on cost-aware realized utility; gate calibration, coverage, abstention, latency, and no-lookahead. No live entry authority.</td>
+</tr>
+<tr>
+<td><code>S1-P4b</code></td>
+<td>With MarketFramer candidates frozen, a separate <code>CapabilityMatcher</code> ranks eligible versioned solver/checkpoint profiles for each candidate or returns no match.</td>
+<td>Same replay corpus, fixed candidate order, frozen solver outputs and capability snapshots.</td>
+<td>Keep only if held-out utility and calibration beat rule matching without converting solver logits into capability estimates.</td>
+</tr>
+<tr>
+<td><code>S1-P5</code></td>
+<td>If exact CLM-8B has useful signal but fails resource gates, distill its geometry into a numerical state projection plus three learned action prototypes; compare against the unchanged R0 linear head.</td>
+<td>3 PPO seeds, 20-update gate, then 60 updates.</td>
+<td>Keep only on the same economic scalar and gates; this is the no-LLM follow-on, not evidence about released CLM-8B by itself.</td>
+</tr>
+</tbody>
+</table>
+<p>Do not start with a joint <code>CLM head + explicit state + adaptive proposer</code> run. A
+win would be uninterpretable and a loss would not identify the bad seam.</p>
+<h3 id="correctness-gates">Correctness gates</h3>
+<p>Before any economic comparison:</p>
+<ul>
+<li>action indices round-trip exactly as <code>0 -&gt; -1</code>, <code>1 -&gt; 0</code>, <code>2 -&gt; +1</code>;</li>
+<li>every state sees exactly three finite logits and all three actions can be
+  sampled;</li>
+<li>probabilities are finite and sum to one; learned temperature is finite and
+  bounded;</li>
+<li>value-head and task-conditioning paths remain behaviorally present;</li>
+<li>no feature or label from after decision time reaches the policy input;</li>
+<li>terminal liquidation, cost, turnover, and episode evidence remain unchanged;</li>
+<li>same observation/state schema is used in training, evaluation, checkpoint
+  restore, and online replay;</li>
+<li>CLM supervised probes do not use duplicate actions as single-positive
+  negatives;</li>
+<li>candidate scoring does not mutate shared recurrent state;</li>
+<li>capability and confidence values are not treated as calibrated until measured
+  on held-out chronological data;</li>
+<li>a near-constant long or short policy is not accepted from aggregate net return:
+  it must beat the corresponding static-direction control with paired
+  block-aware evidence rather than merely reproduce its action prior;</li>
+<li>supervised probes report class balance, macro accuracy, log loss, Brier score,
+  and calibration error, while PPO policies report score-margin buckets against
+  held-out cost-aware utility and make no probability-calibration claim.</li>
+</ul>
+<h3 id="required-artifacts-per-attempt">Required artifacts per attempt</h3>
+<pre><code class="language-text">results.tsv                         # one primary-metric row per attempt
+experiment_config.json             # exact baseline/challenger and fixed budget
+dataset_manifest.json              # snapshot and split hashes
+task_panel.json                    # exact task/start/horizon identities and hash
+state_schema.json                  # market/task/agent fields, timing, normalization
+action_contract.json               # index, target-position semantics, descriptions
+checkpoint_manifest.json           # model/config/data hashes
+evaluation_summary.json            # net, Sharpe, cost, drawdown, turnover, actions
+block_and_regime_report.json        # paired chronological attribution
+replay_receipt.json                 # fresh-process checkpoint equality
+latency_memory.json                 # train and inference resource cost
+leakage_audit.md                    # feature/label timing and causal-input audit
+</code></pre>
+<p>Each ledger row should end with:</p>
+<pre><code class="language-text">Decision: keep | reject | needs-repeat
+Baseline:
+Challenger:
+Primary metric delta:
+Correctness gates:
+Economic gates:
+Compute/latency:
+Artifacts:
+Next experiment:
+</code></pre>
+<h2 id="feasibility-judgment">Feasibility judgment</h2>
+<table>
+<thead>
+<tr>
+<th>Proposal</th>
+<th>Technical feasibility</th>
+<th>Research value</th>
+<th>Recommendation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Frozen CLM-8B zero-shot on serialized trading state</td>
+<td>High to prototype; requires Linux, NVIDIA GPU, vLLM, Qwen3-8B, and the 75 MB head</td>
+<td>Moderate diagnostic value; low prior for economic edge; poor fit to dense numerical OHLCV and only three cached actions</td>
+<td>Run first as <code>S1-P0</code>; treat it as an interface/signal diagnostic, not solver promotion.</td>
+</tr>
+<tr>
+<td>Fine-tune released CLM heads on three trading actions</td>
+<td>Feasible, but the generic transition InfoNCE path is invalid without fixing duplicate-action positives</td>
+<td>The primary trained CLM ablation if target labels and their provenance are explicit</td>
+<td>Run <code>S1-P1</code> with the per-question <code>choice</code> objective; do not use naive pairwise InfoNCE.</td>
+</tr>
+<tr>
+<td>CLM-8B offline validated-TaskSpec ranker</td>
+<td>Feasible after a versioned capability-gap state and fixed candidate catalog exist</td>
+<td>High value for testing System One selection in the AZR-inspired curriculum loop without giving it generation authority</td>
+<td>Run <code>S1-P3</code> only after the solver probe; compare downstream capability gain at equal solver steps against rule/random selection.</td>
+</tr>
+<tr>
+<td>Future CLM-style <code>MarketFramer</code> over <code>CandidateTask + WAIT</code></td>
+<td>Interface-compatible, but current contracts are future seams</td>
+<td>Potentially high for candidate framing if calibration, abstention, and chronological replay survive</td>
+<td>Keep replay/shadow-only as <code>S1-P4a</code>; it emits candidates and WAIT but does not select a solver or execute.</td>
+</tr>
+<tr>
+<td>Future <code>CapabilityMatcher</code> over versioned <code>CapabilityProfile</code> rows</td>
+<td>Feasible only after profile provenance, uncertainty, and solver identity become typed evidence</td>
+<td>Potentially high for choosing which validated solver may score a framed candidate</td>
+<td>Test separately as <code>S1-P4b</code>; it never bypasses <code>DecisionGate</code>, risk, or execution.</td>
+</tr>
+<tr>
+<td>Numerical CLM-style three-action PPO head</td>
+<td>Straightforward and cheap relative to R-series; no text encoder</td>
+<td>High for isolating and deploying the state/action geometry, but it is not a test of released CLM-8B</td>
+<td>Use only as <code>S1-P5</code> distillation if exact CLM shows useful signal but misses resource gates.</td>
+</tr>
+<tr>
+<td>Hosted Jev as the trading solver</td>
+<td>API-compatible with a three-way choice, but closed, remote, text-only, and not reproducibly trainable from published first-party material</td>
+<td>Low as a core solver; potentially useful as an external framing benchmark</td>
+<td>Do not make it the canonical solver. If access exists, use only as a logged offline benchmark.</td>
+</tr>
+<tr>
+<td>Separate future Market-JEPA research</td>
+<td>The local concept is not concrete enough for this integration round</td>
+<td>Potentially useful later as a MarketFramer representation study</td>
+<td>Defer; do not couple it to the CLM/Jev experiments or use it as a shortcut around R0/R-series evidence gates.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="bottom-line">Bottom line</h2>
+<p>The released 8B checkpoint is worth testing because it makes one useful
+factorization concrete:</p>
+<pre><code class="language-text">encode state once -&gt; compare against a small reusable action/candidate set
+</code></pre>
+<p>For iTrader, the defensible sequence is to evaluate that exact CLM-8B geometry
+zero-shot, train only its heads with a valid three-choice objective, then reuse
+the typed state/candidate contract for an offline validated-<code>TaskSpec</code> ranker.
+Only after those results should the CLM geometry reach replay/shadow evaluation:
+first as a <code>CandidateTask + WAIT</code> MarketFramer, then as a separately measured
+capability matcher over versioned solver profiles. A native numerical
+three-prototype PPO head is a valuable later distillation route if CLM supplies
+signal but fails latency or resource gates; it must not replace the direct CLM
+test or be mislabeled as CLM-8B evidence. This preserves the R-series as the
+control, keeps Jev as an external typed-decision benchmark, and leaves the
+non-concrete Market-JEPA hypothesis outside the current ladder.</p>
+<h2 id="companion-investigation-files">Companion investigation files</h2>
+<ul>
+<li><a href="./system-one-clm-jev-trading-ablation-2026-09-24-evidence/state_action_contract_v1.json"><code>state_action_contract_v1.json</code></a>
+  records the exact <code>Discrete(3)</code> target-position meanings, causal state groups,
+  admissible label choices, duplicate-action loss guardrail, and calibration
+  boundary.</li>
+<li><a href="./system-one-clm-jev-trading-ablation-2026-09-24-evidence/experiment_matrix.json"><code>experiment_matrix.json</code></a>
+  records the frozen invariants, <code>S1-P0</code> through <code>S1-P5</code> budgets (including
+  separate <code>S1-P4a</code> framer and <code>S1-P4b</code> matcher probes), promotion
+  gates, and stop conditions in machine-readable form.</li>
+<li><a href="./system-one-clm-jev-trading-ablation-2026-09-24.html"><code>system-one-clm-jev-trading-ablation-2026-09-24.html</code></a>
+  is the synchronized review companion; this Markdown file remains the source
+  of truth.</li>
+</ul>
+<h2 id="primary-sources-reviewed">Primary sources reviewed</h2>
+<ul>
+<li>Contrastive-LM: <a href="https://huggingface.co/Contrastive-LM/CLM-v0.1-8B">model card</a>,
+  <a href="https://github.com/Contrastive-LM/CLM">repository/README</a>,
+  <a href="https://github.com/Contrastive-LM/CLM/blob/main/src/clm/heads.py">projection heads</a>,
+  <a href="https://github.com/Contrastive-LM/CLM/blob/main/src/clm/engine.py">inference engine</a>,
+  <a href="https://github.com/Contrastive-LM/CLM/blob/main/src/clm/schema.py">wire schema</a>,
+  <a href="https://github.com/Contrastive-LM/CLM/blob/main/train/finetune.py">fine-tuning trainer</a>,
+  <a href="https://github.com/Contrastive-LM/CLM/blob/main/train/adapters.py">data adapters</a>,
+  <a href="https://github.com/Contrastive-LM/CLM/blob/main/train/embed_utils.py">embedding recipe</a>,
+  and <a href="https://github.com/Contrastive-LM/CLM/blob/main/docs/FINETUNING.md">fine-tuning protocol</a>.</li>
+<li>Qwen: <a href="https://huggingface.co/Qwen/Qwen3-8B">Qwen3-8B model card</a> and
+  <a href="https://huggingface.co/Qwen/Qwen3-8B/raw/main/config.json">configuration</a>.</li>
+<li>TypeSafe: <a href="https://typesafe.ai/">TypeSafe home/research framing</a>,
+  <a href="https://docs.typesafe.ai/introduction">Jev introduction</a>,
+  <a href="https://docs.typesafe.ai/introduction/machine-learning-primer">AI primer/RLCD</a>,
+  <a href="https://docs.typesafe.ai/llms.txt">documentation index</a>, and
+  <a href="https://typesafe.ai/blog/introducing-system-one-models-and-jev">Jev launch note</a>.
+Research was performed against sources available on 2026-09-24. Vendor benchmark,
+latency, calibration, and scale claims are identified as author-reported and
+should be independently reproduced before they influence promotion.</li>
+</ul></section><footer>Generated from the Markdown source of truth on 24 September 2026. Vendor claims remain author-reported until independently reproduced.</footer></main></body></html>

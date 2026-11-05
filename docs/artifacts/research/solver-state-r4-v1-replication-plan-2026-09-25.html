@@ -1,0 +1,327 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>R0 + R4-v1 architecture qualification and replication audit</title><style>:root{color-scheme:light;--ink:#18201d;--muted:#5c6762;--line:#ccd3cf;--paper:#fbfcfa;--wash:#eef2ef;--accent:#1f6651}*{box-sizing:border-box}body{margin:0;background:var(--wash);color:var(--ink);font:16px/1.55 Georgia,serif}main{max-width:1120px;margin:32px auto;background:var(--paper);padding:48px 58px 64px;border:1px solid var(--line)}h1,h2,h3{line-height:1.2}h2{margin-top:40px;padding-top:18px;border-top:1px solid var(--line)}table{width:100%;border-collapse:collapse;margin:18px 0 24px;font-size:.9rem}th,td{border:1px solid var(--line);padding:9px 10px;text-align:left;vertical-align:top}th{background:#e8eeea}tbody tr:nth-child(even){background:#f4f6f4}code{font:.9em Consolas,monospace;background:#edf0ee;padding:1px 4px}pre{overflow:auto;background:#edf0ee;padding:14px}a{color:var(--accent)}img{max-width:100%;height:auto;border:1px solid var(--line)}@media(max-width:760px){main{margin:0;padding:28px 18px}table{display:block;overflow:auto}}</style></head><body><main><h1 id="r0-r4-v1-architecture-qualification-and-replication-audit-2026-09-25">R0 + R4-v1 architecture qualification and replication audit — 2026-09-25</h1>
+<h2 id="status">Status</h2>
+<p><strong>The fixed 4x3 replication, exact replay, and counterfactual diagnostics are
+complete. R4-v1 is architecture-qualified; economic promotion failed.</strong></p>
+<p>The completed 12-update R4-v1 gate is not reinterpreted as an economic win. It
+did establish that the fixed-cost, finite-horizon Family 00 control problem was
+missing agent-visible position and remaining-horizon state. The forward Phase A
+feed-forward baseline is therefore named <strong>R0 + R4-v1</strong>, while state-free R0 is
+retained unchanged as the historical and parity control.</p>
+<p>The authorized fixed-recipe 40-update replication is complete. It does not
+authorize R4-v2, a sealed-test read, or economic promotion from relative uplift
+alone. Its result does authorize the complete <code>R0 + R4-v1</code> pair as the forward
+feed-forward training baseline while R0 remains the immutable parity control.</p>
+<h2 id="consolidated-decisions">Consolidated decisions</h2>
+<table>
+<thead>
+<tr>
+<th>Identity</th>
+<th>Meaning</th>
+<th>Decision</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R0</td>
+<td>State-free <code>SolverMLPFiLM</code></td>
+<td>Immutable historical/parity control</td>
+</tr>
+<tr>
+<td>R4-v1</td>
+<td>Two-value <code>[position, remaining_horizon_fraction]</code> connector with additive actor/value residuals</td>
+<td>Architecture-qualified solver-state factor</td>
+</tr>
+<tr>
+<td>R0 + R4-v1</td>
+<td>R0 market/task path plus the complete R4-v1 state block</td>
+<td>Forward Phase A feed-forward training baseline; not economically promoted</td>
+</tr>
+<tr>
+<td>R4-v1.1 evidence profile</td>
+<td>R4-v1 with zero-initialized final residual heads</td>
+<td>Required for update-zero policy/value parity in the new replication</td>
+</tr>
+<tr>
+<td>R4-v2</td>
+<td>Future nonlinear market/task × state late-fusion factor</td>
+<td>Research only; separately named and gated</td>
+</tr>
+</tbody>
+</table>
+<p>R0 is not renamed or overwritten. Future R1 work must preserve a clean
+state-free R1 cell and name the state-complete cross explicitly as
+<code>R1 + R4-v1</code>. This keeps recurrence attribution separate from observability.</p>
+<h2 id="what-has-and-has-not-become-markov">What has and has not become Markov</h2>
+<p>For the present exact-cost, finite-horizon <code>net_return</code> task, current position
+determines the cost of a new target action and remaining horizon determines the
+termination/liquidation boundary. Exposing both removes the known endogenous
+control-state alias. The exogenous market process remains partially observed;
+therefore the correct claim is <strong>control-state completion for this task
+contract</strong>, not that trading as a whole is a fully observed MDP.</p>
+<p><code>ITraderEnv</code> owns both values and observation assembly. <code>TaskSpec</code> remains the
+problem/curriculum contract, <code>RewardEngine</code> remains the reward seam, and neither
+the proposer nor deterministic risk/execution shells acquire mutable portfolio
+state.</p>
+<h2 id="state-feature-semantics-registry">State-feature semantics registry</h2>
+<p>Only position and remaining horizon enter the current baseline. Later
+feature-engineering rounds must use named semantics rather than an expanding
+anonymous input vector.</p>
+<table>
+<thead>
+<tr>
+<th>Candidate state</th>
+<th>Domain meaning</th>
+<th>Activation condition</th>
+<th>Planned factor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Current position</td>
+<td>Inventory immediately before the action</td>
+<td>Active now; action cost depends on it</td>
+<td>R4-v1</td>
+</tr>
+<tr>
+<td>Remaining episode horizon</td>
+<td>Fraction of the declared task horizon remaining</td>
+<td>Active now; terminal liquidation and finite return-to-go depend on it</td>
+<td>R4-v1</td>
+</tr>
+<tr>
+<td>Episode gross/net PnL</td>
+<td>Path-dependent episode accounting to the current decision</td>
+<td>Add only when a declared reward, risk budget, or stopping rule makes future utility depend on accumulated PnL</td>
+<td>R4-F1 candidate</td>
+</tr>
+<tr>
+<td>Cost basis and unrealized return</td>
+<td>Inventory entry state and mark-to-market displacement</td>
+<td>Add only with explicit lot/accounting semantics; never infer it from reward history</td>
+<td>R4-F1 candidate</td>
+</tr>
+<tr>
+<td>Realized PnL</td>
+<td>Closed-position episode accounting</td>
+<td>Add only with an explicit realized/unrealized decomposition</td>
+<td>R4-F1 candidate</td>
+</tr>
+<tr>
+<td>Position age / time since change</td>
+<td>Duration of the currently held target position</td>
+<td>Add only for a holding-duration reward, constraint, or causal ablation</td>
+<td>R4-F2 candidate</td>
+</tr>
+<tr>
+<td>Accumulated turnover / remaining turnover budget</td>
+<td>Path-dependent consumption of a declared activity budget</td>
+<td>Add only when such a budget affects termination, reward, or admissible actions</td>
+<td>R4-F2 candidate</td>
+</tr>
+<tr>
+<td>Running peak and drawdown</td>
+<td>Path-dependent risk state</td>
+<td>Add only when drawdown changes reward, gating, or termination</td>
+<td>R4-F2 candidate</td>
+</tr>
+<tr>
+<td>Market-session clock</td>
+<td>Causal position inside RTH/pre/after-hours, distinct from task horizon</td>
+<td>Add after Phase A RTH closure with explicit cyclic and remaining-session encodings</td>
+<td>Causal session factor</td>
+</tr>
+<tr>
+<td>Continuous portfolio lifecycle</td>
+<td>State that survives artificial episode boundaries</td>
+<td>Requires a separately specified continuing environment and accounting lifecycle</td>
+<td>Future portfolio factor</td>
+</tr>
+</tbody>
+</table>
+<p>Every addition must name its owner, normalization, reset rule, inference
+availability, and corresponding reward or transition dependency.
+Episode-relative time must not be confused with market-session time, and
+cumulative PnL must not become a reward shortcut.</p>
+<h2 id="r4-v1.1-initialization-correction">R4-v1.1 initialization correction</h2>
+<p>The completed R4-v1 run used ordinary random initialization for its residual
+heads. Although masked <code>[0, 0]</code> observations were inert, nonzero state arms did
+not begin from the same action preferences as R0. The new
+<code>solver_state_residual_init=zero_v1</code> profile zero-initializes only the final
+actor and value residual heads. The base market trunk, task FiLM path, state
+encoder, parameter count, and observation contract remain unchanged.</p>
+<p>The update-zero gate requires matching base weights, action argmax parity on
+nonzero state inputs, logits and values equal within <code>1e-7</code>, zero residual-head
+weights, and arm-matched untrained replays. Historical checkpoints continue to
+restore with the compatibility default <code>random_v1</code>.</p>
+<p>The official control pass now closes this gate. For each of seeds 20260924,
+20260925, and 20260926, the complete 32-episode JSONL receipt is byte-identical
+across <code>off</code>, <code>masked</code>, <code>position</code>, <code>time</code>, and <code>both</code>. The per-seed SHA-256
+digests are <code>9ad3af...12e8</code>, <code>af316b...3a2</code>, and <code>da53da...ed49</code> respectively.
+This proves action/economic update-zero parity on the actual panel, not only a
+tensor-level unit test.</p>
+<h2 id="tooling-gates-closed-before-launch">Tooling gates closed before launch</h2>
+<ol>
+<li>The absolute analyzer now encodes an all-seed turnover ceiling of <code>20.0</code> and
+an exclusive near-flat ceiling of <code>0.98</code>, in addition to positive net,
+positive Sharpe, control superiority, and exact replay.</li>
+<li>The policy-baseline runner accepts the solver-state arm and residual
+initialization profile, namespaces its artifacts, and can generate matched
+update-zero controls.</li>
+<li>Checkpoint diagnostics score identical market/task inputs under observed,
+masked, position-only, time-only, both, position-flipped, and time-mirrored
+state interventions. They report argmax changes plus logit and value deltas.</li>
+<li>The analyzer accepts an explicit update count and records initialization and
+counterfactual evidence.</li>
+</ol>
+<p>Focused affected tests passed (<code>165</code>), the full repository suite passed (<code>288</code>),
+the Ray-2.58 healthcheck passed, and <code>git diff --check</code> reported no errors.</p>
+<h2 id="fresh-chronological-development-block">Fresh chronological development block</h2>
+<p>The new panel is
+<code>dataset_v2_r4_dec2025_crossed_8x4_20260925.json</code>. Before inspecting returns,
+eight RTH anchors were fixed at 15:30 UTC across AAPL, GOOGL, META, MSFT, NVDA,
+QQQ, SPY, and TLT on distinct December-2025 sessions. Each is crossed with
+horizons 96/128/160/200.</p>
+<p>All tasks lie inside the purged validation partition; keep the 60-bar lookback
+and 200-bar maximum outcome in one RTH session; are exposure-disjoint from the
+prior panel; remain development rather than sealed-test evidence; and were
+selected by symbol/date/time schedule rather than return or action outcome.</p>
+<h2 id="fixed-40-update-replication">Fixed 40-update replication</h2>
+<p>The loadout is
+<code>phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925.json</code>. It freezes four arms,
+three seeds, Ray 2.58 <code>workers=0</code>, dataset-v2 RTH, Family 00, <code>semantic_v2</code>,
+exact fixed 1 bp <code>net_return</code>, scale 1,000, 40 PPO updates, batch 4,800, and
+evaluation on the new 32-task panel every update. PBT is disabled.</p>
+<p>Primary analysis remains terminal and seed-paired against <code>masked</code>; updates
+38–40 form the durability slice. Exact terminal replay, seed-then-anchor block
+uncertainty, arm-matched update-zero controls, counterfactual diagnostics, and
+complete provenance are mandatory.</p>
+<h2 id="completed-replication-result">Completed replication result</h2>
+<p>All 12 cells reached exactly 40 PPO updates on one frozen source, dataset, and
+panel identity. All 12 terminal checkpoints restored in fresh processes and
+reproduced the recorded 32-episode scores exactly. The update-zero controls were
+also byte-identical across <code>off</code>, <code>masked</code>, <code>position</code>, <code>time</code>, and <code>both</code> for
+each seed, so the comparison starts from one policy rather than four accidental
+initial policies.</p>
+<table>
+<thead>
+<tr>
+<th>Seed</th>
+<th style="text-align: right;">Masked net / Sharpe</th>
+<th style="text-align: right;">Position net / Sharpe</th>
+<th style="text-align: right;">Time net / Sharpe</th>
+<th style="text-align: right;">Both net / Sharpe</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>20260924</td>
+<td style="text-align: right;">-0.3701% / -0.1020</td>
+<td style="text-align: right;">-0.1731% / -0.0398</td>
+<td style="text-align: right;">-0.1050% / -0.0460</td>
+<td style="text-align: right;">-0.1749% / -0.0377</td>
+</tr>
+<tr>
+<td>20260925</td>
+<td style="text-align: right;">-0.0030% / -0.0090</td>
+<td style="text-align: right;">+0.0123% / -0.0345</td>
+<td style="text-align: right;">-0.0280% / -0.0173</td>
+<td style="text-align: right;">+0.0659% / -0.0024</td>
+</tr>
+<tr>
+<td>20260926</td>
+<td style="text-align: right;">0.0000% / 0.0000</td>
+<td style="text-align: right;">+0.0011% / -0.0044</td>
+<td style="text-align: right;">+0.0032% / +0.0029</td>
+<td style="text-align: right;">+0.0014% / -0.0092</td>
+</tr>
+<tr>
+<td>Mean</td>
+<td style="text-align: right;">-0.1243% / -0.0370</td>
+<td style="text-align: right;">-0.0532% / -0.0262</td>
+<td style="text-align: right;">-0.0433% / -0.0201</td>
+<td style="text-align: right;">-0.0359% / -0.0164</td>
+</tr>
+</tbody>
+</table>
+<p>The strongest deterministic control was long-only at +0.1752% net and +0.0409
+Sharpe per square-root bar. Flat returned zero. No trained arm beat long-only,
+and no arm had positive net and positive Sharpe in all three seeds.</p>
+<h3 id="what-improved">What improved</h3>
+<p>The combined state arm improved terminal net return over masked in every paired
+seed: +0.1952, +0.0689, and +0.0014 percentage points. Its pooled
+seed-then-anchor mean effect was +0.0885 percentage points with a 95% interval
+of [+0.0037, +0.1889], so the net-return factor gate passed. Its mean turnover
+fell from 11.40 to 4.71. Position-only also improved net in every seed, while
+time-only produced the strongest mean gross return and critic fit.</p>
+<p>This is not merely cost avoidance. Mean gross return moved from -0.0104% for
+masked to +0.0064% for position, +0.0196% for time, and +0.0112% for both.
+However, the paired Sharpe effect was not seed-consistent and its pooled interval
+crossed zero.</p>
+<h3 id="what-failed">What failed</h3>
+<p>Seed 20260926 converged to a near-flat basin: terminal flat fractions were
+100.00%, 99.77%, 99.97%, and 99.39% for masked, position, time, and both. The
+explicit <code>&lt;0.98</code> ceiling correctly rejects all four arms. Seed 20260924 remained
+economically negative, and masked also exceeded the turnover ceiling at 29.25.
+Updates 38–40 do not rescue the verdict; the combined arm's final-three mean is
+negative for seeds 20260924 and 20260926.</p>
+<p>The useful transient is seed 20260925. Combined state retained +0.0672% mean net
+over updates 38–40, but terminal Sharpe remained slightly negative. This is a
+real learned checkpoint, not provenance contamination, yet it is insufficient
+for promotion.</p>
+<h3 id="actor-and-critic-diagnostics">Actor and critic diagnostics</h3>
+<p>Masked-state counterfactuals are exactly inert. In active position-only arms,
+flipping position changed the greedy action on 18.21%, 6.06%, and 0.11% of
+steps across the three seeds. In time-only arms, mirroring remaining horizon
+changed far fewer greedy actions, but changed the value estimate by a mean
+absolute 0.959, 0.578, and 0.358. Combined arms used both coordinates in the
+non-collapsed seeds. These results show that the state branch is learned and
+that episode phase materially improves the critic, while actor use remains
+seed-sensitive and disappears in the near-flat basin.</p>
+<p>Interventions on coordinates disabled for an arm are out of distribution and
+are excluded from interpretation. PPO logits are not Q-values; the diagnostics
+demonstrate state sensitivity, not a decomposed cost-aware action-value model.</p>
+<h2 id="final-gate-decision">Final gate decision</h2>
+<p>The combined position-plus-time connector passes architecture qualification and
+the relative paired net-return factor gate. It fails the absolute economic gate.
+Accordingly:</p>
+<ol>
+<li>preserve state-free R0 as the immutable parity control;</li>
+<li>use <code>R0 + R4-v1</code> as the forward Phase A feed-forward training baseline;</li>
+<li>do not claim economic promotion, a profitable solver, or a fully observed
+market MDP;</li>
+<li>retain <code>position + remaining_horizon_fraction</code> together even though their
+effects differ, because both are required by the exact-cost finite-horizon
+transition/reward contract;</li>
+<li>keep episode PnL, accounting, holding-age, turnover-budget, drawdown, and
+market-session features in the semantics registry until their corresponding
+transition, reward, or risk semantics exist;</li>
+<li>make the next bounded solver step an actor-robustness search over the already
+authorized baseline—learning rate, entropy pressure, and causal cost staging,
+with retained-best replay and the same flat/turnover guards—before R4-v2;</li>
+<li>preserve clean state-free <code>R1</code> and named <code>R1 + R4-v1</code> cells when recurrence
+begins, so recurrence and observability remain attributable.</li>
+</ol>
+<p>Authoritative evidence is in <a href="solver-state-r4-v1-replication-plan-2026-09-25-evidence/analysis.json"><code>analysis.json</code></a>.
+The comparison plots include <a href="solver-state-r4-v1-replication-plan-2026-09-25-evidence/training_comparison/ablation_compare.png">net return</a>,
+<a href="solver-state-r4-v1-replication-plan-2026-09-25-evidence/training_comparison/ablation_compare_validation_sharpe.png">Sharpe</a>,
+<a href="solver-state-r4-v1-replication-plan-2026-09-25-evidence/training_comparison/ablation_compare_action_fractions.png">action fractions</a>,
+and <a href="solver-state-r4-v1-replication-plan-2026-09-25-evidence/training_comparison/ablation_compare_diagnostics.png">PPO diagnostics</a>.</p>
+<h2 id="decision-boundary">Decision boundary</h2>
+<p>Architecture qualification is accepted: future feed-forward Phase A work uses
+<code>R0 + R4-v1</code>, with R0 retained in every parity-sensitive comparison. Economic
+promotion is rejected and cannot be inferred from critic fit or relative
+uplift. Run the bounded actor-robustness search before spending on R4-v2. Carry
+both <code>R1</code> and <code>R1 + R4-v1</code> long enough to attribute recurrence separately.</p>
+<h2 id="deferred-r4-v2-design-question">Deferred R4-v2 design question</h2>
+<p>The leading research shape is centered nonlinear late fusion after task FiLM:</p>
+<pre><code class="language-text">h_market = MLP(market_window)
+h_task = FiLM(h_market, task)
+z_state = state_encoder(agent_state)
+delta = joint_connector(h_task, z_state) - joint_connector(h_task, zero_state)
+logits = policy_head(h_task) + policy_residual(delta)
+value = value_head(h_task) + value_residual(delta)
+</code></pre>
+<p>Centering preserves masked-state parity while allowing market/task × state
+interactions. It remains separate because it changes the function class and the
+causal interpretation of the residual.</p>
+</main></body></html>

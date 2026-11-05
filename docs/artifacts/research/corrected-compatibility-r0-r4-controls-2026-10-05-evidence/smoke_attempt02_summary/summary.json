@@ -1,0 +1,33 @@
+{
+  "run_tag": "phase_a_corrected_ray258_r0_r4v1_fixed_smoke_20261005_20261005_104458",
+  "collected_only": false,
+  "config": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\phase_a_corrected_ray258_r0_r4v1_fixed_smoke_20261005.json",
+  "results": [
+    {
+      "variant_id": "smoke_r0_exact1bp_seed20260924",
+      "series_id": "smoke_r0_exact1bp_seed20260924",
+      "experiment_name": "phase_a_corrected_ray258_r0_r4v1_fixed_smoke_20261005_20261005_104458_smoke_r0_exact1bp_seed20260924",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\phase_a_corrected_ray258_r0_r4v1_fixed_smoke_20261005_20261005_104458_smoke_r0_exact1bp_seed20260924\\training_fn_ITraderEnv_11aad_00000_0_2026-10-05_10-45-08",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_11aad_00000_0_2026-10-05_10-45-08\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_11aad_00000_0_2026-10-05_10-45-08\\plots",
+      "final_metric": -0.0005905628356427
+    },
+    {
+      "variant_id": "smoke_r4v1_exact1bp_seed20260924",
+      "series_id": "smoke_r4v1_exact1bp_seed20260924",
+      "experiment_name": "phase_a_corrected_ray258_r0_r4v1_fixed_smoke_20261005_20261005_104458_smoke_r4v1_exact1bp_seed20260924",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\phase_a_corrected_ray258_r0_r4v1_fixed_smoke_20261005_20261005_104458_smoke_r4v1_exact1bp_seed20260924\\training_fn_ITraderEnv_3333b_00000_0_2026-10-05_10-46-04",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_3333b_00000_0_2026-10-05_10-46-04\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_3333b_00000_0_2026-10-05_10-46-04\\plots",
+      "final_metric": 0.0044161096257172
+    }
+  ],
+  "primary_metric": "evaluation/net_return_mean",
+  "compare_csv": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\smoke_attempt02_summary\\ablation_compare.csv",
+  "compare_png": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\smoke_attempt02_summary\\ablation_compare.png",
+  "sharpe_compare_png": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\smoke_attempt02_summary\\ablation_compare_validation_sharpe.png",
+  "entropy_compare_png": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\smoke_attempt02_summary\\ablation_compare_entropy.png",
+  "episode_len_compare_png": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\smoke_attempt02_summary\\ablation_compare_episode_len.png",
+  "diagnostics_compare_png": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\smoke_attempt02_summary\\ablation_compare_diagnostics.png",
+  "action_compare_png": "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\smoke_attempt02_summary\\ablation_compare_action_fractions.png"
+}

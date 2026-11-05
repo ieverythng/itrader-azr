@@ -1,0 +1,74 @@
+check for merge conflicts................................................Passed
+- hook id: check-merge-conflict
+- duration: 0.28s
+check yaml...............................................................Passed
+- hook id: check-yaml
+- duration: 0.12s
+fix end of files.........................................................Passed
+- hook id: end-of-file-fixer
+- duration: 0.33s
+trim trailing whitespace.................................................Passed
+- hook id: trailing-whitespace
+- duration: 0.19s
+itrader healthcheck......................................................Passed
+- hook id: itrader-healthcheck
+- duration: 2.61s
+
+{
+  "python": "3.11.13",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "required": {
+    "numpy": {
+      "ok": true,
+      "version_or_error": "1.26.4"
+    },
+    "pandas": {
+      "ok": true,
+      "version_or_error": "2.1.4"
+    },
+    "torch": {
+      "ok": true,
+      "version_or_error": "2.3.1+cpu"
+    },
+    "ray": {
+      "ok": true,
+      "version_or_error": "2.58.0"
+    },
+    "gymnasium": {
+      "ok": true,
+      "version_or_error": "1.2.2"
+    },
+    "duckdb": {
+      "ok": true,
+      "version_or_error": "0.10.2"
+    }
+  },
+  "optional": {
+    "llama_cpp": {
+      "ok": false,
+      "version_or_error": "ModuleNotFoundError: No module named 'llama_cpp'"
+    },
+    "transformers": {
+      "ok": false,
+      "version_or_error": "ModuleNotFoundError: No module named 'transformers'"
+    }
+  },
+  "cuda": {
+    "available": false,
+    "device_count": 0,
+    "device_name": null
+  }
+}
+
+itrader core tests.......................................................Passed
+- hook id: itrader-tests-core
+- duration: 101.36s
+
+........................................................................ [ 17%]
+........................................................................ [ 34%]
+........................................................................ [ 51%]
+........................................................................ [ 69%]
+........................................................................ [ 86%]
+........................................................                 [100%]
+416 passed in 99.37s (0:01:39)
+

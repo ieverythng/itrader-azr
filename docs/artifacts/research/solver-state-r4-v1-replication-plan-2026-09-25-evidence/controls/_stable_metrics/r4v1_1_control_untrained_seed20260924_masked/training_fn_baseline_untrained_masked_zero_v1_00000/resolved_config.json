@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "policy_control": "untrained",
+  "evaluation_num_episodes": 32,
+  "seed": 20260924,
+  "data_path": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\data\\datasets\\dataset_v2_20220103_20260922_alpaca_sip_split\\bars",
+  "dataset_sha256": "20aac96de6da77e20beeaff214d380ef06184faf301ff0dd53bed0ffd4c04ce9",
+  "comparison_config_hash": "6feed382c770ac7e0aa1a4745214b3e779bf6e7643bb554a7a6f9eb5dacda216",
+  "evaluation_panel_sha256": "2ea6f8a81bbf60b2ce4646c27779dfdf5febbd79c7a926a918f542aef5b1910f",
+  "data_sessions": "regular",
+  "data_symbols": "AAPL,MSFT,AMZN,NVDA,AMD,AVGO,GOOGL,META,SPY,QQQ,IWM,TLT",
+  "episode_boundary_cols": "session_id",
+  "expected_bar_interval": "1min",
+  "evidence_cost_bps": 1.0,
+  "task_reward_ids": "net_return",
+  "task_horizons": "96,128,160,200",
+  "evaluation_seed": 31260943,
+  "evaluation_task_panel_path": "itrader/scripts/experiments/configs/evaluation_panels/dataset_v2_r4_dec2025_crossed_8x4_20260925.json",
+  "solver_state_mode": "masked",
+  "solver_state_residual_init": "zero_v1",
+  "model_config": {
+    "custom_model": "solver_mlp_film",
+    "custom_model_config": {
+      "window_size": 60,
+      "t_embed_dim": 32,
+      "solver_state_dim": 2,
+      "solver_state_width": 8,
+      "solver_state_residual_init": "zero_v1",
+      "fcnet_hiddens": [
+        256,
+        256
+      ],
+      "conditioning": "film",
+      "t_keep_p": 0.7,
+      "t_proj": 64
+    }
+  }
+}

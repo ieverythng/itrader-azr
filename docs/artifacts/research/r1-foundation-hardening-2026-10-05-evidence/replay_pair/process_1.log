@@ -1,0 +1,104 @@
+2026-10-05 02:33:36,225	INFO worker.py:2024 -- Started a local Ray instance.
+2026-10-05 02:33:39,591	WARNING util.py:62 -- Install gputil for GPU system monitoring.
+2026-10-05 02:33:39,614	WARNING policy_baselines.py:20 -- DeprecationWarning: `compute_single_action` has been deprecated. `Algorithm.compute_single_action` should no longer be used. Get the RLModule instance through `Algorithm.get_module([module ID])`, then compute actions through `RLModule.forward_inference({'obs': [obs batch]})`. This will raise an error in the future!
+{
+  "schema_version": 3,
+  "trial": "stable_trial",
+  "checkpoint": "C:\\Users\\Admin\\AppData\\Local\\Temp\\itrader_astra_review_audit_lhbvuwm4\\checkpoint",
+  "checkpoint_selection": "terminal",
+  "selection_metric": "evaluation/net_return_mean",
+  "diagnostic_only": false,
+  "evaluation_panel_path": null,
+  "source_panel_sha256": "02283fe1b7343fcd15db3cecab85a9b8b6f08de221029751fb96aa9eb7b1e14f",
+  "evaluation_panel_sha256": "02283fe1b7343fcd15db3cecab85a9b8b6f08de221029751fb96aa9eb7b1e14f",
+  "selected_score": -0.003812979222178541,
+  "replayed_score": -0.003812979222178541,
+  "replay_delta": 0.0,
+  "selection_score_parity": true,
+  "payload_parity": true,
+  "checkpoint_parity": true,
+  "evaluation_payload_sha256": "48c5ebdd13777c7030d519876e3df31232fd759e5b01b37a749c87469d960570",
+  "parity_scope": "source_episode_metrics_and_action_reward_trace_v1",
+  "episode_count": 1,
+  "summary": {
+    "training_iteration": 0,
+    "pbt_progress_steps": 0,
+    "episode_len_mean": 4.0,
+    "evaluation/optimization_reward_mean": -3.812979222178541,
+    "evaluation/gross_return_mean": -0.0034129792221785408,
+    "evaluation/net_return_mean": -0.003812979222178541,
+    "evaluation/net_sharpe_per_sqrt_bar_mean": -0.9126468032291709,
+    "evaluation/turnover_mean": 4.0,
+    "custom_metrics/act_0_frac_mean": 0.5,
+    "custom_metrics/act_short_frac_mean": 0.5,
+    "evaluation/custom_metrics/act_0_frac_mean": 0.5,
+    "evaluation/custom_metrics/act_short_frac_mean": 0.5,
+    "custom_metrics/act_1_frac_mean": 0.5,
+    "custom_metrics/act_flat_frac_mean": 0.5,
+    "evaluation/custom_metrics/act_1_frac_mean": 0.5,
+    "evaluation/custom_metrics/act_flat_frac_mean": 0.5,
+    "custom_metrics/act_2_frac_mean": 0.0,
+    "custom_metrics/act_long_frac_mean": 0.0,
+    "evaluation/custom_metrics/act_2_frac_mean": 0.0,
+    "evaluation/custom_metrics/act_long_frac_mean": 0.0
+  },
+  "receipt_version": 1,
+  "status": "complete",
+  "producer": {
+    "invocation_id": "b9792fb1-dd2b-403f-8dac-aaca6773fc83",
+    "pid": 30016,
+    "host": "ULTIMATE-MACHINE",
+    "process_started_unix": 1791160410.0324597,
+    "process_instance_id": "c73584a4694dc792f722d85c744e09637a2e6a50e7198a32580190744ea1ff33",
+    "started_at_utc": "2026-10-05T00:33:30.563000+00:00",
+    "operation": "episode_replay",
+    "launch_id": "12d83c59-108d-4bee-9012-c43202b75bcf",
+    "completed_at_utc": "2026-10-05T00:33:40.636625+00:00"
+  },
+  "evaluation_contract": {
+    "version": "deterministic_replay_v1",
+    "checkpoint_sha256": "687eb9eb638000b307c660544894f071be76f4460072e8955bc1f387bff6d543",
+    "progress_steps": 12,
+    "restore_generation": 0,
+    "dataset_sha256": "15c74f3351a11cc469fb9528ee357ee48dde126f4531da0d2c9bcda631621a47",
+    "source_panel_sha256": "02283fe1b7343fcd15db3cecab85a9b8b6f08de221029751fb96aa9eb7b1e14f",
+    "evaluation_panel_sha256": "02283fe1b7343fcd15db3cecab85a9b8b6f08de221029751fb96aa9eb7b1e14f",
+    "effective_env_config_sha256": "7401ed254e11818c72f97d1c7bcecf7692fed09585abfdbd043b67911435d1c3",
+    "checkpoint_config_sha256": "a2a435e6bf756abf3dd28a4e14b55aa5ac546d7a1922e69db55d67d7fe35151c",
+    "observation_schema": {
+      "observation_schema_id": "r4_v1_min",
+      "base_obs_dim": 332,
+      "solver_state_dim": 2,
+      "agent_obs_dim": 334
+    },
+    "runtime": {
+      "python": "3.11.13",
+      "platform": "Windows-10-10.0.19045-SP0",
+      "ray": "2.58.0",
+      "gymnasium": "1.2.2",
+      "pyarrow": "17.0.0",
+      "torch": "2.3.1",
+      "pandas": "2.1.4"
+    },
+    "replay_source": {
+      "algorithm": "sha256(sorted relative-path TAB file-sha256 LF)",
+      "python_file_count": 104,
+      "source_tree_sha256": "7637874c7319fc215c4a9eb5bafbf25f8b1be111981c53b59b9f67f7d6c2b0ee"
+    },
+    "explore": false,
+    "execution": {
+      "device": "cpu",
+      "torch_deterministic_algorithms": true,
+      "torch_num_threads": 8
+    },
+    "evaluation_seed": 10000056
+  },
+  "evaluation_contract_sha256": "889d202bdf8efea7183deccc4c767c1e21c8ed1ccbbc6ff34e19fa180248dec0",
+  "artifacts": [
+    {
+      "file": "stable_trial.episodes.jsonl",
+      "sha256": "033fa42d4e49a8aa83d073a49345f722f0e4685431ccde8f6db972042c223aa9",
+      "rows": 1
+    }
+  ]
+}

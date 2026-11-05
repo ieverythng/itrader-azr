@@ -4,7 +4,8 @@ This workstation has a working Windows CUDA `llama.cpp` path for Qwen 27B GGUF m
 
 ## Current Paths
 
-- Binaries: `_tools/llama-bin-win-cuda13-b8604` by default, or `%LLAMA_CPP_BIN_DIR%`
+- Binaries: `C:\Users\Admin\PROJECTS\llama-b10621-win-cuda133` by default, or `%LLAMA_CPP_BIN_DIR%`
+- The same path is also stored in the user-scoped `LLAMA_CPP_BIN_DIR` environment variable so new shells and background helpers resolve the shared runtime consistently.
 - Models: `D:\MODELS` by default, or the per-series environment variables below.
 
 Current model files:
@@ -218,7 +219,7 @@ Do not commit these local paths:
 
 Keep these if you still want the current local launcher path to work without extra flags:
 
-- `_tools/llama-bin-win-cuda13-b8604/`
+- The shared CUDA runtime is outside this repository at `C:\Users\Admin\PROJECTS\llama-b10621-win-cuda133\`.
 - model files in `D:\MODELS`
 
 ## Next Adjustment

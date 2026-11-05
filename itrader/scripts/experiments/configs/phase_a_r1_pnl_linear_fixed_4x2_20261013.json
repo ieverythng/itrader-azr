@@ -1,0 +1,125 @@
+{
+  "name": "phase_a_r1_pnl_linear_fixed_4x2_20261013",
+  "train_module": "itrader.rl_lib.train.train_solo_V2",
+  "primary_metric": "evaluation/net_return_mean",
+  "minimum_free_memory_gb": 5,
+  "common_args": {
+    "workers": 0,
+    "ray_num_cpus": 2,
+    "timeout_hours": 1,
+    "iters": 12,
+    "window": 60,
+    "seed": 20260924,
+    "evaluation_seed": 32260943,
+    "train_batch_size": 4800,
+    "sgd_minibatch_size": 128,
+    "num_sgd_iter": 30,
+    "gamma": 0.99,
+    "lambda": 0.9,
+    "lr": 0.000007151674865214668,
+    "clip_param": 0.1,
+    "vf_loss_coeff": 2,
+    "vf_clip_param": 20,
+    "entropy_coeff_schedule": "0:0.005,96000:0.002,240000:0.0005",
+    "solver_model": "solver_mlp_film",
+    "representation_profile": "r0_r1_v1",
+    "solver_state_mode": "off",
+    "solver_state_residual_init": "zero_v1",
+    "data_path": "itrader/data/datasets/dataset_v2_20220103_20260922_alpaca_sip_split/bars",
+    "data_sessions": "regular",
+    "data_symbols": "AAPL,MSFT,AMZN,NVDA,AMD,AVGO,GOOGL,META,SPY,QQQ,IWM,TLT",
+    "episode_boundary_cols": "session_id",
+    "expected_bar_interval": "1min",
+    "results_root": "C:/Users/Admin/ray_results/r1-pnl-linear-matched-screen-20261013",
+    "task_pool_path": "",
+    "p_pool": 0,
+    "task_horizons": "96,128,160,200",
+    "task_reward_ids": "pnl_linear",
+    "start_idx_mode": "stream_worker",
+    "ret_norm_reset": "stream",
+    "observation_transform": "market_relative_v1",
+    "observation_filter": "NoFilter",
+    "stream_stride": 0,
+    "stream_jump_every_episodes": 5,
+    "stream_jump_on_wrap": true,
+    "pbt": false,
+    "pop": 1,
+    "evaluation_interval": 1,
+    "evaluation_num_episodes": 32,
+    "evaluation_task_panel_path": "itrader/scripts/experiments/configs/evaluation_panels/dataset_v2_r1_pnl_linear_jan2026_crossed_8x4_20261013.json",
+    "evidence_cost_bps": 1,
+    "evidence_periods_per_year": 0,
+    "split_fractions": "0.7,0.15,0.15",
+    "split_purge_rows": 200,
+    "checkpoint_interval": 4,
+    "pbt_interval": 4,
+    "checkpoint_consistent_evaluation": true,
+    "auto_plot_on_end": false
+  },
+  "variants": [
+    {
+      "id": "r0_seed20260924",
+      "args": {
+        "seed": 20260924,
+        "solver_model": "solver_mlp_film",
+        "solver_state_mode": "off"
+      }
+    },
+    {
+      "id": "r0_r4v1_seed20260924",
+      "args": {
+        "seed": 20260924,
+        "solver_model": "solver_mlp_film",
+        "solver_state_mode": "both"
+      }
+    },
+    {
+      "id": "r1_seed20260924",
+      "args": {
+        "seed": 20260924,
+        "solver_model": "solver_window_lstm_film",
+        "solver_state_mode": "off"
+      }
+    },
+    {
+      "id": "r1_r4v1_seed20260924",
+      "args": {
+        "seed": 20260924,
+        "solver_model": "solver_window_lstm_film",
+        "solver_state_mode": "both"
+      }
+    },
+    {
+      "id": "r0_seed20260925",
+      "args": {
+        "seed": 20260925,
+        "solver_model": "solver_mlp_film",
+        "solver_state_mode": "off"
+      }
+    },
+    {
+      "id": "r0_r4v1_seed20260925",
+      "args": {
+        "seed": 20260925,
+        "solver_model": "solver_mlp_film",
+        "solver_state_mode": "both"
+      }
+    },
+    {
+      "id": "r1_seed20260925",
+      "args": {
+        "seed": 20260925,
+        "solver_model": "solver_window_lstm_film",
+        "solver_state_mode": "off"
+      }
+    },
+    {
+      "id": "r1_r4v1_seed20260925",
+      "args": {
+        "seed": 20260925,
+        "solver_model": "solver_window_lstm_film",
+        "solver_state_mode": "both"
+      }
+    }
+  ]
+}

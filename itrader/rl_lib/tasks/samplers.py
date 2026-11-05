@@ -17,6 +17,7 @@ class TaskSampler00:
         self.cfg = env_config
         self.seed = int(self.cfg.get("seed", 1234))
         self.rng = np.random.default_rng(self.seed)
+        self._reward_rng = np.random.default_rng(np.random.SeedSequence([self.seed, 1]))
         self.window_size = int(self.cfg.get("window_size", 30))
         self.n_features = int(self.cfg.get("n_features", 5))
         self.t_embed_dim = int(self.cfg.get("t_embed_dim", 32))
@@ -26,6 +27,20 @@ class TaskSampler00:
         self.task_pool = None
         self.p_pool = float(self.cfg.get("p_pool", 0.7))
         self._load_task_pool(self.cfg.get("task_pool_path"))
+        raw_fixed_tasks = self.cfg.get("fixed_tasks", [])
+        if raw_fixed_tasks is None:
+            raw_fixed_tasks = []
+        if not isinstance(raw_fixed_tasks, list):
+            raise ValueError("fixed_tasks must be a list of TaskSpec payloads")
+        self._fixed_tasks = tuple(TaskSpec.from_dict(item) for item in raw_fixed_tasks)
+        self._fixed_task_index = 0
+
+    def reseed(self, seed: int) -> None:
+        """Restart task and reward streams from one reproducible seed."""
+        self.seed = int(seed)
+        self.rng = np.random.default_rng(self.seed)
+        self._reward_rng = np.random.default_rng(np.random.SeedSequence([self.seed, 1]))
+        self._fixed_task_index = 0
 
     def _warn(self, message: str) -> None:
         print(f"Warning: {message}")
@@ -93,7 +108,25 @@ class TaskSampler00:
         return overrides
 
     def _reward_params_for(self, reward_id: str) -> dict[str, Any]:
-        params = RewardEngine.sample_params(reward_id, self.rng)
+        params = RewardEngine.sample_params(reward_id, self._reward_rng)
+        if "dd_w" in params and "dd_w_range" in self.cfg:
+            bounds = tuple(float(value) for value in self.cfg["dd_w_range"])
+            if len(bounds) != 2 or bounds[0] > bounds[1]:
+                raise ValueError("dd_w_range must be [minimum, maximum]")
+            params["dd_w"] = float(self._reward_rng.uniform(bounds[0], bounds[1]))
+        if "turnover_w" in params and "turnover_w_choices" in self.cfg:
+            choices = list(self.cfg["turnover_w_choices"])
+            if not choices:
+                raise ValueError("turnover_w_choices must not be empty")
+            params["turnover_w"] = float(self._reward_rng.choice(choices))
+        if "dd_mode" in params and "dd_modes" in self.cfg:
+            choices = list(self.cfg["dd_modes"])
+            if not choices:
+                raise ValueError("dd_modes must not be empty")
+            params["dd_mode"] = str(self._reward_rng.choice(choices))
+        for key in ("turnover_cap", "dd_cap"):
+            if key in self.cfg:
+                params[key] = self.cfg[key]
         params.update(self._reward_param_overrides(reward_id))
         return RewardEngine.normalize_params(reward_id, params)
 
@@ -117,6 +150,10 @@ class TaskSampler00:
         )
 
     def sample(self) -> TaskSpec:
+        if self._fixed_tasks:
+            task = self._fixed_tasks[self._fixed_task_index % len(self._fixed_tasks)]
+            self._fixed_task_index += 1
+            return TaskSpec.from_dict(task.to_dict())
         task = self._sample_from_task_pool()
         if task is not None:
             return task

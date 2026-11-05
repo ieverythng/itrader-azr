@@ -1,0 +1,140 @@
+{
+  "$schema": "../../itrader/scripts/experiments/schemas/experiment_registry.schema.json",
+  "schema_version": 1,
+  "title": "iTrader Phase A experiment browser",
+  "platform_qualifications": [
+    {
+      "id": "cuda-reuse07-kernel-qualification",
+      "title": "CUDA reuse07 bare-LSTM kernel qualification",
+      "date": "2026-10-09",
+      "adapter": "cuda_kernel_qualification_v1",
+      "source": "docs/artifacts/research/cuda-reuse07/benchmark-reuse07-result.json",
+      "source_sha256": "c25efdfd7d6f63911e56002bbc501816bf5427bd1fa0d99ec4a1c386aa088f12"
+    }
+  ],
+  "experiments": [
+    {
+      "id": "corrected-compat-r0-r4-bridge-attempt04-20261005",
+      "title": "Corrected compatibility: R0 / R4 two-seed cost bridge",
+      "date": "2026-10-05",
+      "status": "eight-witnessed-replays-independently-accepted-not-promoted",
+      "summary": "Eight sequential 12-update cells; 467,584 sampled steps; PBT disabled. All eight terminals have independently accepted 32-episode witnessed fresh replays (256 episodes) with checkpoint/payload/score parity. Staged R4-v1 seed 20260924 reproduces +0.392761% net and +0.018892 Sharpe per sqrt-bar; its second seed is flat. All exact-cost cells are flat. The positive cell is 95.08% short and below the known short-only panel control, not replicated economic uplift. Minimum free RAM across accepted replays was 2.134 GiB; failed prior attempts remain preserved. Healthcheck, 416 tests and pre-commit pass. The browser exposes terminal metrics and per-update net return, Sharpe, actions and PPO diagnostics through Individual runs; exact raw values and source hashes remain available. The inspected January panel is not fresh validation or the Q21 target screen.",
+      "adapter": "ablation_summary_v1",
+      "source": "docs/artifacts/research/corrected-compatibility-r0-r4-controls-2026-10-05-evidence/study_attempt04_summary/summary.json",
+      "report": "docs/artifacts/research/corrected-compatibility-r0-r4-controls-2026-10-05.html",
+      "factors": {
+        "runtime": "ray-2.58-corrected-compatibility-local-worker",
+        "dataset": "dataset-v2-rth-12-symbol",
+        "panel": "jan-2026-crossed-8x4-inspected",
+        "cost": "exact-1bp-vs-causal-0-0.25-0.5-1bp-fixed-1bp-evaluation",
+        "representation": "r0-vs-r0+r4-v1-position-plus-time",
+        "curriculum": "family-00-random-generated-stream-worker",
+        "pbt": "disabled-12-update-development-bridge",
+        "seed_scope": "paired-seeds-20260924-20260925"
+      }
+    },
+    {
+      "id": "corrected-compat-r0-r4-smoke-20261005",
+      "title": "Corrected compatibility: R0 / R4 one-update smoke",
+      "date": "2026-10-05",
+      "status": "smoke-replay-pass-not-economic-promotion",
+      "summary": "Historical one-update smoke: two sequential cells, 4,944 sampled steps each, with fresh 32-task episode/action/reward replay parity. R4 is entirely short-only; positive return is not directional-control uplift. The subsequent eight-cell development bridge has its own entry; the Q21 target screen has not run. Sharpe, action fractions and diagnostic plots are linked in the research report; unavailable browser metrics remain unknown.",
+      "adapter": "ablation_summary_v1",
+      "source": "docs/artifacts/research/corrected-compatibility-r0-r4-controls-2026-10-05-evidence/smoke_attempt02_summary/summary.json",
+      "report": "docs/artifacts/research/corrected-compatibility-r0-r4-controls-2026-10-05.html",
+      "factors": {
+        "runtime": "ray-2.58-corrected-compatibility-local-worker",
+        "dataset": "dataset-v2-rth-12-symbol",
+        "panel": "jan-2026-crossed-8x4-inspected",
+        "cost": "exact-1bp-from-update-zero",
+        "representation": "r0-vs-r0+r4-v1-position-plus-time",
+        "curriculum": "family-00-random-generated-stream-worker",
+        "pbt": "disabled-one-update-smoke",
+        "seed_scope": "seed-20260924"
+      }
+    },
+    {
+      "id": "r4-v1-min-smoke",
+      "title": "R4-v1 minimum state smoke",
+      "date": "2026-09-25",
+      "status": "diagnostic",
+      "summary": "Three-update parameter-matched smoke across masked, position, remaining-horizon, and combined state cells.",
+      "adapter": "ablation_summary_v1",
+      "source": "docs/artifacts/research/solver-state-r4-v1-min-implementation-note-2026-09-25-evidence/smoke_4cell/summary.json",
+      "report": "docs/artifacts/research/solver-state-r4-v1-min-implementation-note-2026-09-25.md",
+      "factors": {
+        "runtime": "ray-2.58-local-worker",
+        "dataset": "dataset-v2-rth-12-symbol",
+        "panel": "dec-2025-crossed-8x4",
+        "cost": "exact-1bp-from-update-zero",
+        "representation": "r0-vs-r4-v1-four-cell",
+        "curriculum": "family-00-random-generated-stream-worker",
+        "pbt": "disabled",
+        "seed_scope": "seed-20260925"
+      }
+    },
+    {
+      "id": "r4-v1-blocking-4x3",
+      "title": "R4-v1 blocked state attribution",
+      "date": "2026-09-25",
+      "status": "architecture-qualified",
+      "summary": "Matched three-seed attribution of masked, position, remaining-horizon, and combined state under the fixed exact-cost recipe.",
+      "adapter": "ablation_summary_v1",
+      "source": "docs/artifacts/research/solver-state-r4-v1-blocking-ablation-2026-09-25-evidence/training_comparison/summary.json",
+      "report": "docs/artifacts/research/solver-state-r4-v1-blocking-ablation-2026-09-25.md",
+      "factors": {
+        "runtime": "ray-2.58-local-worker",
+        "dataset": "dataset-v2-rth-12-symbol",
+        "panel": "dec-2025-crossed-8x4",
+        "cost": "exact-1bp-from-update-zero",
+        "representation": "r0-vs-r4-v1-four-cell",
+        "curriculum": "family-00-random-generated-stream-worker",
+        "pbt": "disabled",
+        "seed_scope": "seeds-20260924-20260926"
+      }
+    },
+    {
+      "id": "r4-v1-actor-robustness",
+      "title": "R4-v1 actor robustness PBT",
+      "date": "2026-09-29",
+      "status": "mechanically-valid-economically-rejected",
+      "summary": "Matched four-member PBT terminal gate comparing causal cost staging with exact 1 bp from update zero on the January development panel.",
+      "adapter": "terminal_gate_v1",
+      "run_source": "docs/artifacts/research/solver-state-r4-v1-actor-robustness-2026-09-29-evidence/matched_cost_comparison/summary.json",
+      "source": "docs/artifacts/research/solver-state-r4-v1-actor-robustness-2026-09-29-evidence/terminal_gate_summary.json",
+      "report": "docs/artifacts/research/solver-state-r4-v1-actor-robustness-2026-09-29.md",
+      "legacy_dashboard": "docs/artifacts/research/solver-state-r4-v1-causal-forensics-2026-09-29-evidence/dashboard.html",
+      "factors": {
+        "runtime": "ray-2.58-local-worker-two-resident",
+        "dataset": "dataset-v2-rth-12-symbol",
+        "panel": "jan-2026-crossed-8x4",
+        "cost": "matched-causal-staging-vs-exact-1bp",
+        "representation": "r0+r4-v1-position-plus-time",
+        "curriculum": "family-00-random-generated-stream-worker",
+        "pbt": "sync-4-member-40-update",
+        "seed_scope": "four-matched-population-seeds"
+      }
+    },
+    {
+      "id": "r4-v1-g0-fresh-panel",
+      "title": "G0 member 00002 fresh-panel closure",
+      "date": "2026-10-03",
+      "status": "artifact-pair-parity-pass-economic-gate-fail",
+      "summary": "Five retained member-00002 checkpoints produced byte-identical replay artifacts on a predeclared non-overlapping November panel and did not transfer economically. Distinct producer identities were not recorded in the historical receipts, so independent-process provenance remains unverified in the browser.",
+      "adapter": "g0_closure_v1",
+      "source": "docs/artifacts/research/solver-state-r4-v1-causal-forensics-2026-09-29-evidence/g0_fresh_panel/g0_closure_summary.json",
+      "report": "docs/artifacts/research/solver-state-r4-v1-causal-forensics-2026-09-29.md",
+      "legacy_dashboard": "docs/artifacts/research/solver-state-r4-v1-causal-forensics-2026-09-29-evidence/g0_fresh_panel/dashboard.html",
+      "factors": {
+        "runtime": "ray-2.58-fresh-process-replay",
+        "dataset": "dataset-v2-rth-12-symbol",
+        "panel": "nov-2025-crossed-8x4-fresh",
+        "cost": "causal-staging-explicit-factor",
+        "representation": "r0+r4-v1-position-plus-time",
+        "curriculum": "family-00-random-generated-stream-worker",
+        "pbt": "historical-sync-pbt-checkpoint-replay",
+        "seed_scope": "member-00002-five-checkpoints"
+      }
+    }
+  ]
+}

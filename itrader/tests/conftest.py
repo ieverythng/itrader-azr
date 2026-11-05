@@ -29,3 +29,27 @@ def tiny_ohlcv_path(tmp_path: Path) -> Path:
     out = tmp_path / "tiny_ohlcv.parquet"
     df.to_parquet(out, index=False)
     return out
+
+
+@pytest.fixture
+def multi_symbol_ohlcv_path(tmp_path: Path) -> Path:
+    frames = []
+    for symbol, offset in (("AAA", 0.0), ("BBB", 50.0)):
+        n = 240
+        close = np.linspace(100.0 + offset, 110.0 + offset, n, dtype=np.float64)
+        frames.append(
+            pd.DataFrame(
+                {
+                    "symbol": symbol,
+                    "ts": pd.date_range("2024-01-01", periods=n, freq="min"),
+                    "OPEN": close - 0.05,
+                    "HIGH": close + 0.15,
+                    "LOW": close - 0.15,
+                    "CLOSE": close,
+                    "VOLUME": np.linspace(1000.0, 5000.0, n, dtype=np.float64),
+                }
+            )
+        )
+    out = tmp_path / "multi_symbol_ohlcv.parquet"
+    pd.concat(frames, ignore_index=True).to_parquet(out, index=False)
+    return out

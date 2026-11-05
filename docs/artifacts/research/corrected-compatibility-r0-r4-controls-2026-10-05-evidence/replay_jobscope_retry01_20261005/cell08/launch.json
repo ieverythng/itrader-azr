@@ -1,0 +1,102 @@
+{
+  "pid": 14492,
+  "process_started_unix": 1791210430.2418962,
+  "command": [
+    "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\.venv\\Scripts\\python.exe",
+    "-c",
+    "import sys,runpy; sys.path.insert(0,'C:\\\\Users\\\\Admin\\\\ray_results\\\\corrected-compat-r0-r4v1-20261005\\\\frozen_source_944d7d30'); from itrader.rl_lib.evaluation.provenance import source_tree_fingerprint; assert source_tree_fingerprint('C:\\\\Users\\\\Admin\\\\ray_results\\\\corrected-compat-r0-r4v1-20261005\\\\frozen_source_944d7d30')[\"source_tree_sha256\"]=='944d7d308654b93b090fec83a8097728157405671ae8aff858d2d00658fcf233'; runpy.run_module(\"itrader.rl_lib.evaluation.run_checkpoint_replay\",run_name=\"__main__\")",
+    "--stable-trial-dir",
+    "C:\\Users\\Admin\\ray_results\\corrected-compat-r0-r4v1-20261005\\_stable_metrics\\training_fn_ITraderEnv_48faf_00000_0_2026-10-05_13-24-10",
+    "--out-dir",
+    "D:\\iTRADER-offload\\active\\ray_results\\corrected-compat-r0-r4v1-20261005\\study_attempt04_terminal_replay_jobscope_retry01_20261005\\cell08\\out",
+    "--checkpoint-selection",
+    "terminal"
+  ],
+  "launch_id": "c117928d-9405-4f3e-944a-649e77c20838",
+  "timed_out": false,
+  "memory_reserve_bytes": 1342177280,
+  "minimum_available_memory_bytes": 2291101696,
+  "returncode": 0,
+  "process_scope_backend": "windows_job",
+  "cleanup_active_processes": 0,
+  "cleanup_errors": [],
+  "cleanup_survivors": [],
+  "observed_processes": [
+    {
+      "pid": 6368,
+      "process_started_unix": 1791210436.8379655
+    },
+    {
+      "pid": 13848,
+      "process_started_unix": 1791210434.6959684
+    },
+    {
+      "pid": 14492,
+      "process_started_unix": 1791210430.2418962
+    },
+    {
+      "pid": 21556,
+      "process_started_unix": 1791210434.7036552
+    },
+    {
+      "pid": 23144,
+      "process_started_unix": 1791210434.7024608
+    },
+    {
+      "pid": 29776,
+      "process_started_unix": 1791210436.912482
+    },
+    {
+      "pid": 30144,
+      "process_started_unix": 1791210430.249098
+    },
+    {
+      "pid": 30260,
+      "process_started_unix": 1791210435.6814544
+    },
+    {
+      "pid": 30968,
+      "process_started_unix": 1791210434.7096083
+    },
+    {
+      "pid": 32128,
+      "process_started_unix": 1791210436.8315053
+    },
+    {
+      "pid": 33424,
+      "process_started_unix": 1791210436.8286877
+    },
+    {
+      "pid": 38276,
+      "process_started_unix": 1791210435.7360573
+    },
+    {
+      "pid": 39764,
+      "process_started_unix": 1791210434.542004
+    },
+    {
+      "pid": 39992,
+      "process_started_unix": 1791210435.7409272
+    },
+    {
+      "pid": 42584,
+      "process_started_unix": 1791210435.6969872
+    },
+    {
+      "pid": 43292,
+      "process_started_unix": 1791210435.7497973
+    },
+    {
+      "pid": 43704,
+      "process_started_unix": 1791210435.6894732
+    },
+    {
+      "pid": 44976,
+      "process_started_unix": 1791210435.7439623
+    },
+    {
+      "pid": 45440,
+      "process_started_unix": 1791210436.8240285
+    }
+  ]
+}

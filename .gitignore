@@ -10638,6 +10638,7 @@ itrader/models/Qwen2.5-7B-Instruct/model-00003-of-00004.safetensors
 itrader/models/Qwen2.5-7B-Instruct/model-00004-of-00004.safetensors
 itrader/models/Qwen2.5-7B-Instruct/model.safetensors.index.txt
 /itrader/scripts/experiments/configs/outputs
+/itrader/data/datasets/
 
 # Python caches and virtual env state
 **/__pycache__/
@@ -10645,6 +10646,8 @@ itrader/models/Qwen2.5-7B-Instruct/model.safetensors.index.txt
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+*.egg-info/
+.venv/
 
 # Local secret files
 .env
@@ -10657,3 +10660,9 @@ itrader/models/Qwen2.5-7B-Instruct/model.safetensors.index.txt
 /_tmp/
 /_tools/
 /_external/llama.cpp/
+/.ray-probe-tmp
+/.pytest-tmp-final
+/.pytest-tmp-reporting-green
+
+# Repetitive coordination probes only; keep decisions and verdict receipts tracked.
+/docs/coordination/_local/

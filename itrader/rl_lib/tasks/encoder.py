@@ -1,7 +1,8 @@
 from __future__ import annotations
-from typing import Sequence
-import numpy as np
 import hashlib
+import json
+
+import numpy as np
 
 DEFAULT_T_EMBED_DIM = 32
 
@@ -22,7 +23,12 @@ class TaskEncoder:
         return arr
 
     @staticmethod
-    def embed(spec, dim: int = DEFAULT_T_EMBED_DIM) -> np.ndarray:
+    def embed(
+        spec,
+        dim: int = DEFAULT_T_EMBED_DIM,
+        *,
+        version: str = "legacy_v1",
+    ) -> np.ndarray:
         if getattr(spec, "t_embed", None) is not None:
             vec = np.array(spec.t_embed, dtype=np.float32)
             if vec.shape[0] != dim:
@@ -33,7 +39,26 @@ class TaskEncoder:
                 else:
                     vec = vec[:dim]
             return vec
-        # derive
+        if version == "semantic_v2":
+            payload = {
+                "family_id": spec.family_id,
+                "price_id": spec.price_id,
+                "horizon": int(spec.horizon),
+                "reward_id": spec.reward_id,
+                "reward_params": dict(spec.reward_params),
+                "obs_dim": int(spec.obs_dim),
+                "action_dim": int(spec.action_dim),
+                "bar_resolution": getattr(spec, "bar_resolution", None),
+                "regime_tags": sorted(getattr(spec, "regime_tags", []) or []),
+                "difficulty_target": getattr(spec, "difficulty_target", {}) or {},
+                "metadata": getattr(spec, "metadata", {}) or {},
+            }
+            canonical = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str)
+            return TaskEncoder._hash_to_vec(canonical, dim).astype(np.float32)
+        if version != "legacy_v1":
+            raise ValueError(f"Unknown task encoder version: {version!r}")
+
+        # Legacy checkpoint-compatible derivation.
         cats = [spec.family_id, spec.price_id, spec.reward_id]
         num = np.array([
             float(spec.horizon),

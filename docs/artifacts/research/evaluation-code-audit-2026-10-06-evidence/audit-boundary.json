@@ -1,0 +1,32 @@
+{
+  "base": "d3eb4c517075b1b85506f5500a9a5552d6186e3f",
+  "source": {
+    "algorithm": "sha256(sorted relative-path TAB file-sha256 LF)",
+    "python_file_count": 118,
+    "source_tree_sha256": "237efa2716b20568403f66bc56e20f6a1c9f2526d96b170a1ed798cf0a4c7dc4"
+  },
+  "runtime": {
+    "python": "3.11.13",
+    "platform": "Windows-10-10.0.19045-SP0",
+    "ray": "2.58.0",
+    "gymnasium": "1.2.2",
+    "pyarrow": "17.0.0",
+    "torch": "2.3.1",
+    "pandas": "2.1.4"
+  },
+  "files": {
+    "itrader/envs/itrader_env.py": "c28b39889fbae8fd652b4d8302085e1b7669d5fedf530f3299f8627badf0b002",
+    "itrader/rl_lib/tasks/samplers.py": "9f40d2208954574ab090d386a71ae5afdbafcf2a8785e6c12246798818c14f1f",
+    "itrader/rl_lib/evaluation/data_partition.py": "0038e80b11840b7c1973a685f8caa4643f66bf3d1424fd1aa2bb692c2e605941",
+    "itrader/rl_lib/evaluation/episode_evidence.py": "1a73f2ea89f1b15ee5fbd004ca51d35bfa47dd582639028ff498211a96f19e23",
+    "itrader/rl_lib/evaluation/terminal_panel_report.py": "66bc7fefbd725be8b907562965aac7863c052057fc9ec9c70ae6f4e0aa557dd8",
+    "itrader/rl_lib/evaluation/panel_qualification.py": "6455516f37800f060090b51e753823e195c85e18b78bd33f8ad738a24034d825",
+    "itrader/rl_lib/evaluation/screen_completion.py": "e159818f3db744016ee18d4c4582e23a847a20908cc8a823ce984410c3c0b0ce",
+    "itrader/rl_lib/evaluation/run_terminal_screen.py": "4cbc034bd9f4942d5eab84601ec9e0b46b3228f9d12b75872b289fef928127a5",
+    "itrader/rl_lib/evaluation/replay_evidence.py": "674d96a735331423de38e93d2e4839808b8d587453d86bc36d406d22fdc1b5f7",
+    "itrader/rl_lib/evaluation/provenance.py": "e32e38258c0f7dd7f07726ce5512cdee5f979745fdef0061a36ca1fa6f5e59a3",
+    "itrader/rl_lib/evaluation/policy_baselines.py": "3cc73cf10c486a2c55addb622441578323138b67a6ff34da9fe46f8c1fcc30ed",
+    "itrader/rl_lib/evaluation/run_checkpoint_replay.py": "ffcc6d90c280f1ef63df5dbb9772e1c3f915929b8f23d6ac1fd24c0043296636"
+  },
+  "scope": "Read-only evaluation mechanics and metadata/source historical exposure recovery. No training, replay, R1, panel opening or new statistical defaults."
+}

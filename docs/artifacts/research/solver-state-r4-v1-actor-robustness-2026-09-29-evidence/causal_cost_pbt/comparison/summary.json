@@ -1,0 +1,51 @@
+{
+  "run_tag": "phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_065425",
+  "collected_only": false,
+  "config": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929.json",
+  "results": [
+    {
+      "variant_id": "both_causal_cost",
+      "series_id": "both_causal_cost:training_fn_ITraderEnv_dc4cf_00000_0_seed=4822157_2026-09-29_06-54-32",
+      "experiment_name": "phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_065425_both_causal_cost",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-actor-robustness-20260929\\phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_065425_both_causal_cost\\training_fn_ITraderEnv_dc4cf_00000_0_seed=4822157_2026-09-29_06-54-32",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-actor-robustness-20260929\\_stable_metrics\\training_fn_ITraderEnv_dc4cf_00000_0_seed=4822157_2026-09-29_06-54-32\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-actor-robustness-20260929\\_stable_metrics\\training_fn_ITraderEnv_dc4cf_00000_0_seed=4822157_2026-09-29_06-54-32\\plots",
+      "final_metric": 0.0044161096257172
+    },
+    {
+      "variant_id": "both_causal_cost",
+      "series_id": "both_causal_cost:training_fn_ITraderEnv_dc4cf_00001_1_seed=5104182_2026-09-29_06-54-32",
+      "experiment_name": "phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_065425_both_causal_cost",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-actor-robustness-20260929\\phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_065425_both_causal_cost\\training_fn_ITraderEnv_dc4cf_00001_1_seed=5104182_2026-09-29_06-54-32",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-actor-robustness-20260929\\_stable_metrics\\training_fn_ITraderEnv_dc4cf_00001_1_seed=5104182_2026-09-29_06-54-32\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-actor-robustness-20260929\\_stable_metrics\\training_fn_ITraderEnv_dc4cf_00001_1_seed=5104182_2026-09-29_06-54-32\\plots",
+      "final_metric": 0.0044161096257172
+    },
+    {
+      "variant_id": "both_causal_cost",
+      "series_id": "both_causal_cost:training_fn_ITraderEnv_dc4cf_00002_2_seed=5259741_2026-09-29_06-54-32",
+      "experiment_name": "phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_065425_both_causal_cost",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-actor-robustness-20260929\\phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_065425_both_causal_cost\\training_fn_ITraderEnv_dc4cf_00002_2_seed=5259741_2026-09-29_06-54-32",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-actor-robustness-20260929\\_stable_metrics\\training_fn_ITraderEnv_dc4cf_00002_2_seed=5259741_2026-09-29_06-54-32\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-actor-robustness-20260929\\_stable_metrics\\training_fn_ITraderEnv_dc4cf_00002_2_seed=5259741_2026-09-29_06-54-32\\plots",
+      "final_metric": 0.0044161096257172
+    },
+    {
+      "variant_id": "both_causal_cost",
+      "series_id": "both_causal_cost:training_fn_ITraderEnv_dc4cf_00003_3_seed=4568774_2026-09-29_06-54-32",
+      "experiment_name": "phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_065425_both_causal_cost",
+      "trial_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-actor-robustness-20260929\\phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_065425_both_causal_cost\\training_fn_ITraderEnv_dc4cf_00003_3_seed=4568774_2026-09-29_06-54-32",
+      "stable_report_csv": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-actor-robustness-20260929\\_stable_metrics\\training_fn_ITraderEnv_dc4cf_00003_3_seed=4568774_2026-09-29_06-54-32\\report_rows.csv",
+      "stable_plot_dir": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r0-plus-r4-v1-actor-robustness-20260929\\_stable_metrics\\training_fn_ITraderEnv_dc4cf_00003_3_seed=4568774_2026-09-29_06-54-32\\plots",
+      "final_metric": 0.0044161096257172
+    }
+  ],
+  "primary_metric": "evaluation/net_return_mean",
+  "compare_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_065425\\ablation_compare.csv",
+  "compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_065425\\ablation_compare.png",
+  "sharpe_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_065425\\ablation_compare_validation_sharpe.png",
+  "entropy_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_065425\\ablation_compare_entropy.png",
+  "episode_len_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_065425\\ablation_compare_episode_len.png",
+  "diagnostics_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_065425\\ablation_compare_diagnostics.png",
+  "action_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_plus_r4_v1_actor_robustness_pbt_4x40_20260929_065425\\ablation_compare_action_fractions.png"
+}

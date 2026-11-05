@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Phase A Storage Incident and NVMe Offload Audit</title><style>
+:root{--ink:#172019;--muted:#536058;--line:#ccd4ce;--paper:#f3f6f3;--panel:#fff;--green:#176b49;--blue:#1f5d8c;--amber:#a96113}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--paper);font-family:"Segoe UI",Arial,sans-serif;line-height:1.58}header{color:#eef6f0;background:linear-gradient(135deg,#17271e,#204b36);border-bottom:5px solid var(--green)}header>div,main{width:min(1120px,calc(100% - 36px));margin:auto}header>div{padding:48px 0 40px}.eyebrow{margin:0 0 8px;color:#9ed1b4;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}header h1{max-width:920px;margin:0;color:#fff;font:700 clamp(2.2rem,5vw,3.6rem)/1.05 Georgia,serif}header p{max-width:850px;margin:14px 0 0;color:#d5e4da;font-size:1.05rem}main{padding:34px 0 72px}.source-note{margin:0 0 18px;color:var(--muted);font-size:.88rem}.source-note a{color:var(--blue)}article{padding:clamp(26px,5vw,58px);background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(23,32,25,.08)}h1,h2,h3,h4{color:var(--ink);font-family:Georgia,serif;line-height:1.2}article>h1{display:none}h2{margin:2.1em 0 .65em;padding-top:.2em;font-size:clamp(1.55rem,3vw,2.1rem);border-top:1px solid var(--line)}h2:first-of-type{border-top:0;margin-top:.4em}h3{margin:1.65em 0 .45em;font-size:1.28rem}p,li,td,th{color:var(--muted)}strong{color:var(--ink)}a{color:var(--blue)}code{padding:.08em .3em;color:#164d74;background:#edf3f6;border-radius:3px;font-family:Consolas,monospace;font-size:.92em}pre{overflow:auto;padding:17px;color:#eef5f0;background:#1b2720;border-left:4px solid var(--green);border-radius:5px}pre code{padding:0;color:inherit;background:transparent}blockquote{margin:1.2em 0;padding:12px 18px;background:#fff8e9;border-left:4px solid var(--amber)}blockquote p{margin:0;color:#63491f}table{width:100%;margin:1.2em 0 1.55em;border-collapse:collapse;font-size:.91rem}th,td{padding:9px 10px;border:1px solid var(--line);text-align:left;vertical-align:top}th{color:#fff;background:#244d68}tbody tr:nth-child(even){background:#f4f6f4}ul,ol{padding-left:1.45em}li+li{margin-top:.35em}@media(max-width:650px){header>div,main{width:min(100% - 22px,1120px)}article{padding:22px 18px}table{display:block;overflow-x:auto}}@media print{body{background:#fff}header{color:#000;background:#fff;border-bottom:2px solid #000}header h1{color:#000}header p,.eyebrow{color:#444}main{width:100%;padding:0}article{border:0;box-shadow:none;padding:0}}
+</style></head><body><header><div><p class="eyebrow">Research report</p><h1>Phase A Storage Incident and NVMe Offload Audit</h1><p>Storage root cause, evidence-preserving NVMe offload, WSL safeguards, and maintenance boundaries.</p></div></header><main><p class="source-note">Generated from <a href="phase-a-storage-incident-audit-2026-09-19.md">phase-a-storage-incident-audit-2026-09-19.md</a>.</p><article><h1>Phase A Storage Incident and NVMe Offload Audit</h1>
+<p><strong>Date:</strong> 2026-09-19
+<strong>Branch:</strong> <code>agent/Watson-dev</code>
+<strong>Scope:</strong> host storage pressure observed after the Phase A PBT/autoresearch
+loop, preservation of experiment evidence, and preparation of safe NVMe-backed
+Ray output paths. This audit does not change solver, reward, task, or recurrent
+architecture.</p>
+<h2>Decision</h2>
+<p>The Phase A PBT runs contributed to storage pressure but did not directly fill
+the system drive. The immediate failure was a single WSL crash dump for
+<code>/usr/bin/node</code> measuring 77,937,594,360 bytes, written under
+<code>%LOCALAPPDATA%\Temp\wsl-crashes</code> at approximately 16:47. The repository's
+experiment outputs occupied 3,391,042,441 bytes and the user-level
+<code>ray_results</code> tree occupied 2,428,525,076 bytes.</p>
+<p>The crash dump explains the abrupt transition from low headroom to a blocked
+drive. A recent Microsoft WSL issue reports the same failure class: individual
+Linux-process crash dumps of roughly 58--65 GiB exhausting the Windows host
+temporary volume. The installed WSL version here is 2.7.14.0, so the behavior
+is not safely assumed fixed by the local version. See
+<a href="https://github.com/microsoft/WSL/issues/41314">microsoft/WSL#41314</a> and the
+<a href="https://learn.microsoft.com/windows/wsl/wsl-config">official WSL advanced-settings reference</a>.</p>
+<h2>Reproducible signal</h2>
+<p>The incident check is deliberately small and red-capable:</p>
+<pre><code class="language-powershell">$free = (Get-PSDrive -Name C).Free
+if ($free -lt 5GB) { exit 2 }
+</code></pre>
+<p>Before remediation it reported <code>0.214 GB</code> free and exited 2. After remediation
+it reported <code>72.792 GB</code> free and exited 0; the final verified state after the
+remaining offloads is <code>78.250 GB</code> free.</p>
+<h2>Attribution</h2>
+<table>
+<thead>
+<tr>
+<th>Storage owner</th>
+<th style="text-align:right">Bytes observed</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>WSL <code>/usr/bin/node</code> crash dump</td>
+<td style="text-align:right">77,937,594,360</td>
+<td>Immediate exhaustion event; diagnostic only</td>
+</tr>
+<tr>
+<td>Two older WSL init dumps</td>
+<td style="text-align:right">1,007,616</td>
+<td>Diagnostic only</td>
+</tr>
+<tr>
+<td>Repository experiment outputs</td>
+<td style="text-align:right">3,391,042,441</td>
+<td>Durable Phase A/B evidence and Ray checkpoints</td>
+</tr>
+<tr>
+<td>User-level <code>ray_results</code></td>
+<td style="text-align:right">2,428,525,076</td>
+<td>Historical/default Ray results</td>
+</tr>
+<tr>
+<td>Ray sessions under <code>%TEMP%\ray</code></td>
+<td style="text-align:right">141,794,546</td>
+<td>Disposable but not material to the incident</td>
+</tr>
+<tr>
+<td>Repository <code>.venv</code></td>
+<td style="text-align:right">about 2.37 GB</td>
+<td>Required Windows-native runtime; retained</td>
+</tr>
+<tr>
+<td>Repository <code>.git</code></td>
+<td style="text-align:right">about 676 MB</td>
+<td>Required source history; retained</td>
+</tr>
+<tr>
+<td>Ubuntu <code>ext4.vhdx</code></td>
+<td style="text-align:right">76,946,604,032</td>
+<td>Live WSL distro, not disposable; retained on C for now</td>
+</tr>
+</tbody>
+</table>
+<p>The PBT-related result trees therefore consumed about 5.82 GB of file payload.
+They reduced safety margin but were an order of magnitude smaller than the
+single crash dump.</p>
+<h2>Completed remediation</h2>
+<ol>
+<li>
+<p>Moved all three WSL crash dumps to
+<code>E:\WSL-diagnostics\wsl-crashes-20260919</code>. The destination contains exactly
+three files and 77,938,601,976 bytes; the source archive no longer exists on
+C or D.</p>
+</li>
+<li>
+<p>Moved <code>C:\Users\Admin\ray_results</code> to
+<code>D:\iTRADER-offload\active\ray_results</code> and restored the original path as
+an NTFS junction. Verification found 9,494 files and 2,428,525,076 bytes.</p>
+</li>
+<li>
+<p>Moved 37 readable <code>phase*</code> experiment directories, totaling 11,790 files
+and 3,374,436,366 bytes, to
+<code>D:\iTRADER-offload\active\itrader-azr\experiment-outputs</code>. Each original
+path is now an independently verified NTFS junction. Existing report plots
+still resolve through their original paths.</p>
+</li>
+<li>
+<p>Left one inaccessible, zero-byte pytest scratch directory untouched. It
+prevented replacing the entire <code>outputs</code> root with one junction but did not
+prevent per-run offload.</p>
+</li>
+<li>
+<p>Added the following user-level <code>%USERPROFILE%\.wslconfig</code>:</p>
+<pre><code class="language-ini">[wsl2]
+crashDumpFolder=E:\\WSL-diagnostics\\wsl-crashes
+maxCrashDumpCount=1
+</code></pre>
+<p>The setting is documented by Microsoft and will take effect on the next
+normal WSL restart. WSL was not forcibly restarted because Ubuntu currently
+hosts Hermes, OpenClaw, ZeroTier, and the browser harness.</p>
+</li>
+</ol>
+<h2>Verified final layout</h2>
+<table>
+<thead>
+<tr>
+<th>Volume</th>
+<th>Role</th>
+<th style="text-align:right">Free space after remediation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C: Kingston SATA SSD</td>
+<td>Windows, repository, Python environment, live WSL VHDX</td>
+<td style="text-align:right">78.250 GB</td>
+</tr>
+<tr>
+<td>D: Fanxiang NVMe SSD</td>
+<td>Active Ray results and per-run experiment directories</td>
+<td style="text-align:right">163.846 GB</td>
+</tr>
+<tr>
+<td>E: WDC HDD</td>
+<td>Retained crash diagnostics and future WSL crash dumps</td>
+<td style="text-align:right">259.786 GB</td>
+</tr>
+</tbody>
+</table>
+<p>All 37 experiment junctions point beneath the intended D-drive root, the
+default <code>ray_results</code> junction points to D, and the main Phase A comparison plot
+is readable through its original C-drive path.</p>
+<h2>Deferred coordinated WSL move</h2>
+<p>Ubuntu's live <code>ext4.vhdx</code> is 76.95 GB on C. WSL 2.7.14 supports
+<code>wsl --manage Ubuntu --move &lt;Location&gt;</code>, and D is healthy NTFS storage. Moving
+the distro could free another roughly 71.7 GiB on C and improve Linux-side
+GitNexus/Node I/O, but it requires terminating the active distro and its
+services. Do this only in a coordinated maintenance window:</p>
+<pre><code class="language-powershell">wsl --shutdown
+wsl --manage Ubuntu --move D:\WSL\Ubuntu
+wsl --list --verbose
+wsl -d Ubuntu -- uname -a
+</code></pre>
+<p>Afterward, verify Hermes, OpenClaw, ZeroTier, the browser harness, repository
+mounts, and the GitNexus workflow before declaring the move complete. Do not
+unregister/import the distro as a shortcut.</p>
+<h2>Operational guardrails</h2>
+<ul>
+<li>Check C-drive free space before every long PBT run and require at least 20 GB.</li>
+<li>Keep active Ray/checkpoint outputs on D and cold diagnostics on E.</li>
+<li>Treat <code>wsl-crashes</code> as diagnostics, never as experiment evidence.</li>
+<li>Do not move an active Ray run or WSL distro.</li>
+<li>Preserve Markdown/HTML report links through the verified junctions.</li>
+<li>Run the storage A/B on fixed compute/economic settings; compare wall time,
+checkpoint latency, and sampled steps per second, not policy return.</li>
+</ul>
+<h2>2026-09-20 live-run verification</h2>
+<p>Two memory-safe four-member PBT probes ran with active output on D while an
+independent watchdog sampled C free space and searched for new Ubuntu/WSL crash
+files every 30 seconds. C remained above 76.08 GB free, D ended above 157.5 GB
+free, and the watchdog recorded zero crash files. The final post-fix probe
+terminated all four Ray trials successfully.</p>
+<p>The prior training interruption is now attributed to Windows RAM pressure, not
+storage or WSL: four concurrent trials with two rollout workers each exceeded
+the practical capacity of the 15.92 GB host. The validated setting is one
+rollout worker per trial with a four-CPU Ray cap, which schedules two trials at
+a time and retained at least about 6 GB free RAM during the proof. Keep that
+topology for Phase A overnight work unless a separately measured capacity test
+supports higher concurrency.</p>
+<h2>2026-09-20 GitNexus crash follow-up</h2>
+<p>After the training and repository checks were complete, the required stale-index
+refresh exposed the same WSL failure class independently of Ray. GitNexus's WSL
+Node process (<code>pid 12713</code>) crashed during <code>gitnexus analyze</code>. The watchdog caught
+C free space falling from 76.078 GB and the appearance of
+<code>wsl-crash-1789857188-12713-_usr_bin_node-11.dmp</code>. The analyzer was interrupted
+immediately, but the dump continued expanding to 82,457,206,776 bytes and drove
+C to effectively 0 GB before its writer released the file. Ubuntu remained
+running, the completed PBT evidence was already on D, and no Ray process was
+active, so this event did not invalidate an experiment.</p>
+<p>The configured <code>crashDumpFolder=E:\\WSL-diagnostics\\wsl-crashes</code> had not yet
+taken effect because the live WSL instance has deliberately not been restarted.
+Once the lock released, the dump was preserved at
+<code>E:\WSL-diagnostics\wsl-crashes-20260920</code> through a verified cross-volume move.
+C recovered to 76.84 GB free and E retained 182.99 GB free; WSL was not shut
+down. Do not retry GitNexus analysis in the current WSL lifetime. At the next
+approved restart, first verify that a controlled WSL process crash routes to E,
+then refresh GitNexus. The repository's existing index remains stale and must
+not be treated as current architecture evidence.</p>
+</article></main></body></html>

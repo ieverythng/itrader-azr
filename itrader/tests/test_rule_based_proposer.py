@@ -44,7 +44,8 @@ def test_rule_based_proposer_uses_reward_specific_param_shape():
     assert task["reward_id"] == "pnl_sharpe"
     assert "dd_w" in task["reward_params"]
     assert "turnover_w" in task["reward_params"]
-    assert "dd_mode" not in task["reward_params"]
+    assert task["reward_params"]["dd_mode"] == "delta"
+    assert task["reward_params"]["sharpe_window"] >= task["reward_params"]["sharpe_min_samples"]
 
 
 def test_factory_builds_rule_based_proposer():

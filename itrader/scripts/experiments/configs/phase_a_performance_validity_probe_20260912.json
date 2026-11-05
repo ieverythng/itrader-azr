@@ -1,0 +1,58 @@
+{
+  "name": "phase_a_performance_validity_probe",
+  "python_exe": ".venv/Scripts/python.exe",
+  "train_module": "itrader.rl_lib.train.train_solo_V2",
+  "primary_metric": "evaluation/net_return_mean",
+  "common_args": {
+    "cpu_only": true,
+    "workers": 2,
+    "timeout_hours": 1,
+    "window": 60,
+    "seed": 20260912,
+    "gamma": 0.99,
+    "lambda": 0.95,
+    "lr": 0.00005,
+    "train_batch_size": 1024,
+    "sgd_minibatch_size": 128,
+    "num_sgd_iter": 1,
+    "vf_clip_param": 10.0,
+    "clip_param": 0.2,
+    "vf_loss_coeff": 1.0,
+    "data_path": "itrader/data/ohlcv.parquet",
+    "task_pool_path": "",
+    "p_pool": 0.0,
+    "task_horizons": "96,128,160,200",
+    "task_reward_ids": "pnl_linear",
+    "start_idx_mode": "stream_worker",
+    "ret_norm_reset": "stream",
+    "stream_stride": 0,
+    "stream_jump_every_episodes": 5,
+    "stream_jump_on_wrap": true,
+    "auto_plot_on_end": true,
+    "pbt_interval": 3,
+    "pbt_burn_in": 3,
+    "checkpoint_interval": 3,
+    "evaluation_interval": 1,
+    "evaluation_num_episodes": 4,
+    "evidence_cost_bps": 1.0,
+    "evidence_periods_per_year": 0.0,
+    "split_fractions": "0.7,0.15,0.15",
+    "split_purge_rows": 200
+  },
+  "variants": [
+    {
+      "id": "fixed_random_generated_control",
+      "args": {
+        "iters": 3
+      }
+    },
+    {
+      "id": "pbt_random_generated_probe",
+      "args": {
+        "pbt": true,
+        "pop": 2,
+        "iters": 12
+      }
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+    "scope":  "R1-LIFECYCLE-20",
+    "lease":  "LEASE-TRAIN-R1-LIFECYCLE-20",
+    "closeout_utc":  "2026-10-09T13:17:29Z",
+    "status":  "closed_without_activation",
+    "reason":  "Enforced latest start was 2026-10-09T13:17:00Z; live preflight completed 29 seconds after cutoff. Supervisor is fail-closed; no command was invoked.",
+    "candidate_identity_manifest_sha256":  "95c65d5067e5bd9e22759882ce2967eb0d437ab87e3167623a17f818652d6315",
+    "candidate_launch_manifest_sha256":  "b8ab10c37364d97bfd613220388af1f946cf9bb20523ef21579b3ef64f2ed5bb",
+    "live_preflight":  {
+                           "utc":  "2026-10-09T13:17:29Z",
+                           "identity_entries":  49,
+                           "identity_mismatches":  0,
+                           "available_ram_gib":  6.44,
+                           "required_ram_gib":  4,
+                           "free_disk_gib":  62.01,
+                           "required_disk_gib":  20,
+                           "conflicting_compute_processes":  0
+                       },
+    "reviewers":  {
+                      "/root/cuda_command_review":  "APPROVE",
+                      "/root/cuda_fixed_review":  "APPROVE",
+                      "elapsed_cap_compliance":  "unknown"
+                  },
+    "cells_executed":  [
+
+                       ],
+    "launch_command_invoked":  false,
+    "tests_imports_fake_commands_or_ray_run":  false,
+    "run_outputs_created":  0,
+    "economic_or_market_outcomes_accessed":  false,
+    "retry_authorized":  false
+}

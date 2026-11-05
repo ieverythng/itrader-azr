@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>R4-v1-min solver-state implementation and smoke audit</title>
+  <style>
+    :root { color-scheme: light; --ink:#18201d; --muted:#5c6762; --line:#ccd3cf; --paper:#fbfcfa; --wash:#eef2ef; --accent:#1f6651; --bad:#8b3028; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--wash); color:var(--ink); font:16px/1.55 Georgia, serif; }
+    main { max-width:1120px; margin:32px auto; background:var(--paper); padding:48px 58px 64px; border:1px solid var(--line); }
+    h1,h2 { line-height:1.15; margin:0 0 18px; }
+    h1 { font-size:2.25rem; max-width:850px; }
+    h2 { font-size:1.45rem; margin-top:42px; padding-top:18px; border-top:1px solid var(--line); }
+    p { max-width:900px; }
+    .lede { font-size:1.15rem; color:var(--muted); }
+    .decision { margin:28px 0; padding:20px 24px; border-left:5px solid var(--accent); background:#f1f5f2; }
+    .fail { color:var(--bad); font-weight:700; }
+    code { font:0.9em Consolas, monospace; background:#edf0ee; padding:1px 4px; }
+    pre { overflow:auto; padding:16px; background:#202622; color:#f5f7f5; font:14px/1.45 Consolas, monospace; }
+    table { width:100%; border-collapse:collapse; margin:18px 0 24px; font-size:0.88rem; }
+    th,td { border:1px solid var(--line); padding:9px 10px; vertical-align:top; text-align:right; }
+    th:first-child,td:first-child { text-align:left; }
+    th { background:#e8eeea; }
+    tbody tr:nth-child(even) { background:#f4f6f4; }
+    .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:18px; margin:20px 0; }
+    .metric { border-top:3px solid var(--accent); padding:12px 0; }
+    .metric strong { display:block; font-size:1.45rem; }
+    .metric span { color:var(--muted); }
+    figure { margin:28px 0; }
+    img { max-width:100%; border:1px solid var(--line); }
+    figcaption { color:var(--muted); font-size:0.9rem; }
+    a { color:var(--accent); }
+    @media (max-width:760px) { main{margin:0;padding:28px 18px}.grid{grid-template-columns:1fr}table{display:block;overflow-x:auto} }
+  </style>
+</head>
+<body>
+<main>
+  <h1>R4-v1-min solver-state implementation and smoke audit</h1>
+  <p class="lede">Dataset-v2 RTH · Family 00 · fixed exact 1 bp · four matched three-update cells · 25 September 2026</p>
+
+  <div class="decision">
+    <strong>Decision:</strong> the R4-v1-min observation seam is implementation-valid and replay-valid.
+    <span class="fail">It is not economically promoted.</span> All retained update-3 checkpoints lost money and had negative held-out Sharpe. No PBT or R1 run followed.
+  </div>
+
+  <div class="grid">
+    <div class="metric"><strong>334</strong><span>runtime observation width</span></div>
+    <div class="metric"><strong>4 × 14,664</strong><span>matched sampled steps</span></div>
+    <div class="metric"><strong>4 / 4</strong><span>exact fresh checkpoint replays</span></div>
+  </div>
+
+  <h2>Observation contract</h2>
+  <pre>[market_window_flat | task_embedding | solver_state]
+
+masked   -&gt; [0, 0]
+position -&gt; [current_position, 0]
+time     -&gt; [0, remaining_horizon_fraction]
+both     -&gt; [current_position, remaining_horizon_fraction]
+
+market=300  task=32  base_obs_dim=332  state=2  agent_obs_dim=334
+observation_schema_id=r4_v1_min</pre>
+  <p><code>TaskSpec.obs_dim</code> remains the 332-wide base market-plus-task contract. <code>ITraderEnv</code> owns causal state and assembly. A bias-free <code>Linear(2,8)-&gt;ReLU</code> branch adds separate actor and value residuals; the masked vector therefore preserves the base path exactly.</p>
+
+  <h2>Matched design and runtime</h2>
+  <p>Masked, position-only, time-only, and combined cells used the same 60×5 dataset-v2 RTH input, 12 symbols, crossed 32-task panel, stream-worker sampling, random/generated Family 00 tasks, seed 20260925, evaluation seed 30260943, local-worker topology, and fixed 1 bp net-return objective. PBT and cost scheduling were disabled.</p>
+  <p>Runtime: Python 3.11.13, Ray 2.58.0, Gymnasium 1.2.2, PyArrow 17.0.0, Torch 2.3.1, Pandas 2.1.4. The first attempted launch stopped before training because its child process resolved an obsolete interpreter; the loadout was pinned to the repository virtual environment and the uncontaminated cells were rerun.</p>
+
+  <h2>Update-3 held-out economics</h2>
+  <table>
+    <thead><tr><th>Cell</th><th>Net return</th><th>Sharpe / √bar</th><th>Gross return</th><th>Turnover</th><th>Position changes</th><th>Short / flat / long</th><th>Explained variance</th></tr></thead>
+    <tbody>
+      <tr><td>Masked</td><td>-0.2004%</td><td>-0.03873</td><td>-0.0616%</td><td>13.875</td><td>12.906</td><td>37.62 / 12.38 / 50.00%</td><td>0.0163</td></tr>
+      <tr><td>Position</td><td>-0.3977%</td><td>-0.07080</td><td>+0.0004%</td><td>39.812</td><td>38.312</td><td>42.66 / 15.36 / 41.99%</td><td>0.0135</td></tr>
+      <tr><td>Time</td><td>-0.0934%</td><td>-0.02474</td><td>+0.0329%</td><td>12.625</td><td>9.438</td><td>47.76 / 3.65 / 48.58%</td><td>0.0126</td></tr>
+      <tr><td>Position + time</td><td>-0.1843%</td><td>-0.04036</td><td>-0.0162%</td><td>16.812</td><td>15.406</td><td>34.75 / 15.45 / 49.80%</td><td>0.0115</td></tr>
+    </tbody>
+  </table>
+  <p>Time-only was least negative. Position-only was the clearest failure mode: gross return was nearly zero, but excessive switching pushed net return to −0.398%. Each cell briefly became positive before update 3, but checkpoint interval 3 retained only the terminal state; those transient points are not replay-authoritative.</p>
+
+  <figure>
+    <img src="solver-state-r4-v1-min-implementation-note-2026-09-25-evidence/smoke_4cell/ablation_compare.png" alt="Held-out net return across the four R4-v1 smoke cells">
+    <figcaption>Held-out net return by sampled environment steps. Source: authoritative stable metrics from the four guarded cells.</figcaption>
+  </figure>
+
+  <h2>Matched controls</h2>
+  <table>
+    <thead><tr><th>Control</th><th>Net return</th><th>Sharpe / √bar</th><th>Turnover</th><th>Short / flat / long</th></tr></thead>
+    <tbody>
+      <tr><td>Flat</td><td>0.0000%</td><td>0.00000</td><td>0.000</td><td>0 / 100 / 0%</td></tr>
+      <tr><td>Long-only</td><td>-0.0979%</td><td>+0.00827</td><td>2.000</td><td>0 / 0 / 100%</td></tr>
+      <tr><td>Short-only</td><td>+0.0579%</td><td>-0.01558</td><td>2.000</td><td>100 / 0 / 0%</td></tr>
+      <tr><td>Seeded random</td><td>-1.2144%</td><td>-0.24465</td><td>130.625</td><td>32.86 / 34.29 / 32.85%</td></tr>
+      <tr><td>Seeded untrained R0</td><td>+0.0618%</td><td>-0.00976</td><td>2.000</td><td>75 / 0 / 25%</td></tr>
+    </tbody>
+  </table>
+  <p>The early positive smoke values align with an untrained 75%-short/25%-long tendency and the panel's small short-only return advantage. They do not yet establish learning beyond initialization or directional exposure.</p>
+
+  <h2>Replay and state-conditioned behavior</h2>
+  <p>All retained checkpoints reproduced selected net return in fresh processes: masked and position had zero delta; time and combined differed only by 1.08×10<sup>−19</sup> and 2.17×10<sup>−19</sup>. Dataset, panel, source, schema, config, checkpoint hash, and lineage evidence remained intact.</p>
+  <table>
+    <thead><tr><th>Cell</th><th>Step-weighted short / flat / long</th><th>Mean action probabilities</th><th>Switching</th><th>Inference entropy</th><th>Value mean ± std</th></tr></thead>
+    <tbody>
+      <tr><td>Masked</td><td>30.27 / 13.57 / 56.16%</td><td>34.43 / 30.36 / 35.21%</td><td>8.84%</td><td>1.0669</td><td>−3.245 ± 0.329</td></tr>
+      <tr><td>Position</td><td>35.72 / 18.94 / 45.33%</td><td>36.55 / 32.94 / 30.51%</td><td>26.24%</td><td>1.0699</td><td>−3.294 ± 0.360</td></tr>
+      <tr><td>Time</td><td>41.07 / 4.00 / 54.92%</td><td>35.80 / 26.83 / 37.37%</td><td>6.46%</td><td>1.0474</td><td>−3.262 ± 0.336</td></tr>
+      <tr><td>Position + time</td><td>27.08 / 16.93 / 55.99%</td><td>34.66 / 29.88 / 35.47%</td><td>10.55%</td><td>1.0675</td><td>−3.287 ± 0.348</td></tr>
+    </tbody>
+  </table>
+  <p>The position cell changes probabilities with prior position, but flat-state decisions enter exposure 67.65% of the time and create excess turnover. In the combined cell, long probability falls from 37.61% in the earliest quarter to 33.53% near termination while flat rises from 28.52% to 31.16%. This verifies state sensitivity, not economic usefulness. Entropy remains near ln(3)=1.0986, value fit is weak, and <code>clip_fraction</code> remains NaN.</p>
+
+  <h2>Next gate</h2>
+  <p>Run a longer matched masked-versus-combined probe with checkpointing at every evaluation improvement, the same fixed 1 bp panel and seeds, and state-conditioned diagnostics retained. Only durable state use without turnover explosion can justify adopting R4-v1 as the R1 observation contract or admitting it to PBT.</p>
+
+  <h2>Evidence</h2>
+  <ul>
+    <li><a href="solver-state-r4-v1-min-implementation-note-2026-09-25.md">Markdown source of truth</a></li>
+    <li><a href="solver-state-r4-v1-min-implementation-note-2026-09-25-evidence/smoke_4cell/summary.json">Four-cell comparison summary</a></li>
+    <li><a href="solver-state-r4-v1-min-implementation-note-2026-09-25-evidence/replay/">Fresh checkpoint replays</a></li>
+    <li><a href="solver-state-r4-v1-min-implementation-note-2026-09-25-evidence/state_diagnostics/">State-conditioned diagnostics</a></li>
+    <li><a href="solver-state-r4-v1-min-implementation-note-2026-09-25-evidence/controls/">Matched controls</a></li>
+  </ul>
+  <p><small>Validation: 268 repository tests before launch; 19 focused diagnostic tests after the evidence seam; final full suite 275 passed; healthcheck and scoped pre-commit passed; memory remained above the 2 GiB hard stop. No final-test access, PBT, R1, commit, staging, or deletion.</small></p>
+</main>
+</body>
+</html>

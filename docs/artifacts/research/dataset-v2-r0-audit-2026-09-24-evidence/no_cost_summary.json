@@ -1,0 +1,24 @@
+{
+  "run_tag": "phaseA_r0_dataset_v2_mlp_film_12_20260924_010901",
+  "collected_only": false,
+  "config": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\phase_a_r0_dataset_v2_mlp_film_12_20260924.json",
+  "results": [
+    {
+      "variant_id": "fresh_winner_recipe",
+      "series_id": "fresh_winner_recipe",
+      "experiment_name": "phaseA_r0_dataset_v2_mlp_film_12_20260924_010901_fresh_winner_recipe",
+      "trial_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_mlp_film_12_20260924\\ray\\phaseA_r0_dataset_v2_mlp_film_12_20260924_010901_fresh_winner_recipe\\training_fn_ITraderEnv_c889a_00000_0_2026-09-24_01-09-09",
+      "stable_report_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_mlp_film_12_20260924\\ray\\_stable_metrics\\training_fn_ITraderEnv_c889a_00000_0_2026-09-24_01-09-09\\report_rows.csv",
+      "stable_plot_dir": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_r0_dataset_v2_mlp_film_12_20260924\\ray\\_stable_metrics\\training_fn_ITraderEnv_c889a_00000_0_2026-09-24_01-09-09\\plots",
+      "final_metric": -0.0080749768712449
+    }
+  ],
+  "primary_metric": "evaluation/net_return_mean",
+  "compare_csv": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_mlp_film_12_20260924_010901\\ablation_compare.csv",
+  "compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_mlp_film_12_20260924_010901\\ablation_compare.png",
+  "sharpe_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_mlp_film_12_20260924_010901\\ablation_compare_validation_sharpe.png",
+  "entropy_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_mlp_film_12_20260924_010901\\ablation_compare_entropy.png",
+  "episode_len_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_mlp_film_12_20260924_010901\\ablation_compare_episode_len.png",
+  "diagnostics_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_mlp_film_12_20260924_010901\\ablation_compare_diagnostics.png",
+  "action_compare_png": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phaseA_r0_dataset_v2_mlp_film_12_20260924_010901\\ablation_compare_action_fractions.png"
+}

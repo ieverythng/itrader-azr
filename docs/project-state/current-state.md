@@ -1,85 +1,846 @@
 # Current State
 
-Last updated: 2026-05-02
+**CUDA37 complete (2026-10-13 04:04 Europe/Madrid):** all four R0/R1 x
+R4-state/off synthetic GPU PPO/update/save/restore/frozen-replay cases passed,
+with zero failures/errors/skips. Each recorded `cuda:0` after construction,
+update and restore. Total supervised runtime119.078s including transport;
+minimum available RAM3.734GiB, clean Windows Job cleanup and35/35source
+identities unchanged. [Durable execution receipt](../coordination/training-testing.md#training-cuda37-release1---complete)
+binds exact commands, source hashes, runtime and raw evidence. The installed
+CUDA profile is tested for this lifecycle; root CPU `.venv` is unchanged.
+No market edge, throughput improvement, native-Ray migration or blanket
+dependency compatibility is claimed. Earlier preparation/launch failures below
+are historical, not remaining CUDA37 blockers. No job remains authorized.
 
-## Product Goal
+**CUDA28 installed (2026-10-11 02:08 UTC):** the obsolete global
+`torch>=2.3,<2.4` requirement is removed. Reviewed root metadata and lock now
+define mutually exclusive `cpu-default` and `cuda-tested` uv groups. One locked
+sync installed the designated Windows CPython3.11 profile; GPU tensor forward/
+backward passed with Torch2.9.0.dev20250801+cu128, CUDA12.8, cuDNN91002 and
+RTX5070Ti/CC12.0. Root CPU `.venv` is preserved. Ray2.58/Gym1.2.2/NumPy1.26.4/
+pandas2.1.4/PyArrow17 remain pinned; 76 other shared package versions changed
+and decorator left the generated lock. This is not blanket refreshed-dependency,
+RLlib/PPO, throughput or economic qualification. See [the durable receipt](../artifacts/research/cuda28-known-error-repair-2026-10-11.md)
+and [environment operations](../environment_strategy.md).
+TRAINING-CUDA29 reached no PPO cell: an added, unreviewed PowerShell wrapper
+failed parsing. TRAINING confirms zero workload/budget and no owned survivor;
+the running status was withdrawn. No automatic retry or market/PBT execution
+is authorized. [GRILL](../coordination/grill.md) owns the closure and any future
+reviewed launch. [Bounded Evaluation](../evaluation/README.md)
+documents accounting, evidence disposition and remaining Q23/Q26 gates; shock
+robustness stays a separate future frozen-policy ablation. Notices below retain
+their scope-time facts, not current installation authority.
 
-`itrader-azr` is an RLVR-style trading research stack with a solver trained on explicit, decomposed rewards and a proposer that generates validated task curricula. The near-term goal is to make the solver reliable enough that proposer quality, future QLoRA/LoRA work, and online task/candidate selection can be judged against a stable baseline.
+**Q26 decision (2026-10-11):** exact finite-lag and bounded stable-decay families
+are both mandatory supported synthetic tests, not trading-path shocks. Every
+required scenario must satisfy the unchanged95/94/3 criteria. Human accepts
+full exchange-session distance as first inference candidate, challenged by both
+families under BOTH session and elapsed-local-civil-day DGP clocks. CLOCK27 is
+delivered. Qualified support, numerical ranges/moments and method/confirmation
+terms remain open; no calibration or market significance is claimed. See
+[decisions](decisions.md) and [the CLOCK27 receipt](../coordination/grill.md).
 
-## Current Phase
+**Latest CUDA closure:** DEV closed preparation at21:39UTC on Oct10 with the
+production packet still CHANGES; the absolute22:45 stop has elapsed. No
+provisioning lease activated, acquisition/sync or root mutation is recorded.
+The launcher component approval and CPU lifecycle pass remain separate evidence.
+Earlier conditional CUDA26 authority below is historical, not an active lease.
 
-Phase B is active on branch `Phase-B-Training`.
+**Latest CUDA handoff (2026-10-10, CUDA26):** DEV25's two independent reviews
+returned CHANGES: process bitness, protected-env aliases, precise artifact/hash/
+sync provenance, dev dependencies and native exit handling need repair. No real
+wheel acquisition or root mutation occurred. DEV26 now owns implementation,
+focused public tests and fresh review-gated provisioning, not another draft-only
+review. TRAINING25 readiness is delivered; GPU execution awaits the actual final
+handoff and a separately bound lease. The root CPU control
+is preserved until qualification; venvs are rebuilt from uv, never merged by
+copying packages. Native Ray API migration remains a separate matched factor.
+Exact continuation is on the [GRILL board](../coordination/grill.md).
 
-Recent commits show the project has moved through:
+**CUDA26 component receipt (21:12 UTC):** the launcher caller-state repair
+passed its six public cases in the author run and both fresh independent
+reviews, each APPROVE. Explicit GPU opt-in/device assertions are implemented
+in the existing checkpoint test. [The compact receipt](../artifacts/research/cuda26-review-and-test-roi-2026-10-10.md)
+does not qualify acquisition, full-lock/source binding, sync or CUDA execution.
+The first production packet was subsequently rejected by both reviews: concrete
+paths, process/resource containment, environment ownership/restoration and
+interpreter/platform eligibility are incomplete. These are packaging blockers,
+not R1 or CUDA hardware failures. Root project/lock/runtime are unchanged.
 
-- task contract hardening and reward plumbing,
-- future online contracts for `CandidateTask`, `ExecutionIntent`, `CapabilityProfile`, and `DecisionRecord`,
-- GitNexus-backed repo knowledge docs,
-- OpenAI-compatible proposer serving through local llama.cpp/vLLM-style endpoints,
-- dependency lock and main-PC operations improvements.
+**Latest focus (2026-10-10, continuation25):** the human resumes Q26 and
+implementation after the
+[Saluki advisory assessment](../artifacts/research/saluki-advisory-assessment-2026-10-10.md)
+([HTML](../artifacts/research/saluki-advisory-assessment-2026-10-10.html)).
+The original advisory MD/HTML remain unchanged. Accepted accounting controls
+are being integrated in the existing diagnostics owner. The newest human
+prioritizes actual CUDA project/lock application under DEV26, not draft-only
+preparation; provisioning stays separate from the frozen CPU control. All four
+CPU synthetic lifecycle cells passed PPO update, checkpoint restore and frozen
+replay, zero failures/errors/skips,37.234 owned seconds and cleanup survivors0.
+The [durable receipt](../artifacts/research/r1-lifecycle22/receipt.json) records
+these results, not the complete recipe or economic performance. TRAINING22's lease
+is closed; DEV26 may activate only after its declared reviews/preflight. See the current
+[GRILL scope](../coordination/grill.md) and owned boards for exact authority.
+CUDA is the preferred forward training target after reproducible provisioning
+and public-stack qualification, not a retroactive runtime change. Root `.venv`
+remains CPU-only at intake. Q26's conditional claim/roles and both dependence
+families are approved, while numerical and subsequent terms remain open; real
+training, outcome opening, new data/splits and economic promotion remain gated.
+Self-examiner research is not a model pilot or independent validation.
+RESEARCH25 delivered [selection-exposure/causal-feature evidence](../artifacts/research/saluki-methodology-research-2026-10-10.md#8-research25-selection-exposure-and-a-small-causal-feature-pilot)
+and the [market-scenario stress note](../artifacts/research/market-scenario-stress-2026-10-10.md).
+Research24 was superseded by the original Saluki audit; no24appendix is
+claimed. No split bounds, reservation release or OHLCV perturbation are selected.
+Q26's generators impose a known synthetic effect to test interval reliability;
+they neither know a real calendar effect nor filter architecture uplift.
+See the owned RESEARCH board and the research dashboard for the new wing.
 
-## Repository Shape
+**Historical implementation boundary (2026-10-09):** R1's stateless-per-decision 60x5 window
+LSTM/FiLM encoder and explicit `r0_r1_v1` selection/loadout are implemented in
+the dirty `agent/Watson-dev` tree. R0 remains the default and historical selector
+identity is preserved. Focused synthetic checks pass (31 cases), and the final
+independent code/spec reviews approve after tightening restore identity and
+making the end-to-end test consume the builder's real environment config. The
+test-ROI review recommends consolidating redundant public-path assertions while
+retaining distinct safety invariants. This does not qualify Ray checkpoint
+lifecycle, replay, market performance, or economics. Continuation22 authorizes
+the separately reviewed bounded synthetic Ray lifecycle smoke; in
+parallel, close Q21/Q23/Q24/Q25/Q26 panel and reporting prerequisites before any
+fixed-recipe R0/R0+R4-v1/R1/R1+R4-v1 screen. No real training, panel opening, native
+migration, or economic promotion is authorized here. Q27's accepted corrected
+controls and historical evidence remain untouched. See
+[R1 readiness](r1-development-readiness.md) and the
+[Oct-7 repair audit](../artifacts/research/evaluation-mechanical-repairs-2026-10-07.md).
 
-- Main environment: `itrader/envs/itrader_env.py`
-- Main PPO training entrypoint: `itrader/rl_lib/train/train_solo_V2.py`
-- AZR bootstrap runner: `itrader/rl_lib/train/train_AZR.py`
-- Task contracts and validation: `itrader/rl_lib/tasks/`
-- Proposer backends: `itrader/proposers/`
-- Knowledge layer: `docs/knowledge/` and `tools/knowledge/`
-- Project memory: `docs/project-state/`
-- Solver recurrence assessment: `docs/project-state/solver-recurrence-assessment.md`
+**Historical Oct-7 boundary:** Q27's four mechanical repairs are implemented;
+Independent Sol and Luna reviews approve mechanics and the separate opt-in
+economics pilot. The final core validation, healthcheck, scoped pre-commit and
+diff checks pass for that historical snapshot. Its statement that R1 had not
+been implemented is superseded by the 2026-10-09 status above. Q23/Q26 panel
+gates and all accepted control receipts retain their original evidence status.
 
-## Architecture Boundaries
+The dated Oct-6 notices below retain their publication-time approval status;
+the Oct-7 boundary above supersedes that status, not their recovery evidence.
 
-- `TaskSpec` remains the canonical offline training task contract.
-- `CandidateTask`, `ExecutionIntent`, `CapabilityProfile`, and `DecisionRecord` are future online/shadow-mode contracts and should stay explicit and validated.
-- The current primary solver path is PPO with `SolverMLPFiLM` task conditioning, even though `SolverLSTMModel` is still registered and available.
-- Reward computation stays explicit through `RewardEngine` with finite outputs and component metrics.
-- Proposer outputs must pass validation/clamping before entering a task pool or online decision path.
+**Evaluation audit completed (2026-10-06):** the bounded recovery maps 512
+recorded control rows to 48 starts; 26 randomized configs remain source-unbound.
+Both fresh independent reviews return CHANGES. Q27's four mechanical repairs and
+Q23/Q26 scientific decisions await approval. This does not reopen the accepted eight-control
+replay receipts or approve new metrics, split rules, data collection or training.
+The inherited physical-dataset-end/reset defect is reproduced; all 256 accepted
+control episode identities have full horizons and lie below that edge. No panel
+is certified or opened, no actual terminal executor is available, and R1 remains
+unimplemented. Research proposals require individual GRILL decisions before use.
+See the [current code audit](../artifacts/research/evaluation-code-audit-2026-10-06.md)
+for independently reproduced evaluator gaps and the pending Q27 repair scope.
 
-## Solver And Episode Facts
+**Prerequisite audit update (2026-10-06):**
+The sixteen-cell scientific loadout draft and fail-closed read-only terminal
+preflight are implemented. Metadata-only auditing found 2,052 provisional
+symbol/session anchors, but conservative historical possible-exposure exclusion
+leaves zero certified fresh candidates. Sixteen control episode sidecars recover
+recorded starts; the 26 randomized runs still lack source-bound start proof.
+Q23's recovery/new-data decision and Q26's calendar-block method block panel
+freeze. The real 128-task executor,
+matched control receipts and final pre-training config/source seal remain
+required; passing preflight does not authorize evaluation. No panel was frozen
+or opened, and no training or R1 implementation occurred. Corrected eight-cell
+controls remain replay-qualified without economic promotion. Native migration
+stays isolated; dirty work and artifacts are preserved. See the
+[qualification audit](../artifacts/research/r1-panel-qualification-2026-10-06.md).
+The dated execution notices below are historical, not active launch authority.
 
-- PPO config currently uses `batch_mode = "complete_episodes"`, so rollouts are collected as complete episodes before training batches are built.
-- `train_batch_size` defaults to `4800`, `sgd_minibatch_size` defaults to `128`, and `num_sgd_iter` defaults to `30`.
-- Default task horizons are `[96, 128, 160, 200]` bars at `1m` resolution.
-- `ITraderEnv` supports `start_idx_mode` values `random_episode`, `stream_worker`, and `task_spec`.
-- `ret_norm_reset` can reset return normalization per `episode` or per `stream`.
-- The existing `SolverLSTMModel` is a rolling-window sequence encoder, not a stateful recurrent RLlib policy.
-- The existing `SolverLSTMModel` is likely stale for the current `[price_window_flat, task_embed]` observation layout because it infers feature shape from the whole vector.
+Last updated: 2026-10-10
+Branch: `agent/Watson-dev`
+Current HEAD: `8f9fcf9`; inherited dirty work is preserved without staging.
+The coordination-only commit advanced HEAD after R1 implementation dispatch;
+R1 remains uncommitted for review on `agent/Watson-dev`.
 
-## Known Gaps
+**Final closeout, 16:38:** corrected-control terminal replay is complete and
+independently accepted (8/8 receipts, 256 episodes). Healthcheck, 416 tests,
+pre-commit and diff checks pass. No owned Ray/replay process remains; WSL is off.
+No economic promotion and no R1 implementation. The next boundary is accepted
+Q21/Q23/Q24/Q25 panel/completion/reporting preparation, then the fixed-recipe
+R1 comparison. All earlier attempts and resource breaches remain preserved.
+No staging, commits or pushes; monitoring is being paused. The dated progress
+entries below are historical, not outstanding replay tasks.
 
-- The current PPO optimization batch can mix full episodes from different market windows, regimes, rewards, and horizons.
-- There is no dedicated experiment yet comparing baseline mixed PPO batches against more regime-contiguous or horizon-aligned training schedules.
-- Capability tracking contracts exist, but the repo still needs a concrete updater that evaluates solver performance by family/regime/horizon on held-out windows.
-- Online/shadow-mode candidate evaluation is specified in docs but not yet fully implemented.
-- The solver-head frontier needs an explicit comparison between `SolverMLPFiLM`, a corrected time-series window encoder, and a true stateful recurrent policy.
+**16:32 latest:** all eight attempt04 terminals have fresh witnessed 32-episode
+replays (256 accepted episodes), exact checkpoint/payload/score parity and zero
+owned processes after cleanup. First-batch cells4--7 plus retry01 cells8,1,2,3
+are authoritative; the first cell8 resource abort stays rejected and preserved.
+Minimum free RAM across accepted jobs: 2.134 GiB. Human-requested WSL shutdown
+completed; subsequent work is Windows-only. Final independent evidence review
+and serialized repository validation are in progress. No economic promotion:
+staged R4 seed24 remains +0.392761% / +0.018892 Sharpe per sqrt-bar, seed25 flat.
+No R1 implementation. Earlier live-status paragraphs are historical.
 
-## Validation Baseline
+**16:10 replay closeout revision:** the human removed the fixed session deadline.
+Two independent reviewers approved the Windows job-object launcher repair after
+real timeout, fast-root-exit, descendant, and fault-injection probes. Eight fresh
+terminal replays are now bounded to 300 seconds each (order 4,5,6,7,8,1,2,3);
+Luna owns the first cell and must report before further clearance. Hard free-RAM
+reserve is 1 GiB, with proactive stop at 1.25 GiB and measured startup headroom
+of 5 GiB. Ray CPU2 / Torch8 / CPU arithmetic remain matched to training.
+The evaluator uses the byte-verified `frozen_source_944d7d30` snapshot; the repaired
+launcher and stricter evidence consumer have separate current-source identity.
+The main dirty tree is therefore **not** the original training fingerprint.
+The 15:37 external-watchdog attempt failed before producing episode evidence;
+its subset-only cleanup claim is not full-tree containment. It is preserved,
+not accepted. No training restart, R1 implementation, or economic promotion.
+Earlier statuses below are historical and superseded where stated.
 
-Recent inspected tests cover:
+**15:31 human resource revision:** replay runtime hard floor is now 1 GiB
+(conservative interpretation of requested 1 GB), replacing 2 GiB. The speculative
+7 GiB startup cushion is removed; use 5 GiB measured startup headroom and Ray
+CPU2 / unchanged Torch8. External exact-identity child-cleanup probe passed;
+Luna is cleared for seven sequential frozen-source replays until 15:46. The
+helper timeout defect must still be repaired/reviewed before sprint closure.
+Earlier resource holds remain historical and are not retroactively erased.
 
-- PPO config assembly,
-- env reset and finite step outputs,
-- task validation and contract coercion,
-- dynamic metrics extraction,
-- proposer backend/task generation surfaces.
+**15:16 renewed replay phase:** human freed RAM and authorized closeout. Parent
+read 7.44 GiB and unchanged source. Luna/xhigh will execute remaining terminals
+4--8 plus witnessed repeats1--2, sequentially, with 7 GiB startup / 2 GiB runtime
+floors and 15:46 Madrid deadline. Heartbeat active again; no training restart,
+runtime/config change or R1 implementation. Earlier hold stays in the evidence.
 
-Validation not rerun in this handoff pass:
+**Live status, 13:48:** all eight attempt04 training cells completed. Further
+terminal replay is safely held after replay 3 reached 1.47 GiB available RAM,
+below the hard 2 GiB floor; it finished naturally, with no process killed.
+Three replay receipts pass payload/checkpoint/score checks, but only replay 3
+has a saved live process witness. Five terminals and witnessed repeats of the
+first two remain; no full replay acceptance. No owned processes remain.
+Heartbeat is PAUSED. Define a safer replay resource envelope before resuming;
+preserve source/config freeze and all artifacts. Earlier progress is historical.
 
-- full pytest suite,
-- actual PPO training,
-- proposer-backed training comparison,
-- online/shadow-mode replay.
+Current qualification: integration found optimizer-alias and donor-restore
+configuration defects. Historical raw outcomes remain evidence, but mutation
+logs alone do not establish effective PBT search. Correctness review and fresh
+matched R0/R4 controls precede R1 on the corrected compatibility stack. Native
+RLlib API migration is explicitly deferred until after that R1 comparison.
 
-## External Source Documents
+The bounded metadata audit confirms native 30/128 in ten retained Ray 2.58
+terminals, policy/Adam settings differing from intended config in five exploited
+targets, and six entropy resets after member-00002 self-resumes. Historical
+returns remain observed outcomes, not corrected-stack predictions. Fresh
+R0/R4 controls are now authorized and in supervised preflight; this pass stops
+before R1. See the [live control-run record](../artifacts/research/corrected-compatibility-r0-r4-controls-2026-10-05.md).
+The user subsequently freed RAM. Smoke attempt 01 stopped before training on
+an explicit cadence-config mismatch; attempt 02 launched after a config-only
+fix and full-builder independent review. Luna/xhigh completed both one-update
+cells and fresh-process 32-task checkpoint replays. Each sampled 4,944 steps;
+the sampled RAM minimum was 3.35 GiB. R0 net return was -0.059056%; R4 was
++0.441611% with 100% short actions, matching the known directional control.
+These are mechanics results, not economic promotion or the eight-cell study.
+No training remains running from this probe. See the live record above.
+The human subsequently authorized the longer eight-cell development bridge;
+Luna/xhigh is preflighting the unchanged fixed-recipe loadout for 12 updates
+per cell, PBT off. This is separate from the Q21 16-cell terminal screen; no
+fresh-panel opening or R1 implementation is authorized by this run.
+After an initial RAM hold and a pre-training launcher setup failure, the official
+eight-cell runner launched at 12:09:28 Europe/Madrid, PID 8672, with 5.34 GiB
+available. At 12:18:32 the owned tree was stopped for a derived-training-metric
+reporting defect: first cell complete at 12 updates / 58,256 steps, second
+partial at two updates / 9,768 steps. RAM recovered to 5.59 GiB. Independent
+review found evaluation/checkpoint evidence unaffected and raw training metrics
+recoverable; finish terminal replay before repairing/reviewing the reporting
+adapter and restarting under a fresh source fingerprint. The repair is now
+approved by Sol/MAX and Astra; 412 tests, healthcheck and serialized pre-commit
+pass. Luna is cleared for attempt04 preflight, with source `944d7d30...58fcf233`.
+Attempt04 launched at 12:41:24 Europe/Madrid, PID 10480, with 5.64 GiB free RAM;
+all eight cells included. At 12:47, first R0/exact-cost cell completed 12 updates /
+58,256 steps (terminal all-flat); cell 2 staged-cost R0 is active. All 12 first-cell
+rows passed raw/derived reporting and finite-diagnostic checks; fresh replay pending.
+At 12:52, staged-cost R0 also completed 12 updates / 58,256 steps: 99.980469%
+flat, net -0.000230305%, Sharpe -0.001758110 per sqrt-bar. Staging delayed but
+did not prevent near-flat convergence for this seed. Two of eight cells complete;
+remaining cells and fresh replays are still required. Cost/report/checkpoint gates pass.
+At 13:02, cell 3 (combined-state exact-cost) also completed 12/58,256, ending
+fully flat. Three of eight are complete; cell 4 combined-state staged-cost is
+active at update 6, with positive net but slightly negative Sharpe. All inspected
+reporting/checkpoint gates pass; source remains frozen and terminal replays pending.
+At 13:07, four of eight cells are complete. Combined-state staged-cost on the
+first seed ends non-flat at +0.392761% net / +0.018892 Sharpe per sqrt-bar,
+below the known short-only control. Cell 5 (second-seed R0/exact-cost) is active.
+Complete second-seed comparisons and terminal replay before any closure claim.
+At 13:12, cell 5 second-seed R0/exact-cost completed 12 updates / 58,640 steps,
+terminal all-flat. Five of eight complete; cell 6 staged-cost R0 is active.
+All six retained cell-5 checkpoint hashes pass, source unchanged, RAM ~2.60 GiB.
+At 13:17, cell 6 completed 12/58,640, net -0.171068%, Sharpe -0.059884 per
+sqrt-bar, 76.523438% flat. Reporting/checkpoint checks pass. Six of eight complete;
+cell 7 second-seed combined-state exact-cost is active. No source or gate changes.
+At 13:30:16, all eight training cells and the official comparison summary are
+complete: 467,584 sampled steps total. Both second-seed combined-state cells
+end fully flat; the first-seed staged R4 positive result did not replicate.
+All 96 report rows and 33 checkpoint digests pass parent read-only verification.
+Training processes exited before the 14:41:24 deadline; unchanged 5/2 GiB
+startup/runtime floors held at observed checks. Luna now owns eight sequential
+fresh terminal replays. Source/configuration remain frozen until replay and
+evidence review; do not claim complete study acceptance or economic promotion.
+The five-minute heartbeat remains active through replay. Exact artifacts are in the audit.
+At 13:37 replay is waiting for RAM: about 4.12 GiB available versus the 5 GiB
+startup gate. All eight terminal input selections passed identity checks; none
+has launched and no owned Ray/replay process remains. Preserve the source freeze
+and wait for headroom. Fresh independent closure review also awaits agent capacity.
+At 13:42, RAM recovered and replay 1 completed with exact 32-episode parity.
+Its launcher/driver PID parentage was not observed live; preserve that limitation.
+Luna will capture process witnesses through the existing launch helper for the
+remaining seven terminals and repeat terminal 1 once with the same witness.
+No training restart or runtime change; final replay acceptance remains pending.
+See [exact artifacts and hashes](../artifacts/research/ray258-historical-optimizer-audit-2026-10-05.md).
 
-- `README.md`
-- `docs/architecture.md`
-- `docs/phase_b_plan.md`
-- `docs/iTRADER_Codex_Implementation_Spec.md`
-- `docs/phase_b_handoff_2026-03-04.md`
-- `docs/windows_llama_cpp_qwen35.md`
-- `docs/knowledge/wiki/training-pipeline.md`
-- `docs/knowledge/wiki/trading-environment.md`
-- `docs/project-state/solver-recurrence-assessment.md`
+Q21 is now human-approved in GRILL-IMPLEMENT: 32-task inspected monitoring and
+128-task fresh terminal evaluation only after all 16 representation-screen
+runs complete. Panel construction and execution enforcement are not implemented
+claims. The separate native-API branch may develop now; main-tree integration
+remains after corrected-compatibility R1 attribution. No R1 code is landed here.
+
+Q22 is approved: identical corrected 30-epoch / minibatch-128 optimizer recipe
+and unscaled entropy schedule across all 16 cells, PBT off. Q23 metadata-only
+fresh-panel coverage is now approved; eligibility audit is in progress. Panel
+freeze and Q21 runner enforcement still precede the screen. Q24 equal-symbol
+terminal-net aggregation and Q25 episode net-bps-per-actual-bar diagnostics are
+approved but unimplemented. Existing metrics/rewards/PBT scores are unchanged;
+no reporting implementation will alter the active source snapshot.
+
+The metadata-only Q23 audit found 4,094 eligible offset slots / 2,052 distinct
+symbol/session pairs after exclusions against all four checked-in panels.
+No panel is selected/frozen: historical randomized evaluation starts outside
+those files still need a freshness audit. Both dashboard and smoke-evidence
+independent reviews approved their bounded scopes; no open findings there.
+Q23's exploratory counter discrepancy was reconciled by a metadata recount:
+4,158 candidates minus 16 overlaps per known panel = 4,094 retained. That fixes
+the reporting count, not the unresolved historical-random-start freshness gate.
+
+Research-wing identities and cross-wing dependencies are indexed in the
+[iTrader Research Dashboard](../research/itrader_research_dashboard.md); this
+file remains the checkout/experiment-state authority.
+Concrete run/member/checkpoint evidence is searchable in the generated
+[Experiment Browser](../research/itrader_experiment_browser.html). Its
+[registry](../research/experiment_registry.json) stores comparison metadata and
+source pointers; authoritative summaries remain the metric source of truth.
+
+## R0 + R4-v1 actor-robustness P0 closed
+
+Next preparation is specified in [R1 development readiness](r1-development-readiness.md):
+learner-produced clipping diagnostics, process-attributed verified replay,
+explicit model selection and reset-per-decision window encoding. The planned
+study includes matched R0 + R4-v1 alongside R0, R1 and R1 + R4-v1. These are
+preparation requirements, not an implemented R1 or an authorized economic promotion.
+
+The January-2026 combined-state search completed two matched four-member,
+40-update synchronous-PBT arms on one Ray-2.58 source fingerprint. Both passed
+strict mechanics: six exploits, 18 exact restore receipts, six verified
+generation lineages, four complete members, and no stale or invalid provenance.
+
+The causal `0 -> 0.25 -> 0.5 -> 1 bp` arm ended with all four members exactly
+short-only at `+0.441611%` net and `0.024455` Sharpe per square-root bar. That is
+identical to the matched short-only control, so it is directional exposure rather
+than demonstrated conditional edge. One marginally better retained report failed
+exact replay by `7.4e-06` in search score near an action-logit tie.
+
+The exact-1-bp-from-update-zero arm ended with all four members exactly flat at
+zero return, Sharpe, and turnover. Historical terminal replay artifacts matched.
+PBT mutation events were recorded; the current effective-settings audit means
+that a model/curriculum-only explanation is not yet established. No checkpoint cleared non-flatness, directional-control uplift, and
+exact replay; independent-seed and 0.5/1/2-bp promotion spending therefore
+stopped at the declared gate.
+
+Preserve state-free R0 for parity and `R0 + R4-v1` as the
+architecture-qualified feed-forward baseline, without economic promotion. The
+forensic follow-up found 81 jointly positive causal reports, but all were at
+least 98.014% short. At the 77,832-step checkpoint, greedy actions were 99.36%
+short even though mean action probabilities remained 40.18% / 27.30% / 32.52%
+and entropy was 1.0823; 1.76% of steps had a top-two logit margin below 0.01.
+That checkpoint repeated the same one-action replay mismatch as the marginal
+best. Causal staging therefore remains an explicit matched curriculum factor,
+not proof of conditional alpha. Do not run another full population on the same
+January panel. The bounded G0 closure diagnostic is now complete: five exact
+member-`00002` checkpoints at 77,832, 92,384, 102,040, 106,968, and 194,368
+steps were replayed twice on a predeclared non-overlapping November-2025 8x4
+RTH panel. Every episode/reward trace and every per-step action/logit trace
+matched byte-for-byte across the retained artifact pairs. All five fresh-panel mean net
+returns and Sharpes were negative. The least-negative checkpoint was 102,040
+steps at -0.22822% net and -0.00620 Sharpe; its approximately 75/0/25
+short/flat/long episode-weighted mix was nearly identical at every anchor.
+The 106,968-step and terminal checkpoints were pure short and economically
+identical. This closes R0 + R4-v1 as architecture-qualified but economically
+unpromoted. Open clean Ray-2.58 R1 beside matched R0, R0 + R4-v1 and a separately named
+`R1 + R4-v1` cell using the frozen lower-LR recipe. Keep fixed 1 bp and causal
+staging as explicit matched curriculum factors. PBT follows fixed-recipe
+representation attribution. R4-v2 remains deferred.
+
+The canonical browser independently verifies the paired artifact hashes,
+receipt metrics, and panel hashes. It does not elevate the historical
+`two_process_identity` source field into independent producer provenance,
+because those receipts did not record distinct producer/run identifiers. Future
+R1 replay receipts must stamp producer identity at creation time; this
+qualification does not alter G0's negative economic decision.
+
+Static exact-cost reports also exposed a provenance-label defect: the training
+task configuration correctly used 1 bp, but report rows omitted the static cost
+field and aggregate output displayed zero. A test-first repair now resolves
+both scheduled and static optimization costs for future reports; completed
+reward delivery and economic results are unchanged.
+
+## R0 + R4-v1 architecture gate closed
+
+The fresh December-2025 4x3x40 replication is complete on the zero-initialized
+R4-v1 evidence profile. All 12 terminal checkpoints replay exactly. Combined
+position-plus-time state improved terminal net return over masked in every seed,
+and the pooled seed-then-anchor interval excluded zero. The actor/critic
+counterfactuals confirm real state use, with remaining horizon affecting the
+critic most strongly.
+
+No arm is economically promoted: all mean returns and Sharpes remain below the
+long-only control, Sharpe uplift is not seed-consistent, and seed 20260926
+collapsed above the 98% flat ceiling. R0 remains the immutable parity control;
+`R0 + R4-v1` is the architecture-qualified forward FF baseline. Its bounded
+actor-robustness search is now complete and economically rejected. R4-v2 remains
+deferred.
+
+## Ray 2.58 platform gate accepted
+
+The separately committed migration was reviewed but not cherry-picked because it
+carried a dataset-v1, asynchronous-PBT experiment boundary. Runtime-capability
+adapters were applied to current dataset-v2 source instead. The full 254-test
+suite and healthcheck pass on Ray 2.9 and isolated Ray 2.58; both runtimes produce
+the exact same initial MLP-FiLM weights and deterministic crossed-panel control.
+Their stochastic PPO trajectories differ under the same seed, so results must
+remain runtime-labelled.
+
+The fresh Ray-2.58 local-worker two-member/12-update gate completed at about
+58.6k steps per member with one genuine synchronous exploit, one verified
+generation-bound restore lineage, and exact fresh replay. The matched Ray-2.9
+mechanical gate also passed. A three-seed/fixed-hyperparameter smoke bridge ended
+negative for every runtime/seed terminal and for every best-checkpoint Sharpe;
+it validates execution breadth, not economic equivalence or uplift.
+
+During the gate, fresh replay exposed and fixed evaluation-time task-embedding
+dropout: `SolverMLPFiLM` now honors RLlib's `is_training` signal. Older in-loop
+evaluation with `t_keep_p < 1` is stochastic unless its selected checkpoint has
+an exact fresh replay. The corrected acceptance runs replay at zero delta.
+
+The coordinated root pins now target Ray 2.58/Gymnasium 1.2.2/PyArrow 17. Ray
+2.9 remains a frozen profile in `itrader/compat/ray29/`. R1 must eventually run
+beside a matched Ray-2.58 R0 control on the validated `workers=0` topology, after
+the bounded R4-v1 actor-robustness P0. See the dated Ray-2.58 R0 parity-gate audit.
+
+## Dataset-v2 and first R0 bridge
+
+An authenticated, immutable Alpaca SIP dataset-v2 snapshot now covers twelve
+symbols from 2022-01-03 through 2026-09-22. It contains 10,370,064 unique bars,
+including 5,515,061 RTH rows, with zero duplicate keys, OHLC invariant failures,
+or negative volumes. Parquet partitions are authoritative; DuckDB performs
+filtered discovery/query; Ray loads configured sessions and symbols. Phase A is
+RTH-only and session-safe. Dataset v1 is retained solely as historical evidence:
+its close path was real, but sampled OHLC was entirely flat, volume was often
+duplicated/summed, and timestamps were not DST-safe.
+
+The original fixed 32-episode v2 controls make long-only the strongest directional
+baseline at +0.05970% net and +0.00757 Sharpe/sqrt(bar). Two matched fresh
+12-update bridges show active PPO but no economic winner. No-cost ended at
+-0.80750% net. Exact-1-bp training reduced turnover to 18.06 but converged to
+95.23% short and -0.29511% net. The sealed final test remains untouched. The next
+P0 searches cost schedules and PPO settings on v2. It no longer selects on that
+panel because each horizon used different starts while `semantic_v2` exposes
+horizon, creating a start/horizon shortcut. The replacement development panel
+crosses eight explicit starts with all four horizons. Its controls are flat
+0.00000%, long-only -0.09785% net/+0.00827 Sharpe, short-only +0.05785% net/
+-0.01558 Sharpe, random -1.31143% net/-0.25857 Sharpe, and a seeded untrained
+FiLM that exactly matches short-only. This crossed panel is selection-informed,
+not an independent or final test. P1 moves to new chronological blocks and
+independent populations.
+
+The first 60-update, four-member synchronous v2 P0 attempt was stopped during
+the no-cost arm after four real exploits. Member exposure ranged from 121,648 to
+141,176 sampled environment steps. Ray 2.9 attempted `Trainable.save()` on an
+exploited actor before that fresh actor had emitted its first post-restore
+result, raising its `_last_result` assertion and invalidating the four-member
+synchronous comparison. Stable metrics, 22 checkpoint-index records, and the
+four exploit receipts were preserved; staged-cost and exact-cost arms were not
+started. A subsequent 35-update verification gate completed three exploits but
+showed that the first repair protected exploit-target restores only: member
+`00002` failed at ~97k when its own stable checkpoint was reattached before
+resume. A second fresh gate then proved both restore paths through new reports
+and brought all four members to ~97k with three exploits. It stopped when Ray
+attempted a redundant actor save while an exact same-step durable donor fallback
+was being resolved. Synchronous upper donors now select that exact immutable
+sidecar checkpoint directly; missing exact evidence fails closed. Gate C reached
+~97k for all four members with two clean exploits and two exact selections, then
+the guard exposed Ray's one-update in-flight overshoot: member `00002` reported
+102,080 steps while its last cadence snapshot was 97,248. Synchronous PBT now
+retains an immutable snapshot at every report but reports only cadence/terminal
+checkpoints to Tune, preserving exact metric/model identity without changing the
+search cadence. Gate D completed all four members at 170,152--170,416
+trial-owned steps. Its 140 reports map one-to-one to 140 non-empty stable
+checkpoints; five genuine exploits map to five exact-step donor receipts with
+zero lag, including the former 102,080-step Gate C failure. A direct forensic
+audit matched all five retained restore copies to their selected donor full-tree
+hashes. New-arm lineage is stricter and generation-bound: selection -> one target
+restore receipt -> target report -> retained target checkpoint. No exploit skip,
+trial error, missing evidence, required-metric nonfinite, or storage stop
+occurred. The 35-update gate therefore closes the Ray 2.9 synchronous checkpoint
+seam. It does not close economic promotion: all terminal 1 bp net returns and
+Sharpes were negative.
+
+The canonical crossed-panel P0 has now completed its bounded staged-cost and
+exact-1-bp reviews with `stream_worker`, synchronous four-member PBT, family 00,
+random/generated tasks, lower learning rates, and bounded entropy schedules.
+The final exact-cost arm passed its 96k mechanical gate with four members, three
+verified generation-bound exploits, and no pending/stale lineage. It failed the
+economic gate: population mean net return was -0.05317%, Sharpe/sqrt(bar)
+-0.03815, actions were 67.33% flat/32.67% short/0% long, and turnover was 6.609.
+Only 3/84 reports had positive net return, 3/84 had positive Sharpe, and none had
+both. Positive gross return was erased by costs; mean turnover plus liquidation
+penalties were approximately 3.55 times the positive PnL component.
+
+The staged-cost arm instead converged all four members to the matched short-only
+control: +0.05785% net, -0.01558 Sharpe, and turnover 2. This confirms that cost
+curriculum changes policy persistence, but neither arm demonstrates risk-adjusted
+edge. R0 is now frozen as the compatibility/economic control. More selection on
+the same crossed panel is stopped; the next high-information step is a bounded
+R1 representation challenger under identical data, tasks, seeds, costs, PBT
+cadence, compute, and gates. Earlier contaminated probes remain diagnostic only.
+
+## Working-tree boundary
+
+This dirty branch now includes the Phase A measurement/PBT implementation round.
+The previously staged Sharpe challenger is preserved as an experimental reward;
+`pnl_linear` remains the sole default. The supplied AZR and recurrence audits are
+source-grounded evidence, not executable instructions. Recurrent/LSTM solver work
+remains out of scope for this implementation.
+
+## Current decision boundary
+
+The user's Phase B scope includes both offline/curriculum work and online
+replay/shadow work; Phase C is not the first replay boundary. Families `00`–`04`
+remain a roadmap. `00`–`02` may share `Discrete(3)` width without settling input
+schemas, task/reward semantics, or state ownership. Shared recurrent trunk plus
+family-specific policy/value heads, recurrence placement, and restored R-ID
+reconciliation remain proposed until the ongoing grill-me review confirms them.
+`RewardEngine` remains the environment-owned reward seam, not a mandatory learned
+reward head.
+
+## Implemented baseline
+
+- `train_solo_V2.py` selects `SolverMLPFiLM` directly.
+- `ITraderEnv` emits chronological flattened OHLCV window plus task embedding.
+- `TaskSpec` is canonical; `RewardEngine` owns reward calculation.
+- `pnl_linear` remains the historical/default reward; `net_return` is an
+  implemented challenger, while Sharpe variants remain experimental. None is an
+  economically promoted solver recipe.
+- `train_AZR.py` generates/validates a task pool and hands it to solver training.
+  This is bootstrap, not a co-adaptive AZR loop.
+- Only source family `00` is enabled. Families `01`/`02` are bootstrap contracts;
+  `03` is trade management; `04` is abstention/WAIT semantics.
+
+## Phase A performance evidence
+
+The 2026-09-19 P0 autoresearch is now the latest evidence. A matched no-cost
+discovery arm produced two positive 1 bp checkpoints (`00001` +0.33846%,
+Sharpe +0.02608; `00003` +0.35476%, Sharpe +0.02561). Exact replay, every
+horizon, 2 bp repricing, and bullish/bearish action attribution passed, but the
+two checkpoints share ancestry. A broad independent population and an
+independent four-member winner-recipe population failed to reproduce the
+matched short-only net-plus-Sharpe margin. An opt-in eligibility-aware PBT
+score was then implemented test-first and exercised for 40 updates; it observed
+two eligible reports but no boundary-time or terminal winner. Phase A therefore
+has credible selection-panel candidates and active PPO/PBT, not validated
+economic promotion. The sealed final test remains untouched. See the dated
+2026-09-19 MLP-FiLM autoresearch report for controls, lineage, blocks, costs,
+regimes, plots, and the next cadence experiment.
+
+The follow-up raw-net 24k cadence run recorded two genuine PBT exploits before
+the original four-trial/two-worker topology exhausted the 16 GB Windows host.
+Immutable-checkpoint recovery completed every lineage. Member `00002` produced
+the strongest new transient at 372,216 steps: +0.39258% 1 bp net return,
++0.02959 Sharpe, exact fresh-process replay, +0.30008% at 2 bp, and positive
+returns in both ex-post bullish and bearish episode groups. It beat short-only
+for only two consecutive reports, its paired block interval against short-only
+crossed zero, and it later regressed. This is bounded evidence of economic
+learnability on the selection panel, not independent promotion.
+
+Ray-2.9 PBT is now live-validated in a memory-safe topology: one rollout worker
+per trial, four declared Ray CPUs, and two concurrent trials on this 16 GB host.
+The adapter retries an empty scheduled donor save from the stable checkpoint
+index, reattaches paused upper donors to their own durable checkpoint, releases
+orphaned staged trials, and suppresses mutations at terminal exposure. The
+post-fix four-member proof terminated all members with one legitimate boundary
+exploit, no terminal exploit, and no errored trial. The watchdog observed no
+Ubuntu/WSL crash and C stayed above 76 GB free.
+
+That statement is specific to the PBT probes. A later required GitNexus refresh
+crashed its WSL Node analyzer and created an 82.46 GB dump that briefly drove C
+to 0 GB. The analyzer was stopped and the dump was moved to E after the writer
+released it, restoring C to 76.84 GB; Ubuntu and the completed PBT evidence
+remained intact. Do not retry indexing before a coordinated WSL restart
+activates the already configured E-drive crash-dump route. GitNexus remains
+explicitly stale.
+
+P0 measurement, controls, candidate discovery, replay, and PBT mechanics are
+therefore closed enough to define P1, while economic promotion remains blocked.
+P1 is independent training on genuinely new chronological validation blocks,
+selection-aware block uncertainty, regime/action attribution, and fresh
+per-step 0.5/1/2 bp return plus Sharpe replay before the sealed final test.
+
+The 2026-09-17 synchronous matched bridge is the preceding negative bridge.
+Its completed 1 bp net-return arm and restarted-from-zero PnL-linear arm each
+have four completed members, 576k–580k trial-owned environment steps per member,
+and 12 durable checkpoint indices per member. The interrupted PnL-linear prefix
+was preserved but excluded: one member had no model checkpoint, and the other
+trial-owned progress/report records were ahead of their model checkpoints, so
+exact Ray experiment resume could not guarantee comparable exposure. Only that
+arm was rerun. Ten and eight genuine configuration changes occurred in the
+respective synchronous arms; gamma stayed in the valid 0.98–0.995 range.
+
+Mean terminal 1 bp net return was -0.14219% (`net_return`) and -1.00048%
+(`pnl_linear`); all eight terminal Sharpes were negative. The best retained
+PnL-linear member-01 cadence checkpoint replayed at +0.06718% net, but its
+Sharpe was -0.02301, turnover 26.1875, and its exploratory paired 14-block
+uplift interval over long-only crossed zero. The same actions lost -0.19470%
+when repriced at 2 bp. Both best checkpoints reproduced their selection scores
+in a fresh process. PPO and synchronous PBT are active; neither objective has
+established robust economic reward learnability. The sealed final test remains
+untouched. See the dated Phase A performance-validity audit for per-member
+actions, plots, replay receipts, and bootstrap caveats. Next P0 compares no-cost
+training, staged cost, and exact 1 bp training on matched starts while scoring
+all at 1 bp. P1 requires independent seeds, new blocks, selection-aware
+uncertainty, and 0.5/1/2 bp per-step replay after a P0 candidate passes the
+gross-edge, net, Sharpe, and turnover gates.
+
+The following paragraphs preserve earlier chronology rather than superseding
+the latest synchronous-bridge decision.
+
+The current R0 implementation is a compatibility baseline, not a validated
+performance winner. The 2026-09-12 audit restored both historical iteration-200
+PBT checkpoints and measured each on 288 symbol-safe deterministic diagnostic
+episodes. Checkpoint `00002` averaged +0.0163% gross and -0.0728% net at 1 bp per
+turnover unit; checkpoint `00004` averaged -0.0112% gross and -0.0950% net. The
+policies were 93.6% and 96.3% flat, respectively.
+
+This does not disprove that `pnl_linear` is learnable as a PPO optimization
+signal. It invalidates the stronger claim that the current training metric proves
+economic performance: `custom_metrics/episode_return_mean` is accumulated shaped
+reward, evaluation was in-sample, and the peak target has invalid `gamma=1.188`.
+
+The initial official random/generated probe reproduced identical population
+members, missed exploit boundaries, and zero-byte Ray-owned files. The repaired
+probe now uses distinct training seeds/configs, one matched validation seed,
+fixed rollout exposure, held-out net return at 1 bp as the PBT objective, bounded
+mutations, aligned checkpoint/perturbation cadence, and restore-aware lineage.
+Both PBT members completed exactly 12 unique iterations and 13,520 timesteps;
+real exploit/restore events and mutated configs were recorded. Repository-owned
+manifests, status, config history, checkpoint indices, metrics, plots, and
+capability reports are non-empty outside Tune-owned paths.
+
+The smoke probe does not validate performance. Four validation episodes per
+iteration and two training seeds are deliberately insufficient; isolated
+positive observations reversed by the final iteration. The overnight baseline-
+controlled, multi-seed study and untouched final test remain the promotion gate.
+
+On 2026-09-14, a parity-shaped preflight completed with four PBT members, nine
+iterations, 16 held-out episodes per iteration, and approximately 44.3k–44.5k
+environment steps per member. Three members recorded checkpoint-restore events
+after the non-terminal iteration-6 exploit boundary. Aggregate net-return and
+per-square-root-bar Sharpe plots completed headlessly. The best final burst point
+was still negative (-0.115% net; Sharpe -0.0081), so it is seam evidence only.
+
+The 200-iteration parity run
+`pbtA26_parity200_20260914_000736_pbt200` completed all four members at roughly
+0.99M environment steps each. Final held-out net returns ranged from -1.185% to
+-0.598%; final per-square-root-bar Sharpes ranged from -0.1983 to -0.1415. The
+run is valid evidence of negative economic outcomes under its reported policy
+state, but not of solver uplift or reward learnability.
+
+A checkpoint-boundary audit froze the 16-task evaluation panel and traced the
+abrupt turnover jumps to Ray 2.9 restore semantics. Policy hashes were identical,
+but `Algorithm.restore()` changed the evaluation policy's `explore` flag from
+`false` to `true`; PBT therefore ranked stochastic post-restore actions. The
+trainer now forces deterministic evaluation, explicitly synchronizes weights,
+accepts Ray 2.9's direct evaluation payload, and limits smoothing to the 16-panel
+episodes. PBT additionally uses checkpoint-free `market_relative_v1` observations
+with `NoFilter` and copies checkpoints outside Tune ownership.
+
+The final two-member, six-iteration official probe exercised a non-terminal
+restore. Source turnover 56.625 became 56.25 after the clone's first update, not
+roughly 127, and a fresh process reproduced the stable checkpoint's net return,
+Sharpe, and turnover exactly. Checkpoint/evaluation parity is now green. The
+four-member, 200-iteration run
+`pbtA26_parity200_checkpoint_valid_20260914_041907_pbt200_checkpoint_valid`
+completed on 2026-09-14 using `stream_worker`, random/generated tasks, the frozen
+16-task held-out panel, deterministic evaluation, and 10-iteration
+checkpoint/perturbation cadence. All members reached iteration 200 and roughly
+990k retained environment steps. Terminal net returns were -0.0556%, -0.1069%,
+-0.1866%, and -0.3906%; terminal Sharpes were -0.00060, -0.03145, -0.04089,
+and -0.05376. The best member was 91.3% flat and its durable terminal checkpoint
+reproduced net return, Sharpe, and turnover exactly in a fresh process. This is
+valid candidate-generation evidence, not performance promotion.
+
+The aggregate reporter initially aligned PBT histories by row position, which
+misplaced terminal points after lineage rewinds. The completed evidence was
+repaired against recorded `training_iteration`. New runs instead report and
+plot a trial-owned cumulative `pbt_progress_steps` clock. It survives donor
+checkpoint restore, drives perturbation/checkpoint cadence in sampled environment
+steps, and fixes the repeated late-schedule mutation seen around member `00001`'s
+iteration-130 restore.
+
+The completed next-P0 implementation added a separate `net_return`
+reward whose scaled episode sum matches 1 bp `EpisodeEvidence` arithmetic,
+horizon-balanced frozen validation tasks, available Ray 2.9 PPO diagnostics, a
+best cadence-checkpoint replay pointer, explicit baseline-relative promotion
+gates, and an official flat/long/short/random/untrained baseline runner.
+
+The official 64-episode control panel and bounded 40-update/192k-step PBT probe
+completed on 2026-09-16. On the 32-task subset used by PBT, flat scored 0 while
+long-only scored +0.03034% net with Sharpe +0.01077. All PBT terminal rows were
+negative. Member `00001` retained the best cadence checkpoint at -0.16643% net,
+Sharpe -0.06043, turnover 13.875, and 91.05% flat. Its checkpoint reproduced
+those values exactly in a fresh Ray process. Two donor-to-`00001` exploits were
+recorded, and its trial-owned progress remained monotonic through both restores;
+the member required 44 RLlib iterations to reach its own 193k-step budget. The
+measurement/PBT seams therefore pass the bounded acceptance check, but the
+economic promotion gate fails. Do not launch the multi-seed overnight study or
+let Phase B consume R0 as a performance winner until a bounded challenger beats
+flat and the matched long-only control.
+
+The follow-up matched 120-update bridge also completed on 2026-09-16. It used
+`stream_worker`, random/generated tasks, no LLM backend, four population members
+per arm, two rollout workers per member, identical seeds, and roughly 578--579k
+trial-owned environment steps per member. Exact 1 bp `net_return` ended at a
+mean -0.3309% net; one member converged to exactly flat. Historical `pnl_linear`
+ended at a mean -0.8850% net while retaining substantially more trading. Its best
+cadence checkpoint reached +0.04948% net, but Sharpe was -0.01032 and turnover
+42.94 versus the matched long-only control's +0.03034% net, +0.01077 Sharpe, and
+2.0 turnover. PPO is active and reward-sensitive, but neither arm passes
+economic promotion or establishes repeatable reward learnability.
+
+The bridge exposed underpowered asynchronous exploitation on Ray 2.9: each arm
+recorded only one true donor exploit, and Ray could attempt to exploit from an
+upper trial before its scheduler-owned checkpoint was ready. Promotion loadouts
+now opt into `pbt_synch`; the legacy asynchronous default remains available for
+reproduction. A synchronous A/B probe removed the missing-donor warning, and a
+second TDD slice moved stable checkpoint-index persistence before
+`session.report` so a synchronous pause cannot lose the index row. The final
+12-update integration probe produced three indexed/stable checkpoints per member,
+monotonic progress, real mutations in two of four members, and no missing-donor
+warning. Raw synchronous restore counts include self-resume and are not exploit
+counts; stable configuration histories are authoritative.
+
+Ray 2.58 is now the coordinated root dependency authority; Ray 2.9 remains an
+explicit historical reproduction profile. The accepted bridge retains the
+legacy `ModelV2`/RolloutWorker stack through narrow compatibility adapters. Port
+to RLModule/EnvRunner only as a later named factor. Unsloth remains relevant only
+to a future LLM proposer fine-tune, not the numerical PPO/PBT solver.
+
+## Solver truth
+
+R0 remains the default parity solver. R1's reset-per-decision window LSTM/FiLM
+and explicit selector are implemented and focused-synthetic-tested, but have no
+Ray lifecycle or performance qualification. `SolverMLPFiLM` uses
+`tanh(gamma(task))*hidden + beta(task)` and task dropout; non-`film` conditioning
+currently ignores task features rather than concatenating them.
+
+The checked-in `SolverLSTMModel` infers feature width from the full observation,
+reshapes incorrectly when task embedding is appended, discards LSTM state, and
+returns incoming state unchanged. It is not a stateful recurrent solver.
+
+R-series design identities are preserved from commit `4732a98`:
+
+- R1 reset-window LSTM + FiLM — implemented; focused synthetic checks pass; Ray lifecycle/performance unqualified;
+- R2a concat — unimplemented;
+- R2b init-only FiLM — deferred because current initial-state hook has no task;
+- R2c per-step FiLM — active candidate, unimplemented;
+- R2d init+per-step value-head-only — deferred;
+- R3 GRU per-step — later;
+- R4-v1-min position/remaining-horizon FF seam — implemented; blocking 4x3 and
+  fresh 4x3x40 three-seed gates plus exact terminal replay are complete. Combined
+  state passed paired net attribution on the fresh block, but all arms failed
+  absolute promotion and one seed collapsed near-flat. No recurrent cross is
+  economically authorized from this result.
+
+The old `bec5c77` per-step label R2b maps to original R2c; the old init R4 maps
+to original R2b. `R2c-CARRY`/`R2c-RESET` are named same-input controls, not new
+IDs.
+
+## Required evidence before recurrence claims
+
+- explicit `[price_window_flat | task_embedding]` split and newest-bar order;
+- cold-start versus causal initial-window warmup documented;
+- separate input-window, unroll/fragment, and episode/reward-stat windows;
+- native pinned Ray/RLlib sequence/state contract with valid-length packing,
+  padding-loss masks, and last-valid h **and c** preservation;
+- real termination versus truncation bootstrap and fragment detach semantics;
+- train/inference state parity, vector-worker ownership, checkpoint/replay state;
+- same-input/same-conditioning train-from-scratch carry/reset control;
+- preserve the failed R4-v1 economic promotion decision while using
+  `R0 + R4-v1` as the architecture-qualified forward FF baseline. R0 remains the
+  immutable parity control. The December-2025 `zero_v1` replication is complete;
+  the bounded actor-robustness search and causal forensics are also complete and
+  economically rejected. The fresh-panel checkpoint/logit diagnostic is closed;
+  open fixed-recipe matched R0, R0 + R4-v1, clean R1, and `R1 + R4-v1` cells next. Keep these
+  separate from R2 carry/reset attribution;
+- chronological held-out validation/final test and cost-aware metrics.
+
+A zero-state probe is an OOD diagnostic, not a causal memory proof. Any
+post-cell/readout FiLM claim is readout-only only when no other task path (such as
+concat) reaches the cell; with concat, the transition is already task-conditioned.
+The placement and memory-conditioning order remain open. OHLCV-only recurrence
+cannot reconstruct sampled action/fill/position.
+
+## Task encoding contract
+
+Historical checkpoints retain `legacy_v1`. New training uses `semantic_v2`, which
+represents solver-relevant task semantics and excludes episode seed/start as a
+location shortcut. Reset seeding, declared reward ranges, and normalized
+overrides are covered by regression tests.
+
+## Dependency and validation status
+
+`pyproject.toml`/`uv.lock` are authoritative: Python 3.11, Ray/RLlib 2.58.0,
+Gymnasium 1.2.2, PyArrow 17.0.0, and setuptools 69.5.1. The old Phase B 2.47.1
+line is historical; `itrader/compat/ray29/` records the reproduction profile.
+
+The existing repository `.venv` remains the live Ray-2.9 reproduction surface;
+the accepted Ray-2.58 environment passes the same 254-test suite. No recurrent
+training result is reported here. The bounded Phase A probe validates effective
+PBT search and evidence wiring, not reward learnability or trading performance.
+Ray-owned PBT text files still truncate to zero bytes on this platform; stable
+repository-owned provenance is authoritative.
+
+A final read-only architecture/deslop pass found and closed three future-run
+provenance gaps without altering completed run artifacts: snapshot content hashes
+ignore interrupted atomic-write `.tmp` files, run manifests serialize the
+resolved per-study PBT learning-rate bounds rather than the global/domain object,
+and `best_checkpoint.json` records economic eligibility from the explicit
+net/Sharpe/flat promotion score instead of inferring it from the active ranking
+metric. The healthcheck and complete 236-test suite pass after these changes.
+
+## Next priority
+
+Freeze the completed R0 staged/exact-cost evidence and stop selecting against
+the same crossed 32-task panel. The Ray-2.58 R0-only platform gate is accepted;
+keep Ray 2.9 as a historical reproduction profile and never change native RLlib
+stack plus solver in one attribution cell. After user review, the next controlled
+cell is R1: a bounded,
+reset-every-step chronological window encoder with the same dataset, task panel,
+seeds, cost schedules, PBT cadence, compute, and economic gates. R1 is a
+representation/shape control, not persistent-memory evidence. Native R2 work
+requires lifecycle, mask, reset, checkpoint/replay, and carry-versus-reset tests.
+Move economic selection to predeclared chronological blocks, 0.5/1/2 bp replay,
+block uncertainty, and independent lineages. Keep the final test sealed.
+After core R-series representation/lifecycle closure, run causal C0/C1/shuffled-
+C1 as a separate factor. Keep System-One/CLM/Jev S-series work research-only
+until the solver interface, platform, and evidence contract are frozen.
+
+## 2026-09-19 storage incident
+
+The abrupt C-drive exhaustion was caused by a 77,937,594,360-byte WSL crash
+dump for `/usr/bin/node`, not by Ray checkpoints alone. Phase experiment outputs
+and user-level `ray_results` contributed about 5.82 GB. The dump archive is now
+on E, active Ray results and 37 experiment directories are junctioned to the D
+NVMe, and C has 78.25 GB free. Future WSL dumps are configured for E with a
+one-dump retention cap, effective after the next normal WSL restart. Moving the
+76.95 GB Ubuntu VHDX to D is deferred because the distro currently hosts live
+Hermes, OpenClaw, ZeroTier, and browser-harness services. Full evidence is in
+`docs/artifacts/research/phase-a-storage-incident-audit-2026-09-19.md`.

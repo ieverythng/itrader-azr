@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "experiment_name": "v2p0_cost_sync60_20260924_141609_no_cost",
+  "scope": "stopped_at_predeclared_96000_step_gate",
+  "members": [
+    {
+      "series_id": "no_cost:training_fn_ITraderEnv_bdcb8_00000_0_seed=1237143_2026-09-24_14-16-16",
+      "trial_dir": "C:\\itrader-ray\\v2p0-cost-sync60-20260924\\v2p0_cost_sync60_20260924_141609_no_cost\\training_fn_ITraderEnv_bdcb8_00000_0_seed=1237143_2026-09-24_14-16-16",
+      "report_rows": 20,
+      "latest_progress_steps": 97384
+    },
+    {
+      "series_id": "no_cost:training_fn_ITraderEnv_bdcb8_00001_1_seed=927203_2026-09-24_14-16-16",
+      "trial_dir": "C:\\itrader-ray\\v2p0-cost-sync60-20260924\\v2p0_cost_sync60_20260924_141609_no_cost\\training_fn_ITraderEnv_bdcb8_00001_1_seed=927203_2026-09-24_14-16-16",
+      "report_rows": 20,
+      "latest_progress_steps": 97336
+    },
+    {
+      "series_id": "no_cost:training_fn_ITraderEnv_bdcb8_00002_2_seed=1128044_2026-09-24_14-16-16",
+      "trial_dir": "C:\\itrader-ray\\v2p0-cost-sync60-20260924\\v2p0_cost_sync60_20260924_141609_no_cost\\training_fn_ITraderEnv_bdcb8_00002_2_seed=1128044_2026-09-24_14-16-16",
+      "report_rows": 21,
+      "latest_progress_steps": 102056
+    },
+    {
+      "series_id": "no_cost:training_fn_ITraderEnv_bdcb8_00003_3_seed=959228_2026-09-24_14-16-16",
+      "trial_dir": "C:\\itrader-ray\\v2p0-cost-sync60-20260924\\v2p0_cost_sync60_20260924_141609_no_cost\\training_fn_ITraderEnv_bdcb8_00003_3_seed=959228_2026-09-24_14-16-16",
+      "report_rows": 20,
+      "latest_progress_steps": 97832
+    }
+  ],
+  "artifacts": [
+    "approx_kl.csv",
+    "entropy.csv",
+    "evaluation_custom_metrics_act_flat_frac_mean.csv",
+    "evaluation_custom_metrics_act_long_frac_mean.csv",
+    "evaluation_custom_metrics_act_short_frac_mean.csv",
+    "evaluation_custom_metrics_economic_turnover_mean.csv",
+    "evaluation_gross_return_mean.csv",
+    "evaluation_net_return_mean.csv",
+    "evaluation_net_sharpe_per_sqrt_bar_mean.csv",
+    "explained_variance.csv",
+    "held_out_action_fractions.png",
+    "held_out_net_return.png",
+    "held_out_sharpe.png",
+    "ppo_diagnostics.png"
+  ]
+}

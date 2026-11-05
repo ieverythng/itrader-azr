@@ -1,0 +1,71 @@
+{
+  "name": "v2p0_earlycost_low_lr_sync30",
+  "python_exe": ".venv/Scripts/python.exe",
+  "train_module": "itrader.rl_lib.train.train_solo_V2",
+  "primary_metric": "evaluation/net_return_mean",
+  "common_args": {
+    "cpu_only": true,
+    "workers": 1,
+    "ray_num_cpus": 4,
+    "timeout_hours": 2,
+    "window": 60,
+    "seed": 20260924,
+    "evaluation_seed": 30260943,
+    "pbt_population_seed": 924025,
+    "train_batch_size": 4800,
+    "data_path": "itrader/data/datasets/dataset_v2_20220103_20260922_alpaca_sip_split/bars",
+    "data_sessions": "regular",
+    "data_symbols": "AAPL,MSFT,AMZN,NVDA,AMD,AVGO,GOOGL,META,SPY,QQQ,IWM,TLT",
+    "episode_boundary_cols": "session_id",
+    "expected_bar_interval": "1min",
+    "results_root": "C:/itrader-ray/v2p0-earlycost-low-lr-sync30-20260924",
+    "task_pool_path": "",
+    "p_pool": 0.0,
+    "task_horizons": "96,128,160,200",
+    "task_reward_ids": "net_return",
+    "start_idx_mode": "stream_worker",
+    "ret_norm_reset": "stream",
+    "observation_transform": "market_relative_v1",
+    "observation_filter": "NoFilter",
+    "stream_stride": 0,
+    "stream_jump_every_episodes": 5,
+    "stream_jump_on_wrap": true,
+    "pbt_interval": 5,
+    "pbt_burn_in": 10,
+    "pbt_synch": true,
+    "pbt_promotion_eligible": true,
+    "pbt_selection_min_sharpe": 0.0,
+    "pbt_selection_max_flat_action_fraction": 0.98,
+    "pbt_lr_min": 0.000005,
+    "pbt_lr_max": 0.00006,
+    "checkpoint_interval": 5,
+    "evaluation_interval": 1,
+    "evaluation_num_episodes": 32,
+    "evaluation_task_panel_path": "itrader/scripts/experiments/configs/evaluation_panels/dataset_v2_r0_crossed_8x4_20260924.json",
+    "evidence_cost_bps": 1.0,
+    "net_return_reward_scale": 1000.0,
+    "split_fractions": "0.7,0.15,0.15",
+    "split_purge_rows": 200,
+    "auto_plot_on_end": false
+  },
+  "variants": [
+    {
+      "id": "early_staged_cost",
+      "args": {
+        "optimization_cost_schedule": "0:0,24000:0.25,48000:0.5,72000:1",
+        "pbt": true,
+        "pop": 4,
+        "iters": 30
+      }
+    },
+    {
+      "id": "exact_1bp",
+      "args": {
+        "optimization_cost_bps": 1.0,
+        "pbt": true,
+        "pop": 4,
+        "iters": 30
+      }
+    }
+  ]
+}

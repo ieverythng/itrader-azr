@@ -1,0 +1,89 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>R0 + R4-v1 causal-cost and PBT forensic review</title><style>body{margin:0;background:#f5f3ed;color:#20241f;font:17px/1.65 Georgia,serif}main{max-width:1080px;margin:0 auto;padding:54px 62px;background:#fff;box-shadow:0 0 30px #0001}h1,h2,h3{color:#173b32;line-height:1.2}h1{font-size:2.4rem;border-bottom:3px solid #b78d3b;padding-bottom:.35em}h2{margin-top:2em;border-bottom:1px solid #d9d3c5;padding-bottom:.25em}code{background:#eef1ec;padding:.12em .35em;border-radius:4px;font:90% Consolas,monospace}pre{overflow:auto;background:#1f2825;color:#eef5ef;padding:1em;border-radius:7px}table{border-collapse:collapse;width:100%;margin:1.2em 0;font-size:.92rem}th,td{border:1px solid #d7d4ca;padding:.55em .7em;text-align:left;vertical-align:top}th{background:#e8eee9;color:#173b32}tr:nth-child(even) td{background:#faf9f5}a{color:#176a58}blockquote,.decision{border-left:4px solid #b78d3b;margin:1.2em 0;padding:.8em 1em;background:#faf7ef;color:#3e473f}.good{color:#176a58}.bad{color:#8a342d}.plots{display:grid;grid-template-columns:1fr 1fr;gap:18px}.plots figure{margin:0;border:1px solid #d7d4ca;padding:10px}.plots img{width:100%;height:auto}.plots figcaption{font-size:.88rem;color:#59615a}@media(max-width:760px){main{padding:28px 20px}.plots{grid-template-columns:1fr}table{display:block;overflow-x:auto}}</style></head><body><main><article>
+<h1>R0 + R4-v1 causal-cost and PBT forensic review</h1>
+<p>Date: 2026-09-29<br>Status: completed analysis; mechanics pass, curriculum effect retained, no economic checkpoint promoted</p>
+<div class="decision"><strong>Decision.</strong> Causal cost staging is a real and reusable curriculum factor because it prevented the immediate flat basin. It did not create conditional alpha: all 81 jointly positive reports were at least 98.014% short and the terminal population exactly equalled short-only. Do not run another full R0 + R4-v1 PBT population on the same January panel. The bounded fresh-panel checkpoint/logit diagnostic is closed; move to fixed-recipe R1 attribution.</div>
+
+<h2>Evidence contract and mechanical validity</h2>
+<p>The completed pair was <code>..._065425_both_causal_cost</code> versus <code>..._074623_both_exact_1bp</code>. Both used dataset-v2 RTH, Family 00, random/generated tasks, <code>stream_worker</code> training, combined R4-v1 state, Ray 2.58 local workers, the same four seeds, the January 2026 crossed 8-anchor x 4-horizon panel, exact 1 bp evaluation, four members and 40 updates.</p>
+<p>Across the pair, 320/320 report rows have indexed stable checkpoints. Each arm completed six exploits, 18 exact restore receipts and six verified generation-bound lineages with no stale, missing or pending provenance. The result is not another restore-contamination artifact.</p>
+
+<h2>Cost-stage anatomy</h2>
+<p>Reports are grouped by the cost actually used for the completed update. Evaluation remained exactly 1 bp throughout.</p>
+<table><thead><tr><th>Training cost</th><th>Step span</th><th>Positive net + Sharpe</th><th>Mean net</th><th>Mean Sharpe / √bar</th><th>Turnover</th><th>Short / flat / long</th></tr></thead><tbody>
+<tr><td>0 bp</td><td>4,808–48,896</td><td>0 / 40</td><td class="bad">-0.295182%</td><td>-0.033379</td><td>10.681</td><td>7.41% / 41.34% / 51.25%</td></tr>
+<tr><td>0.25 bp</td><td>53,464–98,144</td><td>8 / 40</td><td class="bad">-0.066297%</td><td>-0.037054</td><td>16.798</td><td>37.16% / 46.74% / 16.10%</td></tr>
+<tr><td>0.5 bp</td><td>102,040–146,944</td><td>33 / 40</td><td class="good">+0.301633%</td><td>+0.000512</td><td>9.075</td><td>88.39% / 8.49% / 3.12%</td></tr>
+<tr><td>1 bp</td><td>150,600–195,560</td><td>40 / 40</td><td class="good">+0.441611%</td><td>+0.024455</td><td>2.000</td><td>100% / 0% / 0%</td></tr>
+</tbody></table>
+<p>The rise is real as optimizer guidance and activity preservation, but it is almost entirely convergence to the fixed panel's aggregate short direction. All members were effectively short-only before the final 1 bp stage, so that last transition did not cause the collapse.</p>
+<div class="plots">
+<figure><a href="solver-state-r4-v1-actor-robustness-2026-09-29-evidence/matched_cost_comparison/ablation_compare.png"><img src="solver-state-r4-v1-actor-robustness-2026-09-29-evidence/matched_cost_comparison/ablation_compare.png" alt="Net return trajectories"></a><figcaption>Held-out 1 bp net-return trajectories.</figcaption></figure>
+<figure><a href="solver-state-r4-v1-actor-robustness-2026-09-29-evidence/matched_cost_comparison/ablation_compare_validation_sharpe.png"><img src="solver-state-r4-v1-actor-robustness-2026-09-29-evidence/matched_cost_comparison/ablation_compare_validation_sharpe.png" alt="Sharpe trajectories"></a><figcaption>Sharpe per square-root bar trajectories.</figcaption></figure>
+<figure><a href="solver-state-r4-v1-actor-robustness-2026-09-29-evidence/matched_cost_comparison/ablation_compare_action_fractions.png"><img src="solver-state-r4-v1-actor-robustness-2026-09-29-evidence/matched_cost_comparison/ablation_compare_action_fractions.png" alt="Action fractions"></a><figcaption>Greedy action fractions expose directional/flat basins.</figcaption></figure>
+<figure><a href="solver-state-r4-v1-actor-robustness-2026-09-29-evidence/matched_cost_comparison/ablation_compare_diagnostics.png"><img src="solver-state-r4-v1-actor-robustness-2026-09-29-evidence/matched_cost_comparison/ablation_compare_diagnostics.png" alt="PPO diagnostics"></a><figcaption>PPO/critic diagnostics.</figcaption></figure>
+</div>
+
+<h2>PBT event anatomy</h2>
+<table><thead><tr><th>Boundary</th><th>Target ← donor</th><th>Before</th><th>After / meaning</th></tr></thead><tbody>
+<tr><td>48.8k</td><td>00003 ← 00000</td><td>both weak</td><td>target remained negative/mostly flat</td></tr>
+<tr><td>72.9k</td><td>00001 ← 00002</td><td>50% flat / 50% long, -0.2498%</td><td>98.97% short, +0.4021%, 0.01865 Sharpe</td></tr>
+<tr><td>98.1k</td><td>00000 ← 00002</td><td>72% flat, -0.5002%</td><td>exact short-only +0.4416% / 0.02445</td></tr>
+<tr><td>122.7k</td><td>00003 ← 00002</td><td>-0.6045% / -0.1619</td><td>exact short-only</td></tr>
+<tr><td>151.6k / 175.8k</td><td>tied short lineages</td><td>same economic policy</td><td>mutation without new economic information</td></tr>
+</tbody></table>
+<p>Member 00002 reached the basin without a restore; PBT then propagated it. Search was active and mechanically sound. Once every member ties, however, quantile tie-breaking continues to generate exploit events without information. Future summaries should label that search exhaustion and stop all-equal/all-ineligible populations.</p>
+<p>The fixed recipe carried to initial R1 attribution should be the unexploited member-00002 line: learning rate about <code>7.1517e-6</code>, entropy schedule <code>[[0,.005],[96k,.002],[240k,.0005]]</code>, gamma .99, lambda .90, clip .1, minibatch 128, 20 SGD passes, value clip 20 and value-loss coefficient 2.0.</p>
+
+<h2>Exact-cost basin and reporting correction</h2>
+<p>Exact 1 bp from update zero drove members to pure flat at 9,880 / 19,472 / 24,280 / 24,344 steps, before the first exploit. Every later report was zero/flat. This is an objective basin, not failed PBT.</p>
+<p>A reporting-only defect was found: static-cost runs omitted <code>training/optimization_cost_bps</code>, and aggregate CSV output displayed the missing field as zero. The resolved exact-arm training and evaluation task configs both prove <code>cost_bps=1.0</code>, and behavior/replay agree. A red/green patch now resolves the field from either a schedule or static task configuration. Completed reward delivery and economics are unchanged.</p>
+
+<h2>Checkpoint and logit forensics</h2>
+<p>No checkpoint is promotable. Seventy-three positive reports were exactly short-only; the other eight were at least 98.014% short. The sole row marginally above short-only, member 00001 at 107,056 steps, was 99.943% short and failed exact replay by <code>7.4030326e-06</code>.</p>
+<p>Member 00002 at 77,832 steps repeated the same one-action replay delta. Its 4,672-step diagnostic explains the instability:</p>
+<table><thead><tr><th>Diagnostic</th><th>Value</th></tr></thead><tbody>
+<tr><td>fresh greedy short fraction</td><td>99.358%</td></tr>
+<tr><td>mean probabilities short / flat / long</td><td>40.18% / 27.30% / 32.52%</td></tr>
+<tr><td>mean entropy</td><td>1.08234, versus ln(3)=1.09861</td></tr>
+<tr><td>top-two logit margin p1 / p5 / median</td><td>0.00592 / 0.02057 / 0.19693</td></tr>
+<tr><td>steps with margin &lt; 0.01</td><td>1.755%</td></tr>
+<tr><td>masked-state counterfactual argmax changes</td><td>2.440%</td></tr>
+</tbody></table>
+<p>The deterministic evaluator is nearly all-short while the stochastic policy remains broad. A small set of tiny argmax margins can change actions across processes, so one-action aggregate uplifts are not robust edge.</p>
+<p>Evidence: <a href="solver-state-r4-v1-causal-forensics-2026-09-29-evidence/replay_77832/">77,832 replay</a> and <a href="solver-state-r4-v1-causal-forensics-2026-09-29-evidence/state_diag_77832/">state/logit diagnostic</a>.</p>
+
+<h2>Panel direction and regime interpretation</h2>
+<p>The held-out panel is fixed across updates. The evaluation regime did not change as the training curve moved. Training-block symbol/regime identity is not persisted per report, so claims that a particular training regime caused a jump are currently unscoreable.</p>
+<table><thead><tr><th>Anchor</th><th>Mean short-only net</th><th>Positive horizons</th></tr></thead><tbody>
+<tr><td>AMZN</td><td>+0.6744%</td><td>4/4</td></tr><tr><td>AMD</td><td>+0.4319%</td><td>4/4</td></tr><tr><td>AVGO</td><td>+2.1405%</td><td>4/4</td></tr><tr><td>NVDA</td><td>+1.1124%</td><td>4/4</td></tr><tr><td>IWM</td><td>-0.3884%</td><td>0/4</td></tr><tr><td>MSFT</td><td>-0.4514%</td><td>0/4</td></tr><tr><td>QQQ</td><td>+0.0396%</td><td>2/4</td></tr><tr><td>SPY</td><td>-0.0261%</td><td>1/4</td></tr>
+</tbody></table>
+<p>Short-only wins 19/32 episodes and loses 13/32. A hindsight per-episode constant-direction oracle averages +0.66035%, compared with short-only +0.44161%. That is not a causal target; it quantifies unused conditional-direction room.</p>
+
+<h2>PPO and critic</h2>
+<p>There is no PPO blow-up: approximate KL is small. Causal entropy stayed high while greedy evaluation collapsed. Mean explained variance rose only from 0.0065 to 0.0376, still weak critic fit. Exact-arm value loss mostly learns the trivial flat zero target. <code>clip_fraction</code> is NaN in all 320 reports and absent from captured learner keys; repair that observability before interpreting R1 update pressure.</p>
+
+<h2>Normalized historical direction of travel</h2>
+<p>Raw cross-run return is not one valid curve because datasets, panels, runtime, budgets, and evidence contracts changed. Use matched-control margins and keep architecture deltas separate.</p>
+<table><thead><tr><th>Evidence cell</th><th>Net-control margin</th><th>Sharpe-control margin</th><th>Qualification</th></tr></thead><tbody>
+<tr><td>v1 discovery 00001</td><td>+0.16980 pp</td><td>+0.01040</td><td>shared lineage; independent replications failed</td></tr>
+<tr><td>v1 discovery 00003</td><td>+0.18610 pp</td><td>+0.00993</td><td>descendant of 00001</td></tr>
+<tr><td>v1 raw-24k transient</td><td>+0.22392 pp</td><td>+0.01391</td><td>transient; block interval crosses zero</td></tr>
+<tr><td>v2 Gate D transient</td><td>+0.02146 pp</td><td>+0.00819</td><td>regressed</td></tr>
+<tr><td>v2 crossed staged R0</td><td>0 pp</td><td>-0.02385</td><td>short-only</td></tr>
+<tr><td>December R0 + R4-v1 mean</td><td>-0.2111 pp</td><td>-0.0573</td><td>+0.0885 pp paired uplift versus masked</td></tr>
+<tr><td>January causal terminal</td><td>0 pp</td><td>0</td><td>exact short-only tie</td></tr>
+</tbody></table>
+<p>The monotone improvement is evidence quality—arithmetic returns, deterministic panels, exact replay, target-owned PBT clocks, lineage receipts, dataset-v2, crossed panels, block uncertainty, and explicit control state—not absolute alpha. The <a href="solver-state-r4-v1-causal-forensics-2026-09-29-evidence/dashboard.html">interactive dashboard</a> presents cost-stage net return, Sharpe, turnover, action fractions, PPO/critic diagnostics, and the control-relative historical view without a misleading raw connected line. Labels that name December 2025 or January 2026 refer to market evaluation panels, not experiment run dates; the R4-v1 experiments ran in September 2026.</p>
+
+<h2>G0 fresh-panel closure</h2>
+<p>Five member-00002 checkpoints were evaluated on the predeclared, non-overlapping November-2025 panel. Every fresh-panel net return and Sharpe was negative; the least-negative 102,040-step checkpoint scored -0.22822% net and -0.00620 Sharpe, while later checkpoints collapsed to pure short. R0 + R4-v1 therefore remains architecture-qualified but economically unpromoted.</p>
+<p>The paired episode and state-step artifacts are byte-identical, and their receipt metrics and panel hashes agree with the closure summary. The historical receipts do not contain distinct producer/run identifiers, however, so the canonical experiment browser reports artifact-pair parity and leaves independent-process provenance unknown. Future R1 replay receipts must stamp producer identity at creation time before an independently verified process-replication claim.</p>
+
+<h2>Next boundary</h2>
+<ol><li>Run no more PPO on the January panel.</li><li>Freeze the lower-LR recipe across matched Ray-2.58 R0, clean R1 and R1 + R4-v1.</li><li>Carry causal staging as an explicitly named matched factor.</li><li>Stamp producer identity in future replay receipts and retain per-anchor actions, controls, margins and artifact hashes.</li><li>Run PBT only after representation attribution.</li></ol>
+<p>If a final feed-forward probe is ever mandated, it must be edge-gated no-cost discovery: cost cannot rise until a checkpoint beats the strongest directional control on net and Sharpe for three consecutive exact-replay reports. No gate by 384k is a hard stop. This new conditional-schedule seam is lower priority than R1.</p>
+
+<h2>Validation and scope</h2>
+<ul><li>Exact progress-checkpoint selection added to replay; focused replay tests pass.</li><li>77,832-step replay and 4,672-step state diagnostics completed.</li><li>Static optimization-cost reporting fixed red/green; six focused schedule/static tests pass.</li><li>No training run, final-test access, commit, push, staging operation, deletion, R4-v2 change or R1 implementation occurred.</li></ul>
+<p>Full Markdown source: <a href="solver-state-r4-v1-causal-forensics-2026-09-29.md">solver-state-r4-v1-causal-forensics-2026-09-29.md</a>. Upstream audit: <a href="solver-state-r4-v1-actor-robustness-2026-09-29.html">R0 + R4-v1 actor-robustness audit</a>.</p>
+</article></main></body></html>

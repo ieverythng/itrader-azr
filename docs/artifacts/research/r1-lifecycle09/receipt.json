@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "scope": "R1-LIFECYCLE-09",
+  "lease": "LEASE-TRAIN-R1-LIFECYCLE-09",
+  "status": "closed_failed_before_pytest_no_retry",
+  "closed_utc": "2026-10-09T11:34:00Z",
+  "branch": "agent/Watson-dev",
+  "head": "8f9fcf94e028b51d883a1a484c2c9466a3d6b547",
+  "runtime": {
+    "python": "3.11.13",
+    "ray": "2.58.0",
+    "torch": "2.3.1+cpu",
+    "gymnasium": "1.2.2",
+    "numpy": "1.26.4",
+    "device": "CPU; CUDA_VISIBLE_DEVICES empty; CPU thread count 1"
+  },
+  "authorized_cells": [
+    "r0-r4-state",
+    "r1-r4-state",
+    "r0-state-off",
+    "r1-state-off"
+  ],
+  "launch_manifest_sha256": "ea5e89b71085670b9ab93034adbdaf23af70136ed82b1c318dc226fca25a507a",
+  "static_reviews": [
+    {
+      "reviewer": "cuda_command_review",
+      "verdict": "APPROVE",
+      "serving_identity": "unobservable"
+    },
+    {
+      "reviewer": "cuda_fixed_review",
+      "verdict": "APPROVE",
+      "serving_identity": "unobservable"
+    }
+  ],
+  "invocation": {
+    "name": "r4_pair",
+    "started_utc": "2026-10-09T11:31:07.787831+00:00",
+    "ended_utc": "2026-10-09T11:31:08.809944+00:00",
+    "exit_code": 1,
+    "elapsed_seconds": 1.015999999945052,
+    "cumulative_owned_seconds": 1.015999999945052,
+    "stop_reason": null,
+    "cells_completed": 0,
+    "pytest_reached": false,
+    "failure_stage": "PowerShell wrapper before pytest",
+    "failure": "Generated python -c source arrived with missing quoting around imports and selectors, causing SyntaxError. The wrapper then raised a System.IO.File.Replace path/argument error while finalizing its Ray-results inventory.",
+    "minimum_available_ram_gib": 4.433956146240234,
+    "minimum_free_disk_gib": 62.16194534301758,
+    "windows_job_cleanup": {
+      "active_processes": 0,
+      "cleanup_errors": [],
+      "survivors": []
+    }
+  },
+  "ray_results": {
+    "ray_root": "C:/Users/Admin/ray_results",
+    "before_directory_count": 1298,
+    "inventory_status_at_close": "running",
+    "new_directories_since_launch": 0,
+    "new_directory_bytes": 0,
+    "inventory_file_bytes": 84191
+  },
+  "second_pair": "not run; one-shot scope closed on first invocation failure",
+  "retry": "prohibited by authorization",
+  "post_run": {
+    "python_ray_pytest_process_count": 0,
+    "available_ram_gib": 4.717,
+    "disk_c_free_gib": 62.161
+  },
+  "claim_boundary": "This invocation did not execute pytest or qualify the iTrader/PPO CPU path. CUDA-REUSE-07 independently qualifies only the bare synthetic cuDNN LSTM kernel in the separate CUDA environment.",
+  "decision_for_grill": "Decide whether to dispatch a separate bounded PowerShell argument/inventory-finalization repair, then issue a fresh lease for the CPU lifecycle smoke; do not reuse this closed one-shot authority.",
+  "evidence": [
+    {
+      "path": "docs/coordination/_local/r1-lifecycle09/r1-lifecycle09-preflight.json",
+      "bytes": 2533,
+      "sha256": "13033889200da3338523fc7f7878ef1e4d1b7b8ff74bfd46821bb15526974b8c"
+    },
+    {
+      "path": "docs/coordination/_local/r1-lifecycle09/r1-lifecycle09-launch.json",
+      "bytes": 4780,
+      "sha256": "ea5e89b71085670b9ab93034adbdaf23af70136ed82b1c318dc226fca25a507a"
+    },
+    {
+      "path": "docs/coordination/_local/r1-lifecycle09/r4_pair-identity.json",
+      "bytes": 14111,
+      "sha256": "61ad0608e6eb887cedfdf9f0766f7c40f57450c9b9fecfdfab755c3612d615c5"
+    },
+    {
+      "path": "docs/coordination/_local/r1-lifecycle09/state_off_pair-identity.json",
+      "bytes": 14118,
+      "sha256": "f3277b02ca90a260831e79772400088b3380f6f8998649242eefe70f0fcf5207"
+    },
+    {
+      "path": "docs/coordination/_local/r1-lifecycle09/supervise.py",
+      "bytes": 11856,
+      "sha256": "c91c576ad553d3060c72be4270b9a99fbd241a3a886707502aef9e2b6a6275a6"
+    },
+    {
+      "path": "docs/coordination/_local/r1-lifecycle09/r4_pair-command.json",
+      "bytes": 2019,
+      "sha256": "d3c236cc768c01daa0f2e6750820dec1ef7ab9c973238c1b8dc8cca687114428"
+    },
+    {
+      "path": "docs/coordination/_local/r1-lifecycle09/state_off_pair-command.json",
+      "bytes": 2028,
+      "sha256": "fbe4e264e793ce5f5cfed8581f9328e211d472093eedf99efb11dca6f0375fe4"
+    },
+    {
+      "path": "docs/coordination/_local/r1-lifecycle09/r4_pair-receipt.json",
+      "bytes": 2443,
+      "sha256": "a753030739dc099475f77a0d47dcd7dd888c5fb676d62c0d91e005bef1fd7017"
+    },
+    {
+      "path": "docs/coordination/_local/r1-lifecycle09/r4_pair-receipt.log",
+      "bytes": 873,
+      "sha256": "59be0881be19257c02b1a42740dd5ec3bb4fb6f337fc1d94dda8015b28756a42"
+    },
+    {
+      "path": "docs/coordination/_local/r1-lifecycle09/r4_pair-ray-inventory.json",
+      "bytes": 84191,
+      "sha256": "957d3071dded648241bab76d2d065d69b3d4066537ab23301fd0335c705dd07c"
+    },
+    {
+      "path": "docs/coordination/_local/r1-lifecycle09/run-budget.json",
+      "bytes": 42,
+      "sha256": "806552c46159f86c4fa16e5c36b853822a4f06605889ee72ca82b8fa8e2af7a0"
+    }
+  ]
+}

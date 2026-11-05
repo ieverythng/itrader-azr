@@ -49,7 +49,9 @@ class TaskSpec:
     - reward_params: param dict passed to the reward function
     - t_embed: optional precomputed task embedding (list[float]). If None, encoder will derive one.
     - seed: RNG seed for reproducibility
-    - obs_dim: total observation space dimension (price + t_embed)
+    - obs_dim: legacy/base task-conditioned observation width (price + t_embed).
+      Auxiliary environment-state blocks are versioned separately by the runtime
+      observation schema for compatibility with existing TaskSpec embeddings.
     - action_dim: action space dimension (policy output size)
     - start_idx: optional starting index in dataframe. If None, env samples uniformly.
     """

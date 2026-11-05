@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "trial": "training_fn_ITraderEnv_589c9_00000_0_2026-09-25_14-12-15",
+  "checkpoint": "D:\\iTRADER-offload\\active\\ray_results\\phase-a-r4-v1-blocking-4x3-20260925\\_stable_metrics\\training_fn_ITraderEnv_589c9_00000_0_2026-09-25_14-12-15\\checkpoints\\iter_000012_121833362621",
+  "checkpoint_selection": "terminal",
+  "solver_state_mode": "masked",
+  "observation_schema": {
+    "observation_schema_id": "r4_v1_min",
+    "base_obs_dim": 332,
+    "solver_state_dim": 2,
+    "agent_obs_dim": 334
+  },
+  "episode_count": 32,
+  "diagnostics": {
+    "step_count": 4672,
+    "action_order": [
+      "short",
+      "flat",
+      "long"
+    ],
+    "overall": {
+      "step_count": 4672,
+      "action_fractions": [
+        0.2724743150684932,
+        0.413527397260274,
+        0.3139982876712329
+      ],
+      "mean_action_probabilities": [
+        0.2958102775072348,
+        0.366724514521069,
+        0.3374652079716954
+      ],
+      "switching_fraction": 0.06699486301369863,
+      "policy_entropy_mean": 1.0091473651338068,
+      "value_prediction_mean": -5.405568399402785,
+      "value_prediction_std": 0.6327006016798301
+    },
+    "by_prior_position": {
+      "short": {
+        "step_count": 1265,
+        "action_fractions": [
+          0.9960474308300395,
+          0.003952569169960474,
+          0.0
+        ],
+        "mean_action_probabilities": [
+          0.5542264107235036,
+          0.27506020473030623,
+          0.17071338454619006
+        ],
+        "switching_fraction": 0.003952569169960474,
+        "policy_entropy_mean": 0.9715738955868163,
+        "value_prediction_mean": -5.744036498842504,
+        "value_prediction_std": 0.40833093989460645
+      },
+      "flat": {
+        "step_count": 1953,
+        "action_fractions": [
+          0.006656426011264721,
+          0.9144905273937532,
+          0.07885304659498207
+        ],
+        "mean_action_probabilities": [
+          0.19380616539074327,
+          0.4722248473838526,
+          0.3339689872254049
+        ],
+        "switching_fraction": 0.0855094726062468,
+        "policy_entropy_mean": 1.0234224558869156,
+        "value_prediction_mean": -5.600597711202735,
+        "value_prediction_std": 0.487924412667648
+      },
+      "long": {
+        "step_count": 1454,
+        "action_fractions": [
+          0.0,
+          0.0969738651994498,
+          0.9030261348005502
+        ],
+        "mean_action_probabilities": [
+          0.20799571247623963,
+          0.30476660654603693,
+          0.4872376809777229
+        ],
+        "switching_fraction": 0.0969738651994498,
+        "policy_entropy_mean": 1.0226626242370545,
+        "value_prediction_mean": -4.84913484250007,
+        "value_prediction_std": 0.6008872936938346
+      }
+    },
+    "by_remaining_time_bin": {
+      "q4_early": {
+        "step_count": 1168,
+        "action_fractions": [
+          0.273972602739726,
+          0.4238013698630137,
+          0.3022260273972603
+        ],
+        "mean_action_probabilities": [
+          0.27954669879259136,
+          0.38215966609300855,
+          0.33829363511440014
+        ],
+        "switching_fraction": 0.0821917808219178,
+        "policy_entropy_mean": 1.0022526191955008,
+        "value_prediction_mean": -5.589145643049723,
+        "value_prediction_std": 0.575304885816647
+      },
+      "q3": {
+        "step_count": 1168,
+        "action_fractions": [
+          0.2688356164383562,
+          0.4289383561643836,
+          0.3022260273972603
+        ],
+        "mean_action_probabilities": [
+          0.2981965289437262,
+          0.3684786507814981,
+          0.33332482027477617
+        ],
+        "switching_fraction": 0.059075342465753425,
+        "policy_entropy_mean": 1.0083850668773893,
+        "value_prediction_mean": -5.400153786556362,
+        "value_prediction_std": 0.6292719534107654
+      },
+      "q2": {
+        "step_count": 1168,
+        "action_fractions": [
+          0.2731164383561644,
+          0.4075342465753425,
+          0.3193493150684932
+        ],
+        "mean_action_probabilities": [
+          0.3006666218228369,
+          0.36042594914786064,
+          0.3389074290293023
+        ],
+        "switching_fraction": 0.059931506849315065,
+        "policy_entropy_mean": 1.0103330649088997,
+        "value_prediction_mean": -5.34674838430261,
+        "value_prediction_std": 0.6484002833182323
+      },
+      "q1_terminal": {
+        "step_count": 1168,
+        "action_fractions": [
+          0.273972602739726,
+          0.3938356164383562,
+          0.3321917808219178
+        ],
+        "mean_action_probabilities": [
+          0.3048312604697888,
+          0.3558337920619121,
+          0.33933494746829873
+        ],
+        "switching_fraction": 0.06678082191780822,
+        "policy_entropy_mean": 1.0156187095534377,
+        "value_prediction_mean": -5.286225783702445,
+        "value_prediction_std": 0.6343705530264929
+      }
+    }
+  }
+}

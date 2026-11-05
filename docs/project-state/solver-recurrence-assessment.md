@@ -1,140 +1,74 @@
-# Solver Recurrence Assessment
+# Solver Recurrence Assessment (historical evidence, non-executable)
 
-Last updated: 2026-05-02
+Last reconciled: 2026-10-01
+Status: **superseded as implementation recipe; retained as provenance and constraints**
 
-## Short Answer
+This file records the earlier assessment. The active R-series provenance and
+experiment proposal is `docs/research/recurrent-solver-ablation.md`, while the
+current status registry is `docs/research/itrader_research_dashboard.md`; do not
+copy an executable recipe or treat this historical proposal as settled
+architecture.
 
-The repo currently has an LSTM model file, but the active training path defaults to `SolverMLPFiLM`.
+## Branch reality
 
-The existing `SolverLSTMModel` is best described as a rolling-window sequence encoder:
+The active solver is `SolverMLPFiLM`. `SolverLSTMModel` is a reset-every-forward
+window encoder, not a stateful RLlib policy. It reshapes the full observation and
+infers feature width from `flat_dim // window`; with appended task embedding this
+is incompatible with the current `[T*F | task_embedding]` contract. It discards
+LSTM state and returns incoming state unchanged.
 
-- Input is a flattened observation window.
-- The model reshapes it into `(batch, window, features)`.
-- An LSTM summarizes that local window.
-- The final hidden vector feeds policy and value heads.
-- The recurrent hidden state is not carried across environment steps.
+At this assessment's snapshot, R1, R2a, R2b, R2c, R2d, R3, and R4-v1 were design
+cells only. R4-v1 has since been implemented in the working tree and qualified
+with R0, but failed economic promotion; R1-R3 remain unimplemented. Model
+registration is not model selection; `train_solo_V2.py` still selects R0.
 
-That is not the same as a stateful RLlib recurrent policy.
+## Durable conclusions
 
-## Compatibility Warning
+- Split market and task dimensions explicitly. The newest chronological bar is
+  the final row of the reshaped window.
+- Preserve the original R-series identities from commit `4732a98`: R2b is
+  init-only FiLM, R2c is per-step FiLM, and R2d is value-head-only init+per-step.
+  The simplified `bec5c77` per-step R2b label maps to original R2c; old R4 init
+  maps to original R2b. Current solver-state observability is `R4-v1`.
+- R1 versus newest-bar R2 changes input information, cold-start history,
+  conditioning, and state lifetime. It is not an isolated memory proof.
+- Add same-input/same-conditioning train-from-scratch `R2c-CARRY` and
+  `R2c-RESET`; treat zero-state evaluation as OOD diagnostic evidence only.
+- Distinguish input concat, pre-cell FiLM, post-cell/readout FiLM, and initial-
+  state FiLM. A post-cell/readout claim is readout-only only when no other task
+  path (such as concat) reaches the cell; with concat, the transition is already
+  task-dependent and FiLM is an additional factor. Placement/order remains open.
+- Keep input window, BPTT/unroll (`max_seq_len`), episode horizon, and
+  reward-statistics window separate. Overlapping observations do not create new
+  chronological timesteps. Fragment detach is not reset; reset only when the
+  environment actually resets at real episode termination, while truncated
+  bootstrap is handled separately.
+- Valid sequence lengths, padding masks, and last-valid h/c preservation are
+  mandatory. `complete_episodes` is not full-episode BPTT. Do not invent
+  recurrent flags.
+- R4-v1 must add explicit position/progress/PnL features to matched feed-forward
+  and recurrent controls. OHLCV-only recurrence cannot reconstruct actions,
+  fills, or position exactly.
+- The default task encoder omits reward parameters, bar resolution, regime tags,
+  difficulty, metadata, and start index while exposing a bounded seed feature.
+  Freeze omitted fields initially or version a semantic encoder.
+- Current lock authority is Ray/RLlib 2.9.0 and Gymnasium 0.28.1 from
+  `pyproject.toml`/`uv.lock`; the old Ray 2.47.1 plan line is historical.
+- Candidate-specific state/replay is required for online multi-task scoring; do
+  not mutate one shared recurrent state repeatedly.
 
-The existing `SolverLSTMModel` also appears stale relative to the current task-conditioned observation layout.
+## Current user-review boundary
 
-Current observations are shaped like:
+Phase B includes offline/curriculum work and online replay/shadow work; Phase C is
+later operationalization. Families `00`–`04` are a roadmap, and `00`–`02` sharing
+`Discrete(3)` output width does not settle input schemas, task/reward semantics, or
+state ownership. Shared recurrent trunk plus family-specific policy/value heads
+remains proposed, not accepted. `RewardEngine` remains the environment-owned
+reward seam, not a mandatory learned reward head.
 
-- `price_window_flat = window_size * n_features`
-- `task_embed = 32`
-- full observation = `[price_window_flat, task_embed]`
+## Evidence boundary
 
-The old LSTM infers `n_features = flat_dim // window_size` from the entire observation. With the common `window_size = 30`, the full observation is `30 * 5 + 32 = 182`, which does not reshape cleanly into `(30, features)`.
-
-So before using an LSTM head again, implement a corrected model that explicitly splits price features from task embedding.
-
-## Why This Matters
-
-For market learning, these are different capabilities:
-
-- `SolverMLPFiLM`: learns patterns from the flattened window and task embedding through feed-forward conditioning.
-- Window-encoder LSTM: learns temporal structure inside each observed market window, but starts fresh every decision step.
-- Stateful recurrent policy: carries hidden state through the episode, allowing the policy to remember information beyond the latest observation window.
-
-The current LSTM can still learn useful within-window motifs, but it does not provide persistent episode memory. If the market signal requires remembering a path-dependent setup, hidden regime, delayed confirmation, or task-specific behavior over many steps, a true recurrent policy or attention-style sequence head is worth testing.
-
-## Input Shape
-
-There is likely benefit in making the model interface more native to time series:
-
-- keep the environment observation stable for RLlib compatibility,
-- let model code split `[price_window_flat, task_embed]` explicitly,
-- reshape only the price slice into `(window, features)`,
-- inject task embedding through FiLM, concatenation, or initial-state conditioning.
-
-This is cleaner than inferring `n_features = flat_dim // window`, especially now that task embeddings are appended to observations.
-
-## Candidate Head Families
-
-### 1. FiLM MLP Baseline
-
-Keep as the control model.
-
-Use for:
-
-- current solver baseline,
-- proposer impact measurement,
-- fast PBT and smoke tests.
-
-### 2. Time-Series Window Encoder
-
-Add a corrected `SolverWindowLSTMFiLM` or `SolverWindowTransformerFiLM`.
-
-Use for:
-
-- testing whether native temporal encoding of each market window improves solver quality,
-- preserving simple rollout semantics,
-- avoiding recurrent hidden-state complexity at first.
-
-Key design:
-
-- price window -> LSTM/GRU/TCN/Transformer encoder,
-- task embedding -> FiLM or cross conditioning,
-- final encoded vector -> policy and value heads.
-
-### 3. Stateful Recurrent Policy
-
-Add only after the window encoder baseline is measured.
-
-Use for:
-
-- online mode,
-- partially observable market state,
-- path-dependent task families,
-- longer action/reward dependencies.
-
-Key requirements:
-
-- implement RLlib recurrent state correctly,
-- define `get_initial_state`,
-- return state outputs,
-- validate hidden-state reset at episode boundaries,
-- tune sequence length/minibatching separately from the feed-forward PPO baseline.
-
-## Relation To Gradient Alignment
-
-Episode-aligned optimization matters much more for a true recurrent policy than for the current baseline.
-
-For the current PPO setup:
-
-- `batch_mode = "complete_episodes"` already keeps rollouts episode-complete,
-- PPO still mixes complete episodes inside training batches,
-- that mixing is normal and often stabilizing.
-
-For a true recurrent policy:
-
-- sequence boundaries become a first-class hyperparameter,
-- minibatches should preserve valid sequences,
-- `max_seq_len` and hidden-state reset behavior matter,
-- shuffling must not break temporal chunks.
-
-## Recommended Next Experiment
-
-Do not jump straight from the FiLM MLP to a fully stateful recurrent solver.
-
-Recommended order:
-
-1. Keep `SolverMLPFiLM` as the baseline.
-2. Implement a corrected window encoder head that explicitly splits price features and task embedding.
-3. Compare on identical task pools and held-out rolling windows.
-4. Only then implement a true RLlib recurrent policy if the window encoder improves or exposes failure modes that need longer memory.
-
-## Evaluation Standard
-
-Judge by:
-
-- held-out episode return,
-- positive-PnL fraction by evaluation slice,
-- drawdown and turnover,
-- entropy trajectory,
-- performance by task family/regime/horizon,
-- calibration of `CapabilityProfile`.
-
-Do not judge by training reward alone.
+No recurrent training, PPO smoke, full-suite pass, calibrated capability claim,
+profitable strategy, or reproduced AZR result is reported. The independent dated
+code audit is the evidence source for exact source findings and the blocked WSL
+runtime attempt. This document is intentionally not an implementation guide.

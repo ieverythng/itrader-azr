@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "checkpoint": "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\itrader\\scripts\\experiments\\configs\\outputs\\phase_a_pbt_parity_200_checkpoint_valid_20260914\\ray\\_stable_metrics\\training_fn_ITraderEnv_c55da_00000_0_seed=20388672_2026-09-14_04-19-53\\checkpoints\\iter_000200_025804942174",
+  "training_iteration": 200,
+  "expected": {
+    "net_return": -0.0005557122979728761,
+    "net_sharpe_per_sqrt_bar": -0.000600490529072014,
+    "turnover": 2.875
+  },
+  "observed": {
+    "net_return": -0.0005557122979728761,
+    "net_sharpe_per_sqrt_bar": -0.000600490529072014,
+    "turnover": 2.875
+  },
+  "exact_within_1e-15": true
+}

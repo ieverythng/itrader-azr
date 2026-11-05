@@ -1,0 +1,738 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>iTrader Research Dashboard</title>
+  <style>
+    :root {
+      --bg: #f2f5f2;
+      --paper: #ffffff;
+      --paper-2: #f7f9f7;
+      --ink: #14201b;
+      --muted: #5d6a64;
+      --line: #d5ddd8;
+      --green: #17624b;
+      --green-2: #dff1e9;
+      --blue: #24577a;
+      --blue-2: #e3eef6;
+      --amber: #885d12;
+      --amber-2: #fbefd2;
+      --red: #8d3838;
+      --red-2: #f8e4e1;
+      --violet: #624d8b;
+      --violet-2: #ece6f7;
+      --shadow: 0 12px 34px rgba(28, 48, 39, .09);
+      --radius: 16px;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #101612;
+        --paper: #18201b;
+        --paper-2: #1d2721;
+        --ink: #edf4ef;
+        --muted: #acbbb2;
+        --line: #34443a;
+        --green: #78d6ad;
+        --green-2: #1c3c30;
+        --blue: #83bfe8;
+        --blue-2: #1d3546;
+        --amber: #ebc46f;
+        --amber-2: #3c321c;
+        --red: #ee9b95;
+        --red-2: #452725;
+        --violet: #c3acec;
+        --violet-2: #342a45;
+        --shadow: 0 12px 34px rgba(0, 0, 0, .24);
+      }
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 15.5px/1.58 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    a { color: var(--green); text-underline-offset: 3px; }
+    a:hover { text-decoration-thickness: 2px; }
+    code, pre { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
+    code { background: var(--paper-2); border: 1px solid var(--line); border-radius: 5px; padding: 1px 5px; }
+    .hero {
+      color: white;
+      background:
+        radial-gradient(circle at 86% 10%, rgba(116, 224, 181, .24), transparent 28%),
+        radial-gradient(circle at 8% 92%, rgba(111, 169, 214, .18), transparent 30%),
+        linear-gradient(135deg, #0e3025 0%, #164e3d 54%, #123a4d 100%);
+      padding: 54px max(24px, calc((100vw - 1260px) / 2)) 48px;
+      border-bottom: 1px solid rgba(255,255,255,.15);
+    }
+    .eyebrow { letter-spacing: .14em; text-transform: uppercase; font-weight: 750; font-size: .74rem; opacity: .78; }
+    h1 { margin: 8px 0 10px; font-size: clamp(2.35rem, 5vw, 4.8rem); line-height: .98; letter-spacing: -.045em; }
+    .hero p { max-width: 860px; margin: 12px 0; font-size: 1.05rem; color: rgba(255,255,255,.84); }
+    .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 22px; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid currentColor; border-radius: 999px; font-size: .78rem; font-weight: 750; letter-spacing: .01em; }
+    .hero .badge { border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.08); }
+    .hero a { color: white; }
+    .shell { max-width: 1320px; margin: 0 auto; padding: 0 24px 72px; }
+    .toc {
+      position: sticky; top: 0; z-index: 20;
+      margin: 0 -24px 28px;
+      padding: 10px max(24px, calc((100vw - 1260px) / 2));
+      display: flex; gap: 8px; overflow-x: auto;
+      background: color-mix(in srgb, var(--paper) 92%, transparent);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+      box-shadow: 0 4px 16px rgba(0,0,0,.04);
+    }
+    .toc a { white-space: nowrap; text-decoration: none; color: var(--muted); padding: 7px 10px; border-radius: 9px; font-size: .82rem; font-weight: 700; }
+    .toc a:hover { background: var(--paper-2); color: var(--ink); }
+    section { scroll-margin-top: 74px; margin: 34px 0 48px; }
+    h2 { margin: 0 0 8px; font-size: clamp(1.5rem, 2.6vw, 2.15rem); letter-spacing: -.025em; }
+    h3 { margin: 24px 0 8px; font-size: 1.08rem; }
+    .lede { color: var(--muted); max-width: 920px; margin-top: 5px; }
+    .panel { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; }
+    .notice { border-left: 5px solid var(--green); background: var(--green-2); padding: 15px 18px; border-radius: 0 12px 12px 0; margin: 18px 0; }
+    .notice.warn { border-color: var(--amber); background: var(--amber-2); }
+    .notice.stop { border-color: var(--red); background: var(--red-2); }
+    .grid { display: grid; gap: 16px; }
+    .grid.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .grid.three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid.two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .metric { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 18px; min-height: 148px; }
+    .metric .kicker { color: var(--muted); text-transform: uppercase; letter-spacing: .12em; font-weight: 800; font-size: .7rem; }
+    .metric .value { margin: 8px 0; font-size: 1.34rem; line-height: 1.2; font-weight: 800; letter-spacing: -.02em; }
+    .metric p { margin: 0; color: var(--muted); font-size: .89rem; }
+    .status-active { color: var(--green); }
+    .status-research { color: var(--blue); }
+    .status-provisional { color: var(--violet); }
+    .status-deferred { color: var(--amber); }
+    .status-rejected { color: var(--red); }
+    .authority { display: grid; grid-template-columns: 1.05fr .95fr; gap: 18px; }
+    .authority ol, .authority ul { margin: 8px 0 0; padding-left: 20px; }
+    .authority li { margin: 7px 0; }
+    .lane { display: grid; grid-template-columns: 112px 1fr 150px; gap: 14px; align-items: start; padding: 15px 0; border-top: 1px solid var(--line); }
+    .lane:first-child { border-top: 0; }
+    .lane strong { color: var(--green); }
+    .lane small { color: var(--muted); }
+    .spine { background: #10271f; color: #eaf6ef; border-radius: 14px; padding: 19px; overflow: auto; font-size: .86rem; line-height: 1.55; border: 1px solid rgba(255,255,255,.12); }
+    .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin: 18px 0; }
+    .controls input { flex: 1 1 280px; min-width: 0; border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 10px; padding: 10px 12px; font: inherit; }
+    button.filter { border: 1px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 8px 12px; cursor: pointer; font: 700 .78rem/1 inherit; }
+    button.filter[aria-pressed="true"] { color: white; background: var(--green); border-color: var(--green); }
+    .axis-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; }
+    .axis-card { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; min-height: 265px; }
+    .axis-card[hidden] { display: none; }
+    .axis-top { display: flex; justify-content: space-between; gap: 10px; align-items: start; }
+    .axis-card h3 { margin: 0; font-size: 1.06rem; }
+    .axis-card p { margin: 10px 0; color: var(--muted); font-size: .89rem; }
+    .axis-card dl { display: grid; grid-template-columns: 92px 1fr; gap: 6px 9px; margin: auto 0 0; font-size: .82rem; }
+    .axis-card dt { color: var(--muted); font-weight: 700; }
+    .axis-card dd { margin: 0; }
+    .chip { white-space: nowrap; display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: .69rem; font-weight: 850; letter-spacing: .035em; text-transform: uppercase; border: 1px solid currentColor; }
+    .chip.active { color: var(--green); background: var(--green-2); }
+    .chip.research { color: var(--blue); background: var(--blue-2); }
+    .chip.provisional { color: var(--violet); background: var(--violet-2); }
+    .chip.deferred { color: var(--amber); background: var(--amber-2); }
+    .chip.rejected { color: var(--red); background: var(--red-2); }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+    table { width: 100%; border-collapse: collapse; font-size: .84rem; }
+    th, td { padding: 11px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+    th { position: sticky; top: 49px; background: var(--paper-2); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; font-size: .68rem; z-index: 2; }
+    tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: color-mix(in srgb, var(--green-2) 42%, transparent); }
+    .flow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 17px 0; }
+    .flow span { border: 1px solid var(--line); background: var(--paper); border-radius: 10px; padding: 8px 10px; font-weight: 740; font-size: .82rem; }
+    .flow i { color: var(--muted); font-style: normal; }
+    .timeline { position: relative; padding-left: 21px; }
+    .timeline::before { content: ""; position: absolute; left: 6px; top: 8px; bottom: 8px; width: 2px; background: var(--line); }
+    .event { position: relative; margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+    .event::before { content: ""; position: absolute; left: -20px; top: 20px; width: 10px; height: 10px; background: var(--green); border: 3px solid var(--bg); border-radius: 50%; }
+    .event strong { display: block; margin-bottom: 3px; }
+    .gate-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .gate { background: var(--paper); border: 1px solid var(--line); border-radius: 12px; padding: 15px; display: grid; grid-template-columns: 50px 1fr; gap: 11px; }
+    .gate .id { color: var(--green); font-size: 1.08rem; font-weight: 900; }
+    .gate p { margin: 3px 0; color: var(--muted); font-size: .85rem; }
+    .doc-tree { white-space: pre; overflow-x: auto; background: var(--paper-2); border: 1px solid var(--line); border-radius: 12px; padding: 16px; font-size: .82rem; }
+    .foot { color: var(--muted); border-top: 1px solid var(--line); margin-top: 50px; padding-top: 20px; font-size: .82rem; }
+    .no-results { display: none; color: var(--muted); padding: 18px; text-align: center; border: 1px dashed var(--line); border-radius: 12px; }
+    .no-results.show { display: block; }
+    @media (max-width: 1050px) {
+      .grid.four, .axis-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .authority { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 720px) {
+      .hero { padding-top: 38px; }
+      .grid.four, .grid.three, .grid.two, .axis-grid, .gate-grid { grid-template-columns: 1fr; }
+      .lane { grid-template-columns: 88px 1fr; }
+      .lane small { grid-column: 2; }
+      th { position: static; }
+      .shell { padding-left: 16px; padding-right: 16px; }
+      .toc { margin-left: -16px; margin-right: -16px; }
+    }
+    @media print {
+      :root { --bg: white; --paper: white; --paper-2: #f5f5f5; --ink: black; --muted: #444; --line: #bbb; }
+      .hero { background: white; color: black; padding: 20px 0; }
+      .hero p, .hero a { color: black; }
+      .hero .badge { border-color: #777; background: white; }
+      .toc, .controls { display: none; }
+      .shell { max-width: none; padding: 0; }
+      .panel, .metric, .axis-card { box-shadow: none; break-inside: avoid; }
+      .axis-grid { grid-template-columns: repeat(2, 1fr); }
+      a { color: black; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="eyebrow">iTrader · canonical research registry</div>
+    <h1>Research Dashboard</h1>
+    <p>One place to see every research axis, what it changes, what it must hold fixed, what the evidence says, and which decision comes next — without competing with the canonical masterplan.</p>
+    <div class="badges">
+      <span class="badge">Reconciled 2026-10-13</span>
+      <span class="badge">Branch: agent/Watson-dev</span>
+      <span class="badge">No live execution authority</span>
+      <a class="badge" href="itrader_research_dashboard.md">Markdown source</a>
+      <a class="badge" href="itrader_experiment_browser.html">Experiment browser</a>
+      <a class="badge" href="../plans/itrader_masterplan.html">Canonical masterplan</a>
+    </div>
+  </header>
+
+  <div class="shell">
+    <p><strong>Current boundary:</strong> All four CPU and CUDA synthetic PPO/checkpoint/replay cells passed. Comparative throughput, market performance and Q23/Q26 qualification remain open. CUDA-default ablation wiring now passes 57 focused tests and two independent reviews, preserving explicit CPU controls. The R0/R1 reward recipe is unresolved: the documented default is <code>pnl_linear</code>, while the current draft explicitly selects <code>net_return</code>. <a href="#current-study">Current evidence and next study</a>.</p>
+    <details>
+    <summary>Historical CUDA continuation notices (superseded where noted above)</summary>
+    <p><strong>CUDA28 installed:</strong> Obsolete global Torch bound removed; reviewed uv profiles/lock applied, locked sync and tiny GPU forward/backward passed on RTX5070Ti with the exact tested Torch2.9.0.dev20250801+cu128/CUDA12.8 wheel. CPU control and protected experiment pins remain;76 shared non-Torch versions changed and decorator left the lock. <a href="../artifacts/research/cuda28-known-error-repair-2026-10-11.md">Receipt</a> is provisioning/tensor evidence, not PPO/throughput/economics. TRAINING-CUDA29 reached zero cells: an added unreviewed PowerShell wrapper failed parsing. No owned workload survives; <a href="../coordination/grill.md">GRILL</a> records closure, not a GPU experiment result or automatic retry authority. <a href="../evaluation/README.md">Bounded Evaluation</a> records existing mechanics and pending scientific gates. CLOCK27 is delivered; shock/examiner wings remain research-only future ablations. Older notices below retain scope-time facts.</p>
+    <p><strong>Q26 decision (2026-10-11):</strong> Exact finite-lag and bounded stable-decay families are both mandatory supported synthetic tests; every required scenario must pass the unchanged95/94/3 criteria. They do not perturb OHLCV. Human accepts full exchange-session distance as first inference candidate, challenged by both families under BOTH session and elapsed-local-civil-day DGP clocks. <a href="../coordination/grill.md">CLOCK27</a> is delivered; support, numerical ranges/moments, method and confirmation terms remain open. The dated research packet's earlier pending labels are superseded by <a href="../project-state/decisions.md">decisions</a>, not evidence that calibration ran or qualified.</p>
+    <p><strong>CUDA26 closure:</strong> DEV stopped preparation at21:39UTC on Oct10 with the production packet still CHANGES; its absolute22:45 stop has elapsed. No provisioning or GPU run is recorded. The earlier conditional authority below is historical; the launcher component and CPU lifecycle remain separately passed.</p>
+    <p><strong>Oct-10 CUDA26 / RESEARCH25:</strong> After the <a href="../artifacts/research/saluki-advisory-assessment-2026-10-10.html">Saluki advisory assessment</a>, the current <a href="../coordination/grill.md">GRILL scope</a> prioritizes DEV26's actual CUDA profile/launcher repairs after DEV25's two CHANGES reviews. TRAINING25 GPU readiness is delivered; the four-cell CPU lifecycle passed. CUDA is the preferred qualified training target; retain the CPU control until qualification. The <a href="../artifacts/research/adversarial-llm-examiner-2026-10-10.md">self-examiner research</a> has no model-pilot or promotion authority. Q26's process claim/roles and both dependence families are approved; numerical and later terms remain open. Existing R identities, action semantics, reward defaults and Q23/Q26 gates remain unchanged.</p>
+    <p><strong>Latest mechanical evidence:</strong> All four R0/R1 x R4-state/off CPU synthetic PPO/update/checkpoint/restore/frozen-replay cases passed: zero failures/errors/skips,37.234 owned seconds and clean cleanup. <a href="../artifacts/research/r1-lifecycle22/receipt.json">The durable receipt</a> is not throughput, market-performance or CUDA qualification.</p>
+    <p><strong>Latest execution priority:</strong> CPU lifecycle22 is closed. DEV23/24's fixture transport/platform-marker failures preceded real acquisition or root changes; both leases expired. DEV25's two reviews found substantive launcher/provenance blockers. DEV26 implements repairs and may provision one designated GPU profile only after fresh review, routing and integrity gates pass. Matched CUDA public-stack qualification remains required; accounting/disposition checks follow. Keep native Ray API migration separate. RESEARCH25 delivered selection-exposure/causal-feature evidence and the separate market-scenario stress wing. No actual split, scenario or access is selected. Q26 calibration tests intervals against imposed synthetic truth, not a known real-market effect, and does not perturb OHLCV.</p>
+    </details>
+    <nav class="toc" aria-label="Dashboard sections">
+      <a href="#current-study">Current study</a>
+      <a href="#authority">Authority</a>
+      <a href="#cockpit">Cockpit</a>
+      <a href="#alignment">Boundary</a>
+      <a href="#registry">Axes</a>
+      <a href="#r-series">R-series</a>
+      <a href="#c-series">C-series</a>
+      <a href="#s-series">S-series</a>
+      <a href="#azr">AZR</a>
+      <a href="#pomdp">PF / WM / TTS</a>
+      <a href="#crossings">Crossings</a>
+      <a href="#gates">Gates</a>
+      <a href="#evidence">Evidence</a>
+      <a href="#organization">Docs map</a>
+      <a href="#history">History</a>
+    </nav>
+
+    <section id="current-study">
+      <h2>Current evidence and next study</h2>
+      <h3>CUDA37: four synthetic cells passed</h3>
+      <p>The <a href="../coordination/training-testing.md#training-cuda37-release1---complete">owned execution receipt</a> records one successful attempt, zero failures/errors/skips, the selected RTX 5070 Ti UUID and <code>cuda:0</code> after construction, update and restore in every case. Both Windows Jobs closed without survivors/errors; all 35 frozen identities matched afterward. The execution lease is closed.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Synthetic cell</th><th>JUnit case time</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>R0 + R4-v1</td><td>45.131 s</td><td>Passed</td></tr>
+          <tr><td>R1 + R4-v1</td><td>2.819 s</td><td>Passed</td></tr>
+          <tr><td>R0, state off</td><td>29.335 s</td><td>Passed</td></tr>
+          <tr><td>R1, state off</td><td>1.986 s</td><td>Passed</td></tr>
+        </tbody>
+      </table></div>
+      <p>Installed <code>cuda-tested-cu128</code>: Python 3.11, Torch <code>2.9.0.dev20250801+cu128</code>, CUDA 12.8, Ray 2.58.0. Each case used 600 artificial OHLCV rows, 12 steps, one PPO update and one SGD epoch. Total supervised time was 119.078 s including 0.625 s transport. Minimum observed RAM: 3.734 GiB; sampled whole-GPU peak: about 0.98 GiB, not exclusive learner allocation. Four JUnit compatibility warnings did not remove recorded device properties.</p>
+      <p><strong>No economic or architectural speedup claim:</strong> R0 ran first and R1 second in each process, confounding cold/warm startup. CPU22's 37.234 s total used a different Torch runtime and is not a matched comparison. The <a href="../artifacts/research/cuda-reuse07/benchmark-reuse07-result.json">older bare-LSTM benchmark</a> measured batch-128 forward/backward medians of 81.584 ms CPU versus 3.989 ms GPU (about 20.5x), but batch-1 was 1.370 versus 2.341 ms. It exercised no Ray workload; that environment listed Ray 2.9. TRAINING-PREP38 specifies a same-runtime comparison separating startup, warm rollout, learning, transfers and memory before another throughput claim.</p>
+
+      <h3>Reward parity is an open decision</h3>
+      <p><code>RewardEngine</code> dispatches <code>TaskSpec.reward_id</code>. Family 00 and the repository retain <code>pnl_linear</code> as default. The corrected four-by-two-by-two draft and CUDA37 test explicitly use <code>net_return</code>; an <code>evaluation/net_return_mean</code> score does not select the training reward.</p>
+      <p>Commit <code>88361f0</code> (Sep 19) added the separate objective; <code>f045fde</code> retains the Sep-14 probe and Sep-16 matched reward bridge. The <a href="../artifacts/research/phase-a-performance-validity-audit-2026-09-12.md">audit</a> explicitly says not to silently change <code>pnl_linear</code>. Historical experiments are not proof of human approval to replace the default; Q22's optimizer recipe does not resolve the reward choice.</p>
+      <ul>
+        <li><code>pnl_linear</code>: normalized PnL, task-sampled abstract turnover/drawdown penalties and caps; its current function does not charge terminal liquidation.</li>
+        <li><code>net_return</code>: fixed-scale PnL minus explicit basis-point switching and terminal liquidation costs; the draft fixes scale 1000. It is a different objective under the same economic evaluator.</li>
+        <li>Net-return sampling still varies symbols, horizons and task/start seeds; the env supplies stream starts. The draft fixes reward ID, scale and initial cost; ramp changes apply at subsequent episode resets.</li>
+        <li>PnL-linear sampling additionally varies supported turnover/drawdown knobs. <code>semantic_v2</code> hashes reward ID/parameters; it is not a learned numeric reward encoder. Legacy encoding omits reward parameters.</li>
+      </ul>
+      <p>RESEARCH-REWARD38 audits bounded <code>pnl_linear</code> repairs, Sharpe shaping/pure Sharpe and alternative objectives, including scale, critic, discount, state and accounting. A 50/50 episode-level mixture is only a secondary candidate, not approved training. Existing <a href="sharpe-reward-design.html">Sharpe design</a> remains experimental; no reward behavior changed here.</p>
+      <p>The delivered <a href="../artifacts/research/reward-parity-and-challengers-2026-10-13.md">REWARD38 primary-source audit</a> identifies the next public-contract checks, not an adopted objective:</p>
+      <ul>
+        <li>Preserve evaluation TaskSpec conditioning; independent 1-bp economic scoring does not require net-return TaskSpecs.</li>
+        <li>Audit adaptive PnL/drawdown scaling versus unscaled turnover, caps and terminal liquidation with literal accounting oracles.</li>
+        <li>Current Sharpe rewards use gross strategy history and rolling bounded score differences, not differential or cost-net Sharpe. Test reward history/state, warmup, near-zero variance, window eviction and terminal handling before a cost-aware supplement; pure Sharpe and mixtures follow later.</li>
+        <li>R1/R4 do not expose endogenous return/EMA/drawdown reward history. Reward-state additions are separate factors; these risks are not measured causes of the observed policy basin.</li>
+        <li>CPU and CUDA installed Ray sources agree: squared critic error is clamped, and advantages are standardized over policy batches, not separately per reward task. Static parity is not measured saturation or optimizer invariance. Exact file hashes are recorded in the <a href="itrader_research_dashboard.md">Markdown source</a>.</li>
+      </ul>
+      <p>Proposed parallel preparation: AccountingLifecycle (flat/hold/reverse/liquidation), RewardStateLifecycle (EMA/drawdown/history/reset/schedule), and ObjectiveScaleConditioning (caps/scale/discount/encoder/value saturation), through existing public owners. No stress test executed here. After recipe approval: legacy control versus existing net-return challenger, one-factor PnL-component ablations, justified scale/critic diagnostics, then a cost-aware Sharpe supplement. No broad reward grid enters the priority encoder screen.</p>
+
+      <h3>Proper screen: ordered prerequisites</h3>
+      <p>The <a href="../../itrader/scripts/experiments/configs/phase_a_r1_corrected_compat_fixed_4x2x2_20261006.json">existing draft</a> crosses R0/R1 with state-off/R4-v1, two seeds and fixed/ramped costs: 16 runs, 12 updates x 4,800 nominal steps each, 921,600 nominal steps total. These are budgets, not achieved learning or precision. PBT, native-API migration and reward mixtures stay outside initial encoder attribution.</p>
+      <ol>
+        <li>DEV-DEFAULT38 completed CUDA-default ablation training when no interpreter is explicit: 57/57 focused tests and two independent reviews pass. Existing owners preserve caller paths and explicit CPU controls. <a href="../coordination/dev.md">Exact-byte receipt</a>. Root <code>.venv</code> remains CPU-only. The historical draft explicitly chooses it and <code>cpu_only=true</code>; installation alone does not make that draft CUDA-ready.</li>
+        <li>Resolve <code>pnl_linear</code> versus <code>net_return</code> and cost-ramp semantics before a frozen CUDA loadout. Current optimization-cost ramp requires net return. Reward stress studies remain separately matched and labelled.</li>
+        <li>Repair three <a href="../artifacts/research/dev-review30-r1-evaluation-review-2026-10-12.md">DEV-REVIEW30 evidence blockers</a>; complete the existing terminal/reporting path with independent reviews.</li>
+        <li>Implement/review Q23 quarantine and outcome-free metadata qualification. <a href="../artifacts/research/q23-quarantined-acquisition-prep-2026-10-13.md">Acquisition preparation</a> is not fetch permission, exposure clearance or a freshness certificate.</li>
+        <li>Freeze numerical Q26 process class, calendar support, centering, kernel, bandwidth, Monte Carlo confidence/allocation, failure/precision budgets and independent confirmation streams; qualify before opening outcomes.</li>
+        <li>Seal source/config/data identities and reviews, then authorize a bounded market run. Inspected progress monitoring, fresh terminal evaluation and sealed final test remain separate. Preparation grants no run lease.</li>
+      </ol>
+
+      <h3>Q26: accepted criteria, not yet calibrated</h3>
+      <p>Primary candidate: fixed-1-bp terminal net return of R1 + R4-v1 minus R0 + R4-v1, averaged over two frozen checkpoint pairs using equal-symbol Q24 hierarchical weights. The claim is conditional on those checkpoints and the calendar panel, not a training-seed population claim. Sharpe per sqrt(bar), per-horizon net bps/bar, attribution and causal one-step return/cost are secondary. A single bar has no meaningful realized Sharpe.</p>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Term</th><th>Accepted criterion</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td>Market interval candidate</td><td>Nominal central equal-tailed 95%; 2.5% per tail</td><td>After qualification, uplift requires lower bound above zero; not absolute profit</td></tr>
+          <tr><td>Synthetic coverage qualification</td><td>Simultaneous Monte Carlo lower bound &gt;=94% in every required case</td><td>Disclosed one-point tolerance; not a 94% market interval or test pass rate</td></tr>
+          <tr><td>Directional misses</td><td>Each simultaneous Monte Carlo upper bound &lt;=3%</td><td>Includes false-positive uplift; disclosed 0.5-point inflation relative to 2.5%</td></tr>
+          <tr><td>Actual qualification</td><td>Not scored</td><td>No calibrated method or market significance result yet</td></tr>
+        </tbody>
+      </table></div>
+      <p>Calendar-synchronized dependent multipliers are the first candidate; full exchange-session distance is the first inference clock. Both finite-lag and bounded stable-decay generators under BOTH session and local-civil-day clocks are mandatory; they do not alter trading OHLCV. Support/ranges, centering/kernel/bandwidth, Monte Carlo confidence and sample budgets, and frozen independent confirmation remain open. Optional volatility normalization stays off.</p>
+      <p>Valid positive, zero and negative net returns remain descriptive if uncertainty is unqualified. Invalid comparisons are retained but quarantined; no unsupported promotion follows. <a href="../evaluation/README.html">Evaluation contract</a>. Scoped work: <a href="../coordination/grill.md">GRILL</a>, <a href="../coordination/dev.md">DEV</a>, <a href="../coordination/research.md">RESEARCH</a>, <a href="../coordination/training-testing.md">TRAINING</a>.</p>
+    </section>
+
+    <section id="authority">
+      <h2>Authority, without ambiguity</h2>
+      <p><strong>Historical R1 boundary (2026-10-09):</strong> The stateless window-LSTM/FiLM implementation, explicit selector/loadout, and restore identity were present; 31 focused synthetic checks passed and independent Sol/Spec and Astra/Standards reviews approved after restore-identity hardening. At that date no Ray lifecycle or checkpoint round-trip had passed. CPU22 and CUDA37 now supersede that mechanical status, not the absence of economic-promotion evidence. R0 remains default; Q23/Q26 and reward parity still precede the matched market screen.</p>
+      <p><strong>Historical Oct-7 boundary:</strong> Independent Sol and Luna reviews approve Q27 mechanics and the optional economics pilot for that snapshot. Core validation, healthcheck, scoped pre-commit and diff checks passed. Q23 role/identities and Q26 clearance remain prerequisites. See the <a href="../artifacts/research/evaluation-mechanical-repairs-2026-10-07.html">repair audit</a>, including integration-first test ROI.</p>
+      <p><strong>Historical panel qualification:</strong> The sixteen-cell scientific draft and read-only terminal preflight are implemented, not real terminal execution. Q23 has 2,052 provisional symbol/session anchors but zero certified fresh candidates under conservative historical possible-exposure exclusion. Sixteen control sidecars recover recorded starts; 26 randomized runs remain source-unbound. These remain panel gates; no panel opening or economic promotion is implied. See the <a href="../artifacts/research/r1-panel-qualification-2026-10-06.md">qualification audit</a>.</p>
+      <p class="lede">This dashboard owns research identity and evidence navigation. It does not own phase order, system invariants, or implementation truth.</p>
+      <p>The completed <a href="../artifacts/research/evaluation-code-audit-2026-10-06.html">evaluation code audit</a> maps 48 recorded starts conditionally; 26 randomized configs remain source-unbound. Both independent reviews return CHANGES. The accepted eight controls remain intact. The <a href="../artifacts/research/evaluation-quant-methodology-2026-10-06.html">quantitative-methodology synthesis</a> is candidate-only. Q27 repair approval and Q23/Q26 choices remain pending; no panel opening or new registered run.</p>
+      <div class="authority">
+        <div class="panel">
+          <h3 style="margin-top:0">What this dashboard owns</h3>
+          <ul>
+            <li>Stable wing/cell meanings and aliases</li>
+            <li>Factor changed, prerequisites, controls, and stop rules</li>
+            <li>Separate implementation and evidence status</li>
+            <li>Evidence-chain and decision navigation</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3 style="margin-top:0">What remains authoritative elsewhere</h3>
+          <ol>
+            <li>Source, tests, configs, and <code>AGENTS.md</code></li>
+            <li><a href="../architecture/itrader_system_architecture.html">Architecture</a> for boundaries</li>
+            <li><a href="../plans/itrader_masterplan.html">Masterplan</a> for order and promotion</li>
+            <li><a href="../project-state/decisions.md">Decisions</a> for accepted/rejected outcomes</li>
+          </ol>
+        </div>
+      </div>
+      <div class="notice"><strong>Key distinction:</strong> registering a hypothesis here does not put it on the active roadmap. Promotion still requires a masterplan/architecture decision backed by held-out evidence.</div>
+      <div class="notice"><strong>Concrete evidence:</strong> the generated <a href="itrader_experiment_browser.html">experiment browser</a> indexes runs, members, retained checkpoints, source summaries, and eight explicit comparison factors. Direct comparison also requires matching authoritative dataset, evaluation-panel, and metric-contract identities; missing identity stays unknown and fails closed. Its <a href="experiment_registry.json">registry</a> stores metadata and pointers, not copied metric truth; dated dashboards remain immutable snapshots. The factor and metric-unit vocabularies are closed, and malformed/non-finite records stop generation instead of being guessed in the UI.</div>
+    </section>
+
+    <section id="cockpit">
+      <h2>Decision cockpit</h2>
+      <p class="lede">The shortest useful reading of the current research state.</p>
+      <div class="grid four">
+        <article class="metric">
+          <div class="kicker">Control</div>
+          <div class="value status-active">R0 is immutable</div>
+          <p>Implemented MLP-FiLM parity/economic control. It is not a profitable-policy claim.</p>
+        </article>
+        <article class="metric">
+          <div class="kicker">Qualified baseline</div>
+          <div class="value status-research">R0 + R4-v1</div>
+          <p>Architecture-qualified and replay-valid; economic promotion failed.</p>
+        </article>
+        <article class="metric">
+          <div class="kicker">Next representation</div>
+          <div class="value status-active">R1 → R2c</div>
+          <p>Matched reset-window screen, then native recurrence and CARRY versus RESET.</p>
+        </article>
+        <article class="metric">
+          <div class="kicker">Search boundary</div>
+          <div class="value status-rejected">PBT paused</div>
+          <p>No more same-panel R0 + R4-v1 PBT; fixed-recipe attribution comes first.</p>
+        </article>
+      </div>
+      <div class="notice stop"><strong>Stop decision:</strong> exact 1 bp produced a hard-flat basin; staged cost produced static-direction exposure. Neither is conditional alpha. G0 fresh-panel artifact pairs match exactly and the economic gate failed. Historical receipts did not stamp distinct producer IDs, so the browser leaves independent-process provenance unknown and future R1 receipts must record it at creation time. Move to fixed-recipe R1 attribution.</div>
+      <div class="grid three">
+        <article class="panel">
+          <span class="chip active">Now</span>
+          <h3>Close parity and panel gates</h3>
+          <p>CUDA-default ablation wiring is reviewed and passes 57 focused tests; bounded CPU/CUDA PPO/checkpoint/replay lifecycles passed. Resolve reward parity, then close panel/reporting and Q26 gates. No market screen is authorized by these mechanical results. <a href="../project-state/r1-development-readiness.html">Readiness contract</a>.</p>
+        </article>
+        <article class="panel">
+          <span class="chip research">Next</span>
+          <h3>Run the matched R1 screen</h3>
+          <p>After Q21/Q23/Q24/Q25/Q26 clearance, compare R0, R0 + R4-v1, R1 and R1 + R4-v1 on one frozen reward/cost recipe with independent 1-bp scoring; keep PBT disabled. The draft cost ramp remains conditional on explicit net-return approval. Native R2 lifecycle and <code>R2c-CARRY</code> versus <code>R2c-RESET</code> follow, not a bundled memory factor.</p>
+        </article>
+        <article class="panel">
+          <span class="chip provisional">Parallel research</span>
+          <h3>Specify, do not bundle</h3>
+          <p>REWARD38 component/accounting/scale stress preparation, S1-P0, EMA evaluation and direct AZR learning-progress design stay separate from R attribution. No reward adoption or reinterpretation of an R result.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="alignment">
+      <h2>Masterplan boundary</h2>
+      <p class="lede">The <a href="../plans/itrader_masterplan.html">canonical masterplan</a> owns the planned system, phase order, prerequisites, and promotion. This dashboard owns only named research factors, controls, gates, and evidence.</p>
+      <div class="grid two">
+        <div class="panel">
+          <h3 style="margin-top:0">Masterplan-owned core and prerequisites</h3>
+          <p>Data/platform/evidence foundations, canonical task and environment contracts, the solver-training path, capability evidence, MarketFramer, replay/shadow, deterministic gate/risk/execution, and operational phase order stay in the masterplan and architecture.</p>
+          <p><strong>The Phase-B proposer → validated <code>TaskSpec</code>/buffer → PPO solver → feedback/<code>r_prop</code> → proposer loop is masterplan-owned, not a dashboard wing.</strong></p>
+        </div>
+        <div class="panel">
+          <h3 style="margin-top:0">Dashboard-owned research</h3>
+          <p>R/C/S representation cells, ATX optimizer/evaluation factors, reward/cost comparisons, proposer-credit and curriculum alternatives inside the planned loop, and PF/WM/TTS hypotheses.</p>
+          <p>Each entry changes one research factor while treating masterplan foundations as held-fixed prerequisites.</p>
+        </div>
+      </div>
+      <div class="notice"><strong>Prerequisite, not duplication:</strong> research spend begins only when the masterplan's applicable data, runtime, evidence, task-validation, and replay contracts are ready. Follow the linked masterplan for the system sequence.</div>
+      <div class="notice warn"><strong>R4-v2 status drift:</strong> its centered nonlinear market/task × solver-state joint-fusion identity is fixed. It is absent/deferred on this checkout; parallel staging has been reported but not inspected. Do not redesign it or mark it implemented here.</div>
+    </section>
+
+    <section id="registry">
+      <h2>Research-axis registry</h2>
+      <p class="lede">Search or filter this visual index. All records remain visible in the Markdown source and without JavaScript.</p>
+      <div class="controls" aria-label="Research axis filters">
+        <input id="axis-search" type="search" placeholder="Search axis, question, status, or prerequisite…" aria-label="Search research axes">
+        <button class="filter" type="button" data-filter="all" aria-pressed="true">All</button>
+        <button class="filter" type="button" data-filter="active" aria-pressed="false">Active / baseline</button>
+        <button class="filter" type="button" data-filter="research" aria-pressed="false">Research-only</button>
+        <button class="filter" type="button" data-filter="provisional" aria-pressed="false">Provisional</button>
+        <button class="filter" type="button" data-filter="deferred" aria-pressed="false">Deferred</button>
+      </div>
+      <div class="axis-grid" id="axis-grid">
+        <article class="axis-card" data-status="active" data-search="r solver representation mlp film lstm recurrence memory r4 state">
+          <div class="axis-top"><h3>R · Solver representation</h3><span class="chip active">Active</span></div>
+          <p>Which numerical policy/value representation supplies useful temporal, task, and endogenous-state information?</p>
+          <dl><dt>Checkout</dt><dd>R0 implemented; R4-v1 unpromoted; R1 CPU/CUDA synthetic lifecycles passed; R2 absent</dd><dt>Next gate</dt><dd>Reward parity and panel gates, matched R1, then carry/reset</dd><dt>Hold fixed</dt><dd>C, S, reward, optimizer, proposer, PF/WM/TTS</dd></dl>
+        </article>
+        <article class="axis-card" data-status="deferred" data-search="c causal summaries regimes trailing shuffled features">
+          <div class="axis-top"><h3>C · Causal summaries</h3><span class="chip deferred">Deferred</span></div>
+          <p>Do trailing, train-fitted causal summaries add information beyond the current causal market feature set?</p>
+          <dl><dt>Checkout</dt><dd>C0 current causal feature baseline; C1/shuffled-C1 absent</dd><dt>Next gate</dt><dd>Stable solver + exact train-only fitting contract</dd><dt>Boundary</dt><dd>Future-derived regime tags remain ex-post only</dd></dl>
+        </article>
+        <article class="axis-card" data-status="research" data-search="s system one clm jev projection ppo task ranker market framer capability">
+          <div class="axis-top"><h3>S · System One</h3><span class="chip research">Research-only</span></div>
+          <p>Does state-to-candidate geometry help the three-action solver, task selection, or later framing and matching?</p>
+          <dl><dt>Checkout</dt><dd>Assets/designs only; no completed iTrader S run</dd><dt>Next gate</dt><dd>Frozen interface; S1-P0 diagnostic</dd><dt>Boundary</dt><dd>Not R promotion, JEPA, PF/WM/TTS, or execution</dd></dl>
+        </article>
+        <article class="axis-card" data-status="provisional" data-search="atx optimizer ema advantage filter schedule distributional value critic telemetry">
+          <div class="axis-top"><h3>ATX · Optimizer/evaluation</h3><span class="chip provisional">Provisional</span></div>
+          <p>Can isolated EMA, filtering, scheduling, or distributional-value factors improve a fixed solver recipe from pinned starting checkpoints?</p>
+          <dl><dt>Checkout</dt><dd>Proposal only</dd><dt>Next gate</dt><dd>Trustworthy critic/advantage/clip/KL telemetry</dd><dt>Boundary</dt><dd>No PBT or representation changes in the same cell</dd></dl>
+        </article>
+        <article class="axis-card" data-status="active" data-search="reward pnl net return sharpe cost curriculum baseline challenger">
+          <div class="axis-top"><h3>Reward &amp; cost</h3><span class="chip active">Orthogonal</span></div>
+          <p>Which reward and cost curriculum rank economic outcomes without hiding risk or confounding representation?</p>
+          <dl><dt>Checkout</dt><dd>pnl_linear baseline; net_return implemented challenger</dd><dt>Next gate</dt><dd>Matched held-out study</dd><dt>Boundary</dt><dd>Never bundle into an R/C/S identity</dd></dl>
+        </article>
+        <article class="axis-card" data-status="research" data-search="azr proposer credit curriculum ablation direct gradient qd replay taskspec">
+          <div class="axis-top"><h3>AZR · Proposer-credit / curriculum ablations</h3><span class="chip research">Ablations</span></div>
+          <p>Which credit or curriculum alternative improves the planned core loop at equal accepted solver compute?</p>
+          <dl><dt>Checkout</dt><dd><code>train_AZR.py</code> is a one-shot handoff only</dd><dt>Next gate</dt><dd>DIRECT before GRAD or adaptive QD</dd><dt>Boundary</dt><dd>Alternatives within the core planned loop, never a replacement for it</dd></dl>
+        </article>
+        <article class="axis-card" data-status="provisional" data-search="examiner adversarial llm judge dialogue proposer defects rubric harness">
+          <div class="axis-top"><h3>Adversarial LLM examiner</h3><span class="chip provisional">Research only</span></div>
+          <p>Does bounded dialogue detect more held-out task defects than static judging at controlled false rejection and cost?</p>
+          <dl><dt>Checkout</dt><dd><a href="../artifacts/research/adversarial-llm-examiner-2026-10-10.md">Pilot design</a>; no calls or code, no run ID</dd><dt>Next gate</dt><dd>Deterministic-only/static-judge controls, blinded fixtures, independent labels, receipt and stop rules; budget pending</dd><dt>Boundary</dt><dd>Not economic scoring, statistical qualification, proposer reward/LoRA or online authority</dd></dl>
+        </article>
+        <article class="axis-card" data-status="provisional" data-search="pf predictive forecast distribution calibrated returns volatility liquidity pomdp">
+          <div class="axis-top"><h3>PF · Predictive state</h3><span class="chip provisional">Provisional</span></div>
+          <p>Can a causal calibrated forecast distribution improve a fixed accepted solver recipe from pinned starting checkpoints?</p>
+          <dl><dt>Checkout</dt><dd>Proposal only</dd><dt>Next gate</dt><dd>R/C closure + proper-score/calibration test</dd><dt>Boundary</dt><dd>Not a Stratego hidden-board posterior or R4-v2</dd></dl>
+        </article>
+        <article class="axis-card" data-status="research" data-search="market scenario stress shocks decay return disturbance price displacement robustness curriculum synthetic">
+          <div class="axis-top"><h3>Market-scenario stress</h3><span class="chip">Research only</span></div>
+          <p>Controlled causal disturbances for stress evaluation; later training augmentation needs separate real held-out evidence.</p>
+          <dl><dt>Checkout</dt><dd>RESEARCH25 delivered; no simulator or scenario selected</dd><dt>Next gate</dt><dd>Coherent OHLCV, causal/reset/accounting contract, external scenario manifest and unchanged-path control</dd><dt>Boundary</dt><dd>Not Q26 interval calibration, learned WM validity, forced activity or fresh market evidence</dd></dl>
+          <p><a href="../artifacts/research/market-scenario-stress-2026-10-10.md">Read the shock/decay investigation</a>. A decaying price displacement implies reversal; a fading return disturbance need not restore the original price. Keep shock identity outside encoded task metadata.</p>
+        </article>
+        <article class="axis-card" data-status="deferred" data-search="wm world model scenarios counterfactual action independent portfolio transition">
+          <div class="axis-top"><h3>WM · Scenario model</h3><span class="chip deferred">Deferred</span></div>
+          <p>Can action-independent market scenarios support valid counterfactual portfolio transitions?</p>
+          <dl><dt>Checkout</dt><dd>Proposal only</dd><dt>Next gate</dt><dd>Hindsight ceiling + independent multi-step validity</dd><dt>Boundary</dt><dd>PF and WM are separate; historical replay is not simulation</dd></dl>
+        </article>
+        <article class="axis-card" data-status="deferred" data-search="tts test time search hindsight blueprint rollout branches root actions">
+          <div class="axis-top"><h3>TTS · Test-time search</h3><span class="chip deferred">Deferred</span></div>
+          <p>Does branch-safe root-action search beat a fixed calibrated blueprint from pinned starting checkpoints at equal compute?</p>
+          <dl><dt>Checkout</dt><dd>Direct use rejected; diagnostic only</dd><dt>Next gate</dt><dd>Valid WM + calibrated blueprint</dd><dt>Boundary</dt><dd>Replay/shadow; never bypass deterministic shell</dd></dl>
+        </article>
+        <article class="axis-card" data-status="deferred" data-search="market jepa phase d representation marketframer future advisory">
+          <div class="axis-top"><h3>Market-JEPA</h3><span class="chip deferred">Phase D</span></div>
+          <p>Future causal joint-embedding market representation for potential MarketFramer inputs.</p>
+          <dl><dt>Checkout</dt><dd>Non-concrete advisory line</dd><dt>Next gate</dt><dd>Separately approved design</dd><dt>Boundary</dt><dd>Independent of S, PF/WM/TTS, and R4-v2</dd></dl>
+        </article>
+      </div>
+      <div id="no-results" class="no-results">No research axes match this filter.</div>
+    </section>
+
+    <section id="r-series">
+      <h2>R-series · solver representation</h2>
+      <p class="lede">R identities answer representation questions. Crosses and controls do not create new R numbers.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ID</th><th>Fixed identity</th><th>Implementation</th><th>Evidence decision</th><th>Next gate</th></tr></thead>
+          <tbody>
+            <tr><td><b>R0</b></td><td>State-free SolverMLPFiLM</td><td>Implemented</td><td>Immutable parity/economic control; unpromoted</td><td>Preserve beside every challenger</td></tr>
+            <tr><td><b>R1</b></td><td>Reset-every-step LSTM over supplied window; no carried state</td><td>Implemented; bounded CPU and CUDA synthetic lifecycles passed</td><td>Market performance and comparative throughput unqualified</td><td>Reward parity, panel/evidence gates, matched screen</td></tr>
+            <tr><td><b>R2a</b></td><td>Native stateful LSTM + task concat</td><td>Unimplemented</td><td>Planned after R1</td><td>Lifecycle, masks, reset, exact replay</td></tr>
+            <tr><td><b>R2b</b></td><td>Task-conditioned initial (h,c) only</td><td>Deferred</td><td>No evidence</td><td>Explicit initial-state adapter</td></tr>
+            <tr><td><b>R2c</b></td><td>Stateful LSTM + per-step task FiLM</td><td>Unimplemented; active design</td><td>Memory untested</td><td>CARRY vs otherwise-identical RESET</td></tr>
+            <tr><td><b>R2d</b></td><td>Init + per-step FiLM on value path</td><td>Deferred</td><td>No evidence</td><td>Matched policy/value placement</td></tr>
+            <tr><td><b>R3</b></td><td>Stateful GRU + per-step FiLM</td><td>Later</td><td>No evidence</td><td>Meaningful LSTM result first</td></tr>
+            <tr><td><b>R4-v1</b></td><td>[position, remaining horizon] residual state connector</td><td>Working-tree implementation</td><td>Architecture-qualified; economic promotion rejected</td><td>Preserve and cross as R1 + R4-v1</td></tr>
+            <tr><td><b>R4-v2</b></td><td>Centered nonlinear market/task × solver-state late fusion</td><td>Deferred locally; external staging unverified</td><td>Identity fixed; status drift unresolved</td><td>Inspect parallel branch; do not redesign</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>R4-v1 evidence ladder</h3>
+      <div class="timeline">
+        <div class="event"><strong><a href="../artifacts/research/solver-state-markov-completion-2026-09-25.md">State sufficiency / Markov note</a></strong>Why endogenous position and remaining horizon cannot be reconstructed from OHLCV alone.</div>
+        <div class="event"><strong><a href="../artifacts/research/solver-state-r4-v1-min-implementation-note-2026-09-25.html">Minimum implementation</a></strong>Backwards-compatible state seam, four-cell smoke, exact replay.</div>
+        <div class="event"><strong><a href="../artifacts/research/solver-state-r4-v1-blocking-ablation-2026-09-25.html">Blocking ablation</a></strong>Masked / position / time / both across three seeds; no economic promotion.</div>
+        <div class="event"><strong><a href="../artifacts/research/solver-state-r4-v1-replication-plan-2026-09-25.html">Fresh replication</a></strong>Architecture qualification, relative combined-state net effect, absolute gate failure.</div>
+        <div class="event"><strong><a href="../artifacts/research/solver-state-r4-v1-actor-robustness-2026-09-29.html">Actor robustness PBT</a></strong>Directional and hard-flat basins; same-panel search stopped.</div>
+        <div class="event"><strong><a href="../artifacts/research/solver-state-r4-v1-causal-forensics-2026-09-29.html">Causal forensics</a></strong>Logit-margin/action-collapse anatomy and final boundary before R1.</div>
+      </div>
+    </section>
+
+    <section id="c-series">
+      <h2>C-series · causal market summaries</h2>
+      <p class="lede">C changes market information only after the solver recipe is stable. It is not a recurrence, endogenous-state, or ex-post regime-label experiment.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Cell</th><th>Input / output</th><th>Held fixed</th><th>Gate</th><th>Boundary</th></tr></thead>
+          <tbody>
+            <tr><td><b>C0</b></td><td>Current causal market feature set → existing solver observation</td><td>Accepted solver recipe, task panel, chronology, cost, seeds, optimizer, and compute</td><td>Version and hash the feature contract; exact replay</td><td>Current baseline, not a claim that the features are sufficient</td></tr>
+            <tr><td><b>C1</b></td><td>Trailing summaries fitted on training data only → additional causal market-feature block</td><td>Everything in C0; only the summary block changes</td><td>Fit/transform split audit, no validation/test fitting, held-out multi-seed uplift</td><td>No current/future-derived <code>regime_tags</code>; no recurrence attribution</td></tr>
+            <tr><td><b>shuffled-C1</b></td><td>Same-shape C1 block with summary information destroyed → negative-control observation</td><td>C1 tensor shape, scale, missingness, training recipe, and compute</td><td>Must accompany C1; C1 must beat both C0 and shuffled-C1</td><td>Detects capacity/shape shortcuts; it is not a deployable feature set</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="notice"><strong>Entry condition:</strong> pin the solver recipe and starting checkpoints first. Fit every C1 statistic on the training partition, carry the fitted transform forward unchanged, and keep the final chronological test sealed.</div>
+    </section>
+
+    <section id="s-series">
+      <h2>S-series · System One</h2>
+      <p class="lede">A parallel state/candidate geometry study — not “Jev instead of R,” and not a shortcut around held-out economic evidence.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Cell</th><th>Experiment</th><th>Status</th><th>Entry / stop rule</th></tr></thead>
+          <tbody>
+            <tr><td><b>S1-P0</b></td><td>Frozen CLM-8B ranks short / flat / long from deterministic state serialization</td><td>Assets/design only</td><td>Diagnostic: order, latency, probabilities, collapse</td></tr>
+            <tr><td><b>S1-P1</b></td><td>Projection heads only; Qwen3-8B frozen</td><td>Design-only</td><td>Choice CE, multi-positive loss, or PPO — never naive repeated-label InfoNCE</td></tr>
+            <tr><td><b>S1-P2</b></td><td>Explicit state cross in CLM and matched R control</td><td>Needs contract reconciliation</td><td>Broad agent_state is not automatically narrow R4-v1 evidence</td></tr>
+            <tr><td><b>S1-P3</b></td><td>Offline ranker over validated TaskSpec candidates</td><td>Design-only</td><td>Fixed solver recipe from pinned starting checkpoints, equal candidate sets/compute, held-out downstream uplift</td></tr>
+            <tr><td><b>S1-P4a</b></td><td>S1 scoring ablation inside an already-defined MarketFramer/CandidateTask + WAIT interface</td><td>Future-only</td><td>Compare against the masterplan-owned baseline; calibration and abstention; no execution</td></tr>
+            <tr><td><b>S1-P4b</b></td><td>Optional S1 matcher ablation after versioned empirical solver profiles exist</td><td>Future-only</td><td>Compare against deterministic capability eligibility; no logits-as-capability</td></tr>
+            <tr><td><b>S1-P5</b></td><td>Distil useful exact-CLM geometry into numerical prototypes</td><td>Conditional</td><td>Only if exact CLM has signal but fails resource gates</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="notice"><strong>PPO coupling:</strong> repeated action labels create false negatives only for generic single-positive batch InfoNCE. Categorical PPO is valid because it trains the sampled three-way action probability. The head-only order is value-only diagnostic → state projection → state+action projections → bounded scale.</div>
+      <div class="grid two">
+        <article class="panel">
+          <span class="chip research">Exact CLM path</span>
+          <h3>Frozen 8B encoder, train small heads</h3>
+          <p>Tests the released representation. Start with zero-shot, then projection heads. Do not fine-tune the full base in the first ablation.</p>
+          <a href="../artifacts/research/system-one-clm-jev-trading-ablation-2026-09-24.html">Primary integration report</a>
+        </article>
+        <article class="panel">
+          <span class="chip provisional">Native numerical path</span>
+          <h3>Reuse iTrader trunk + cosine action prototypes</h3>
+          <p>Cheap PPO geometry ablation, but not released-CLM evidence. Semantic transfer/distillation comes only after exact CLM signal exists.</p>
+          <a href="../artifacts/research/system-one-oss-ppo-azr-companion-2026-09-24.html">OSS/PPO companion</a>
+        </article>
+      </div>
+    </section>
+
+    <section id="azr">
+      <h2>AZR · proposer-credit and curriculum ablations</h2>
+      <p class="lede"><code>train_AZR.py</code> currently generates and validates a task pool, then hands that fixed pool to PPO once. It is a one-shot bootstrap handoff, not the co-adaptive loop.</p>
+      <div class="notice"><strong>Core-loop boundary:</strong> proposer → validated <code>TaskSpec</code>/buffer → PPO solver → feedback/<code>r_prop</code> → proposer remains masterplan-owned. The cells below compare alternatives inside that planned loop; they do not replace it.</div>
+      <div class="notice warn"><strong><a href="https://arxiv.org/html/2505.03335v3#S3.SS1">Original AZR proxy</a>:</strong> <code>r_prop = 0</code> at solve rate <code>p = 0</code> or <code>p = 1</code>; otherwise <code>r_prop = 1 - p</code>. This is an asymmetric learnability proxy—not a parabola, not a symmetric peak at <code>p = 0.5</code>, and not direct measured learning progress.</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Cell</th><th>What it measures</th><th>Controls / gate</th><th>Non-claim</th></tr></thead>
+          <tbody>
+            <tr><td><b><code>AZR-LP-DIRECT-v0</code></b></td><td><b>DIRECT:</b> repeated pre/post micro-update solver uplift for a fixed task and checkpoint panel</td><td>Fixed solver recipe from pinned starting checkpoints; stable proposal UID; random/shuffled task controls; equal accepted solver compute</td><td>A provisional task-credit reference, not final economic promotion</td></tr>
+            <tr><td><b><code>AZR-LP-GRAD-v0</code></b></td><td><b>GRAD:</b> cheaper gradient-alignment surrogate for the DIRECT signal</td><td>Admit only after correlation and ranking against usable DIRECT intervals on held-out tasks; include shuffled/random controls</td><td>Gradient alignment is not learning progress unless validated against DIRECT</td></tr>
+            <tr><td><b><code>AZR-QD-REPLAY-v0</code></b></td><td><b>QD:</b> typed fresh/mutate/replay curriculum with quality-diversity coverage</td><td>Fixed-QD first; adaptive QD only after validated credit, matched generation budget, and equal accepted solver compute</td><td>Coverage/activity is not proposer utility, solver reward, or execution authority</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Pin starting checkpoints rather than calling the solver frozen: each DIRECT measurement may update a disposable solver copy, while every comparison restarts from the same pinned state. Keep proposer reward separate from the solver's market reward and keep the final chronological test unavailable to proposer adaptation.</p>
+    </section>
+
+    <section id="pomdp">
+      <h2>PF / WM / TTS · provisional POMDP-facing axes</h2>
+      <p class="lede">These are separate research axes. Spend in the order PF → realized-path hindsight ceiling → WM → TTS, but do not infer that WM must consume PF: a PF-free WM is a valid primary cell, and any WM × PF cross must be named separately.</p>
+      <div class="flow" aria-label="PF, hindsight ceiling, WM, and TTS research-spend order">
+        <span><code>PF-PRED-DIST-v0</code></span><i>→</i><span><code>ATX-TTS-DIAG-v0</code> hindsight ceiling</span><i>→</i><span><code>WM-VALIDITY-v0</code></span><i>→</i><span><code>ATX-TTS-DIAG-v0</code> search-on</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Axis / exact ID</th><th>Input → output</th><th>Controls</th><th>Gate</th><th>Non-claim</th></tr></thead>
+          <tbody>
+            <tr><td><b>PF</b><br><code>PF-PRED-DIST-v0</code></td><td>Causal market state through decision time → calibrated distributions for specified future return, volatility, and/or liquidity horizons</td><td><code>PF0</code> no-PF solver; <code>PF1</code> fixed accepted PF; zero-PF and shuffled-PF; same solver recipe and pinned starts</td><td>Fresh chronology; proper scores, calibration, coverage, and tail checks before policy crossing</td><td>Not a Stratego hidden-board posterior, latent truth, or evidence of policy uplift by itself</td></tr>
+            <tr><td><b>WM</b><br><code>WM-VALIDITY-v0</code></td><td>Causal market state plus common scenario seed, optionally PF only in a named cross → action-independent multi-step market paths; deterministic accounting applies actions afterward</td><td>PF-free WM primary cell, optional named WM × PF, simple persistence/bootstrap baselines, common scenarios across actions</td><td>Multi-step calibration plus horizon, tail, and regime validity on unseen chronology before search</td><td>One historical replay is not a world model; generated paths are not automatically valid counterfactuals</td></tr>
+            <tr><td><b>TTS</b><br><code>ATX-TTS-DIAG-v0</code></td><td>One fully cloned root state, fixed calibrated blueprint, and—only for search-on—a valid WM → adjusted scores/ranking for the three root target-position actions; no weight update</td><td>Realized-path hindsight ceiling first; then equal-compute search-off/search-on, common scenarios, and branch-safe portfolio/recurrent/PF/reward state clones</td><td>The ceiling must justify spend; search-on additionally requires valid WM and blueprint calibration, then replay/shadow-only evaluation</td><td>Not online fine-tuning, execution authority, or permission to bypass deterministic gate/risk/executor; WAIT remains outside the solver action space</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="notice warn"><strong>Market-JEPA remains separate.</strong> It may someday supply a market representation or scenario-model component, but it is not part of S, PF/WM/TTS, or this experiment round.</div>
+    </section>
+
+    <section id="selection-stress">
+      <h2>Selection exposure and controlled stress</h2>
+      <p>The <a href="../artifacts/research/saluki-methodology-research-2026-10-10.md#8-research25-selection-exposure-and-a-small-causal-feature-pilot">delivered selection/feature investigation</a> does not estimate remaining dataset alpha. Repeated adaptive selection can inflate scores; chronological train-only fitting and an exposure/trial ledger remain necessary. Proposed C0/C1/shuffled-C1 summaries preserve the visible window and R4 state after frozen R1 attribution: representation benefit, not new independent evidence.</p>
+      <p>The <a href="../artifacts/research/market-scenario-stress-2026-10-10.md">market-scenario stress note</a> proposes external immutable path adapters, not TaskSpec or environment features. Six public oracles cover identity, prefix causality, OHLCV eligibility, economic reconciliation, reset lineage and matched-policy controls before a separately approved frozen-policy stress pilot. Curriculum, learned adversaries and task-visible scenarios remain deferred. Q26 calibration and real-market confirmation stay separate.</p>
+    </section>
+
+    <section id="crossings">
+      <h2>Cross-axis discipline</h2>
+      <div class="grid two">
+        <div class="panel">
+          <h3 style="margin-top:0">Admissible after prerequisites</h3>
+          <ul>
+            <li><code>R1 + R4-v1</code> — window encoder × endogenous state</li>
+            <li><code>R2c-CARRY + R4-v1</code> vs identical RESET</li>
+            <li>accepted solver × C1, with shuffled-C1</li>
+            <li>accepted solver × PF1, with no/zero/shuffle controls</li>
+            <li>S1-P3 ranker × fixed solver recipe from pinned starting checkpoints and equal accepted compute</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h3 style="margin-top:0">Never conflate</h3>
+          <ul>
+            <li>R4-v1 with memory, belief, PF, or WM</li>
+            <li>R4-v2 with PF, WM, TTS, or extra state fields</li>
+            <li>C1 with recurrence evidence</li>
+            <li>CLM/Jev with Market-JEPA or “LLM-free” evidence</li>
+            <li>PPO logits/value with empirical capability</li>
+            <li>solver flat with online WAIT</li>
+            <li>historical replay with a counterfactual world model</li>
+            <li>PBT activity with economic promotion</li>
+          </ul>
+        </div>
+      </div>
+      <div class="notice"><strong>Replay/shadow boundary:</strong> the control flow, typed online seams, WAIT/no-match behavior, capability evidence, and deterministic gate/risk/executor ownership are defined by the <a href="../architecture/itrader_system_architecture.html">architecture</a> and ordered by the <a href="../plans/itrader_masterplan.html">masterplan</a>. They are prerequisites for later research cells, not duplicated dashboard wings.</div>
+    </section>
+
+    <section id="gates">
+      <h2>Bounded gate ladder</h2>
+      <p class="lede">One SRU is a 12-update, two-seed arm under the current 4,800 samples/update contract: 115,200 environment steps. Budgets are estimates, not authorization.</p>
+      <div class="gate-grid">
+        <div class="gate"><div class="id">G0</div><div><b>Telemetry receipt</b><p>No training. Formula/config, critic, advantage, clip, KL, margins, lineage, cost, replay.</p></div></div>
+        <div class="gate"><div class="id">G1</div><div><b>Recurrent mechanics</b><p>Tests + smoke. Masks, reset, last-valid state, checkpoint parity.</p></div></div>
+        <div class="gate"><div class="id">G2a</div><div><b>Accepted Q20 matched R screen</b><p>R0, R0 + R4-v1, R1, R1 + R4-v1. Eight SRU / 921,600 nominal training steps across two curricula. All 16 cells must finish before fresh terminal evaluation. Q21 monitoring and terminal evaluation budgets are separate; no promotion claim. <a href="../project-state/r1-development-readiness.html">Development prerequisites</a>.</p></div></div>
+        <div class="gate"><div class="id">G2b</div><div><b>Memory screen</b><p>2 SRU / 230,400 steps. CARRY must beat identical RESET.</p></div></div>
+        <div class="gate"><div class="id">G2c</div><div><b>R extension</b><p>1.152M steps for two arms. Held-out 1 bp → direction control → replay → 2 bp.</p></div></div>
+        <div class="gate"><div class="id">G3</div><div><b>EMA evaluation</b><p>Approximately zero solver steps. Raw versus EMA at identical snapshots.</p></div></div>
+        <div class="gate"><div class="id">G4–5</div><div><b>Schedules / filtering</b><p>3 SRU each. Isolated factor; filtering must beat equal-count random.</p></div></div>
+        <div class="gate"><div class="id">G6</div><div><b>Learning progress</b><p>Direct micro-update reference first; gradient surrogate only after validation.</p></div></div>
+        <div class="gate"><div class="id">G7</div><div><b>QD curriculum</b><p>Fixed QD, then adaptive versus shuffled at equal accepted compute.</p></div></div>
+        <div class="gate"><div class="id">G8–9</div><div><b>PF / WM / TTS</b><p>Calibration and scenario validity before any policy/search spend.</p></div></div>
+      </div>
+      <div class="notice"><strong>Economic promotion remains stricter:</strong> held-out chronology, multiple seeds, positive exact-1-bp net and Sharpe, strongest static-direction control, block-aware paired uplift, exact replay, 2-bp survival, and independent replication.</div>
+    </section>
+
+    <section id="evidence">
+      <h2>Evidence ledger</h2>
+      <div class="grid three">
+        <article class="panel">
+          <span class="chip active">Foundation</span>
+          <h3>Data, platform, baseline</h3>
+          <ul>
+            <li><a href="../artifacts/research/phase-a-performance-validity-audit-2026-09-12.html">Phase-A validity</a></li>
+            <li><a href="../artifacts/research/phase-a-mlp-film-autoresearch-2026-09-19.html">MLP-FiLM autoresearch</a></li>
+            <li><a href="../artifacts/research/dataset-v2-r0-audit-2026-09-24.html">Dataset-v2 R0</a></li>
+            <li><a href="../artifacts/research/ray-258-r0-parity-gate-2026-09-24.html">Ray-2.58 gate</a></li>
+          </ul>
+        </article>
+        <article class="panel">
+          <span class="chip research">System One</span>
+          <h3>CLM / Jev / PPO</h3>
+          <ul>
+            <li><a href="../artifacts/research/system-one-clm-jev-trading-ablation-2026-09-24.html">Primary S-series report</a></li>
+            <li><a href="../artifacts/research/system-one-oss-ppo-azr-companion-2026-09-24.html">OSS/PPO companion</a></li>
+          </ul>
+        </article>
+        <article class="panel">
+          <span class="chip provisional">POMDP transfer</span>
+          <h3>Stratego / self-play</h3>
+          <ul>
+            <li><a href="../artifacts/research/stratego-pomdp-self-play-itrader-2026-10-01.html">Full Stratego applicability report</a></li>
+            <li><a href="../artifacts/research/azr-stack-review-2026-09-12.md">AZR stack review</a></li>
+          </ul>
+        </article>
+      </div>
+      <p>See the <a href="../artifacts/research/README.md">complete categorized research-artifact catalog</a> for all dated reports and imported reference-only material.</p>
+    </section>
+
+    <section id="organization">
+      <h2>Documentation map</h2>
+      <p class="lede">Organization is additive and provenance-safe: indexes and ownership are consolidated; evidence files are not mass-moved.</p>
+      <div class="doc-tree">docs/
+├── README.md                         navigation + authority map
+├── architecture*.md                 active system invariants
+├── plans/itrader_masterplan.*       canonical order + promotion gates
+├── project-state/                   handoff, decisions, next actions
+├── research/
+│   ├── itrader_research_dashboard.* canonical research registry
+│   ├── recurrent-solver-ablation.*  focused R identity ledger
+│   └── sharpe-reward-design.*       focused reward design
+└── artifacts/research/
+    ├── README.md                     categorized evidence catalog
+    ├── dated reports + evidence/     investigation provenance
+    └── imported HTML                 advisory references only</div>
+      <div class="notice"><strong>Why files stay put:</strong> dated reports contain relative evidence links and snapshot citations. Moving them would make provenance harder to verify. The registry and catalog provide the organization layer.</div>
+    </section>
+
+    <section id="history">
+      <h2>History and operational log</h2>
+      <p>Preserved dated notices, not live run status. The final closeout supersedes earlier holds; historical artifacts remain unchanged.</p>
+      <div class="notice"><strong>16:38 final closeout:</strong> all eight corrected-control terminal replays are independently accepted: 256 witnessed episodes with checkpoint, payload and score parity. Healthcheck, 416 tests and pre-commit pass. Staged R4 seed 20260924 reproduces +0.392761% net / +0.018892 Sharpe per sqrt-bar; seed 20260925 is flat. No economic promotion. Next: accepted panel/completion/reporting preparation for R1. WSL is stopped. Earlier failures and holds below are historical and preserved.</div>
+      <div class="notice stop"><strong>Historical 13:48 safety hold:</strong> all eight training cells completed; three terminal replays have exact episode parity. Replay 3 crossed the then-active 2 GiB RAM floor (1.47 GiB observed), then exited naturally; no process was killed. Replay was held. All original artifacts and the breach remain preserved; the renewal above supersedes the operational hold, not its evidence.</div>
+      <div class="notice"><strong>13:42 replay update:</strong> RAM recovered; replay 1 reproduced all 32 episodes exactly. Its launcher/driver PID relationship lacked a live process witness. Luna is capturing that witness for the remaining terminals and one bounded repeat of terminal 1. Final replay acceptance remains pending; no training restart or runtime change.</div>
+      <div class="notice"><strong>13:37 replay hold:</strong> all eight terminal-input identity checks pass; no replay has launched. Available RAM is approximately 4.12 GiB, below the unchanged 5 GiB startup gate. Luna is waiting for headroom; completed training artifacts remain intact.</div>
+      <div class="notice"><strong>13:30 update: all eight corrected-compatibility training cells complete.</strong> Attempt04 collected 467,584 sampled steps; all 96 reporting rows and 33 indexed checkpoint digests pass parent checks. Fresh terminal replay acceptance remains pending under Luna supervision. Exact-cost terminals are all flat; staged R4 ends at +0.392761% net / +0.018892 Sharpe per sqrt-bar on the first seed but flat on the second. No replicated economic improvement or promotion. <a href="../artifacts/research/corrected-compatibility-r0-r4-controls-2026-10-05.html">Live audit and official net / Sharpe / action / diagnostic plots</a>. Earlier attempts below are historical.</div>
+      <div class="notice stop"><strong>Historical qualification:</strong> the <a href="../artifacts/research/ray258-historical-optimizer-audit-2026-10-05.html">retained-checkpoint audit</a> confirms native 30 epochs / minibatch 128 in ten terminals, five exploited-target settings divergences and six member-00002 self-resume entropy spikes. Existing charts remain observed policy outcomes, not proof of the intended recipe. Luna/xhigh completed both <a href="../artifacts/research/corrected-compatibility-r0-r4-controls-2026-10-05.html">corrected one-update controls and fresh replays</a>. R0 net −0.059056%, Sharpe −0.044665 per √bar; R4 net +0.441611%, Sharpe +0.024455, entirely short-only. Mechanics pass, no economic promotion. The longer bridge was held after one complete and one partial cell for a reporting repair; completed R0 terminal replay is exactly all-flat. PBT is off and R1 remains unimplemented. Follow the linked audit for restart status.</div>
+      <div class="notice"><strong>Compatibility-first ordering:</strong> repair/review Ray 2.58's ModelV2/TorchPolicy stack, run fresh R0 and R0 + R4-v1 controls, then implement/compare R1 and R1 + R4-v1 here. Native RLModule/Learner/EnvRunner development may proceed in its isolated migration branch; integration follows this comparison, with all four cells repeated as a platform bridge. Historical mutation events do not prove effective optimizer/policy settings. <a href="../artifacts/research/r1-foundation-hardening-2026-10-05.html">Current repair and validity audit</a>.</div>
+      <div class="notice"><strong>Q21 accepted, implementation pending:</strong> inspected 32-task initialization/update monitoring; fresh validation-only 32 anchors × 4 horizons = 128 terminal tasks, opened only after all 16 screen runs finish. Predetermined terminal checkpoints, matched controls, raw traces and separate economic / PPO / critic / cost-stage / provenance reporting. Final test stays sealed; two seeds and crossed horizons do not establish significance. <a href="../project-state/r1-development-readiness.html">Reporting contract</a>. Q22's identical corrected optimizer recipe is accepted, PBT off and original entropy clock. Q23 metadata-only coverage is approved; eligibility audit and panel freeze remain pending. Q24 equal-symbol terminal-net reporting is accepted but unimplemented; preserve raw means and gross-drawdown / per-√bar Sharpe labels. Q25 secondary net-bps-per-actual-bar reporting is accepted but unimplemented: normalize each episode before hierarchical aggregation. The separate eight-cell compatibility bridge is not this target screen.</div>
+    </section>
+
+    <footer class="foot">
+      Markdown is the source of truth: <a href="itrader_research_dashboard.md">itrader_research_dashboard.md</a>. Last reconciled 2026-10-10. This dashboard does not authorize live execution or supersede the masterplan.
+    </footer>
+  </div>
+
+  <script>
+    (() => {
+      const search = document.getElementById('axis-search');
+      const cards = Array.from(document.querySelectorAll('.axis-card'));
+      const filters = Array.from(document.querySelectorAll('button.filter'));
+      const empty = document.getElementById('no-results');
+      let selected = 'all';
+
+      function apply() {
+        const query = search.value.trim().toLowerCase();
+        let count = 0;
+        cards.forEach((card) => {
+          const statusMatch = selected === 'all' || card.dataset.status === selected;
+          const text = (card.dataset.search + ' ' + card.textContent).toLowerCase();
+          const queryMatch = !query || text.includes(query);
+          card.hidden = !(statusMatch && queryMatch);
+          if (!card.hidden) count += 1;
+        });
+        empty.classList.toggle('show', count === 0);
+      }
+
+      filters.forEach((button) => {
+        button.addEventListener('click', () => {
+          selected = button.dataset.filter;
+          filters.forEach((other) => other.setAttribute('aria-pressed', String(other === button)));
+          apply();
+        });
+      });
+      search.addEventListener('input', apply);
+    })();
+  </script>
+</body>
+</html>

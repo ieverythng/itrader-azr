@@ -1,0 +1,1240 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Phase A Performance Validity Audit</title><style>
+:root{--ink:#172019;--muted:#536058;--line:#ccd4ce;--paper:#f3f6f3;--panel:#fff;--green:#176b49;--blue:#1f5d8c;--amber:#a96113}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--paper);font-family:"Segoe UI",Arial,sans-serif;line-height:1.58}header{color:#eef6f0;background:linear-gradient(135deg,#17271e,#204b36);border-bottom:5px solid var(--green)}header>div,main{width:min(1120px,calc(100% - 36px));margin:auto}header>div{padding:48px 0 40px}.eyebrow{margin:0 0 8px;color:#9ed1b4;font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}header h1{max-width:920px;margin:0;color:#fff;font:700 clamp(2.2rem,5vw,3.6rem)/1.05 Georgia,serif}header p{max-width:850px;margin:14px 0 0;color:#d5e4da;font-size:1.05rem}main{padding:34px 0 72px}.source-note{margin:0 0 18px;color:var(--muted);font-size:.88rem}.source-note a{color:var(--blue)}article{padding:clamp(26px,5vw,58px);background:var(--panel);border:1px solid var(--line);border-radius:12px;box-shadow:0 14px 34px rgba(23,32,25,.08)}h1,h2,h3,h4{color:var(--ink);font-family:Georgia,serif;line-height:1.2}article>h1{display:none}h2{margin:2.1em 0 .65em;padding-top:.2em;font-size:clamp(1.55rem,3vw,2.1rem);border-top:1px solid var(--line)}h2:first-of-type{border-top:0;margin-top:.4em}h3{margin:1.65em 0 .45em;font-size:1.28rem}p,li,td,th{color:var(--muted)}strong{color:var(--ink)}a{color:var(--blue)}code{padding:.08em .3em;color:#164d74;background:#edf3f6;border-radius:3px;font-family:Consolas,monospace;font-size:.92em}pre{overflow:auto;padding:17px;color:#eef5f0;background:#1b2720;border-left:4px solid var(--green);border-radius:5px}pre code{padding:0;color:inherit;background:transparent}blockquote{margin:1.2em 0;padding:12px 18px;background:#fff8e9;border-left:4px solid var(--amber)}blockquote p{margin:0;color:#63491f}table{width:100%;margin:1.2em 0 1.55em;border-collapse:collapse;font-size:.91rem}th,td{padding:9px 10px;border:1px solid var(--line);text-align:left;vertical-align:top}th{color:#fff;background:#244d68}tbody tr:nth-child(even){background:#f4f6f4}ul,ol{padding-left:1.45em}li+li{margin-top:.35em}@media(max-width:650px){header>div,main{width:min(100% - 22px,1120px)}article{padding:22px 18px}table{display:block;overflow-x:auto}}@media print{body{background:#fff}header{color:#000;background:#fff;border-bottom:2px solid #000}header h1{color:#000}header p,.eyebrow{color:#444}main{width:100%;padding:0}article{border:0;box-shadow:none;padding:0}}
+</style></head><body><header><div><p class="eyebrow">Research audit</p><h1>Phase A Performance Validity Audit</h1><p>Source-of-truth Markdown with implementation and experiment evidence.</p></div></header><main><p class="source-note">Generated from <a href="phase-a-performance-validity-audit-2026-09-12.md">phase-a-performance-validity-audit-2026-09-12.md</a>.</p><article><h1>Phase A Performance Validity Audit</h1>
+<blockquote>
+<p><strong>2026-09-19 continuation:</strong> the repaired stack has now produced two
+shared-lineage 1--2 bp-positive MLP-FiLM candidates with exact replay and
+regime-varying actions, but two independent PBT populations and an
+eligibility-aware probe failed promotion. The current decision and full
+evidence are in
+<a href="phase-a-mlp-film-autoresearch-2026-09-19.md"><code>phase-a-mlp-film-autoresearch-2026-09-19.md</code></a>.</p>
+</blockquote>
+<p><strong>Date:</strong> 2026-09-12; updated 2026-09-20
+<strong>Repository state:</strong> <code>agent/Watson-dev</code> at <code>88361f05</code> plus the uncommitted,
+separately reviewable P0 evidence loop described below
+<strong>Decision:</strong> the Phase A results support optimizer activity, reward sensitivity,
+and pipeline learnability, but they do <strong>not</strong> support a claim of validated
+trading performance or baseline-relative economic uplift.</p>
+<h2>Executive conclusion</h2>
+<p>The two historical PBT checkpoints are real and restorable. They contain trained <code>SolverMLPFiLM</code> policies and observation-filter state after roughly 0.9–1.0 million environment steps. The historical curves also show finite reward signals, non-collapsed training, and non-trivial action distributions. That is useful evidence that PPO can interact with the Phase A environment and optimize the shaped objective.</p>
+<p>It is not evidence of economic performance. The metric named <code>custom_metrics/episode_return_mean</code> is the episode's accumulated <strong>optimization reward</strong>, while the metric named <code>episode_return</code> is the normalized reward component called <code>pnl_delta</code>. Neither is raw portfolio return. PBT selected on that shaped metric using the same data used for training, without a held-out evaluation environment. One selected checkpoint has an invalid PBT-mutated discount factor of <code>gamma=1.188</code>; the other has <code>gamma=0.6272</code>, whose discount half-life is about 1.49 steps despite 96–200 step tasks.</p>
+<p>A deterministic, symbol-safe diagnostic replay of 288 episodes per checkpoint produced the following independent arithmetic-return measurements:</p>
+<table>
+<thead>
+<tr>
+<th>Historical target</th>
+<th style="text-align:right">Gross mean</th>
+<th style="text-align:right">Net mean at 1 bp per turnover unit</th>
+<th style="text-align:right">Positive net episodes</th>
+<th style="text-align:right">Mean turnover</th>
+<th style="text-align:right">Flat actions</th>
+<th style="text-align:right">Mean excess vs long-only</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>final winner <code>00002</code></td>
+<td style="text-align:right">+0.0163%</td>
+<td style="text-align:right"><strong>−0.0728%</strong></td>
+<td style="text-align:right">22.6%</td>
+<td style="text-align:right">8.91</td>
+<td style="text-align:right">93.6%</td>
+<td style="text-align:right">−0.0334%</td>
+</tr>
+<tr>
+<td>peak winner <code>00004</code></td>
+<td style="text-align:right"><strong>−0.0112%</strong></td>
+<td style="text-align:right"><strong>−0.0950%</strong></td>
+<td style="text-align:right">15.6%</td>
+<td style="text-align:right">8.38</td>
+<td style="text-align:right">96.3%</td>
+<td style="text-align:right">−0.0556%</td>
+</tr>
+</tbody>
+</table>
+<p>The replay is an in-sample diagnostic, not a held-out estimate: the historical runs trained on the complete Parquet file. It is nevertheless enough to reject the interpretation that the stored PBT scores directly represented profitable returns. The policies should be quarantined as reproducibility targets, not promoted as performance baselines.</p>
+<p>The end-to-end stack now runs after a narrow optional-dashboard fallback and a test-driven repair round. A bounded official ablation/PBT probe completed through:</p>
+<pre><code class="language-text">loadout JSON -&gt; run_ablation.py -&gt; train_solo_V2 -&gt; Ray Tune/PBT
+-&gt; ITraderEnv -&gt; random TaskSampler00 -&gt; RewardEngine -&gt; stable metrics and plots
+</code></pre>
+<p>No LLM proposer or task pool was active. The initial reproduction did confirm the historical defects: identical population members, missed exploit boundaries, mislabeled metrics, incomplete population summaries, and zero-byte Ray-owned Windows artifacts. The repaired probe then started distinct members, evaluated them on one matched validation stream, checkpointed at every perturbation boundary, recorded exploit/restore events, constrained every mutation, and stopped both members at 12 unique iterations and 13,520 environment steps. Ray-owned PBT text logs remain zero-byte on this Ray 2.9/Windows installation, so durable manifests, status, configuration history, checkpoint indices, metrics, and capability reports are now written outside Tune-owned directories.</p>
+<p>The repaired smoke run is a seam validation, not a performance result. Its best observed validation net returns were +0.1239% and +0.3174% at isolated four-episode evaluations, while both copied final policies ended at −2.2420% net. Twelve iterations and four validation episodes per iteration are intentionally too small for a learnability or promotion claim.</p>
+<h2>Scope and evidence</h2>
+<p>This audit treats the two supplied reviews as evidence and inspiration, not as executable instructions:</p>
+<ul>
+<li><code>C:/Users/Admin/Downloads/azr-stack-review-2026-09-12.md</code></li>
+<li><code>C:/Users/Admin/Downloads/recurrence-code-audit-2026-09-12.md</code></li>
+</ul>
+<p>The recurrence document was used only where it contained Phase A measurement or shared-contract observations. The unimplemented <code>SolverWindowLSTMFiLM</code> and recurrent solver work are intentionally out of scope. <code>SolverMLPFiLM</code> remains the active Phase A baseline.</p>
+<p>Source, tests, checked-in configs, restored checkpoint state, and newly generated artifacts take precedence over narrative documentation. The GitNexus index was stale relative to the current commit, so every graph-level observation was confirmed against source.</p>
+<p>Primary generated evidence:</p>
+<ul>
+<li><a href="../../../itrader/scripts/experiments/configs/outputs/phase_a_performance_validity_20260912/checkpoint_replay.json">checkpoint replay JSON</a></li>
+<li><a href="../../../itrader/scripts/experiments/configs/outputs/phase_a_performance_validity_20260912/stack_probe_evidence.json">full-stack probe evidence</a></li>
+<li><a href="../../../itrader/scripts/experiments/configs/outputs/phase_a_performance_validity_20260912/pbt_probe/summary.json">ablation summary</a></li>
+<li><a href="../../../itrader/scripts/experiments/configs/phase_a_performance_validity_probe_20260912.json">reproducible probe loadout</a></li>
+</ul>
+<h2>What is valid, and what is not</h2>
+<h3>Supported claims</h3>
+<ol>
+<li>The Phase A PPO/environment loop runs and produces finite optimization rewards.</li>
+<li>The MLP-FiLM checkpoints restore successfully under Ray 2.9.0.</li>
+<li>The historical policies are not a single constant-action collapse in their original training reports.</li>
+<li>The environment's reward has enough local signal for PPO to change its policy and value estimates.</li>
+<li>The current random/generated task path works without an LLM backend.</li>
+</ol>
+<h3>Unsupported claims</h3>
+<ol>
+<li>The PBT score is not an economic episode return.</li>
+<li>The two winners are not held-out winners; they were selected and observed on the training file.</li>
+<li>The peak winner is not a valid PPO configuration because <code>gamma &gt; 1</code>.</li>
+<li>The historical top-two comparison does not establish a statistically significant strategy difference. Its rows are training reports, not independent evaluation episodes.</li>
+<li>The available Parquet file is not three full years of duration. It spans 2023-07-05 through 2025-07-03: 729 calendar days across three calendar labels.</li>
+<li>Neither restored policy passes a modest 1 bp turnover-cost diagnostic.</li>
+</ol>
+<p>The precise answer to “was the reward learnable?” is therefore: <strong>learnable as an optimizer objective, yes; validated as a proxy for economic performance, no.</strong></p>
+<h2>Historical winner reconstruction</h2>
+<p>The checked-in comparison config points to these targets:</p>
+<ul>
+<li>final winner: <code>...83c77_00002.../checkpoint_000019</code></li>
+<li>peak winner: <code>...83c77_00004.../checkpoint_000019</code></li>
+</ul>
+<p>Both checkpoints report training iteration 200 and use <code>SolverMLPFiLM</code>, a 60-row OHLCV window, random family-00 tasks, <code>MeanStdFilter</code>, and horizons 96/128/160/200.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th style="text-align:right">final winner <code>00002</code></th>
+<th style="text-align:right">peak winner <code>00004</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Environment steps</td>
+<td style="text-align:right">985,088</td>
+<td style="text-align:right">912,944</td>
+</tr>
+<tr>
+<td>Historical final shaped score</td>
+<td style="text-align:right">2.2731</td>
+<td style="text-align:right">1.8674</td>
+</tr>
+<tr>
+<td>Historical best shaped score</td>
+<td style="text-align:right">3.3793</td>
+<td style="text-align:right">3.8235</td>
+</tr>
+<tr>
+<td><code>gamma</code> in checkpoint</td>
+<td style="text-align:right">0.6272</td>
+<td style="text-align:right"><strong>1.1880</strong></td>
+</tr>
+<tr>
+<td><code>lambda</code></td>
+<td style="text-align:right">0.9</td>
+<td style="text-align:right">0.9</td>
+</tr>
+<tr>
+<td>Policy-state SHA-256</td>
+<td style="text-align:right"><code>ca658b81…fc87332</code></td>
+<td style="text-align:right"><code>9c50e974…0ac31</code></td>
+</tr>
+<tr>
+<td>Promotion status</td>
+<td style="text-align:right">quarantine and reevaluate</td>
+<td style="text-align:right">diagnostic only; invalid config</td>
+</tr>
+</tbody>
+</table>
+<p>Ray PBT's arithmetic perturbation of numeric categorical choices can turn <code>0.99</code> into <code>1.188</code> (<code>0.99 × 1.2</code>) when no constrained exploration function validates the mutated config. It can likewise drive <code>0.98</code> down through repeated multiplication. For <code>gamma=0.6272</code>, weights beyond a few steps are negligible: <code>gamma^96 ≈ 3.56e−20</code> and <code>gamma^200 ≈ 3.03e−41</code>. For <code>gamma=1.188</code>, they explode: <code>gamma^96 ≈ 1.52e7</code> and <code>gamma^200 ≈ 9.19e14</code>.</p>
+<h2>Checkpoint replay protocol and result</h2>
+<p>The diagnostic evaluator restored each complete <code>Algorithm</code> checkpoint, including its observation filter. It then used <code>explore=False</code> on fixed family-00 tasks while preserving the historical task-embedding fields.</p>
+<p>The 719,855-row dataset contains AAPL, AMZN, and MSFT. For every symbol it divided ordered rows into early/middle/late temporal thirds, then selected eight deterministic starts for each of four horizons. All 288 windows per policy were asserted to remain inside one symbol. Economic measurements were calculated independently of <code>RewardEngine</code>:</p>
+<ul>
+<li>gross arithmetic strategy return;</li>
+<li>turnover from every target-position change;</li>
+<li>terminal liquidation turnover;</li>
+<li>net return at 1 bp per turnover unit;</li>
+<li>arithmetic max drawdown;</li>
+<li>matched long-only result.</li>
+</ul>
+<p>The final winner's small positive gross mean disappears under costs. It is negative on all three symbols net of costs, and its late-segment mean is −0.1854%. The peak winner is negative gross and net. Both policies are overwhelmingly flat in deterministic inference. Because horizons reuse related time regions, these 288 rows are diagnostic observations rather than independent statistical samples; no IID confidence interval is claimed.</p>
+<h2>Full-stack probe</h2>
+<p>The full-stack loadout uses the repository's ablation schema and runner. It explicitly sets:</p>
+<ul>
+<li><code>task_pool_path: &quot;&quot;</code> and <code>p_pool: 0.0</code>;</li>
+<li><code>task_reward_ids: &quot;pnl_linear&quot;</code>;</li>
+<li>family-00 random generation through <code>TaskSampler00</code>;</li>
+<li>no proposer backend and no LLM endpoint;</li>
+<li>the historical window, horizons, stream mode, and reward-normalization mode;</li>
+<li>CPU execution with two rollout workers.</li>
+</ul>
+<p>The first attempt exposed an unconditional Ray dashboard dependency. A test-first fallback now retries without the optional dashboard only when Ray reports that the dashboard package is absent. The official stack then completed a 3-iteration fixed control and a 2-member, 12-iteration PBT probe.</p>
+<p>The probe's shaped score ranged from +0.9846 at iteration 1 to −2.2267 at iteration 4 and finished at +0.1370. That volatility confirms that a positive final point is not a learning-curve validation. More importantly, both PBT members had the same normalized metric hash, <code>8c444cff…8c463</code>, across all 12 reports. No exploitation or mutation was observed.</p>
+<p>This is caused by three interacting seams:</p>
+<ol>
+<li><code>num_samples</code> clones the same fixed base config and the same seed; PBT does not sample diverse initial hyperparameters.</li>
+<li>PBT's perturbation interval is 3, but <code>checkpoint_interval</code> is 10. Ray logged “no checkpoint” and skipped exploit events.</li>
+<li><code>run_ablation.py</code> selects only the most recently modified trial directory for a variant, so a multi-trial population is summarized as one trial.</li>
+</ol>
+<p>Before repair, <code>cpu_pbt</code> was only a resource-mode flag: scheduler/population activation depended on <code>pbt</code>, so a loadout with <code>cpu_pbt: true</code> but no <code>pbt: true</code> silently ran one FIFO trial. It now activates CPU PBT; the separate <code>cpu_only</code> flag selects resources without activating a scheduler.</p>
+<h2>Implementation round and repaired-stack verdict</h2>
+<p>The implementation followed the repository architecture guardrails and one red/green/refactor slice at a time. <code>ITraderEnv</code> remains the deep market/task/accounting module; <code>RewardEngine</code> still owns optimization reward; the solver does not acquire broker, risk, or execution semantics.</p>
+<table>
+<thead>
+<tr>
+<th>Seam</th>
+<th>Implemented contract</th>
+<th>Repaired-stack evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Episode accounting</td>
+<td>terminal <code>episode_evidence</code> schema v1 separates optimization reward from gross/cost/net arithmetic returns; includes liquidation turnover, drawdown, exposure, position changes, positive-bar fraction, and Sharpe per square-root bar</td>
+<td>known-trace arithmetic tests and live callback metrics pass</td>
+</tr>
+<tr>
+<td>Data partitioning</td>
+<td>symbol-specific contiguous <code>train</code>/<code>validation</code>/<code>test</code> intervals with lookback/outcome purge</td>
+<td>24 seeded multi-symbol episodes stayed inside one symbol and split</td>
+</tr>
+<tr>
+<td>Reset/task semantics</td>
+<td>Gym reset seed reseeds task/start streams; sampler honors declared ranges; overrides normalize before encoding</td>
+<td>deterministic replay and bounds tests pass</td>
+</tr>
+<tr>
+<td>Task observability</td>
+<td>checkpoint-compatible <code>legacy_v1</code>; new runs use <code>semantic_v2</code>, which hashes solver-relevant task semantics and excludes the episode seed/start shortcut</td>
+<td>alias/seed invariance tests pass</td>
+</tr>
+<tr>
+<td>PBT objective</td>
+<td>Ray ranks held-out <code>evaluation/net_return_mean</code> at an explicit 1 bp cost, never shaped reward</td>
+<td>live Ray table and ablation summary expose gross, net, and Sharpe separately</td>
+</tr>
+<tr>
+<td>PBT search</td>
+<td>distinct deterministic trial seeds and sampled initial domains; categorical mutations; <code>custom_explore_fn</code> clamps continuous values and keeps <code>gamma &lt;= 0.999</code></td>
+<td>initial config hashes differ; live exploit/explore and bounded <code>gamma</code> observed</td>
+</tr>
+<tr>
+<td>Fair exposure</td>
+<td><code>train_batch_size=1024</code> stays fixed; validation seed <code>30260931</code> is shared; restored workers train only remaining iterations</td>
+<td>both members ended at 12 unique iterations and 13,520 timesteps</td>
+</tr>
+<tr>
+<td>Lineage</td>
+<td>active metric/checkpoint rows rewind to the restored iteration; append-only configuration history retains every start/restore</td>
+<td>both reports have exactly iterations 1–12; mutated restore configs are non-empty</td>
+</tr>
+<tr>
+<td>Provenance</td>
+<td>atomic run manifests/status outside Tune, plus per-trial resolved config, status, history, checkpoint index, metrics, plots, and capability report</td>
+<td>all repository-owned acceptance artifacts are non-empty despite Ray-owned zero-byte files</td>
+</tr>
+<tr>
+<td>Reporting</td>
+<td>ablation enumerates every member; capability reporter accepts the trainer's flat JSONL and skips warmup correctly</td>
+<td>one fixed plus two PBT series summarized; all three capability reports generated</td>
+</tr>
+</tbody>
+</table>
+<p>Sharpe is reported as a dimensionless per-square-root-bar diagnostic because no annualization convention is inferred from irregular market rows. Annualized Sharpe is emitted only when <code>evidence_periods_per_year</code> is explicitly configured. This prevents a plausible-looking but undocumented scaling factor from entering promotion evidence.</p>
+<p>The repaired run is recorded in <a href="../../../itrader/scripts/experiments/configs/outputs/phase_a_performance_validity_20260912/repaired_stack_probe/acceptance.json">acceptance.json</a>, with the complete all-member <a href="../../../itrader/scripts/experiments/configs/outputs/phase_a_performance_validity_20260912/repaired_stack_probe/summary.json">summary.json</a> and comparison outputs beside it.</p>
+<h3>Ray 2.9-compatible PBT practice adopted</h3>
+<p>The current Ray guidance still recommends random initial hyperparameters, frequent checkpointing at perturbation boundaries, explicit mutation spaces, and replayable PBT policy schedules. Ray 2.9 supports <code>burn_in_period</code>, <code>custom_explore_fn</code>, <code>log_config</code>, and categorical list mutations, but it rejects duplicate metric ownership between the scheduler and <code>tune.run</code>. The repaired seam therefore gives the scheduler sole ownership of the PBT objective, aligns checkpoint and perturbation intervals, uses a burn-in, validates post-mutation configs, and records an independent history because Ray's Windows policy log is not durable here.</p>
+<p>Primary references: Ray's <a href="https://docs.ray.io/en/latest/tune/examples/pbt_guide.html">PBT guide</a>, <a href="https://docs.ray.io/en/latest/tune/api/doc/ray.tune.schedulers.PopulationBasedTraining.html">PopulationBasedTraining API</a>, and <a href="https://docs.ray.io/en/latest/tune/examples/includes/pb2_ppo_example.html">PB2 PPO example</a>. Version-specific behavior was also confirmed against the installed Ray 2.9.0 signatures and source; later documentation was used as practice guidance, not as proof that newer APIs exist in 2.9.</p>
+<p>Batch size is deliberately not mutated in this Phase A study. With <code>training_iteration</code> as the Ray 2.9 PBT clock, mutating it would compare members after unequal environment exposure. A later upgrade may instead use a timestep clock and a trainable/checkpoint contract designed around that unit.</p>
+<h2>Confirmed findings</h2>
+<table>
+<thead>
+<tr>
+<th>Severity</th>
+<th>Finding</th>
+<th>Direct consequence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Critical</td>
+<td>Optimization reward is labeled and selected as episode return</td>
+<td>PBT ranks reward shaping, not raw or net strategy performance</td>
+</tr>
+<tr>
+<td>Critical</td>
+<td>PBT permits invalid <code>gamma</code> mutations</td>
+<td>one historical “winner” has <code>gamma=1.188</code></td>
+</tr>
+<tr>
+<td>Critical</td>
+<td>No held-out evaluation path is configured</td>
+<td>winner status is in-sample and cannot support generalization</td>
+</tr>
+<tr>
+<td>Critical</td>
+<td>PBT population starts identical and checkpoint cadence misses perturbations</td>
+<td>bounded PBT can perform no search while appearing successful</td>
+</tr>
+<tr>
+<td>High</td>
+<td>Ray root manifests, <code>params.json</code>, <code>progress.csv</code>, and <code>result.json</code> are zero bytes</td>
+<td>historical and current run provenance is incomplete</td>
+</tr>
+<tr>
+<td>High</td>
+<td>Capability report expects nested records with <code>iteration</code>, while trainer emits flat records with <code>training_iteration</code></td>
+<td>the report raises “No iteration records found” on real trainer output</td>
+</tr>
+<tr>
+<td>High</td>
+<td><code>ITraderEnv</code> samples global row indices from a symbol-concatenated dataframe</td>
+<td>rare episodes can cross AAPL→AMZN or AMZN→MSFT boundaries</td>
+</tr>
+<tr>
+<td>High</td>
+<td>Reward parameter ranges declared by the trainer are ignored by <code>TaskSampler00</code></td>
+<td>51.7% of a 1,000-task probe exceeded the declared <code>dd_w &lt;= 0.04</code> range</td>
+</tr>
+<tr>
+<td>High</td>
+<td>Task embedding omits reward parameters, regime, difficulty, bar resolution, and start</td>
+<td>materially different tasks can be observationally aliased</td>
+</tr>
+<tr>
+<td>High</td>
+<td>Task seed affects the sampled start and is also encoded</td>
+<td>the model can learn a seed/location shortcut rather than task semantics</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td><code>reset(seed=...)</code> does not reseed the task/start samplers</td>
+<td>Gymnasium's seed contract is not reproducible across resets</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td><code>task_sampler_overrides</code> are merged after embedding and without normalization</td>
+<td>invalid values bypass <code>RewardEngine</code> bounds and are hidden from the solver</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>No terminal liquidation cost is charged</td>
+<td>episode economics favor open terminal positions</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>invalid mode strings silently fall back and NaN/Inf values are silently sanitized</td>
+<td>evidence corruption can be hidden during audit runs</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>capability-report “warmup” keeps the final N records rather than skipping the first N</td>
+<td>report semantics disagree with CLI help</td>
+</tr>
+<tr>
+<td>Medium</td>
+<td>callback reads the first sub-environment's private <code>_last_info</code></td>
+<td>vectorized environments would misattribute terminal evidence</td>
+</tr>
+</tbody>
+</table>
+<h3>Metric conflation</h3>
+<p><code>PSMetrics</code> assigns accumulated reward to <code>episode_return_mean</code> and assigns the accumulated normalized <code>pnl_delta</code> reward component to <code>episode_return</code>. <code>RewardEngine</code> multiplies raw arithmetic PnL deltas by a dynamic <code>ret_unit</code>. A deterministic price probe produced raw arithmetic return <code>0.00377537</code> but the reported <code>pnl_delta</code> component was <code>3.78058</code>, roughly 1,000 times larger. The <a href="../../../itrader/scripts/experiments/run_ablation.py">ablation runner</a> then labels and plots this field as “Episode Return Mean”, and <a href="../../../itrader/rl_lib/train/train_solo_V2.py">train_solo_V2.py</a> makes it the PBT selection objective.</p>
+<p>The shaped reward is allowed to be scaled; the defect is presenting it as a return and using it as the only promotion score.</p>
+<h3>Data and split safety</h3>
+<p>The Parquet file is grouped contiguously by symbol, while <a href="../../../itrader/envs/itrader_env.py">itrader_env.py</a> indexes the reset window and future returns without a symbol boundary. The theoretical fraction of invalid global starts is low—about 0.043% to 0.072% depending on horizon—but non-zero. In a 2,000-reset simulation per worker, a worker produced an AAPL→AMZN episode. Low frequency does not make the accounting correct.</p>
+<p>A chronological split must be constructed by timestamp <strong>within each symbol</strong>, then purged so that neither the 60-row observation window nor the 96–200 row outcome horizon overlaps a neighboring split.</p>
+<h3>Task semantics</h3>
+<p><a href="../../../itrader/rl_lib/tasks/encoder.py">encoder.py</a> encodes family, <code>price_id</code>, reward ID, horizon, dimensions, and <code>seed % 997</code>. <a href="../../../itrader/rl_lib/tasks/samplers.py">samplers.py</a> separately samples reward weights and start positions. Since reward parameters are not encoded, the same observation/task embedding can ask the solver to optimize different objectives. Since the seed is encoded and also controls start selection, the task representation leaks a location proxy.</p>
+<p>For Phase A, either freeze reward parameters to one declared objective or introduce a versioned task encoding that represents every solver-relevant degree of freedom. Do not overload <code>TaskSpec</code> with broker, risk, or execution semantics.</p>
+<h2>Target design</h2>
+<p>The architecture should make optimization evidence and economic evidence distinct by construction.</p>
+<pre><code class="language-text">TaskSpec + market split -&gt; ITraderEnv -&gt; EpisodeEvidence
+                                 |             |
+                                 v             +-&gt; EvidenceWriter -&gt; evaluator/capability report
+                           RewardEngine
+                                 |
+                                 +-&gt; optimization_reward + named components -&gt; PPO/PBT
+</code></pre>
+<h3><code>ITraderEnv</code> remains the deep accounting module</h3>
+<p><code>ITraderEnv</code> should continue to own market-window assembly, task-conditioned reset, action-to-position transitions, and episode accounting. At terminal step it should emit a public, versioned <code>EpisodeEvidence</code> record containing:</p>
+<ul>
+<li>raw gross arithmetic return;</li>
+<li>explicit cost schedule and net return;</li>
+<li>turnover including terminal liquidation;</li>
+<li>max drawdown and per-step count;</li>
+<li>action counts;</li>
+<li>symbol, start/end indices and timestamps;</li>
+<li>split ID and dataset fingerprint;</li>
+<li>task identity and canonical reward configuration;</li>
+<li>optimization reward and finite named components.</li>
+</ul>
+<p>This is a deeper seam than having callbacks scrape private environment state. Two consumers justify it immediately: the RLlib callback adapter and a standalone checkpoint evaluator.</p>
+<h3><code>RewardEngine</code> remains the optimization module</h3>
+<p><code>RewardEngine</code> should continue to own finite solver reward calculation. Its output should be named <code>optimization_reward</code>, never <code>episode_return</code>. Reward normalization and clipping must be recorded, but economic return must be computed independently from raw position and price transitions.</p>
+<h3>Evaluation stays outside <code>TaskSpec</code></h3>
+<p>Introduce an <code>EvaluationPlan</code> or equivalent experiment contract for symbol-specific train/validation/test ranges, purge widths, cost scenarios, episode starts, baselines, seeds, and block-bootstrap units. These are experiment and evidence semantics, not broker or online risk semantics. <code>MarketFramer</code>, <code>DecisionGate</code>, <code>RiskEngine</code>, and <code>Executor</code> remain Phase C seams.</p>
+<h3>One evidence schema</h3>
+<p>The trainer, stable-metrics writer, checkpoint evaluator, and capability reporter should consume a single versioned record contract. Persist atomically to a run-owned evidence directory that Tune cannot truncate. A completed run is invalid if its manifest, resolved config, dataset hash, checkpoint index, or evaluation record is absent or empty.</p>
+<h2>TDD implementation sequence</h2>
+<p>Implement one vertical behavior slice at a time. Do not begin by adding every proposed test.</p>
+<h3>Slice 1 — truthful terminal evidence</h3>
+<p><strong>Public seam:</strong> <code>ITraderEnv.reset/step</code>, <code>RewardEngine.compute</code>, and terminal <code>info[&quot;episode_evidence&quot;]</code>.</p>
+<ol>
+<li>Red: a known price/action trace asserts raw gross return, optimization reward, turnover, liquidation cost, net return, and max drawdown independently.</li>
+<li>Green: add the smallest immutable/versioned evidence payload.</li>
+<li>Refactor: make <code>PSMetrics</code> consume the public payload; rename the shaped metric.</li>
+</ol>
+<p>Acceptance: changing reward normalization changes only optimization fields, not economic return.</p>
+<h3>Slice 2 — symbol-safe evaluation</h3>
+<p><strong>Public seam:</strong> reset sampling and <code>EvaluationPlan</code>.</p>
+<ol>
+<li>Red: no observation or outcome row may cross a symbol or split boundary.</li>
+<li>Green: sample from precomputed per-symbol valid intervals.</li>
+<li>Refactor: share boundary validation between training and checkpoint evaluation.</li>
+</ol>
+<p>Acceptance: every emitted episode carries one symbol and a declared split; purge overlap is impossible.</p>
+<h3>Slice 3 — bounded PBT domains</h3>
+<p><strong>Public seam:</strong> scheduler/loadout builder.</p>
+<ol>
+<li>Red: every initial and mutated config satisfies <code>0 &lt; gamma &lt;= 1</code>, <code>0 &lt;= lambda &lt;= 1</code>, batch divisibility, and declared ranges.</li>
+<li>Green: seed population members independently, sample diverse initial values, and use a validating <code>custom_explore_fn</code>.</li>
+<li>Refactor: align checkpoint cadence to perturbation cadence and expose both in the JSON schema.</li>
+</ol>
+<p>Acceptance: a 2-member smoke run must show different resolved configs, at least one recorded mutation/exploit when intended, and no out-of-domain value.</p>
+<h3>Slice 4 — durable run evidence</h3>
+<p><strong>Public seam:</strong> resolved-run manifest and evidence writer.</p>
+<ol>
+<li>Red: the current Windows/Ray integration test fails if any required artifact is zero bytes.</li>
+<li>Green: write manifests and resolved configs atomically outside Tune-owned paths, then copy/link them into summaries.</li>
+<li>Refactor: make <code>run_ablation.py</code> enumerate every population member and preserve per-trial results.</li>
+</ol>
+<p>Acceptance: interruption, success, and failure each leave a non-empty status record; multi-trial summaries include all members.</p>
+<h3>Slice 5 — task semantics and reproducibility</h3>
+<p><strong>Public seam:</strong> <code>TaskSampler00</code>, <code>TaskEncoder</code>, and <code>ITraderEnv.reset(seed=...)</code>.</p>
+<ol>
+<li>Red: declared reward bounds govern all sampled and overridden tasks; the same reset seed reproduces task and start; task aliases cannot differ in hidden solver-relevant parameters.</li>
+<li>Green: normalize overrides before encoding, respect configured sampling domains, and split semantic task identity from episode RNG.</li>
+<li>Refactor: version task encoding and remove the seed shortcut.</li>
+</ol>
+<p>Acceptance: two tasks with different reward objectives either have different embeddings or are rejected by a fixed-objective Phase A profile.</p>
+<h2>Promotion gate for a Phase A winner</h2>
+<p>A checkpoint may be called a Phase A performance winner only when all gates pass:</p>
+<ol>
+<li><strong>Provenance:</strong> non-empty manifest, commit, dirty-tree marker, resolved config, dataset SHA-256, Ray/Python versions, and checkpoint hash.</li>
+<li><strong>Valid search:</strong> independently seeded population; diverse initial configs; every mutation validated; exploit events and lineage recorded.</li>
+<li><strong>Strict data separation:</strong> per-symbol chronological train/validation/test splits with window/horizon purge; the test split unavailable to PBT and proposer updates.</li>
+<li><strong>Frozen inference:</strong> restored training-only observation filter, <code>explore=False</code>, deterministic episode schedule.</li>
+<li><strong>Truthful economics:</strong> gross return, net return under multiple cost assumptions, turnover, drawdown, exposure, and terminal liquidation.</li>
+<li><strong>Baselines:</strong> flat, long-only, short-only, random policy, and the untrained policy under the identical schedule.</li>
+<li><strong>Replication:</strong> multiple independent training seeds and block-aware uncertainty over non-overlapping time units.</li>
+<li><strong>Stratification:</strong> symbol, time regime, horizon, task family, and reward configuration.</li>
+<li><strong>Separation of concerns:</strong> optimization reward reported next to—but never named as—economic return.</li>
+<li><strong>Capability report:</strong> generated from the same versioned episode-evidence schema and rejected on missing fields.</li>
+</ol>
+<p>The historical checkpoints remain regression fixtures after the gate was
+implemented; they are not performance candidates:</p>
+<ul>
+<li><code>00002</code> is the primary compatibility target because its <code>gamma</code> is finite and below 1, although it is too short-horizon for the stated tasks.</li>
+<li><code>00004</code> is a negative test proving that PBT domain validation and promotion checks are necessary.</li>
+</ul>
+<h2>Implementation status and next priorities</h2>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Deliverable</th>
+<th>Remaining boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Implemented</td>
+<td><code>EpisodeEvidence</code> plus truthful metric names</td>
+<td>add checkpoint/dataset fingerprint at evaluation-run aggregation level</td>
+</tr>
+<tr>
+<td>Implemented</td>
+<td>symbol-safe purged train/validation/test partition</td>
+<td>keep final test inaccessible to PBT; frozen baseline schedule has run</td>
+</tr>
+<tr>
+<td>Implemented</td>
+<td>constrained/diverse PBT with matched evaluation and aligned checkpoints</td>
+<td>parity and synchronous bridges were negative; best-checkpoint replay and controls ran, but economic promotion still fails</td>
+</tr>
+<tr>
+<td>Implemented</td>
+<td>atomic stable manifests, status, config history, checkpoint index, and all-member summaries</td>
+<td>Ray-owned zero-byte files remain a known platform defect</td>
+</tr>
+<tr>
+<td>Implemented</td>
+<td>flat-schema capability report and warmup semantics</td>
+<td>report baseline deltas and selection-aware uncertainty in promotion output</td>
+</tr>
+<tr>
+<td>Implemented</td>
+<td>versioned semantic task encoding, reset seed, normalized overrides, and sampler bounds</td>
+<td>retain <code>legacy_v1</code> solely for historical checkpoint compatibility</td>
+</tr>
+<tr>
+<td>Implemented</td>
+<td>episode-correlated callback evidence</td>
+<td>test at higher vectorization before changing workers-per-environment topology</td>
+</tr>
+<tr>
+<td>Completed P0</td>
+<td>deterministic flat/long/short/random/untrained baselines on identical validation starts</td>
+<td>rerun on independent/new blocks for any promoted candidate</td>
+</tr>
+<tr>
+<td>Completed, not promoted</td>
+<td>rerun four-member 200-iteration parity PBT</td>
+<td>all terminal net returns and Sharpes were negative; exact fresh-process replay passed; untouched final-test evaluation is still required</td>
+</tr>
+<tr>
+<td>Exploratory P1 diagnostic</td>
+<td>paired 14-block selection-panel check and 0.5/1/2 bp same-action repricing</td>
+<td>independent seeds, new blocks, selection-aware uncertainty, and per-step different-cost Sharpe remain</td>
+</tr>
+</tbody>
+</table>
+<p>No recurrence/LSTM port is required for any of these corrections. They strengthen the current MLP Phase A contract and create cleaner evidence for later solver comparisons.</p>
+<h2>Verification record</h2>
+<ul>
+<li>Restored both historical checkpoints successfully with Ray 2.9.0.</li>
+<li>Replayed 576 total symbol-safe diagnostic episodes and persisted the complete JSON.</li>
+<li>Validated the new ablation JSON against <code>ablation.schema.json</code>.</li>
+<li>Reproduced the optional-dashboard failure, added a failing unit test, implemented the narrow fallback, and observed the test pass.</li>
+<li>Completed the official fixed-control and CPU PBT probe with random/generated tasks and no LLM backend.</li>
+<li>Reproduced zero-byte Ray root/trial artifacts and replaced their evidentiary role with non-empty stable run/trial artifacts outside Tune.</li>
+<li>Completed the final repaired probe with two distinct members, matched validation seed, fixed batch exposure, real exploit/restore events, and exactly 12 unique iterations per member.</li>
+<li>Generated a capability report from each live trainer JSONL file and verified every population member is present in the ablation summary.</li>
+<li>Repository healthcheck passes required dependencies; CUDA is unavailable and optional LLM packages are absent.</li>
+<li>Final Windows validation: 97 tests passed with one warning; repository healthcheck passed on Python 3.11.13 and Ray 2.9.0; the ablation loadout passed its JSON schema.</li>
+<li>Pre-commit's YAML/whitespace checks passed, but its Bash hooks selected the Windows <code>.venv/Scripts/python.exe</code> through WSL and failed with <code>Exec format error</code> before healthcheck/test execution. The identical checks passed directly with the Windows interpreter; this is a launcher/shell integration failure, not a test failure.</li>
+<li>A 2026-09-14 post-launch pre-commit retry inside the managed Codex sandbox was blocked before hook execution because the global <code>C:\Users\Admin\.cache\pre-commit</code> SQLite store is read-only to this task. This is a sandbox/cache constraint; re-run pre-commit from a normal writable shell after training.</li>
+<li>After the PBT run and reporting correction, <code>pre-commit run --all-files</code> passed merge-conflict, YAML, EOF, trailing-whitespace, repository-healthcheck, and core-test hooks.</li>
+</ul>
+<h2>2026-09-14 parity-run update</h2>
+<p>The run-test-patch loop found and corrected two final orchestration/reporting
+seams before the long run:</p>
+<ul>
+<li>Ray, stable trial evidence, and ablation collection now share an explicit
+<code>results_root</code>; the default remains <code>~/ray_results</code> for compatibility.</li>
+<li>The aggregate ablation reporter now forces a headless Matplotlib backend and
+emits <code>ablation_compare_validation_sharpe.png</code> in addition to the held-out
+net-return plot.</li>
+</ul>
+<p>The first parity-shaped burst deliberately used the production batch size
+(4,800), four concurrent CPU members, two rollout workers per member, and 16
+matched validation episodes. Six iterations proved training and checkpointing
+but ended exactly on an exploit boundary, so it did not prove a mutation. The
+follow-up ran nine iterations, leaving iteration 6 non-terminal. All four members
+completed approximately 44.3k–44.5k steps, three recorded checkpoint-restore
+events, and the reporter produced a non-empty 207 KiB held-out Sharpe plot. The
+best final point remained negative (-0.115% net; Sharpe -0.0081), which is
+expectedly inconclusive at this horizon.</p>
+<p>The parity loadout is
+<code>itrader/scripts/experiments/configs/phase_a_pbt_parity_200_20260913.json</code>.
+Experiment <code>pbtA26_parity200_20260914_000736_pbt200</code> completed with four members,
+200 iterations, fixed 4,800-step batches (about 0.99M actual steps per member),
+16 held-out episodes each iteration, 1 bp turnover cost, perturb/checkpoint
+cadence 10, and burn-in 20. The proposer was random/generated and no LLM backend
+was involved. Historical winners were not restored because their <code>legacy_v1</code>
+encoding is incompatible with the corrected <code>semantic_v2</code> task contract.</p>
+<p>All four final economic observations were negative: net returns were -1.185%,
+-0.678%, -0.901%, and -0.598%; corresponding per-square-root-bar Sharpes were
+-0.1983, -0.1712, -0.1475, and -0.1415. Optimization reward remained finite and
+sometimes positive, so this run neither establishes nor disproves that the reward
+is learnable. It does show that the current objective did not yield a positive
+held-out economic candidate at historical exposure.</p>
+<h3>2026-09-14 checkpoint-boundary correction</h3>
+<p>The apparent iteration-40 discontinuity was a PBT exploit boundary: two losing
+members cloned one selected member and their evaluation turnover jumped from
+single digits to roughly 127. A frozen 16-task evaluation panel reproduced the
+same class of jump after an iteration-6 restore, ruling out changing evaluation
+tasks as the sole cause. A fresh restore of the selected checkpoint produced
+about 118 turnover even before another PPO update, while the score used to select
+it had about 2 turnover. The selection metric and restorable state were therefore
+not the same artifact.</p>
+<p>Weight hashes proved that the selected and restored policies were identical.
+The discontinuity came from evaluation state: Ray 2.9 <code>Algorithm.restore()</code>
+copied the training policy configuration onto the evaluation policy and silently
+changed its <code>explore</code> flag from <code>false</code> to <code>true</code>. The restored policy was then
+sampled stochastically, producing roughly random-policy turnover. This is not
+negative grokking or a weight collapse.</p>
+<p>Two secondary Ray 2.9 seams obscured the diagnosis. <code>Algorithm.evaluate()</code>
+returns the evaluation payload directly on this installation, while the first
+wrapper expected a nested <code>evaluation</code> key and silently retained the stale
+built-in result. RLlib also smooths over 100 episodes by default, which blended
+old and current policy evaluations instead of reporting the frozen 16-episode
+panel. Finally, Ray AIR consumes/truncates the directory passed to
+<code>session.report</code> on this Windows installation. The corrected contract is now:</p>
+<ol>
+<li>training remains <code>start_idx_mode=stream_worker</code>;</li>
+<li>evaluation uses one frozen task panel and deterministic starts;</li>
+<li>market windows use checkpoint-free <code>market_relative_v1</code> features;</li>
+<li>PBT requires <code>observation_filter=NoFilter</code> in both train and evaluation;</li>
+<li>after every training/restore boundary, the evaluation policy is forced back
+to <code>explore=False</code>, learner weights are synchronized, and the direct Ray 2.9
+evaluation payload replaces the built-in result;</li>
+<li>the metric-smoothing window equals the 16-episode frozen panel;</li>
+<li>each checkpoint is copied to stable, run-owned storage before Tune receives
+its checkpoint object; and</li>
+<li>the checkpoint used for selection must reproduce its score in a fresh process.</li>
+</ol>
+<p>The final official two-member, six-iteration probe
+<code>pbtA26_checkpoint_snapshot_probe_20260914_041234_pbt_checkpoint_snapshot</code>
+exercised a non-terminal restore. At iteration 4, the selected source reported
+net -0.3539%, Sharpe -0.04580, and turnover 56.625. The clone's first post-restore
+update reported net -0.1016%, Sharpe -0.03783, and turnover 56.25; iteration 6
+reported turnover 65.125. The spurious jump to roughly 127 is gone. A separate
+fresh process restored the durable source checkpoint and reproduced all three
+selection metrics exactly: net -0.0035387177838755394, Sharpe
+-0.04580387065499236, and turnover 56.625.</p>
+<p>Checkpoint/evaluation parity is now green. The corrected four-member,
+200-iteration PBT
+<code>pbtA26_parity200_checkpoint_valid_20260914_041907_pbt200_checkpoint_valid</code>
+completed on 2026-09-14 with <code>stream_worker</code> training, random/generated tasks, the
+frozen 16-task held-out panel, and 10-iteration checkpoint/perturbation cadence.
+It is candidate generation and cannot support a performance or reward-
+learnability claim until frozen policy baselines, multi-seed uncertainty, cost
+scenarios, and the untouched final test are complete.</p>
+<p>The live corrected run crossed the formerly suspicious iteration-40 boundary.
+Member <code>c55da_00003</code> was cloned there and reported held-out turnover 11.25 and
+8.50 on its first two post-restore updates, rather than the former roughly-127
+jump. Other restored members likewise remained in the 6–13 range immediately
+after cloning. This directly confirms in the production-length run that the
+iteration-40 cliff was restore-induced stochastic evaluation, not negative
+grokking.</p>
+<h3>2026-09-14 corrected 200-iteration completion</h3>
+<p>The corrected run completed all four members at iteration 200 in 49 minutes 57
+seconds, with approximately 990k retained environment steps per member. The
+official stable run status is <code>completed</code>; the proposer remained
+random/generated, training remained <code>stream_worker</code>, and evaluation remained the
+same deterministic 16-task held-out panel. Terminal observations were:</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th style="text-align:right">Gross return</th>
+<th style="text-align:right">Net return, 1 bp</th>
+<th style="text-align:right">Sharpe / sqrt(bar)</th>
+<th style="text-align:right">Turnover</th>
+<th style="text-align:right">Flat action</th>
+<th style="text-align:right">Evaluation optimization reward</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>00000</code></td>
+<td style="text-align:right">-0.0268%</td>
+<td style="text-align:right"><strong>-0.0556%</strong></td>
+<td style="text-align:right"><strong>-0.00060</strong></td>
+<td style="text-align:right">2.875</td>
+<td style="text-align:right">91.32%</td>
+<td style="text-align:right">-0.6031</td>
+</tr>
+<tr>
+<td><code>00001</code></td>
+<td style="text-align:right">+0.0856%</td>
+<td style="text-align:right">-0.1069%</td>
+<td style="text-align:right">-0.03145</td>
+<td style="text-align:right">19.250</td>
+<td style="text-align:right">36.20%</td>
+<td style="text-align:right">-0.5585</td>
+</tr>
+<tr>
+<td><code>00002</code></td>
+<td style="text-align:right">+0.2522%</td>
+<td style="text-align:right">-0.1866%</td>
+<td style="text-align:right">-0.04089</td>
+<td style="text-align:right">43.875</td>
+<td style="text-align:right">13.83%</td>
+<td style="text-align:right">+0.8291</td>
+</tr>
+<tr>
+<td><code>00003</code></td>
+<td style="text-align:right">+0.0532%</td>
+<td style="text-align:right">-0.3906%</td>
+<td style="text-align:right">-0.05376</td>
+<td style="text-align:right">44.375</td>
+<td style="text-align:right">15.27%</td>
+<td style="text-align:right">-1.0828</td>
+</tr>
+</tbody>
+</table>
+<p>The least-negative terminal member converged mostly to flat and had zero
+positive-net observations over its final 20 retained iterations. Other members
+showed transient positive peaks, including +0.3495% net at iteration 107, but
+none persisted to the terminal checkpoint. Member <code>00002</code> is especially useful
+evidence of objective/economic separation: its evaluation optimization reward
+was positive (+0.8291) while its cost-adjusted return and Sharpe were negative.</p>
+<p>The two-iteration control ended at +0.0340% net but Sharpe -0.01354. It is too
+short and single-seed to establish superiority, yet it prevents claiming PBT
+uplift: the trained population did not beat this minimal control at the terminal
+net-return point. Reward learnability therefore remains <code>not_scored</code> in the
+strong sense. The runs prove finite PPO interaction and changing policy behavior;
+they do not yet prove improvement over an untrained policy or economic alignment.</p>
+<p>The terminal durable checkpoint for member <code>00000</code> was restored in a fresh Ray
+process. Net return (-0.0005557122979728761), Sharpe
+(-0.000600490529072014), and turnover (2.875) reproduced exactly within
+<code>1e-15</code>. Checkpoint/evaluation parity therefore remains green at full exposure.</p>
+<p>One post-run reporting defect was caught before sign-off. The aggregate reporter
+aligned metric values by row position, so PBT lineage rewinds misplaced members
+<code>00002</code> and <code>00003</code> terminal values at iterations 190 and 180. A red/green test
+now requires alignment by the recorded <code>training_iteration</code>; the regenerated
+CSVs and plots contain all four true iteration-200 values. Late exploit rewinds
+also show why a future PBT implementation should use a monotonic environment-step
+clock rather than restored <code>training_iteration</code> for scheduling and progress.
+The final trial's actor-local auto-plot subprocess reported Windows error 87,
+but the authoritative outer ablation reporter completed and produced every
+comparison CSV and PNG. Keep outer reporting authoritative until actor-local
+plotting is removed or made platform-safe.</p>
+<p>Decision: the repaired run/test/checkpoint/reporting seams are sufficient to
+move to the audit's <strong>next P0 baseline study</strong>, but not to Phase A performance
+promotion or a Phase B dependency on learned R0 behavior. Run deterministic
+flat, long, short, random, and untrained-policy controls on the identical frozen
+starts; then add independent training seeds, block-aware uncertainty, and cost
+scenarios. Keep the untouched final test sealed until selection is complete.</p>
+<p>Completion artifacts:</p>
+<ul>
+<li><a href="../../../itrader/scripts/experiments/configs/outputs/pbtA26_parity200_checkpoint_valid_20260914_041907/summary.json">all-member summary</a></li>
+<li><a href="../../../itrader/scripts/experiments/configs/outputs/pbtA26_parity200_checkpoint_valid_20260914_041907/ablation_compare.png">held-out net-return plot</a></li>
+<li><a href="../../../itrader/scripts/experiments/configs/outputs/pbtA26_parity200_checkpoint_valid_20260914_041907/ablation_compare_validation_sharpe.png">held-out Sharpe plot</a></li>
+<li><a href="../../../itrader/scripts/experiments/configs/outputs/pbtA26_parity200_checkpoint_valid_20260914_041907/ablation_compare_diagnostics.png">diagnostic plot</a></li>
+<li><a href="../../../itrader/scripts/experiments/configs/outputs/pbtA26_parity200_checkpoint_valid_20260914_041907/best_terminal_checkpoint_replay.json">best terminal checkpoint replay</a></li>
+</ul>
+<h3>Next-P0 implementation round (staged 2026-09-14)</h3>
+<p>The late restore pattern is now fixed at its cause rather than merely documented.
+New trials report a target-owned cumulative sampled-environment-step clock in
+<code>pbt_progress.json</code>. Tune PBT uses <code>pbt_progress_steps</code> for burn-in and mutation
+cadence, checkpoints are emitted when that clock crosses the matching step
+boundary, and the target exposure budget no longer inherits a donor checkpoint's
+RLlib iteration. Historical report files remain readable through an iteration
+fallback, while new comparison plots align on exposure.</p>
+<p>The earlier reward dominance is addressed with a separate, replay-safe objective,
+not by silently changing <code>pnl_linear</code>. <code>net_return</code> computes arithmetic PnL minus
+the configured cost in basis points for position turnover and terminal
+liquidation. A fixed scale of 1,000 supplies a practical PPO magnitude without
+changing the economic ordering; with <code>cost_bps=1</code>, summed episode reward divided
+by 1,000 equals independently derived 1 bp net return. This is a task/evaluation
+assumption and does not introduce broker execution into <code>TaskSpec</code>. PPO still
+discounts step rewards when <code>gamma &lt; 1</code>, so equality of the undiscounted episode
+sum does not claim perfect equivalence to an undiscounted portfolio objective.</p>
+<p>The next-P0 evidence seams now include:</p>
+<ul>
+<li>frozen validation panels balanced over configured horizons;</li>
+<li>deterministic flat, long-only, short-only, seeded random, and seeded untrained
+<code>SolverMLPFiLM</code> controls with per-episode receipts;</li>
+<li>Ray 2.9 PPO columns for approximate KL, value explained variance, total loss,
+gradient norm, learning rate, and KL coefficient; clip fraction is explicitly
+unavailable rather than inferred;</li>
+<li>a best-held-out cadence-checkpoint pointer that is marked as requiring fresh-
+process replay; and</li>
+<li>optional terminal promotion gates relative to the strongest named baseline,
+requiring positive net return and positive held-out Sharpe by default.</li>
+</ul>
+<p>Two official loadouts are staged: a 64-episode frozen-policy baseline panel and a
+bounded 20-update <code>pnl_linear</code> reference versus 40-update, four-member
+<code>net_return</code> PBT probe. Four-episode flat and untrained-policy smoke executions
+passed. The full baseline panel and bounded PBT probe have not yet been run; this
+section is implementation evidence, not a new performance claim. Block bootstrap
+uncertainty, multiple cost scenarios, independent training seeds, and the sealed
+final test remain later gates.</p>
+<h3>2026-09-16 matched 120-update reward bridge</h3>
+<p>The matched bridge ran the repository stack end to end with <code>stream_worker</code>, a
+random/generated proposer path, no LLM backend or task pool, four PBT members per
+arm, two rollout workers per member, identical member seeds, the same balanced
+32-task validation panel, and a target of 576,000 trial-owned environment steps
+per member. It compared only the optimization reward: exact scaled 1 bp
+<code>net_return</code> versus historical <code>pnl_linear</code>. Both arms used the same 1 bp
+economic evaluator and the same MLP-FiLM R0 solver. Every member crossed the
+target exposure; variable complete-episode batches produced 117 report rows and
+roughly 578--579k sampled steps rather than exactly 120 RLlib report rows.</p>
+<p>The exact matched frozen controls on those 32 starts were:</p>
+<table>
+<thead>
+<tr>
+<th>Policy</th>
+<th style="text-align:right">Net return at 1 bp</th>
+<th style="text-align:right">Sharpe / sqrt(bar)</th>
+<th style="text-align:right">Turnover</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>flat</td>
+<td style="text-align:right">0.00000%</td>
+<td style="text-align:right">0.00000</td>
+<td style="text-align:right">0.0000</td>
+</tr>
+<tr>
+<td>long-only</td>
+<td style="text-align:right"><strong>+0.03034%</strong></td>
+<td style="text-align:right"><strong>+0.01077</strong></td>
+<td style="text-align:right">2.0000</td>
+</tr>
+<tr>
+<td>short-only</td>
+<td style="text-align:right">-0.07034%</td>
+<td style="text-align:right">-0.01608</td>
+<td style="text-align:right">2.0000</td>
+</tr>
+<tr>
+<td>seeded random</td>
+<td style="text-align:right">-1.46079%</td>
+<td style="text-align:right">-0.20074</td>
+<td style="text-align:right">130.6875</td>
+</tr>
+<tr>
+<td>seeded untrained MLP-FiLM</td>
+<td style="text-align:right">-0.31137%</td>
+<td style="text-align:right">-0.03210</td>
+<td style="text-align:right">3.6250</td>
+</tr>
+</tbody>
+</table>
+<p>Terminal bridge evidence was:</p>
+<table>
+<thead>
+<tr>
+<th>Reward arm / member</th>
+<th style="text-align:right">Gross</th>
+<th style="text-align:right">Net at 1 bp</th>
+<th style="text-align:right">Sharpe</th>
+<th style="text-align:right">Turnover</th>
+<th style="text-align:right">Short / flat / long</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>net_return</code> / <code>00000</code></td>
+<td style="text-align:right">+0.05409%</td>
+<td style="text-align:right">-0.04716%</td>
+<td style="text-align:right">-0.02171</td>
+<td style="text-align:right">10.1250</td>
+<td style="text-align:right">37.55 / 62.45 / 0.00%</td>
+</tr>
+<tr>
+<td><code>net_return</code> / <code>00001</code></td>
+<td style="text-align:right">-0.14382%</td>
+<td style="text-align:right">-0.78257%</td>
+<td style="text-align:right">-0.12148</td>
+<td style="text-align:right">63.8750</td>
+<td style="text-align:right">25.97 / 50.08 / 23.95%</td>
+</tr>
+<tr>
+<td><code>net_return</code> / <code>00002</code></td>
+<td style="text-align:right">0.00000%</td>
+<td style="text-align:right"><strong>0.00000%</strong></td>
+<td style="text-align:right">0.00000</td>
+<td style="text-align:right">0.0000</td>
+<td style="text-align:right">0.00 / 100.00 / 0.00%</td>
+</tr>
+<tr>
+<td><code>net_return</code> / <code>00003</code></td>
+<td style="text-align:right">+0.01671%</td>
+<td style="text-align:right">-0.49392%</td>
+<td style="text-align:right">-0.09533</td>
+<td style="text-align:right">51.0625</td>
+<td style="text-align:right">24.72 / 59.03 / 16.25%</td>
+</tr>
+<tr>
+<td><code>pnl_linear</code> / <code>00000</code></td>
+<td style="text-align:right">-0.14193%</td>
+<td style="text-align:right">-0.80756%</td>
+<td style="text-align:right">-0.10836</td>
+<td style="text-align:right">66.5625</td>
+<td style="text-align:right">24.62 / 29.52 / 45.86%</td>
+</tr>
+<tr>
+<td><code>pnl_linear</code> / <code>00001</code></td>
+<td style="text-align:right">-0.15515%</td>
+<td style="text-align:right">-1.03202%</td>
+<td style="text-align:right">-0.13641</td>
+<td style="text-align:right">87.6875</td>
+<td style="text-align:right">52.22 / 22.92 / 24.86%</td>
+</tr>
+<tr>
+<td><code>pnl_linear</code> / <code>00002</code></td>
+<td style="text-align:right">+0.09126%</td>
+<td style="text-align:right">-0.85499%</td>
+<td style="text-align:right">-0.12711</td>
+<td style="text-align:right">94.6250</td>
+<td style="text-align:right">31.73 / 36.24 / 32.03%</td>
+</tr>
+<tr>
+<td><code>pnl_linear</code> / <code>00003</code></td>
+<td style="text-align:right">-0.09277%</td>
+<td style="text-align:right">-0.84527%</td>
+<td style="text-align:right">-0.12093</td>
+<td style="text-align:right">75.2500</td>
+<td style="text-align:right">49.94 / 27.52 / 22.54%</td>
+</tr>
+</tbody>
+</table>
+<p>Mean terminal net return was approximately -0.3309% for <code>net_return</code> and
+-0.8850% for <code>pnl_linear</code>. The net-return arm therefore reduced economic damage,
+but its best terminal member did so by becoming exactly flat. This is the feared
+easy-gradient failure mode: an exact 1 bp objective teaches abstention faster
+than it discovers gross edge. The PnL-linear arm maintained diverse actions but
+did not learn turnover discipline, so explicit costs overwhelmed its gross
+returns.</p>
+<p>The best replayable net-return cadence checkpoint was member <code>00000</code> at progress
+480,456: +0.01941% net, +0.02503% gross, 0.005625% cost, Sharpe -0.00175,
+turnover 0.5625, and 75.02% flat. The best replayable PnL-linear checkpoint was
+member <code>00001</code> at progress 49,944: +0.04948% net, +0.47885% gross, 0.429375%
+cost, Sharpe -0.01032, turnover 42.9375, and 33.71% flat. The latter exceeded
+long-only net by only 0.01914 percentage points while losing on Sharpe and
+turnover. Neither checkpoint clears the positive-Sharpe and baseline-relative
+promotion gates, so no final-test evaluation or promotion replay was authorized.</p>
+<p>PPO remained active: policies, value diagnostics, action fractions, and
+optimization behavior changed materially. The bridge does not reproduce the
+corrected 200-update member <code>00001</code> positive window, however, and it does not
+establish robust reward learnability in the economic sense. The correct reading
+is reward-sensitive optimization with two different failure modes, not a dead
+optimizer and not a validated trading policy.</p>
+<p>The long bridge also exposed a Ray 2.9 asynchronous PBT limitation. Only one true
+donor exploit occurred in each arm, and Ray could select an upper-quantile donor
+whose scheduler-owned checkpoint was not yet available. Application-owned stable
+checkpoints were present; the failure was scheduler ordering. An explicit
+<code>pbt_synch</code> loadout seam now opts promotion-oriented studies into synchronous
+PBT while preserving asynchronous mode as the legacy reproduction default. A
+red/green 20-update A/B probe removed the missing-donor warning and produced
+real configuration changes. It then exposed a pause boundary inside
+<code>session.report</code>; checkpoint indices are now written before reporting. A final
+12-update synchronous probe produced three durable indices and three stable
+checkpoint directories per member, monotonic progress, two pause/resume
+boundaries per member, true mutations in two of four members, and no missing-
+donor warning. In synchronous mode, raw restore counts include self-resume and
+must not be reported as exploit counts; configuration history remains the
+authority for actual mutations.</p>
+<p>Bridge artifacts:</p>
+<ul>
+<li><a href="../../../itrader/scripts/experiments/configs/phase_a_p0_net_return_pbt_bridge_120_20260916.json">matched loadout</a></li>
+<li><a href="../../../itrader/scripts/experiments/configs/outputs/phaseA_p0_reward_bridge_120_20260916_062129/summary.json">all-member summary</a></li>
+<li><a href="../../../itrader/scripts/experiments/configs/outputs/phaseA_p0_reward_bridge_120_20260916_062129/phase_a_bridge_dashboard.png">compact net/Sharpe/turnover/action dashboard</a></li>
+<li><a href="../../../itrader/scripts/experiments/configs/outputs/phaseA_p0_reward_bridge_120_20260916_062129/ablation_compare.png">held-out net-return plot</a></li>
+<li><a href="../../../itrader/scripts/experiments/configs/outputs/phaseA_p0_reward_bridge_120_20260916_062129/ablation_compare_validation_sharpe.png">held-out Sharpe plot</a></li>
+<li><a href="../../../itrader/scripts/experiments/configs/outputs/phaseA_p0_reward_bridge_120_20260916_062129/ablation_compare_diagnostics.png">PPO diagnostic plot</a></li>
+<li><a href="../../../itrader/scripts/experiments/configs/outputs/phaseA_p0_reward_bridge_120_20260916_062129/ablation_compare_action_fractions.png">action-fraction evolution and terminal composition</a></li>
+<li><a href="../../../itrader/scripts/experiments/configs/phase_a_p0_frozen_policy_baselines_32_bridge_20260916.json">matched frozen controls</a></li>
+<li><a href="../../../itrader/scripts/experiments/configs/phase_a_pbt_sync_checkpoint_probe_20260916.json">synchronous checkpoint probe</a></li>
+<li><a href="../../../itrader/scripts/experiments/configs/phase_a_pbt_sync_index_probe_20260916.json">synchronous index probe</a></li>
+</ul>
+<h3>Ray upgrade decision</h3>
+<p>Ray 2.9 should remain only as a locked reproduction environment. The current
+stable release is Ray 2.58.0, but upgrading in place would combine two independent
+changes: runtime/checkpoint behavior and RLlib's default-new API stack. The new
+stack replaces <code>ModelV2</code> with <code>RLModule</code>, rollout workers with EnvRunners/Learners,
+and old trajectory/callback plumbing with Episodes and ConnectorV2. That is the
+right destination for iTrader, but it is not a patch-level dependency bump.</p>
+<p>The repository currently has declaration drift that must be removed during the
+migration: <code>pyproject.toml</code> and <code>itrader/environment.yml</code> pin Ray 2.9.0, while
+<code>itrader/constraints.txt</code> pins 2.47.1 and <code>itrader/infra/cluster.yaml</code> installs
+2.47. This is not a supported matrix. The locked 2.9 reproduction and the new
+2.58 compatibility environment each need one authoritative, fully resolved lock.</p>
+<p>Use a separate branch and environment with this sequence:</p>
+<ol>
+<li>lock the current Ray 2.9 environment and preserve one known reproduction;</li>
+<li>create a Ray 2.58.0/Python 3.11 compatibility environment;</li>
+<li>first disable the new API stack explicitly and prove dataset, task, reward,
+checkpoint, evaluation, and PBT parity on the current MLP baseline;</li>
+<li>then port <code>SolverMLPFiLM</code> to <code>RLModule</code>, metrics to <code>RLlibCallback</code>, rollout
+ownership to EnvRunner/Learner, and normalization to an explicit ConnectorV2
+or the environment; and</li>
+<li>run the same fixed-panel checkpoint parity and short PBT acceptance loadout
+before any new long search.</li>
+</ol>
+<p>Prefer Linux or WSL2 for overnight PBT: Ray documents Windows support as beta,
+with untested multi-node behavior, slower file operations, and path caveats.
+Unsloth is useful for LLM fine-tuning, not as a replacement for RLlib PPO, Tune
+PBT, or numerical-policy checkpoint semantics. It may later accelerate an LLM
+proposer experiment, but it cannot repair this solver-side state contract.</p>
+<p>Primary references: <a href="https://pypi.org/project/ray/2.58.0/">Ray 2.58.0 release</a>,
+<a href="https://docs.ray.io/en/master/rllib/new-api-stack-migration-guide.html">RLlib new API migration</a>,
+<a href="https://docs.ray.io/en/latest/rllib/rl-modules.html">RLModule documentation</a>, and
+<a href="https://docs.ray.io/en/latest/ray-overview/installation.html">Ray Windows installation caveats</a>.</p>
+<p>That 200-update run answered whether corrected held-out economic behavior
+emerged at roughly the historical training exposure. It did not, by itself,
+establish solver uplift. Matched flat/long/short/random/untrained controls and
+exploratory block/cost diagnostics have since run; independent seeds, genuinely
+new blocks, selection-aware inference, and the untouched final test remain
+mandatory for a performance claim.</p>
+<h2>2026-09-17 synchronous 120-update bridge and recovery</h2>
+<p>The <a href="../../../itrader/scripts/experiments/configs/phase_a_p0_reward_bridge_sync_120_20260917.json">frozen loadout</a>
+kept four R0 members per arm, <code>stream_worker</code>, generated/random family-00
+tasks, no LLM backend, Ray/RLlib 2.9, the same 32-task frozen validation
+identities, 1 bp economic reporting cost, two rollout workers per member,
+<code>pbt_synch</code>, 10-update perturbation/checkpoint cadence, 20-update burn-in, and
+a 576,000 trial-owned sampled-step target. Dataset SHA-256 was
+<code>5F2E449548532FF71F419431DF86962A2AEDF7275D7BFF5592729BBB8A900F73</code>.
+The initial population seeds and validation task identities match between arms;
+the reward ID and reward parameters intentionally differ. Exploitation may
+subsequently clone a donor's policy/configuration, so a terminal member's
+checkpoint seed need not equal its initial seed.</p>
+<p>The first <code>net_return_1bp</code> arm completed. The user paused the machine while
+the second arm was only 9–13 updates in: three members had first checkpoints,
+one had none, and trial-owned progress/report files ran ahead of the durable
+models. Ray saved an experiment snapshot, but a direct resume without
+reconciling model, evidence, and scheduler state would misstate trained
+exposure; the uncheckpointed trial would restart. We preserved that incomplete
+experiment as provenance, restarted <strong>only</strong> <code>pnl_linear</code> from update zero
+under a new <code>_restart</code> experiment name, and left the completed 1 bp arm
+untouched. This lost only the short partial second-arm prefix, not the first
+arm. The official trainer exited successfully on 2026-09-17: all four restart
+members have completed statuses, 116–117 report rows, 12 durable checkpoint
+indices each, and 576,408–579,632 trial-owned sampled steps. The final
+<a href="../../../itrader/scripts/experiments/configs/outputs/phaseA_p0_reward_bridge_sync_120_20260917_001810/summary.json">eight-member summary</a>
+was assembled with the ablation CLI's tested <code>--collect-only</code> path, which
+rejects incomplete arms. It contains the restarted, not interrupted, second
+arm. Ray's own terminal <code>training_iteration</code> can rewind after PBT cloning;
+the comparison charts align the monotonic trial-owned environment-step clock.</p>
+<table>
+<thead>
+<tr>
+<th>Objective / member</th>
+<th style="text-align:right">Terminal net return</th>
+<th style="text-align:right">Gross return</th>
+<th style="text-align:right">Net Sharpe / sqrt(bar)</th>
+<th style="text-align:right">Turnover</th>
+<th style="text-align:right">Short / flat / long</th>
+<th style="text-align:right">Genuine config changes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 bp net 00</td>
+<td style="text-align:right">-0.17059%</td>
+<td style="text-align:right">-0.05559%</td>
+<td style="text-align:right">-0.04140</td>
+<td style="text-align:right">11.50</td>
+<td style="text-align:right">25.9 / 66.1 / 7.9%</td>
+<td style="text-align:right">1</td>
+</tr>
+<tr>
+<td>1 bp net 01</td>
+<td style="text-align:right">-0.11031%</td>
+<td style="text-align:right">+0.00406%</td>
+<td style="text-align:right">-0.02683</td>
+<td style="text-align:right">11.44</td>
+<td style="text-align:right">26.4 / 64.6 / 9.1%</td>
+<td style="text-align:right">3</td>
+</tr>
+<tr>
+<td>1 bp net 02</td>
+<td style="text-align:right">-0.14602%</td>
+<td style="text-align:right">-0.02977%</td>
+<td style="text-align:right">-0.02783</td>
+<td style="text-align:right">11.63</td>
+<td style="text-align:right">26.4 / 65.9 / 7.7%</td>
+<td style="text-align:right">3</td>
+</tr>
+<tr>
+<td>1 bp net 03</td>
+<td style="text-align:right">-0.14185%</td>
+<td style="text-align:right">-0.03310%</td>
+<td style="text-align:right">-0.03029</td>
+<td style="text-align:right">10.88</td>
+<td style="text-align:right">25.9 / 65.1 / 8.9%</td>
+<td style="text-align:right">3</td>
+</tr>
+<tr>
+<td>PnL linear 00</td>
+<td style="text-align:right">-0.96870%</td>
+<td style="text-align:right">+0.12380%</td>
+<td style="text-align:right">-0.12748</td>
+<td style="text-align:right">109.25</td>
+<td style="text-align:right">49.8 / 18.4 / 31.9%</td>
+<td style="text-align:right">3</td>
+</tr>
+<tr>
+<td>PnL linear 01</td>
+<td style="text-align:right">-0.97490%</td>
+<td style="text-align:right">+0.10197%</td>
+<td style="text-align:right">-0.12730</td>
+<td style="text-align:right">107.69</td>
+<td style="text-align:right">47.1 / 19.4 / 33.5%</td>
+<td style="text-align:right">2</td>
+</tr>
+<tr>
+<td>PnL linear 02</td>
+<td style="text-align:right">-0.92244%</td>
+<td style="text-align:right">+0.11069%</td>
+<td style="text-align:right">-0.12374</td>
+<td style="text-align:right">103.31</td>
+<td style="text-align:right">48.6 / 18.0 / 33.4%</td>
+<td style="text-align:right">2</td>
+</tr>
+<tr>
+<td>PnL linear 03</td>
+<td style="text-align:right">-1.13590%</td>
+<td style="text-align:right">-0.01278%</td>
+<td style="text-align:right">-0.15445</td>
+<td style="text-align:right">112.31</td>
+<td style="text-align:right">46.1 / 21.9 / 31.9%</td>
+<td style="text-align:right">1</td>
+</tr>
+</tbody>
+</table>
+<p>Mean terminal net return was <strong>-0.14219%</strong> under exact 1 bp <code>net_return</code>
+versus <strong>-1.00048%</strong> under <code>pnl_linear</code>. Every terminal Sharpe was negative;
+the matched 32-start flat and long-only controls remained 0 and +0.03034%
+net, respectively (long-only Sharpe +0.01077, turnover 2). The 1 bp policies
+limited cost mostly through reduced exposure but were not fully flat; the
+PnL-linear policies kept trading and paid 1.03–1.12% of equity in mean
+episode costs. The latter's terminal training optimization rewards were
+finite/positive and KL, entropy, and value explained variance remained
+reportable: PPO was active, but its shaped objective and economic return
+diverged. For example, terminal PnL-linear evaluation component means were
+roughly <code>rc_pnl_delta=+0.015–0.017</code> in three members (the fourth +0.00255),
+<code>rc_dd=-0.0041–0.0043</code>, and
+<code>rc_turnover=-0.00082–0.00088</code> in their <strong>own normalized reward units</strong>;
+these are not interchangeable with the independently computed 1 bp cost
+return of 0.0103–0.0112. The source normalizes PnL by <code>ret_unit</code> while using
+an abstract, capped turnover weight. Clip fraction is unavailable (<code>NaN</code>) on
+this legacy Ray learner, not evidence of zero clipping.</p>
+<p>Synchronous PBT performed <strong>10 genuine configuration changes</strong> in the 1 bp
+arm and <strong>8</strong> in the restarted PnL-linear arm, measured by changes to the
+supported PPO mutation knobs between stable configuration-history records.
+Unchanged self-resumes were excluded. Across all records gamma remained
+0.98–0.995; there was no repeat of the historical invalid gamma or late
+iteration-130 scheduling rewind. The exact donor identity is less durable
+than the stable config/checkpoint history because Ray-owned Windows policy
+logs may be empty; count actual changes, not raw restores.</p>
+<p>Fresh-process deterministic episode replay of each arm's <strong>best retained
+cadence checkpoint</strong> reproduced the selected 32-start mean net return to
+floating-point precision. The 1 bp member-00 checkpoint had -0.04260% net,
+Sharpe -0.00491, and turnover 6.4375. The early PnL-linear member-01
+checkpoint at 49,944 steps had +0.06718% net, <strong>Sharpe -0.02301</strong>, turnover
+26.1875, and short/flat/long fractions 16.6/30.1/53.3%. It is a genuine
+positive <em>point estimate</em>, not a stable or Sharpe-positive winner. Later
+terminal policies all lost money. The replayed episode receipts and exact
+selection-parity JSON are under
+<a href="../../../itrader/scripts/experiments/configs/outputs/phaseA_p0_reward_bridge_sync_120_20260917_001810/replays/">replays</a>.</p>
+<p>Paired by symbol, start/end rows, horizon, and task seed against the 32-start
+long-only control, the PnL-linear checkpoint's 1 bp uplift was +0.03684
+percentage points. An exploratory symbol-stratified chronological 5,000-row
+block bootstrap (10,000 draws, seed 20260917, <strong>14 effective blocks</strong>) gave a
+95% interval of <strong>[-0.20893, +0.33746] percentage points</strong>. The 1 bp
+checkpoint's uplift was -0.07294 points, interval [-0.34631, +0.17073].
+Intervals with 2,500-row (22 blocks) and 10,000-row (9 blocks) choices also
+crossed zero. These are <em>not</em> selection-adjusted confidence intervals: PBT
+selected checkpoints on the same validation panel, episodes overlap, and only
+three symbols are represented. They are diagnostic stability checks, not P1
+promotion or a substitute for independent-seed validation and the sealed test.
+Repricing the <strong>same checkpoint actions</strong>, without changing learned policy,
+gave the following mean arithmetic net returns:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:right">Cost</th>
+<th style="text-align:right">Best 1 bp checkpoint</th>
+<th style="text-align:right">Best PnL-linear checkpoint</th>
+<th style="text-align:right">Long-only</th>
+<th style="text-align:right">Flat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right">0.5 bp</td>
+<td style="text-align:right">-0.01041%</td>
+<td style="text-align:right">+0.19811%</td>
+<td style="text-align:right">+0.04034%</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td style="text-align:right">1 bp</td>
+<td style="text-align:right">-0.04260%</td>
+<td style="text-align:right">+0.06718%</td>
+<td style="text-align:right">+0.03034%</td>
+<td style="text-align:right">0</td>
+</tr>
+<tr>
+<td style="text-align:right">2 bp</td>
+<td style="text-align:right">-0.10697%</td>
+<td style="text-align:right">-0.19470%</td>
+<td style="text-align:right">+0.01034%</td>
+<td style="text-align:right">0</td>
+</tr>
+</tbody>
+</table>
+<p>Only mean return is repriced here; a different-cost Sharpe requires replay of
+per-step net returns. No independent training seed, selection-adjusted
+inference, or untouched final-test run has occurred. The next <strong>P0 reward
+ablation</strong> remains no-cost learning, staged-cost curriculum, and exact 1 bp
+learning under identical frozen tasks/seeds, with every candidate evaluated
+at 1 bp. Gate first on gross edge over long-only and then on positive net
+return, positive Sharpe, controlled turnover, checkpoint parity, and
+independent-seed stability. Define <strong>P1</strong> only after a P0 candidate clears
+those gates: block-aware uncertainty on genuinely new chronological blocks,
+0.5/1/2 bp policy and per-step Sharpe replay, and selection-safe final-test
+procedure. The untouched final test stays sealed until selection is complete.</p>
+<p>The pause exposed a separate operational seam: exact resume requires a
+coordinated final checkpoint for <strong>every</strong> member and recovery of trial-owned
+progress/report rows to each checkpoint, plus Ray scheduler/search state.
+<code>--collect-only</code> repairs reporting without pretending to repair training
+resume. Before another long overnight job, add a tested coordinated pause and
+resume protocol or explicitly budget a fresh-arm restart. An NVMe versus
+current-storage A/B can be run later with identical short loadouts, separated
+Ray temp/results paths, and matched dataset/cache conditions; no storage move
+was made during this study.</p>
+<p>Completion plots: <a href="../../../itrader/scripts/experiments/configs/outputs/phaseA_p0_reward_bridge_sync_120_20260917_001810/ablation_compare.png">net return</a>,
+<a href="../../../itrader/scripts/experiments/configs/outputs/phaseA_p0_reward_bridge_sync_120_20260917_001810/ablation_compare_validation_sharpe.png">Sharpe</a>,
+and <a href="../../../itrader/scripts/experiments/configs/outputs/phaseA_p0_reward_bridge_sync_120_20260917_001810/ablation_compare_action_fractions.png">held-out action fractions</a>.</p>
+<h2>2026-09-20 P0 cadence and scheduler closure</h2>
+<p>The later raw-net 24k cadence study adds bounded positive evidence without
+changing the bridge's negative promotion decision. Immutable-checkpoint
+recovery found member <code>00002</code> at 372,216 steps with +0.39258% 1 bp net return,
++0.02959 Sharpe, exact replay, +0.30008% same-action return at 2 bp, and
+positive returns in both ex-post bullish and bearish episode groups. It beat
+short-only for two successive reports, not the required five; the paired
+selection-panel block interval versus short-only crossed zero, independent
+replication remained absent, and the policy later regressed. The reward is
+economically learnable in this bounded selection-panel sense, but stable
+generalization is not proven.</p>
+<p>The run also separated platform failures. Four concurrent trials with two
+rollout workers each exhausted the 16 GB Windows host. A <code>workers=1</code>,
+<code>ray_num_cpus=4</code> topology kept two trials active at a time and retained about
+6 GB free RAM. The Ray-2.9 adapter now retries an empty scheduled donor save
+from the durable checkpoint index, reattaches paused upper donors to their own
+checkpoint, and suppresses mutation after target exposure. The final
+four-member proof terminated every trial with one legitimate 24k-boundary
+exploit, no terminal exploit, no errored trial, and exit code 0. C stayed above
+76 GB free and the watchdog observed no Ubuntu/WSL crash.</p>
+<p>P0 measurement, frozen controls, replay, cadence diagnosis, and PBT mechanics
+are complete enough to define P1, not to promote Phase A. P1 is independent
+training on genuinely new, non-overlapping chronological validation blocks,
+selection-aware block uncertainty, regime/action attribution, and fresh
+per-step 0.5/1/2 bp return plus Sharpe replay. The final test stays sealed.</p>
+<h2>Final judgment</h2>
+<p>The historical work was not meaningless: it established that the Phase A
+machinery can train a policy against a finite shaped reward. The mistake is in
+the strength and naming of the conclusion. The recorded “episode return” is not
+a portfolio return, the selected configurations were not constrained correctly,
+and the historical dataset was not held out. The corrected 200-update run,
+matched 120-update bridge, and raw-net 24k cadence study now score R0 against
+explicit controls. None passes economic promotion. The solver is active and
+reward-sensitive, and the raw-net challenger proves bounded positive economics
+can be learned on the selection panel; repeatable independent uplift over
+directional controls remains unproven.</p>
+<p>The correct current status is:</p>
+<blockquote>
+<p><strong>Phase A economic measurement, checkpoint/evaluation parity, exposure-aligned
+reporting, frozen controls, and synchronous Ray-2.9 checkpoint/exploit/resume
+behavior are repaired and live-validated. PPO is active. The raw-net 24k run
+produced a replay-exact, 1--2 bp-positive transient with positive Sharpe and
+regime-varying actions, so economic learnability is supported on the frozen
+selection panel. It persisted for only two reports, its paired block interval
+versus short-only crossed zero, and no independent lineage reproduced it.
+Historical and current candidates remain unpromoted. P1 must establish
+independent new-block stability, selection-aware uncertainty, and per-step
+cost/Sharpe sensitivity before the sealed final test or any Phase B dependency
+on proven economic performance.</strong></p>
+</blockquote>
+</article></main></body></html>

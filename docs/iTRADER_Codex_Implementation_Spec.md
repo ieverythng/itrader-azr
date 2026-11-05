@@ -1,7 +1,15 @@
 # CODEX IMPLEMENTATION SPEC
 ## Project: iTRADER Coupled Offline/Online Architecture
-## Status: New Standard for Phase B and Phase C
+## Status: Working draft for Phase B and Phase C
+## Decision state: User grill-me review ongoing; architecture and order below are proposals unless explicitly marked source-defined.
 ## Intent: High-level implementation plan only. Preserve existing working pieces wherever possible.
+
+> **2026-10-01 reconciliation:** this remains a proposal document. `TaskSpec`,
+> `ExecutionIntent`, `CandidateTask`, `CapabilityProfile`, `DecisionRecord`, and
+> the family registry now exist as source scaffolds; that does not make
+> `MarketFramer`, capability calibration, `DecisionGate`, `RiskEngine`, or
+> `Executor` operational. Use `plans/itrader_masterplan.md` for current order and
+> `research/itrader_research_dashboard.md` for research-wing status.
 
 ---
 
@@ -179,7 +187,7 @@ Responsibilities later:
 Do not overload it with full broker semantics.
 Introduce additional contracts for online execution and capability tracking.
 
-## 4.2 New contracts to add
+## 4.2 Contract inventory (source scaffolds now present)
 
 ### A. `TaskSpec`
 Purpose:
@@ -349,7 +357,10 @@ This is the bridge between offline replay and live auditing.
 ## 5.1 General rule
 Family `00` remains the current proven path.
 Do not destabilize it.
-Introduce new families progressively, with modular action-space or label-space differences.
+Families `00`–`04` are the roadmap. Families `00`–`02` may currently use the same
+`Discrete(3)` action width, but shared output width does not settle their input
+schemas, task semantics, reward assignments, or state ownership. Introduce new
+families progressively and record those differences explicitly.
 
 ## 5.2 Initial family set
 
@@ -381,44 +392,50 @@ Problem shape:
 - useful both as explicit training target and online candidate type.
 
 ## 5.3 Family implementation rule
-Do NOT build all five families at once.
+Do NOT build all five families at once. The `00`–`04` list is a roadmap, not an
+accepted head or input architecture.
 
-Implementation order:
+Implementation order proposal, pending grill-me review:
 1. lock and clean `00`
 2. add `01`
 3. add `02`
 4. optionally add `03`
 5. add explicit `04` if not already implicit through WAIT
 
-If action spaces differ significantly:
-- keep a shared backbone,
-- permit family-specific head output spaces,
-- avoid over-generalizing the policy head too early.
-
+If action spaces differ significantly, evaluate whether to use shared or
+family-specific policy/value heads; do not treat a shared backbone or head layout
+as settled merely because `00`–`02` can emit `Discrete(3)`.
 ---
 
 # 6. SOLVER ARCHITECTURE STANDARD
 
-## 6.1 Immediate target
-Move from a single-family effective solver toward:
-- shared encoder/trunk,
-- family-specific heads,
-- optional task/regime conditioning.
+## 6.1 Open design question
 
-## 6.2 Required components
-- shared observation encoder,
-- task embedding / family embedding path,
-- regime conditioning path if applicable,
-- per-family policy/value heads,
+The branch has one implemented/default solver, R0 `SolverMLPFiLM`. A shared
+recurrent trunk with family-specific policy/value heads is a proposed option for
+Phase B, not a settled architecture. Do not implement that choice until the
+ongoing grill-me review confirms it. Shared `Discrete(3)` output width for
+families `00`–`02` does not prove shared input schemas, task semantics, reward
+assignments, or recurrent state ownership.
+
+## 6.2 Candidate components to evaluate
+
+Potential components include:
+- shared observation encoder/trunk;
+- task/family and optional regime conditioning paths;
+- family-specific or shared policy/value heads;
 - per-head metrics and calibration tracking.
 
-## 6.3 Design rule
-Prefer:
-- one trunk,
-- one head per family,
-- explicit dispatch by `task_family`.
+The selected arrangement must be justified by matched controls rather than by
+naming or registration. `SolverMLPFiLM` remains R0, and `RewardEngine` remains
+the environment-owned reward seam; no learned reward head is required by this
+spec.
 
-Avoid MoE for now.
+## 6.3 Design rule while unresolved
+
+Preserve R0 and keep candidate trunk/head layouts explicitly versioned. Treat
+shared trunk + family heads, shared heads, and any memory-conditioning placement
+as alternatives under review. Avoid MoE for now.
 
 ## 6.4 Why not MoE yet
 MoE is deferred because:
@@ -430,8 +447,9 @@ MoE is deferred because:
 ## 6.5 Acceptance criteria
 - family `00` still trains and evaluates successfully,
 - adding family `01` does not break family `00`,
-- head-specific metrics are visible,
-- calibration and confidence can be logged per head,
+- the chosen routing/head arrangement is documented as an accepted decision before implementation,
+- head-specific metrics are visible when heads exist,
+- calibration and confidence claims are separately evidenced,
 - existing training paths remain usable.
 
 ---
@@ -456,7 +474,10 @@ Target conceptual form:
 Notes:
 - actual formulas may remain family-specific,
 - maintain finite outputs and robust sanitization,
-- report reward components separately.
+- report reward components separately,
+- `RewardEngine` remains the environment-owned reward calculation seam; do not
+  conflate it with a learned policy/value/reward head or make recurrence depend on
+  a reward rewrite.
 
 ## 7.2 `r_prop`
 Formal proposer reward standard:
@@ -812,17 +833,18 @@ Acceptance criteria:
 - `01` and `02` can be sampled/validated,
 - train/eval smoke path exists for each.
 
-## Workstream 3 — Multi-head solver
+## Workstream 3 — Solver trunk/head alternatives (decision pending)
 Deliverables:
-- shared trunk + family heads,
-- task/family conditioning,
-- per-head metrics.
+- matched candidate layouts for shared trunk, family-specific heads, or other
+  explicitly justified routing;
+- task/family conditioning;
+- per-head metrics where heads are used.
 
 Acceptance criteria:
-- family-specific outputs are routed correctly,
-- family `00` still converges,
-- family `01` training path is functional,
-- metrics can be split by family.
+- the architecture is accepted through the user review before implementation;
+- family-specific outputs are routed correctly if that option is selected;
+- family `00` still converges;
+- metrics can be split by family without assuming identical input semantics.
 
 ## Workstream 4 — Proposer split
 Deliverables:
@@ -953,47 +975,71 @@ Track:
 
 # 19. PHASE REMAP
 
-## 19.1 Updated Phase B
-Phase B now means:
-- proposer is genuinely in loop,
-- family expansion begins,
-- multi-head solver arrives,
-- candidate-group logging starts,
-- MarketFramer shadow-mode begins on replayed windows.
+## 19.0 Phase A evidence contract now implemented
 
-## 19.2 Updated Phase C
-Phase C now means:
-- coupled offline/online architecture is active,
-- CurriculumProposer and MarketFramer are both operational,
-- online DecisionGate/RiskEngine/Executor shell exists,
-- WatsonOW can consume iTRADER as a skill,
-- proposer can later be fine-tuned on accumulated corpus.
+New Phase A runs use terminal `EpisodeEvidence` schema v1, symbol-safe purged
+train/validation/test partitions, `semantic_v2` task encoding, and PBT selection
+on held-out net arithmetic return at an explicit cost. Population members start
+distinctly but share a deterministic validation stream and fixed rollout batch;
+mutations are bounded and checkpoint/perturbation cadence is aligned. Active
+metrics rewind on exploit restore while append-only config history retains
+lineage. Atomic manifests/status/config/checkpoint/metric artifacts outside Tune
+remain the evidence authority. Ray 2.9 is the historical reproduction profile
+for the results described here; Ray 2.58 is the accepted forward R-series
+runtime.
+
+This closes the engineering seam, not the performance gate. Baseline-controlled
+multi-seed overnight training, cost scenarios, block-aware uncertainty, and one
+untouched final-test evaluation remain mandatory.
+
+## 19.1 Updated Phase B — offline + online/replay/shadow
+
+Phase B now includes both tracks:
+- offline/curriculum work: proposer integration, family/task-contract work,
+  solver evidence, multi-head/trunk alternatives, and candidate-group logging;
+- online/replay/shadow work: `MarketFramer` shadow-mode evaluation on replayed
+  windows, candidate scoring, WAIT/NO_ACTION, and deterministic shell evidence.
+
+Replay/shadow is therefore not excluded from Phase B or deferred until Phase C.
+Live broker execution remains outside the Phase B scope. The shared recurrent
+trunk and family-specific policy/value heads remain proposed choices pending the
+user's grill-me review.
+
+## 19.2 Updated Phase C — operationalization
+
+Phase C means hardening the coupled offline/online architecture after Phase B
+replay/shadow evidence:
+- `CurriculumProposer` and `MarketFramer` are operational;
+- online `DecisionGate`/`RiskEngine`/`Executor` shell is hardened;
+- WatsonOW can consume iTRADER as a skill;
+- proposer fine-tuning can later use an accumulated, audited corpus.
 
 Phase C does NOT require immediate replacement of the solver with an LLM.
 
 ---
 
-# 20. IMPLEMENTATION ORDER
+# 20. IMPLEMENTATION ORDER (PROPOSAL UNDER REVIEW)
 
-Codex should proceed in this order unless repo realities strongly argue for a nearby variant:
+Codex should preserve the following dependency order unless the user's grill-me
+review accepts a nearby variant. This is not an accepted architecture decision:
 
-1. formalize contracts
-2. lock family `00`
-3. add `bar_resolution`
-4. add family registry
-5. implement family `01`
-6. implement family `02`
-7. refactor solver toward shared trunk + family heads
-8. split proposer into CurriculumProposer and MarketFramer wrappers
-9. add CapabilityProfile estimation
-10. evolve train_AZR toward fuller Phase B loop
-11. implement DecisionGate
-12. implement RiskEngine
-13. implement Executor in replay/shadow mode
-14. add replay_online_shadow runner
-15. expand metrics/telemetry
-16. harden tests
-17. only then prepare proposer fine-tuning dataset work
+1. preserve R0/family `00` and make metadata truthful;
+2. formalize contracts and validate family/task semantics;
+3. run matched alignment/reward controls, keeping `RewardEngine` independent of
+   policy/value-head and recurrence choices;
+4. resolve the solver trunk/head and input-schema decision before implementation;
+5. implement/test the selected R1/R2 recurrent controls and lifecycle contract;
+6. add families `01` and `02` only with explicit input/task/reward semantics;
+7. add any shared or family-specific heads only after that choice is accepted and
+   matched controls are defined;
+8. run the separate proposer/curriculum evidence loop;
+9. run Phase B replay/shadow work through MarketFramer and deterministic gates;
+10. harden Phase C operational shell only after replay/shadow evidence;
+11. expand telemetry, checkpoint/replay coverage, and tests;
+12. prepare proposer fine-tuning data only after the preceding evidence is credible.
+
+Do not infer architecture from registration, shared output width, or a roadmap
+family label. No design decision is implemented by this documentation update.
 
 ---
 

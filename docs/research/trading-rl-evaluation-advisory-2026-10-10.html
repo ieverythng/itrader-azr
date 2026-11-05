@@ -1,0 +1,785 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trading-RL Evaluation &amp; Overtrading-Punishment Advisory — iTrader</title>
+<style>
+:root { --bg:#0d1117; --fg:#c9d1d9; --border:#30363d; --accent:#58a6ff; --code:#161b22; --code-fg:#ffa657; --head:#161b22; }
+* { box-sizing:border-box; }
+html { color-scheme:dark; }
+body { max-width:860px; margin:2.2rem auto; padding:0 1.6rem; font:15.5px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, sans-serif; background:var(--bg); color:var(--fg); }
+h1 { color:#fff; font-size:1.55rem; border-bottom:2px solid var(--accent); padding-bottom:.45rem; margin-bottom:1.2rem; }
+h2 { color:#fff; font-size:1.22rem; margin:2.1rem 0 .8rem; border-bottom:1px solid var(--border); padding-bottom:.3rem; }
+h3 { color:#fff; font-size:1.05rem; margin:1.4rem 0 .5rem; }
+p { margin:.7rem 0; }
+strong { color:#fff; }
+em { color:#9e9e9e; }
+table { width:100%; border-collapse:collapse; margin:1.1rem 0; font-size:.92rem; }
+th,td { border:1px solid var(--border); padding:.55rem .75rem; text-align:left; }
+th { background:var(--head); color:#88949e; font-weight:600; position:sticky; top:0; }
+tr:nth-child(even) td { background:#0f141a; }
+td:first-child { color:#fff; }
+code { background:var(--code); padding:.15rem .32rem; border-radius:3px; color:var(--code-fg); font-family:"SF Mono", ui-monospace, monospace; font-size:.88rem; }
+pre { background:var(--code); padding:1rem 1.1rem; border-radius:6px; overflow-x:auto; margin:1rem 0; line-height:1.5; }
+pre code { background:none; padding:0; }
+blockquote { border-left:3px solid var(--accent); padding:.6rem 1.1rem; margin:1rem 0; color:#8e97a2; background:rgba(88,166,255,.05); }
+ul,ol { margin:.5rem 0 1rem 1.3rem; }
+li { margin:.35rem 0; }
+hr { border:none; border-top:1px solid var(--border); margin:2rem 0; }
+.meta { font-size:.85rem; color:#88949e; margin-bottom:1.4rem; }
+.badge { display:inline-block; background:var(--head); border:1px solid var(--border); border-radius:4px; padding:.2rem .55rem; margin-right:.35rem; font-size:.8rem; color:#c9d1d9; }
+.badge-accent { color:var(--accent); border-color:var(--accent); }
+.footer { margin-top:2.5rem; color:#717171; font-size:.85rem; text-align:center; }
+</style>
+</head>
+<body>
+
+<h1>Trading-RL Evaluation &amp; Overtrading-Punishment Advisory</h1>
+<p class="meta">
+<span class="badge badge-accent">iTrader</span>
+<span class="badge">2026-10-10</span>
+<span class="badge">target: agent/Watson-dev</span>
+<span class="badge">status: research advisory</span>
+</p>
+
+<blockquote>
+<strong>Scope.</strong> This document distills an evaluation / overtrading-punishment
+advisory and expands on the specific open questions raised. It is grounded in the
+current <code>dataset_v2</code> manifest, the
+<code>phase_a_r0_plus_r4_v1_1_dec2025_4x3_40_20260925.json</code> loadout,
+<code>itrader/envs/itrader_env.py</code>, and the masterplan. It does <em>not</em>
+change any Phase A/B/C boundary and does <em>not</em> promote anything.
+Review owner: the review lane. Audit trail: append to <code>memory/YYYY-MM-DD.md</code>.
+</blockquote>
+
+<hr>
+
+<h2>0 · Grounding — what we are looking at</h2>
+
+<table>
+<thead><tr><th>Fact</th><th>Value</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>Bar</td><td>1-minute</td><td><code>manifest.json</code></td></tr>
+<tr><td>Rows (all sessions)</td><td>10,370,064</td><td><code>manifest.json</code></td></tr>
+<tr><td>Regular-hours rows</td><td>5,515,061</td><td><code>manifest.json</code></td></tr>
+<tr><td>Pre-market / after-hours</td><td>2,829,443 / 2,025,560</td><td><code>manifest.json</code></td></tr>
+<tr><td>Symbols</td><td>AAPL, MSFT, AMZN, NVDA, AMD, AVGO, GOOGL, META, SPY, QQQ, IWM, TLT (12)</td><td><code>manifest.json</code></td></tr>
+<tr><td>Price adjust</td><td><strong>split-adjusted</strong> (dividends NOT applied)</td><td><code>manifest.json</code> + <code>contracts.py</code></td></tr>
+<tr><td>Feed</td><td>Alpaca SIP</td><td><code>manifest.json</code></td></tr>
+<tr><td>Split</td><td><code>0.7,0.15,0.15</code>, purge 200 rows</td><td><code>phase_a_r0_plus_r4_v1…json</code></td></tr>
+<tr><td>Training window</td><td>60 bars × 5 features (O/H/L/C/V) = <strong>300</strong> flattened dims</td><td><code>itrader_env.py</code> <code>price_obs_dim</code></td></tr>
+<tr><td>Solver state (R4-v1)</td><td>+2 dims (position, remaining-horizon fraction)</td><td><code>itrader_env.py</code> <code>solver_state_observation_contract</code></td></tr>
+<tr><td>Horizons</td><td>96, 128, 160, 200 bars</td><td><code>phase_a_r0_plus_r4_v1…json</code></td></tr>
+<tr><td>Task family</td><td>00 (directional: short / flat / long)</td><td>masterplan</td></tr>
+<tr><td>Reward objective</td><td><code>net_return</code> (PPO scale ×1000)</td><td><code>phase_a_r0_plus_r4_v1…json</code></td></tr>
+<tr><td>Optimization cost</td><td><code>optimization_cost_bps=1.0</code>, <code>evidence_cost_bps=1.0</code></td><td><code>phase_a_r0_plus_r4_v1…json</code></td></tr>
+<tr><td>PBT</td><td><strong>off</strong> for the R1 attribution round</td><td>masterplan</td></tr>
+<tr><td>Learner</td><td>PPO, <code>iters=40</code> (≈192,000 sampled steps at 4800), <code>gamma∈{0.98,0.99,0.995}</code></td><td><code>train_solo_V2.py</code></td></tr>
+</tbody>
+</table>
+
+<p><strong>Headline (unchanged from the prior review):</strong> the R4-v1 vs R0 gap is a
+<em>relative-attribution</em> signal (≈4.4 bp in the smoke run) that is <strong>smaller
+than the 1 bp cost we are charging</strong> — so it is architecture-qualified but
+<strong>not economically promoted</strong>. The 95% paired net-return interval is the
+right instrument; on the current cells it will almost certainly cross zero.</p>
+
+<hr>
+
+<h2>1 · Why the R4-v1 vs R0 gap is not a promotion <em>(Point 1)</em></h2>
+
+<blockquote>
+<strong>User framing:</strong> "We have not done heavy proper training for a while — we
+have been correcting reporting, PBT, setups, and running short ablations to
+stress-test the system. Only recently did we start pushing toward longer sets + the
+now-official R4-v1 to reduce the POMDP and push closer to MDP. Hence, is it worth
+pushing R0 further with a larger sample size, validating with the much lower bp
+cost, and continuing from there?"
+</blockquote>
+
+<p><strong>Answer: yes — and that is the correct scientific move, <em>before</em>
+promoting R4-v1.</strong></p>
+
+<ol>
+<li><strong>The 4.4 bp gap is dominated by cost noise, not signal.</strong> At
+<code>evidence_cost_bps=1.0</code>, a 60–200 bar episode already pays <strong>0.06–0.20%
+in cost</strong> if the model changes position even a handful of times. A 4.4 bp
+improvement is <strong>inside</strong> that cost budget. Until we show the
+architecture survives at <em>lower</em> cost <strong>and</strong> generalizes across
+seeds, the 4.4 bp is a curiosity, not an edge.</li>
+
+<li><strong>We are currently under-trained relative to the question we are asking.</strong>
+The current loadout is <code>iters=40</code>, <code>train_batch_size=4800</code> →
+<strong>≈192,000 sampled environment steps</strong>. That is a <em>smoke / attribution</em>
+budget, not a training budget. For a directional <code>Discrete(3)</code> policy on a
+1-minute bar dataset with ~5.5M RTH rows, the honest training budget is
+<strong>10–100×</strong> that — on the order of <strong>1.9M–19M+ steps</strong>, run on the
+frozen 70/15/15 split, multi-seed, and compared head-to-head with R0.</li>
+
+<li><strong>"Push R0 further, then R4-v1" is the right order, not the reverse.</strong>
+The masterplan already says: <em>keep R0 as the immutable parity control</em> and
+<em>run R1 beside a matched Ray-2.58 R0 control</em>. The same principle applies to
+R4-v1: we should <strong>establish the R0 ceiling under the larger training budget and
+the lower-cost regime first</strong>, so that when R4-v1 is tested the comparison is
+not confounded by "R4-v1 got more training" or "R4-v1 was tested at a different cost."</li>
+
+<li><strong>The lower-bp cost validation is the key gate.</strong> If R0 (and R4-v1)
+both become <strong>substantially</strong> more profitable at 0.1 bp / 0.01 bp than at
+1 bp, we have learned something important: the model <em>was</em> trading at all and
+the 1 bp cost was masking the signal. If R0 is still flat or negative at 0.01 bp, the
+architecture is the bottleneck, not the cost — and we should keep iterating on the
+solver (R1/R2c) rather than the cost knob.</li>
+</ol>
+
+<p><strong>Concrete next step (proposed, not authorized):</strong></p>
+
+<table>
+<thead><tr><th>Step</th><th>What</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>A</td><td><strong>Freeze</strong> the 70/15/15 split + panel hashes in the manifest.</td><td>Prevents leakage; lets all future runs compare on identical data.</td></tr>
+<tr><td>B</td><td><strong>R0 training budget ×10–100</strong> (<code>iters</code> 40→400–4000, multi-seed), at <strong>0.1 bp and 0.01 bp</strong>.</td><td>Establishes the R0 ceiling under realistic cost.</td></tr>
+<tr><td>C</td><td><strong>R4-v1 under the same budget + same cost.</strong></td><td>True architectural comparison, not a smoke artifact.</td></tr>
+<tr><td>D</td><td><strong>Two-sided 95% paired net-return interval</strong> on a <strong>frozen validation panel</strong>, block-aware.</td><td>The instrument already accepted in Q26.</td></tr>
+<tr><td>E</td><td><strong>Do not open the final test</strong> until D is qualified and the interval does not cross zero.</td><td>Preserves the sealed final test.</td></tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>2 · PPO training cadence — per-episode or per-step? <em>(Point 3)</em></h2>
+
+<blockquote>
+<strong>User question:</strong> "Is PPO done per episode? Of course there are plenty of
+SGD steps in between, but that 1 bp cost was arbitrary though tested continually. Would
+0.1 bp or even 0.01 bp really constrain the model enough? … I want to ensure we are
+punishing overtrading properly!"
+</blockquote>
+
+<p><strong>What the code actually does (grounding):</strong></p>
+<ul>
+<li><code>itrader_env.py</code> — <strong>reward is computed per step</strong>, not per
+episode. The <code>net_return</code> objective accumulates per-step mark-to-market PnL
+minus configured costs.</li>
+<li><strong>PPO's GAE</strong> (generalized advantage estimation) is computed over the
+<strong>episode</strong> using <code>gamma∈{0.98,0.99,0.995}</code>. So the <strong>credit
+assignment</strong> is per-episode, but the <strong>reward</strong> is per-step.</li>
+<li>The <strong>1 bp cost is charged per round-trip</strong> (each position change), not
+per bar. <code>turnover_t = abs(pos_t − pos_prev)</code> (0, 1, or 2), and
+<code>cost = turnover_t × evidence_cost_bps × 1e-4</code>.</li>
+</ul>
+
+<p><strong>The key insight for Point 3:</strong> <strong>0.1 bp and 0.01 bp will
+constrain the model <em>less</em> than 1 bp — and that is exactly the point.</strong>
+If the model is currently flat or near-flat at 1 bp, lowering the cost
+<strong>removes the penalty that was suppressing it</strong> and lets the model express
+whatever signal it has learned. The three regimes we want to see:</p>
+
+<table>
+<thead><tr><th>Cost</th><th>What it tells us</th></tr></thead>
+<tbody>
+<tr><td><strong>1 bp</strong></td><td>Current state: model is flat / near-flat → cost is masking signal, or there is no signal.</td></tr>
+<tr><td><strong>0.1 bp</strong></td><td>Model expresses some signal but may still be dominated by cost if it over-trades.</td></tr>
+<tr><td><strong>0.01 bp</strong></td><td>Cost is negligible → model's <em>unmasked</em> behavior is revealed. If it still over-trades, the reward structure (not the cost) is the problem.</td></tr>
+</tbody>
+</table>
+
+<p><strong>The cost curve is the most important diagnostic.</strong> A 3-point cost
+sweep (0.01, 0.1, 1 bp) × {R0, R4-v1} × {multiple seeds} gives a <strong>cost-response
+surface</strong>:</p>
+<ul>
+<li><strong>Flat across cost</strong> → architecture has no signal (cost is irrelevant).</li>
+<li><strong>Improves as cost drops</strong> → cost was masking signal; architecture has real edge at low cost.</li>
+<li><strong>Worsens as cost drops</strong> → model is over-trading; reward structure is wrong.</li>
+</ul>
+
+<p><strong>Recommendation (proposed):</strong></p>
+<ol>
+<li><strong>Keep 1 bp as the economic anchor</strong> — it is the "real-world" cost we care about.</li>
+<li><strong>Add 0.1 bp and 0.01 bp as diagnostic cells</strong> — they reveal the model's unmasked behavior.</li>
+<li><strong>Report the cost-response curve as a first-class artifact</strong> — it should be in every ablation summary.</li>
+<li><strong>Do NOT use 0.01 bp as a promotion criterion</strong> — it is a diagnostic, not an economic target. Promotion still requires positive net at <strong>1 bp</strong> on the sealed final test.</li>
+</ol>
+
+<p><strong>On "punishing overtrading properly":</strong> the current <code>net_return</code>
+objective already penalizes turnover through <code>optimization_cost_bps</code>. The
+knob to watch is whether the model's <strong>turnover-to-PnL ratio</strong> improves as we
+change the cost. If the model is trading 20+ times per episode at 0.01 bp but only 3
+at 1 bp, the reward structure is encouraging over-trading at low cost — and we should
+add an <strong>explicit turnover penalty</strong> (a fixed per-trade cost that does NOT
+scale with <code>evidence_cost_bps</code>) to discourage position-flipping even at
+low cost.</p>
+
+<hr>
+
+<h2>3 · Architecture test vs economic test — the "stable, semi-profitable solver" goal <em>(Point 4)</em></h2>
+
+<blockquote>
+<strong>User framing:</strong> "We are mixing the two, but ultimately we are trying to get
+the most stable, semi-profitable solver (not even economic return, but proven solver
+capability) so we can couple the proposer later. Simply changing/mutating TaskSpec
+without knowing solver profitability only adds more variables to tweak and therefore
+harder to attribute to training. Can you take stock of the amount of knobs we are
+actually turning and thus have to isolate?"
+</blockquote>
+
+<p><strong>Answer: I agree the two questions are being conflated, and the fix is to
+name them and sequence them.</strong></p>
+
+<p><strong>The two questions:</strong></p>
+<table>
+<thead><tr><th>Question</th><th>Instrument</th><th>Gate</th></tr></thead>
+<tbody>
+<tr><td><strong>Architecture test</strong>: does R4-v1 (or R1) have better <em>attribution</em> than R0?</td><td>Paired 95% net-return interval on a frozen validation panel</td><td>Positive lower bound</td></tr>
+<tr><td><strong>Economic test</strong>: does the solver make <em>money</em> at 1 bp on untouched data?</td><td>Net return on the sealed final test</td><td>Positive net + positive Sharpe + multi-seed</td></tr>
+</tbody>
+</table>
+
+<p><strong>The "most stable, semi-profitable solver" goal is a <em>third</em> thing</strong>
+— a <strong>capability floor</strong> that says: "this solver is good enough to
+<em>learn</em> from the proposer, even if it is not yet profitable." That floor should
+be defined <em>explicitly</em>:</p>
+<ul>
+<li><strong>Stability</strong>: deterministic post-restore evaluation, exact fresh
+replay, block-aware uncertainty, no terminal-exploit mutations, checkpoint/replay parity.</li>
+<li><strong>Semi-profitability</strong>: positive net at 0.1 bp on the frozen
+validation panel, positive Sharpe, and turnover below a pre-declared threshold
+(e.g., ≤ 5 per episode).</li>
+</ul>
+
+<p><strong>The knob inventory (the "amount of knobs we are actually turning")</strong>
+— this is the part that matters for attribution:</p>
+
+<table>
+<thead><tr><th>Knob</th><th>Current value</th><th>Attribution risk</th></tr></thead>
+<tbody>
+<tr><td><strong>Training budget</strong></td><td><code>iters=40</code></td><td><strong>HIGH</strong> — different budgets make R0/R4-v1 incomparable</td></tr>
+<tr><td><strong>Cost (bps)</strong></td><td><code>evidence_cost_bps=1.0</code></td><td><strong>HIGH</strong> — changes the reward structure entirely</td></tr>
+<tr><td><strong>Learning rate</strong></td><td><code>lr=5e-5</code></td><td><strong>HIGH</strong> — changes convergence</td></tr>
+<tr><td><strong>Gamma</strong></td><td><code>gamma∈{0.98,0.99,0.995}</code></td><td><strong>MEDIUM</strong> — changes credit assignment</td></tr>
+<tr><td><strong>Batch size</strong></td><td><code>4800</code></td><td><strong>MEDIUM</strong> — changes gradient noise</td></tr>
+<tr><td><strong>Window size</strong></td><td><code>60</code></td><td><strong>MEDIUM</strong> — changes the input signal</td></tr>
+<tr><td><strong>Horizons</strong></td><td><code>96,128,160,200</code></td><td><strong>LOW</strong> — fixed across cells</td></tr>
+<tr><td><strong>Task family</strong></td><td><code>00</code></td><td><strong>LOW</strong> — fixed</td></tr>
+<tr><td><strong>Split</strong></td><td><code>0.7,0.15,0.15</code></td><td><strong>LOW</strong> — must be frozen</td></tr>
+<tr><td><strong>Seeds</strong></td><td>multiple</td><td><strong>LOW</strong> — must be held constant</td></tr>
+<tr><td><strong>PBT</strong></td><td>off</td><td><strong>LOW</strong> — must stay off for attribution</td></tr>
+<tr><td><strong>Solver state mode</strong></td><td><code>both</code></td><td><strong>LOW</strong> — this IS the thing being tested</td></tr>
+<tr><td><strong>Observation transform</strong></td><td><code>market_relative_v1</code></td><td><strong>LOW</strong> — must be held constant</td></tr>
+<tr><td><strong>Task embedding dim</strong></td><td><code>32</code></td><td><strong>LOW</strong> — must be held constant</td></tr>
+<tr><td><strong>Ret-norm reset</strong></td><td><code>stream</code></td><td><strong>LOW</strong> — must be held constant</td></tr>
+</tbody>
+</table>
+
+<p><strong>The point of the table:</strong> <strong>the only knob we should be changing in
+the R-series attribution is the solver state mode</strong> (<code>off</code>,
+<code>masked</code>, <code>position</code>, <code>time</code>, <code>both</code>).
+<strong>Everything else must be frozen</strong> — and it must be frozen <em>before</em> the
+comparison, not <em>after</em>. If we change the training budget, the cost, the
+learning rate, the window, or the PBT setting between R0 and R4-v1, the attribution
+is <strong>confounded</strong> and the 95% interval is <strong>meaningless</strong>.</p>
+
+<p><strong>Concrete recommendation (proposed):</strong></p>
+<ol>
+<li><strong>Freeze</strong> the 14 non-solver knobs in a single manifest with hashes.</li>
+<li><strong>Change only</strong> the solver state mode (and the architecture: R0 vs R4-v1).</li>
+<li><strong>Run each cell</strong> under the <em>same</em> training budget, cost, seeds, and PBT setting.</li>
+<li><strong>Report</strong> the 95% paired net-return interval on the frozen validation panel.</li>
+<li><strong>Only then</strong> consider the "capability floor" for proposer coupling.</li>
+</ol>
+
+<hr>
+
+<h2>4 · The 70/15/15 split and the "oldest → newest" training sequence <em>(Point 5)</em></h2>
+
+<blockquote>
+<strong>User framing:</strong> "Splitting the same way for all is brilliant, especially
+since we can attempt to start anew and go from oldest → newest in the split format,
+thus giving us that retrospective bet that maybe it can generalize and follow the
+trend chronologically!"
+</blockquote>
+
+<p><strong>Answer: the split is already the right choice, and the oldest→newest
+training sequence is a <em>strong</em> additional safeguard — but it is a
+<em>design choice</em> we need to make explicitly, not implicitly.</strong></p>
+
+<p><strong>Why the 70/15/15 chronological split is right:</strong></p>
+<ul>
+<li><strong>Chronological order is the correct train/val/test split</strong> for
+time-series data. Random splitting would leak future information into the training
+set.</li>
+<li><strong>The 15% validation is for selection and the 15% final test is for the
+one-shot promotion gate.</strong> The final test is <strong>sealed</strong> — it is
+never used for training or selection.</li>
+</ul>
+
+<p><strong>The oldest→newest training sequence (a.k.a. "expanding window" or
+"walk-forward")</strong> — this is a <strong>stronger</strong> variant of the
+chronological split. Instead of training once on the first 70% and evaluating on the
+next 15%, you:</p>
+<ol>
+<li><strong>Train on the first 70%</strong> (oldest), evaluate on the next 15%.</li>
+<li><strong>Train on the first 85%</strong> (70% + 15% of validation), evaluate on the
+<em>remaining</em> 15% (final test).</li>
+<li><strong>Repeat</strong> as new data becomes available.</li>
+</ol>
+
+<p><strong>The "retrospective bet" you described is the key insight:</strong>
+<strong>if the model trained on 2022–2024 data can still produce positive net on
+2025–2026 data, it has learned a <em>generalizable</em> pattern, not a
+<em>regime-specific</em> artifact.</strong> That is the strongest form of the "no
+leakage" guarantee.</p>
+
+<p><strong>However — the current dataset has only ~4.9 years of data (2022-01-03 →
+2026-09-22).</strong> The oldest→newest sequence is:</p>
+<ul>
+<li><strong>Train:</strong> 2022-01-03 → ~2024-05 (70%)</li>
+<li><strong>Val:</strong> ~2024-05 → ~2025-05 (15%)</li>
+<li><strong>Test:</strong> ~2025-05 → 2026-09-22 (15%)</li>
+</ul>
+<p>That is a <strong>reasonable</strong> sequence, but the "retrospective bet" only
+works if:</p>
+<ol>
+<li><strong>The model is not overfit to the 2022–2024 regime.</strong> The 4.9-year span
+includes multiple market regimes (2022 bear, 2023 recovery, 2024 volatility, 2025
+growth). If the model is trained on 2022–2024 and evaluated on 2025, it may be
+<em>generalizing</em> <strong>or</strong> it may be <em>regime-mismatched</em>.</li>
+<li><strong>The 15% validation panel is truly non-overlapping.</strong> The current
+<code>split_purge_rows=200</code> is a good start, but we should <strong>increase the
+purge</strong> (e.g., to 500–1000 rows) to ensure no temporal leakage between train and
+val.</li>
+<li><strong>The final test is truly sealed.</strong> If the model has ever seen the
+2025–2026 data during training, the final test is contaminated.</li>
+</ol>
+
+<p><strong>Concrete recommendation (proposed):</strong></p>
+<ol>
+<li><strong>Freeze the 70/15/15 split</strong> with <strong>purge ≥ 500 rows</strong>
+between train and val.</li>
+<li><strong>Record the exact panel boundaries</strong> (start/end timestamps) in the
+manifest.</li>
+<li><strong>Train oldest→newest</strong> — this is the "retrospective bet."</li>
+<li><strong>Report the per-year net return</strong> (2022, 2023, 2024, 2025, 2026) as a
+<strong>regime diagnostic</strong>. If the model is profitable in 2022–2024 but not in
+2025–2026, it is regime-mismatched, not generalizable.</li>
+<li><strong>Keep the final test sealed</strong> until the retrospective bet has been run
+and the 95% interval is qualified.</li>
+</ol>
+
+<hr>
+
+<h2>5 · Window size vs. cost: the 60-minute input shape <em>(Point 6)</em></h2>
+
+<blockquote>
+<strong>User framing:</strong> "The input shape takes 60 min (60 × 5 into the MLP
+flattened + FiLM + solver state), but I absolutely like matching the window to the
+window structure. How did you measure that 2-hour to 1 bp cost? Maybe we can keep
+that proportion and do window ablations."
+</blockquote>
+
+<p><strong>Answer: the 60-minute window is a good starting point, but we should test the
+window-to-cost ratio explicitly, not assume it.</strong></p>
+
+<p><strong>The current setup:</strong></p>
+<ul>
+<li><strong>Window:</strong> 60 bars = 60 minutes</li>
+<li><strong>Horizons:</strong> 96, 128, 160, 200 bars = 96–200 minutes</li>
+<li><strong>Cost:</strong> 1 bp per round-trip</li>
+<li><strong>Training:</strong> <code>iters=40</code> → ~192,000 steps</li>
+</ul>
+
+<p><strong>The window-to-cost ratio question:</strong> the model is being asked to
+<strong>predict the next 96–200 minutes</strong> of price movement, but it is only
+given <strong>60 minutes of history</strong>. That is a <strong>1.6–3.3× forward
+horizon relative to the input window</strong>. If the model is paying <strong>1 bp per
+round-trip</strong> to change position, it needs to be <strong>confident</strong> enough
+to justify that trade. The <strong>window-to-cost ratio</strong> should be:</p>
+<ul>
+<li><strong>If the window is too short relative to the horizon</strong>, the model is
+making decisions on insufficient signal → <strong>over-trades</strong>.</li>
+<li><strong>If the window is too long relative to the horizon</strong>, the model is
+making decisions on stale signal → <strong>under-trades</strong>.</li>
+<li><strong>The cost should scale with the decision frequency.</strong> A 1 bp cost is
+reasonable if the model trades <strong>1–5 times per episode</strong>; it is too high if
+the model trades <strong>20+ times per episode</strong>.</li>
+</ul>
+
+<p><strong>The 2-hour to 1 bp measurement (the user's question):</strong> I did not
+measure a specific "2-hour to 1 bp" ratio in the current code. The 1 bp cost is
+<strong>arbitrary</strong> — it was set to a round number that is in the ballpark of
+typical SIP fees. The honest measurement is:</p>
+<ol>
+<li><strong>Measure the model's turnover</strong> (position changes per episode) at
+1 bp, 0.1 bp, and 0.01 bp.</li>
+<li><strong>Calculate the cost-to-PnL ratio</strong> at each cost level.</li>
+<li><strong>If the model's turnover drops to near-zero at 1 bp but rises to 10+ at
+0.01 bp</strong>, the 1 bp cost is <strong>too high</strong> for the model's decision
+frequency, and we should either (a) increase the window to give it more signal, or
+(b) reduce the cost, or (c) accept that the model is not ready to trade at 1 bp.</li>
+</ol>
+
+<p><strong>Window ablation (the user's idea):</strong> this is a <strong>good next
+step</strong>. The current window (60) is a single point. A window ablation would
+test:</p>
+
+<table>
+<thead><tr><th>Window</th><th>Input dims</th><th>What it tells us</th></tr></thead>
+<tbody>
+<tr><td>30 bars (30 min)</td><td>150</td><td>Does the model need less signal?</td></tr>
+<tr><td>60 bars (60 min)</td><td>300</td><td>Current state</td></tr>
+<tr><td>120 bars (2 hr)</td><td>600</td><td>Does the model need more signal?</td></tr>
+<tr><td>240 bars (4 hr)</td><td>1200</td><td>Does the model need even more signal?</td></tr>
+</tbody>
+</table>
+
+<p><strong>The recommendation:</strong> <strong>test the window ablation in parallel
+with the cost sweep.</strong> A 4-window × 3-cost × 2-seed = <strong>24 cells</strong>
+is a manageable budget if the training budget is kept at the current <code>iters=40</code>
+smoke level. The goal is to find the <strong>window-cost pair</strong> that maximizes
+net return at 1 bp, subject to the constraint that the model is not over-trading
+(turnover ≤ 5 per episode).</p>
+
+<hr>
+
+<h2>6 · <code>market_relative_v1</code> vs. <code>market_relative_v2</code> <em>(Point 7)</em></h2>
+
+<blockquote>
+<strong>User framing:</strong> "Can you expand on how your proposed
+<code>market_relative_v2</code> could work? I like our original approach as you said —
+it's training on patterns and not actual prices — but I guess we have to provide this
+in some form too!"
+</blockquote>
+
+<p><strong>The current <code>market_relative_v1</code> transform (grounding):</strong></p>
+<pre><code>def _market_relative_window(self, window: np.ndarray) -&gt; np.ndarray:
+    """Create bounded, fitted-state-free OHLCV features for portable checkpoints."""
+    close_ref = float(window[-1, self.cols.index(self.close_col)])
+    price_scale = max(abs(close_ref), 1e-12)
+    for index, column in enumerate(self.cols):
+        if column.upper() in {"OPEN", "HIGH", "LOW", "CLOSE"}:
+            window[:, index] = window[:, index] / price_scale - 1.0
+        elif column.upper() == "VOLUME":
+            window[:, index] = np.log1p(np.maximum(window[:, index], 0.0))
+        else:
+            mean = float(np.mean(window[:, index]))
+            std = float(np.std(window[:, index]))
+            window[:, index] = (window[:, index] - mean) / max(std, 1e-8)
+    return np.clip(_sanitize(window), -10.0, 10.0)
+</code></pre>
+
+<p><strong>What it does:</strong></p>
+<ul>
+<li><strong>Prices</strong> (O/H/L/C) are <strong>divided by the current close</strong>
+and <strong>1 is subtracted</strong> → the model sees <strong>relative returns</strong>
+(e.g., "this open was 0.5% below the current close").</li>
+<li><strong>Volume</strong> is <strong>log1p-normalized</strong> → compresses the dynamic
+range.</li>
+<li><strong>All features</strong> are <strong>z-scored</strong> (mean 0, std 1) and
+<strong>clipped</strong> to ±10 → prevents outliers from exploding the input.</li>
+<li><strong>No fitted parameters</strong> are used → the transform is
+<strong>state-free</strong> and <strong>portable</strong> across checkpoints (a key
+requirement for the replay contract).</li>
+</ul>
+
+<p><strong>The problem with <code>market_relative_v1</code>:</strong> the transform is
+<strong>state-free</strong> (good for portability) but <strong>not scale-invariant
+across the full dataset</strong>. It normalizes <em>each window independently</em>
+using the <em>current</em> close as the reference. This means:</p>
+<ul>
+<li><strong>A window in 2022</strong> (when AAPL was ~$30) and <strong>a window in 2025</strong>
+(when AAPL is ~$200) are both normalized to the same scale (±10). This is
+<strong>good</strong> for the model to learn <em>patterns</em> rather than
+<em>absolute prices</em>.</li>
+<li><strong>But the model cannot see the <em>absolute</em> level</strong> of the market. If
+the model needs to know "the market is in a high-volatility regime," the
+<code>market_relative_v1</code> transform does not provide that.</li>
+</ul>
+
+<p><strong>The proposed <code>market_relative_v2</code> transform:</strong> the key idea
+is to <strong>add a second, <em>fitted</em> normalization layer</strong> that preserves
+the state-free property of <code>market_relative_v1</code> while <strong>exposing a
+market-level signal</strong> that the model can use to detect regime changes.</p>
+
+<pre><code>def _market_relative_window_v2(self, window: np.ndarray) -&gt; np.ndarray:
+    """Add a fitted market-level context to the state-free v1 transform."""
+    # Step 1: Apply v1 (state-free, portable).
+    window_v1 = self._market_relative_window(window)
+
+    # Step 2: Add a *fitted* market-level context (e.g., realized volatility over
+    # the last N bars, using a *frozen* training-time statistic).
+    # This is NOT computed from the current window — it is a *precomputed*
+    # feature that is loaded from a manifest, so it does not leak future info.
+    # Example: realized volatility = std of log-returns over the last 252 bars
+    # (1 year), computed once and stored in the dataset manifest.
+    if not hasattr(self, "_fitted_volatility"):
+        raise ValueError("market_relative_v2 requires a fitted volatility manifest")
+    vol = self._fitted_volatility
+    window_v1 = np.concatenate([window_v1, [vol] * len(window_v1[0])])
+
+    # Step 3: Re-clip to ±10.
+    return np.clip(_sanitize(window_v1), -10.0, 10.0)
+</code></pre>
+
+<p><strong>Key properties of <code>market_relative_v2</code>:</strong></p>
+<ul>
+<li><strong>State-free:</strong> the fitted volatility is precomputed and stored in the
+manifest → no leakage, no checkpoint incompatibility.</li>
+<li><strong>Adds regime signal:</strong> the model can now see "the market is in a
+high-volatility regime" and adjust its position sizing accordingly.</li>
+<li><strong>Backward-compatible:</strong> the v1 dimensions are a prefix of the v2
+dimensions → old checkpoints can be loaded into v2 with zero-init padding.</li>
+</ul>
+
+<p><strong>The recommendation:</strong></p>
+<ul>
+<li><strong>Keep <code>market_relative_v1</code> as the default</strong> — it is the
+state-free, portable baseline.</li>
+<li><strong>Add <code>market_relative_v2</code> as an opt-in factor</strong> — it adds
+regime signal but requires a fitted manifest.</li>
+<li><strong>Compare v1 vs v2 in a controlled ablation</strong> — hold everything else
+constant (training budget, cost, seeds, window) and change only the transform.</li>
+<li><strong>Do NOT promote v2 until the v1 vs v2 comparison is qualified</strong> — v2
+is a hypothesis, not a settled architecture.</li>
+</ul>
+
+<hr>
+
+<h2>7 · The "movement" penalty and turnover <em>(Point 8)</em></h2>
+
+<blockquote>
+<strong>User framing:</strong> "I guess you are right, but here it gets tricky — we have
+to be careful with this. Technically each decision is a 'movement,' so that's why we
+are penalizing."
+</blockquote>
+
+<p><strong>Answer: the penalty is correct, but we need to make sure it is
+<em>proportional</em> to the movement, not <em>binary</em>.</strong></p>
+
+<p><strong>The current penalty (grounding):</strong></p>
+<pre><code>turnover_t = abs(float(self.pos) - prev_pos)  # 0, 1 or 2
+</code></pre>
+
+<p><strong>What this means:</strong></p>
+<ul>
+<li><strong>Flat → Flat</strong>: <code>turnover_t = 0</code> → <strong>no penalty</strong>.</li>
+<li><strong>Flat → Long</strong>: <code>turnover_t = 1</code> → <strong>1 unit of cost</strong>.</li>
+<li><strong>Long → Long</strong>: <code>turnover_t = 0</code> → <strong>no penalty</strong>.</li>
+<li><strong>Long → Short</strong>: <code>turnover_t = 2</code> → <strong>2 units of cost</strong>
+(because the position changes from +1 to -1, a full round-trip).</li>
+</ul>
+
+<p><strong>The "movement" framing is correct</strong> — every position change is a
+movement, and every movement should be penalized. The question is:
+<strong>is the penalty proportional to the movement?</strong></p>
+
+<p><strong>The answer: yes, it is.</strong> A 1→2 change (Long → Short) is
+<strong>twice</strong> as costly as a 0→1 change (Flat → Long), because it involves
+<strong>two</strong> position changes (Long → Flat, then Flat → Short). This is the
+correct economic model — a round-trip trade costs <strong>two</strong> one-way fees.</p>
+
+<p><strong>The subtlety: the <code>evidence_cost_bps</code> scales the penalty.</strong>
+If the model is currently <strong>over-trading</strong> (e.g., 20 position changes per
+episode), the penalty at 1 bp is <strong>0.20%</strong> — which is <strong>substantial</strong>.
+At 0.01 bp, the same over-trading is only <strong>0.002%</strong> — which is
+<strong>negligible</strong>. So the cost knob is the <strong>right</strong> tool for
+discouraging over-trading, but <strong>only if the model is actually over-trading</strong>.</p>
+
+<p><strong>The recommendation:</strong></p>
+<ul>
+<li><strong>Keep the <code>turnover_t</code> penalty as-is</strong> — it is the correct
+economic model.</li>
+<li><strong>Measure the model's turnover</strong> at 1 bp, 0.1 bp, and 0.01 bp.</li>
+<li><strong>If the model is over-trading at 0.01 bp</strong> (turnover &gt; 10 per
+episode), the problem is not the cost knob — it is the <strong>reward structure</strong>.
+The model is being <em>encouraged</em> to trade by the PnL signal, and the cost is
+too small to stop it. In that case, add an <strong>explicit turnover penalty</strong>
+that does NOT scale with <code>evidence_cost_bps</code> (e.g., a fixed 0.5 bp per
+position change, added on top of the <code>evidence_cost_bps</code>).</li>
+<li><strong>If the model is under-trading at 1 bp</strong> (turnover &lt; 2 per episode),
+the problem is the <strong>cost knob</strong> — it is too high, and the model is being
+<em>discouraged</em> from trading. Lower the cost to 0.1 bp or 0.01 bp to see if the
+model expresses more signal.</li>
+</ul>
+
+<hr>
+
+<h2>8 · The family roadmap: <code>Discrete(3)</code> → richer action spaces <em>(Point 9)</em></h2>
+
+<blockquote>
+<strong>User framing:</strong> "Technically we are only asking 'flat, long, or short?' and
+attempting to modulate the solver state to the input shape. But we were trying to
+discretise this particular part of trading as task family 00 (directional decisions).
+01 is vol breakout, 02 is mean reversion pairs. With this in mind, maybe for the other
+families that were planned to have <code>Discrete(3)</code>, we could actually expand to
+this, as it simulates these things. But again, the online play (Phase C) will handle
+this eventually — not tested fully yet, and still experimental. Can you scaffold how
+that would look?"
+</blockquote>
+
+<p><strong>Answer: the current <code>Discrete(3)</code> is the right <em>starting point</em>
+for family 00, but the roadmap to richer action spaces for families 01–02 is a
+<strong>good long-term investment</strong> — and it is <strong>exactly</strong> what the
+masterplan anticipates.</strong></p>
+
+<p><strong>The current state (grounding from the masterplan):</strong></p>
+<ul>
+<li><strong>Family 00:</strong> directional (short/flat/long) — <strong><code>Discrete(3)</code></strong>. ✅</li>
+<li><strong>Family 01:</strong> volatility breakout — <strong><code>Discrete(3)</code></strong> planned.</li>
+<li><strong>Family 02:</strong> mean reversion pairs — <strong><code>Discrete(3)</code></strong> planned.</li>
+<li><strong>Family 03:</strong> trade management — <strong><code>Discrete(3)</code></strong> planned.</li>
+<li><strong>Family 04:</strong> abstention/WAIT semantics — <strong><code>Discrete(3)</code></strong> planned.</li>
+</ul>
+
+<p><strong>The problem with a uniform <code>Discrete(3)</code> action space:</strong> the
+current <code>Discrete(3)</code> action space assumes that <strong>every family makes
+the same three decisions: short, flat, long</strong>. But that is <strong>not true</strong>
+for families 01–02:</p>
+<ul>
+<li><strong>Family 01 (volatility breakout):</strong> the model should be able to
+<strong>enter a position, set a stop-loss, and exit</strong>. That is <strong>more
+than 3 actions</strong> — it is a <strong>sequence</strong> of actions.</li>
+<li><strong>Family 02 (mean reversion pairs):</strong> the model should be able to
+<strong>enter a pair, hold, and exit</strong> — again, a <strong>sequence</strong>, not a
+single decision.</li>
+<li><strong>Family 03 (trade management):</strong> the model should be able to
+<strong>adjust position size, set a stop-loss, and exit</strong> — a
+<strong>continuous</strong> decision space, not discrete.</li>
+</ul>
+
+<p><strong>The scaffold for richer action spaces:</strong></p>
+
+<p><strong>Option A: <code>Discrete(3)</code> with a <em>conditional</em> action space</strong></p>
+<p>The model still outputs 3 actions (short/flat/long), but <strong>each action has a
+<em>payload</em></strong>:</p>
+<ul>
+<li><strong>Short:</strong> {position_size, stop_loss, exit_trigger}</li>
+<li><strong>Flat:</strong> {position_size, stop_loss, exit_trigger}</li>
+<li><strong>Long:</strong> {position_size, stop_loss, exit_trigger}</li>
+</ul>
+<p>This is a <strong>hybrid</strong> discrete/continuous action space. The discrete
+part is the <strong>direction</strong>, and the continuous part is the
+<strong>trade management</strong>. The model learns <strong>both</strong> in one policy.</p>
+
+<p><strong>Option B: <code>Discrete(5)</code> with explicit WAIT and EXIT</strong></p>
+<p>Expand the action space to 5:</p>
+<ul>
+<li><strong>Short</strong></li>
+<li><strong>Flat</strong></li>
+<li><strong>Long</strong></li>
+<li><strong>WAIT</strong> (hold current position, do not trade)</li>
+<li><strong>EXIT</strong> (liquidate current position)</li>
+</ul>
+<p>This is a <strong>cleaner</strong> discrete space that explicitly models
+<strong>abstention</strong> (family 04) and <strong>liquidation</strong> (family 03).
+The model can now <em>choose</em> to wait rather than being forced to either enter
+or exit.</p>
+
+<p><strong>Option C: <code>Discrete(3)</code> + a separate <strong>trade management</strong>
+policy</strong></p>
+<p>The model outputs 3 actions (short/flat/long) for the <strong>directional</strong>
+decision, and a <strong>separate</strong> policy outputs the <strong>trade
+management</strong> parameters (position_size, stop_loss, exit_trigger). This is a
+<strong>multi-head</strong> architecture — the masterplan already anticipates this
+("a shared recurrent trunk with family-specific policy/value heads").</p>
+
+<p><strong>The recommendation:</strong></p>
+<ol>
+<li><strong>Keep <code>Discrete(3)</code> for family 00</strong> — it is the simplest and
+the most directly testable.</li>
+<li><strong>Add <code>WAIT</code> and <code>EXIT</code> to the action space</strong> for
+families 01–04 — this is <strong>Option B</strong> and is the <strong>lowest-risk</strong>
+expansion.</li>
+<li><strong>Scaffold the multi-head architecture</strong> for families 01–03 — this is
+<strong>Option C</strong> and is the <strong>long-term</strong> investment.</li>
+<li><strong>Do NOT expand the action space until the <code>Discrete(3)</code> baseline is
+promoted</strong> — the masterplan is explicit: "families 00–02 may share
+<code>Discrete(3)</code> output width without settling input schemas, task semantics,
+reward assignments, or state ownership."</li>
+</ol>
+
+<p><strong>The concrete scaffold:</strong></p>
+<pre><code># Option B: Discrete(5) with WAIT and EXIT
+# 0 = SHORT, 1 = FLAT, 2 = LONG, 3 = WAIT, 4 = EXIT
+
+# The model outputs a single integer in {0, 1, 2, 3, 4}.
+# The environment interprets:
+#   0: enter/hold short
+#   1: hold flat
+#   2: enter/hold long
+#   3: wait (no change, no cost)
+#   4: liquidate (close position, incur liquidation cost)
+
+# This is a *minimal* expansion that adds the two most important
+# trade-management actions without changing the discrete action space.
+</code></pre>
+
+<p><strong>The Phase C connection:</strong> the user is right that <strong>Phase C will
+handle this eventually</strong>. The <code>DecisionGate</code>, <code>RiskEngine</code>, and
+<code>Executor</code> shell in Phase C will <strong>translate</strong> the policy's action
+into a <strong>concrete trade</strong> (with position sizing, stop-loss, and execution
+logic). The <code>Discrete(3)</code> → <code>Discrete(5)</code> → multi-head evolution
+is the <strong>training-time</strong> version of that translation. The key is to
+<strong>keep the training-time action space simple</strong> (<code>Discrete(3)</code> or
+<code>Discrete(5)</code>) and let <strong>Phase C handle the complexity</strong> of
+position sizing, stop-loss, and execution.</p>
+
+<hr>
+
+<h2>9 · Consolidated recommendations (priority-ordered)</h2>
+
+<table>
+<thead><tr><th>#</th><th>Recommendation</th><th>Rationale</th><th>Phase</th></tr></thead>
+<tbody>
+<tr><td><strong>1</strong></td><td><strong>Freeze the 70/15/15 split + panel hashes</strong> in the manifest.</td><td>Prevents leakage; enables honest comparison.</td><td>Phase A</td></tr>
+<tr><td><strong>2</strong></td><td><strong>Freeze all non-solver knobs</strong> (training budget, cost, LR, gamma, batch, window, PBT) in a single manifest with hashes.</td><td>Prevents confounded attribution.</td><td>Phase A</td></tr>
+<tr><td><strong>3</strong></td><td><strong>Establish the R0 ceiling</strong> under a larger training budget (×10–100) and lower cost (0.1 bp, 0.01 bp).</td><td>Establishes the baseline before promoting R4-v1.</td><td>Phase A</td></tr>
+<tr><td><strong>4</strong></td><td><strong>Run R4-v1 under the same budget + cost</strong> as R0.</td><td>True architectural comparison.</td><td>Phase A</td></tr>
+<tr><td><strong>5</strong></td><td><strong>Report the cost-response curve</strong> (0.01, 0.1, 1 bp × R0, R4-v1 × multi-seed).</td><td>Most important diagnostic; reveals the model's unmasked behavior.</td><td>Phase A</td></tr>
+<tr><td><strong>6</strong></td><td><strong>Two-sided 95% paired net-return interval</strong> on the frozen validation panel, block-aware.</td><td>The accepted instrument (Q26).</td><td>Phase A</td></tr>
+<tr><td><strong>7</strong></td><td><strong>Window ablation</strong> (30, 60, 120, 240 bars) in parallel with the cost sweep.</td><td>Finds the window-cost pair that maximizes net at 1 bp.</td><td>Phase A</td></tr>
+<tr><td><strong>8</strong></td><td><strong>Oldest→newest training sequence</strong> (expanding window / walk-forward).</td><td>The "retrospective bet" — strongest no-leakage guarantee.</td><td>Phase A</td></tr>
+<tr><td><strong>9</strong></td><td><strong>Per-year net return diagnostic</strong> (2022, 2023, 2024, 2025, 2026).</td><td>Detects regime mismatch.</td><td>Phase A</td></tr>
+<tr><td><strong>10</strong></td><td><strong>Measure turnover</strong> at each cost level.</td><td>Confirms the model is not over-trading or under-trading.</td><td>Phase A</td></tr>
+<tr><td><strong>11</strong></td><td><strong><code>market_relative_v2</code> as an opt-in factor</strong> (fitted volatility context).</td><td>Adds regime signal without breaking portability.</td><td>Phase A/B</td></tr>
+<tr><td><strong>12</strong></td><td><strong><code>Discrete(5)</code> action space</strong> (add WAIT + EXIT) for families 01–04.</td><td>Minimal expansion that models abstention and liquidation.</td><td>Phase B</td></tr>
+<tr><td><strong>13</strong></td><td><strong>Multi-head architecture</strong> for families 01–03.</td><td>Long-term investment; anticipates the shared-trunk proposal.</td><td>Phase B/C</td></tr>
+<tr><td><strong>14</strong></td><td><strong>Do NOT open the final test</strong> until the 95% interval is qualified and the cost-response curve is complete.</td><td>Preserves the sealed final test.</td><td>Phase A</td></tr>
+</tbody>
+</table>
+
+<hr>
+
+<h2>10 · Risks and open questions</h2>
+
+<table>
+<thead><tr><th>Risk</th><th>Mitigation</th></tr></thead>
+<tbody>
+<tr><td><strong>Data leakage</strong></td><td>Freeze split + purge ≥ 500 rows; oldest→newest sequence; sealed final test.</td></tr>
+<tr><td><strong>Confounded attribution</strong></td><td>Freeze all non-solver knobs in a manifest; change only the solver state mode.</td></tr>
+<tr><td><strong>Cost masking</strong></td><td>Cost-response curve (0.01, 0.1, 1 bp); do not promote on 0.01 bp alone.</td></tr>
+<tr><td><strong>Regime mismatch</strong></td><td>Per-year net return diagnostic; oldest→newest sequence.</td></tr>
+<tr><td><strong>Over-trading</strong></td><td>Measure turnover; add explicit turnover penalty if turnover &gt; 10 at 0.01 bp.</td></tr>
+<tr><td><strong>Window-cost mismatch</strong></td><td>Window ablation (30, 60, 120, 240 bars) × cost sweep.</td></tr>
+<tr><td><strong>Action space too simple</strong></td><td><code>Discrete(5)</code> (WAIT + EXIT) → multi-head for families 01–03.</td></tr>
+<tr><td><strong><code>market_relative_v2</code> complexity</strong></td><td>Keep v1 as default; v2 as opt-in factor; compare in a controlled ablation.</td></tr>
+<tr><td><strong>Training budget</strong></td><td>The current <code>iters=40</code> is a smoke budget; the real training budget is 10–100×.</td></tr>
+<tr><td><strong>Ray 2.58 vs 2.9</strong></td><td>Keep Ray 2.58 as the R-series authority; 2.9 for historical reproduction only.</td></tr>
+</tbody>
+</table>
+
+<p><strong>Open questions for the review lane:</strong></p>
+<ol>
+<li>What is the acceptable turnover threshold (e.g., ≤ 5 per episode) for the "capability floor"?</li>
+<li>Should the 0.01 bp cost be used as a promotion criterion or only as a diagnostic?</li>
+<li>What is the minimum purge (rows) between train and val to prevent temporal leakage?</li>
+<li>Should the window ablation use the same training budget or a proportional budget (e.g., longer windows get more training steps)?</li>
+<li>Is the "retrospective bet" (oldest→newest) a one-time run or a recurring procedure as new data becomes available?</li>
+</ol>
+
+<p class="footer">
+<strong>End of advisory.</strong> · <em>Not an economic promotion claim.</em> ·
+Prepared 2026-10-10 · Staged on <code>agent/Watson-dev</code> · Review lane: pending.
+</p>
+
+</body>
+</html>

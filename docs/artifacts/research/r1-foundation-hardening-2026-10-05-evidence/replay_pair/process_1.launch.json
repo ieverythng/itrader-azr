@@ -1,0 +1,215 @@
+{
+  "pid": 38192,
+  "process_started_unix": 1791160410.0251215,
+  "command": [
+    "C:\\Users\\Admin\\PROJECTS\\iTRADER\\itrader-azr\\.venv\\Scripts\\python.exe",
+    "-m",
+    "itrader.rl_lib.evaluation.run_checkpoint_replay",
+    "--stable-trial-dir",
+    "C:\\Users\\Admin\\AppData\\Local\\Temp\\itrader_astra_review_audit_lhbvuwm4\\stable_trial",
+    "--out-dir",
+    "C:\\Users\\Admin\\AppData\\Local\\Temp\\itrader_astra_review_audit_lhbvuwm4\\replay_pair\\process_1",
+    "--checkpoint-selection",
+    "terminal"
+  ],
+  "launch_id": "12d83c59-108d-4bee-9012-c43202b75bcf",
+  "returncode": 0,
+  "observed_processes": [
+    {
+      "pid": 9424,
+      "process_started_unix": 1791160416.2482393
+    },
+    {
+      "pid": 13460,
+      "process_started_unix": 1791160415.1558692
+    },
+    {
+      "pid": 15176,
+      "process_started_unix": 1791160415.148047
+    },
+    {
+      "pid": 16192,
+      "process_started_unix": 1791160414.111094
+    },
+    {
+      "pid": 16956,
+      "process_started_unix": 1791160416.2501495
+    },
+    {
+      "pid": 18380,
+      "process_started_unix": 1791160416.326282
+    },
+    {
+      "pid": 18580,
+      "process_started_unix": 1791160416.335292
+    },
+    {
+      "pid": 20028,
+      "process_started_unix": 1791160416.2405183
+    },
+    {
+      "pid": 23792,
+      "process_started_unix": 1791160416.291872
+    },
+    {
+      "pid": 28964,
+      "process_started_unix": 1791160416.532968
+    },
+    {
+      "pid": 30016,
+      "process_started_unix": 1791160410.0324597
+    },
+    {
+      "pid": 32492,
+      "process_started_unix": 1791160413.9500575
+    },
+    {
+      "pid": 32932,
+      "process_started_unix": 1791160415.1115696
+    },
+    {
+      "pid": 35760,
+      "process_started_unix": 1791160416.3242953
+    },
+    {
+      "pid": 35916,
+      "process_started_unix": 1791160415.1606302
+    },
+    {
+      "pid": 36612,
+      "process_started_unix": 1791160416.301624
+    },
+    {
+      "pid": 37848,
+      "process_started_unix": 1791160416.2980795
+    },
+    {
+      "pid": 38192,
+      "process_started_unix": 1791160410.0251215
+    },
+    {
+      "pid": 38608,
+      "process_started_unix": 1791160416.2846675
+    },
+    {
+      "pid": 39184,
+      "process_started_unix": 1791160416.274096
+    },
+    {
+      "pid": 39548,
+      "process_started_unix": 1791160416.2428093
+    },
+    {
+      "pid": 40312,
+      "process_started_unix": 1791160416.2637217
+    },
+    {
+      "pid": 40624,
+      "process_started_unix": 1791160416.3086774
+    },
+    {
+      "pid": 41652,
+      "process_started_unix": 1791160414.117941
+    },
+    {
+      "pid": 41696,
+      "process_started_unix": 1791160416.537521
+    },
+    {
+      "pid": 41948,
+      "process_started_unix": 1791160415.1018364
+    },
+    {
+      "pid": 42152,
+      "process_started_unix": 1791160416.2585456
+    },
+    {
+      "pid": 42264,
+      "process_started_unix": 1791160414.1967833
+    },
+    {
+      "pid": 42352,
+      "process_started_unix": 1791160416.3158069
+    },
+    {
+      "pid": 43136,
+      "process_started_unix": 1791160416.3116727
+    },
+    {
+      "pid": 43240,
+      "process_started_unix": 1791160416.31892
+    },
+    {
+      "pid": 43344,
+      "process_started_unix": 1791160416.2562304
+    },
+    {
+      "pid": 43760,
+      "process_started_unix": 1791160416.304725
+    },
+    {
+      "pid": 43864,
+      "process_started_unix": 1791160416.2950995
+    },
+    {
+      "pid": 43948,
+      "process_started_unix": 1791160416.2810051
+    },
+    {
+      "pid": 44000,
+      "process_started_unix": 1791160416.338982
+    },
+    {
+      "pid": 44316,
+      "process_started_unix": 1791160415.153131
+    },
+    {
+      "pid": 44464,
+      "process_started_unix": 1791160416.268954
+    },
+    {
+      "pid": 44776,
+      "process_started_unix": 1791160416.2456408
+    },
+    {
+      "pid": 44840,
+      "process_started_unix": 1791160416.2525291
+    },
+    {
+      "pid": 44996,
+      "process_started_unix": 1791160416.2709353
+    },
+    {
+      "pid": 45200,
+      "process_started_unix": 1791160416.2355936
+    },
+    {
+      "pid": 45264,
+      "process_started_unix": 1791160414.1032608
+    },
+    {
+      "pid": 45600,
+      "process_started_unix": 1791160416.287968
+    },
+    {
+      "pid": 45788,
+      "process_started_unix": 1791160416.27783
+    },
+    {
+      "pid": 45808,
+      "process_started_unix": 1791160414.1096315
+    },
+    {
+      "pid": 45884,
+      "process_started_unix": 1791160416.2664473
+    },
+    {
+      "pid": 45956,
+      "process_started_unix": 1791160415.093954
+    },
+    {
+      "pid": 45980,
+      "process_started_unix": 1791160416.2610068
+    }
+  ]
+}

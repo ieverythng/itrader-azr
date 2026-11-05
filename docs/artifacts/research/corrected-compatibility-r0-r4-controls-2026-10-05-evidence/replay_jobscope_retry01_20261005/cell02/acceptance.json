@@ -1,0 +1,33 @@
+{
+  "status": "accepted_terminal_replay",
+  "cell": 2,
+  "trial": "training_fn_ITraderEnv_2c514_00000_0_2026-10-05_12-47-34",
+  "episode_count": 32,
+  "producer_pid": 23520,
+  "checkpoint_sha256": "f30bdfea71f1c5374ef7384a53513283aa5e2ddf68e4d79238f63fa1e9c4a476",
+  "evaluation_payload_sha256": "5af745eb9f1b8bae905a371e1b74eb45a03053834721315997e46603b2487660",
+  "minimum_free_gib": 2.3539352416992188,
+  "summary": {
+    "training_iteration": 0,
+    "pbt_progress_steps": 0,
+    "episode_len_mean": 146.0,
+    "evaluation/optimization_reward_mean": -0.002303047047679043,
+    "evaluation/gross_return_mean": 3.946952952320958e-06,
+    "evaluation/net_return_mean": -2.3030470476790425e-06,
+    "evaluation/net_sharpe_per_sqrt_bar_mean": -0.0017581101011442662,
+    "evaluation/turnover_mean": 0.0625,
+    "custom_metrics/act_0_frac_mean": 0.0,
+    "custom_metrics/act_short_frac_mean": 0.0,
+    "evaluation/custom_metrics/act_0_frac_mean": 0.0,
+    "evaluation/custom_metrics/act_short_frac_mean": 0.0,
+    "custom_metrics/act_1_frac_mean": 0.9998046875,
+    "custom_metrics/act_flat_frac_mean": 0.9998046875,
+    "evaluation/custom_metrics/act_1_frac_mean": 0.9998046875,
+    "evaluation/custom_metrics/act_flat_frac_mean": 0.9998046875,
+    "custom_metrics/act_2_frac_mean": 0.0001953125,
+    "custom_metrics/act_long_frac_mean": 0.0001953125,
+    "evaluation/custom_metrics/act_2_frac_mean": 0.0001953125,
+    "evaluation/custom_metrics/act_long_frac_mean": 0.0001953125
+  },
+  "economic_promotion": false
+}

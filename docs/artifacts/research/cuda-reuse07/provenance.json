@@ -1,0 +1,93 @@
+{
+    "schema_version":  1,
+    "scope":  "CUDA-RECEIPT-PREP-08",
+    "completed_utc":  "2026-10-09T11:18:56Z",
+    "source_run":  "CUDA-REUSE-07",
+    "promoted_files":  [
+                           {
+                               "file":  "benchmark-reuse07-result.json",
+                               "bytes":  12942,
+                               "sha256":  "c25efdfd7d6f63911e56002bbc501816bf5427bd1fa0d99ec4a1c386aa088f12",
+                               "source":  "docs/coordination/_local/cuda-qualification/benchmark-reuse07-result.json",
+                               "promoted":  "docs/artifacts/research/cuda-reuse07/benchmark-reuse07-result.json"
+                           },
+                           {
+                               "file":  "reuse07-receipt.json",
+                               "bytes":  1559,
+                               "sha256":  "e429cdecab94db4d9f72404b35f4dc9a8e6ed461f3f0a30d9345628478ff208f",
+                               "source":  "docs/coordination/_local/cuda-qualification/reuse07-receipt.json",
+                               "promoted":  "docs/artifacts/research/cuda-reuse07/reuse07-receipt.json"
+                           },
+                           {
+                               "file":  "benchmark.py",
+                               "bytes":  7302,
+                               "sha256":  "40edf7095fd7ad7726409379bb429467c923d62fc127ce9f79de0ac81153dde7",
+                               "source":  "docs/coordination/_local/cuda-qualification/benchmark.py",
+                               "promoted":  "docs/artifacts/research/cuda-reuse07/benchmark.py"
+                           }
+                       ],
+    "reviewed_inputs":  {
+                            "command":  {
+                                            "file":  "reuse07-command.json",
+                                            "sha256":  "3d361c4214f483b712cf8cd1f98127aa345df440883a1260cda1eb10268fdfc1"
+                                        },
+                            "launch":  {
+                                           "file":  "reuse07-launch.json",
+                                           "sha256":  "3879342d977b496bbb92a414f7f33bd2cb99634cc13b93e63be7221e3ad6ecbd"
+                                       },
+                            "identity_manifest":  {
+                                                      "file":  "reuse07-identity.json",
+                                                      "sha256":  "ba13f8f4bd9da8f0b2ebde7ef3e9e0d653dd538784f6d0f668cddc401733896e",
+                                                      "entries_verified":  19
+                                                  },
+                            "supervisor":  {
+                                               "file":  "supervise-reuse07.py",
+                                               "sha256":  "48b118e0147ee010dfdb3c738238cace5929f4c830a37cf2824a39235983cbd6"
+                                           },
+                            "windows_job_scope":  {
+                                                      "file":  "native_scope.py",
+                                                      "sha256":  "e4c62cc0e6b26bff9b15475a80f8646191e308d9cddee765e2c9d400892dca32"
+                                                  },
+                            "review":  {
+                                           "static_reviews":  2,
+                                           "outcome":  "approved",
+                                           "runtime_execution_claimed":  false,
+                                           "reviewer_diversity":  "unverified",
+                                           "reviewer_ids":  [
+                                                                "/root/cuda_fixed_review",
+                                                                "/root/cuda_command_review"
+                                                            ]
+                                       }
+                        },
+    "runtime":  {
+                    "python":  "C:/Users/Admin/itrader/python.exe",
+                    "torch":  "2.9.0.dev20250801+cu128",
+                    "cuda":  "12.8",
+                    "cudnn":  91002,
+                    "gpu":  "NVIDIA GeForce RTX 5070 Ti",
+                    "threads":  1,
+                    "package_metadata":  {
+                                             "ray":  "2.9.0",
+                                             "gymnasium":  "1.0.0",
+                                             "numpy":  "2.3.5"
+                                         },
+                    "package_context":  "Separate existing CUDA runtime; not iTrader locked runtime"
+                },
+    "execution":  {
+                      "start_utc":  "2026-10-09T11:02:14.315830Z",
+                      "end_utc":  "2026-10-09T11:02:40.606718Z",
+                      "exit_code":  0,
+                      "elapsed_seconds":  26.282,
+                      "minimum_available_ram_gib":  3.2714,
+                      "minimum_free_disk_gib":  62.2209,
+                      "sampled_peak_child_tree_rss_bytes":  1261215744,
+                      "sampled_whole_gpu_peak_used_bytes":  1262485504,
+                      "sampled_gpu_min_free_bytes":  15512633344,
+                      "windows_job_cleanup":  {
+                                                  "active_processes":  0,
+                                                  "errors":  0,
+                                                  "survivors":  0
+                                              }
+                  },
+    "claim_boundary":  "Bare synthetic FP32 LSTM CPU/GPU parity, arithmetic/autograd, and cuDNN execution only. Does not qualify iTrader compatibility, PPO throughput, economics, or platform promotion. Timing details remain solely in the original benchmark JSON."
+}

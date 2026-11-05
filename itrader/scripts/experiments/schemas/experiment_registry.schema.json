@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://itrader.local/schemas/experiment_registry.schema.json",
+  "title": "iTrader experiment browser registry",
+  "x-comparison-factors": [
+    "runtime",
+    "dataset",
+    "panel",
+    "cost",
+    "representation",
+    "curriculum",
+    "pbt",
+    "seed_scope"
+  ],
+  "x-comparison-identities": [
+    "dataset_sha256",
+    "evaluation_panel_sha256",
+    "metric_contract"
+  ],
+  "x-metric-units": {
+    "evaluation/net_return_mean": "ratio_percent",
+    "optimization_cost_bps": "bps",
+    "source_net_return": "ratio_percent",
+    "source_sharpe_per_sqrt_bar": "decimal",
+    "fresh_net_return": "ratio_percent",
+    "fresh_sharpe_per_sqrt_bar": "decimal",
+    "fresh_turnover": "decimal",
+    "short_fraction": "ratio_percent",
+    "flat_fraction": "ratio_percent",
+    "long_fraction": "ratio_percent",
+    "probability_margin_p01": "decimal",
+    "explained_variance": "decimal",
+    "approx_kl": "decimal",
+    "net_return": "ratio_percent",
+    "sharpe_per_sqrt_bar": "decimal",
+    "gross_return": "ratio_percent",
+    "training_net_return": "ratio_percent",
+    "optimization_reward": "decimal",
+    "training_short_fraction": "ratio_percent",
+    "training_flat_fraction": "ratio_percent",
+    "training_long_fraction": "ratio_percent",
+    "entropy": "decimal",
+    "clip_fraction": "ratio_percent",
+    "policy_loss": "decimal",
+    "value_loss": "decimal",
+    "episode_len_mean": "decimal",
+    "exploit_count": "count",
+    "lineage_receipts": "count"
+  },
+  "x-attribute-units": {
+    "source_claimed_two_process_determinism": "boolean",
+    "artifact_pair_parity_passed": "boolean",
+    "independent_process_provenance": "text",
+    "fresh_panel_economic_gate_passed": "boolean",
+    "r0_plus_r4_v1_architecture_qualified": "boolean",
+    "r0_plus_r4_v1_economically_promoted": "boolean",
+    "repeat_same_panel_pbt": "boolean",
+    "next_boundary": "text",
+    "decision": "text",
+    "terminal_action": "text",
+    "review_threshold_steps": "count",
+    "terminal_steps": "count_list"
+  },
+  "type": "object",
+  "required": ["schema_version", "experiments"],
+  "properties": {
+    "$schema": {"type": "string"},
+    "schema_version": {"const": 1},
+    "title": {"type": "string", "minLength": 1},
+    "platform_qualifications": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id", "title", "date", "adapter", "source", "source_sha256"
+        ],
+        "properties": {
+          "id": {"type": "string", "pattern": "\\S"},
+          "title": {"type": "string", "pattern": "\\S"},
+          "date": {"type": "string", "format": "date"},
+          "adapter": {"const": "cuda_kernel_qualification_v1"},
+          "source": {"type": "string", "minLength": 1},
+          "source_sha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "experiments": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "date", "adapter", "source", "factors"],
+        "properties": {
+          "run_source": {"type": "string", "minLength": 1},
+          "id": {"type": "string", "pattern": "\\S"},
+          "title": {"type": "string", "pattern": "\\S"},
+          "date": {"type": "string", "format": "date"},
+          "adapter": {
+            "enum": ["g0_closure_v1", "ablation_summary_v1", "terminal_gate_v1"]
+          },
+          "source": {"type": "string", "minLength": 1},
+          "report": {"type": "string"},
+          "legacy_dashboard": {"type": ["string", "null"]},
+          "factors": {
+            "type": "object",
+            "required": [
+              "runtime", "dataset", "panel", "cost", "representation",
+              "curriculum", "pbt", "seed_scope"
+            ],
+            "properties": {
+              "runtime": {"type": "string", "pattern": "\\S"},
+              "dataset": {"type": "string", "pattern": "\\S"},
+              "panel": {"type": "string", "pattern": "\\S"},
+              "cost": {"type": "string", "pattern": "\\S"},
+              "representation": {"type": "string", "pattern": "\\S"},
+              "curriculum": {"type": "string", "pattern": "\\S"},
+              "pbt": {"type": "string", "pattern": "\\S"},
+              "seed_scope": {"type": "string", "pattern": "\\S"}
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}
