@@ -35,8 +35,8 @@ import pandas as pd
 
 from ..strategies.base import Market
 
-PPY = {"1d": 365.0, "1h": 365.0 * 24, "4h": 365.0 * 6, "15m": 365.0 * 96, "5m": 365.0 * 288}
-FLOOR = {"1d": "D", "1h": "h", "4h": "4h", "15m": "15min", "5m": "5min"}
+PPY = {"1d": 365.0, "1b": 252.0, "1h": 365.0 * 24, "4h": 365.0 * 6, "15m": 365.0 * 96, "5m": 365.0 * 288}
+FLOOR = {"1d": "D", "1b": "D", "1h": "h", "4h": "4h", "15m": "15min", "5m": "5min"}
 
 
 @dataclass(frozen=True)
@@ -48,10 +48,14 @@ class CostModel:
     maker_fee_bps: float = 2.0
     maker_through_bps: float = 1.0
     maker_max_wait_bars: int = 1
+    etf_cost_bps: float = 2.0            # listed ETFs: no commission, about 1 bp half spread and 1 bp slippage
+    etf_short_borrow_ann: float = 0.01   # cost of borrowing an ETF to short it, per year
 
     def per_side(self, instrument: str) -> float:
         """Cost of trading one unit of weight on ONE leg. For "spot+perp" the two legs pay different fees, so this is
         their average: multiplied by legs() it gives spot fee + perp fee + spread and slippage on both."""
+        if instrument == "etf":
+            return self.etf_cost_bps / 1e4
         if instrument == "spot":
             fee = self.spot_fee_bps
         elif instrument == "spot+perp":
@@ -70,14 +74,16 @@ class CostModel:
     def scaled(self, k: float) -> "CostModel":
         """Every cost multiplied by k (stress tests). The spread also widens, so maker limits sit further away."""
         return replace(self, fee_bps=self.fee_bps * k, spot_fee_bps=self.spot_fee_bps * k, half_spread_bps=self.half_spread_bps * k,
-                       slippage_bps=self.slippage_bps * k, maker_fee_bps=self.maker_fee_bps * k, maker_through_bps=self.maker_through_bps * k)
+                       slippage_bps=self.slippage_bps * k, maker_fee_bps=self.maker_fee_bps * k, maker_through_bps=self.maker_through_bps * k,
+                       etf_cost_bps=self.etf_cost_bps * k)
 
     @classmethod
     def from_settings(cls, s) -> "CostModel":
         c = s.costs
         return cls(fee_bps=float(c.fee_bps), spot_fee_bps=float(c.spot_fee_bps), half_spread_bps=float(c.half_spread_bps),
                    slippage_bps=float(c.slippage_bps), maker_fee_bps=float(c.get("maker_fee_bps", 2.0)),
-                   maker_through_bps=float(c.get("maker_through_bps", 1.0)), maker_max_wait_bars=int(c.get("maker_max_wait_bars", 1)))
+                   maker_through_bps=float(c.get("maker_through_bps", 1.0)), maker_max_wait_bars=int(c.get("maker_max_wait_bars", 1)), etf_cost_bps=float(c.get("etf_cost_bps", 2.0)),
+                   etf_short_borrow_ann=float(c.get("etf_short_borrow_ann", 0.01)))
 
 
 @dataclass
@@ -152,6 +158,9 @@ def backtest(weights: pd.DataFrame, market: Market, costs: CostModel, instrument
     elif instrument == "spot+perp":
         gross = pd.Series(0.0, index=close.index)
         fund = (w_app * fpb).sum(axis=1)
+    elif instrument == "etf":                              # signed, no funding; shorts pay a borrow fee
+        gross = (w_app * r).sum(axis=1)
+        fund = -(w_app.clip(upper=0.0).abs().sum(axis=1)) * costs.etf_short_borrow_ann / PPY[market.bar]
     else:
         raise ValueError(f"unknown instrument {instrument}")
 

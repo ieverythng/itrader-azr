@@ -326,7 +326,7 @@ class RiskEngine:
             for nm in {base_asset(s_) for s_ in tgt.index}:
                 legs_ = tgt[[s_ for s_ in tgt.index if base_asset(s_) == nm]]
                 long_, short_ = float(legs_[legs_ > 0].sum()), float(-legs_[legs_ < 0].sum())
-                exposure += abs(long_ - short_) + 0.2 * 2.0 * min(long_, short_)
+                exposure += abs(long_ - short_) + float(r.get("hedged_gap_factor", 0.2)) * min(long_, short_)
             gap_loss = exposure * float(r.gap_move)
             if gap_loss > float(r.max_gap_loss_pct) and exposure > 0:
                 scale = float(r.max_gap_loss_pct) / gap_loss

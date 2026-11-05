@@ -261,3 +261,56 @@ def with_fallback(primary: Feed, fallback: Feed):
             return self._try("book_ticker", *a)
 
     return _F()
+
+
+class Yahoo(Feed):
+    """Daily adjusted bars for listed ETFs and shares from Yahoo's public chart endpoint. No key.
+
+    Used for the multi-asset trend sleeve, where breadth (bonds, gold, oil, currencies, equity indices)
+    is the point. Prices are total-return adjusted: open, high, low and close are all scaled by
+    adjclose / close so splits and dividends do not look like price moves. Timestamps are the session
+    date at 00:00 UTC. There is no funding and no order book here."""
+
+    REST = "https://query1.finance.yahoo.com/v8/finance/chart"
+
+    def __init__(self, pause_s: float = 0.4) -> None:
+        self.name = "yahoo"
+        self.pause_s = pause_s
+
+    def klines(self, symbol: str, bar: str, start: datetime, end: datetime) -> pd.DataFrame:
+        if bar != "1d":
+            raise ValueError("the Yahoo feed serves daily bars only")
+        url = (f"{self.REST}/{urllib.parse.quote(symbol)}?period1={int(start.timestamp())}&period2={int(end.timestamp())}"
+               f"&interval=1d&events=div%2Csplit")
+        raw = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0 (itrader-online research; public data)"})
+        last: Optional[Exception] = None
+        for attempt in range(3):
+            try:
+                with urllib.request.urlopen(raw, timeout=30, context=_CTX) as r:
+                    d = json.loads(r.read().decode("utf-8"))
+                break
+            except Exception as exc:  # noqa: BLE001
+                last = exc
+                time.sleep(2.0 * (attempt + 1))
+        else:
+            raise FeedError(f"yahoo gave up on {symbol}: {last}")
+        time.sleep(self.pause_s)
+        res = (d.get("chart", {}).get("result") or [None])[0]
+        if not res or not res.get("timestamp"):
+            return pd.DataFrame(columns=OHLCV_COLS)
+        q = res["indicators"]["quote"][0]
+        adj = (res["indicators"].get("adjclose") or [{}])[0].get("adjclose") or q["close"]
+        df = pd.DataFrame({"ts": res["timestamp"], "open": q["open"], "high": q["high"], "low": q["low"], "close": q["close"],
+                           "volume": q["volume"], "adj": adj}).dropna(subset=["close", "adj"])
+        k = df["adj"] / df["close"]
+        for c in ("open", "high", "low", "close"):
+            df[c] = df[c].astype(float) * k
+        df["ts"] = pd.to_datetime(df["ts"], unit="s", utc=True).dt.floor("D")
+        df["volume"] = df["volume"].fillna(0.0).astype(float)
+        return df[OHLCV_COLS].drop_duplicates("ts").sort_values("ts").reset_index(drop=True)
+
+    def funding(self, symbol: str, start: datetime, end: datetime) -> pd.DataFrame:
+        return pd.DataFrame(columns=["ts", "rate"])
+
+    def book_ticker(self, symbol: str) -> dict:
+        raise FeedError("no order book on the Yahoo feed")

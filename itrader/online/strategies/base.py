@@ -14,7 +14,7 @@ from typing import Dict, Iterable, List, Optional
 import numpy as np
 import pandas as pd
 
-ANN = {"1d": 365.0, "1h": 365.0 * 24, "4h": 365.0 * 6, "15m": 365.0 * 96, "5m": 365.0 * 288}
+ANN = {"1d": 365.0, "1b": 252.0, "1h": 365.0 * 24, "4h": 365.0 * 6, "15m": 365.0 * 96, "5m": 365.0 * 288}
 
 
 @dataclass

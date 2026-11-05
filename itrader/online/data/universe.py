@@ -46,3 +46,21 @@ def base_asset(symbol: str) -> str:
         if symbol.endswith(quote):
             return symbol[: -len(quote)]
     return symbol
+
+# The wider crypto universe: the ten majors plus fifteen more USDT pairs that were already listed, spot and
+# perpetual, before November 2022 and still trade. Chosen by age and liquidity, not by performance; it is still
+# a list of survivors (coins that died are not in it), which flatters any long-biased result a little.
+WIDE_UNIVERSE = DEFAULT_UNIVERSE + (
+    "DOTUSDT", "TRXUSDT", "ATOMUSDT", "UNIUSDT", "ETCUSDT", "XLMUSDT", "BCHUSDT", "NEARUSDT",
+    "FILUSDT", "AAVEUSDT", "ALGOUSDT", "ICPUSDT", "SANDUSDT", "APTUSDT", "HBARUSDT",
+)
+
+# Multi-asset universe for the macro trend sleeve: liquid US-listed ETFs, one or more per asset class, all with
+# history back to 2007 or earlier. Breadth across things that do not move together is what trend following needs.
+MACRO_UNIVERSE = (
+    "SPY", "QQQ", "IWM", "EFA", "EEM",          # equities: US large, US tech, US small, developed ex-US, emerging
+    "TLT", "IEF", "LQD", "HYG", "TIP",          # bonds: long and medium Treasuries, investment grade, high yield, inflation-linked
+    "GLD", "SLV", "USO", "DBA", "DBC",          # commodities: gold, silver, oil, agriculture, broad basket
+    "UUP", "FXE", "FXY", "FXB",                 # currencies: dollar index, euro, yen, sterling
+    "VNQ",                                      # listed real estate
+)

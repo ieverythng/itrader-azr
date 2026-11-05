@@ -61,3 +61,20 @@ class FundingCarry(Strategy):
         # the weight is the spot-long notional; the perp short is the same size (the backtester treats
         # "spot+perp" as price-neutral, credits funding on the short leg and charges both legs' costs)
         return clean(pd.DataFrame(on * slot[:, None], index=c.index, columns=c.columns))
+
+
+class CarryCore(FundingCarry):
+    """Carry as the core holding, with a hurdle set by what the cash could earn elsewhere.
+
+    `FundingCarry` asks for 13% annualised before it acts, which is above the perpetual's baseline
+    funding (0.01% per eight hours, about 11% a year), so it sits out most of the time. This variant
+    asks for the opportunity cost of cash (4%) plus the round trip amortised over a quarter (about
+    1.7%), looks at two weeks of funding instead of one, and spreads across more, smaller slots. It is
+    meant to be held as the collateral-efficient base of the book, with directional sleeves on top.
+    The risks do not show up in its volatility: the exchange itself, and spot and perpetual prices
+    pulling apart in a violent rally. Third look at this family (`n_variants_tried` = 3)."""
+
+    name = "carry_core"
+    description = "Spot long / perp short wherever two-week funding beats cash plus costs (about 6%); many small slots; held as the core."
+    params = {**FundingCarry.params, "lookback_days": 14, "hurdle_ann": 0.04, "hold_days_assumed": 90, "min_slots": 4, "max_single": 0.20}
+    n_variants_tried = 3

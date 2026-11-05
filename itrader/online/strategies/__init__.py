@@ -9,13 +9,13 @@ from __future__ import annotations
 from typing import Dict, Iterable, List, Optional, Type
 
 from .base import ANN, Market, Strategy, clean, inverse_vol_weights  # noqa: F401
-from .carry import FundingCarry
+from .carry import CarryCore, FundingCarry
 from .experimental import Experimental
 from .momentum import CrossSectionalMomentum
 from .prediction_sleeve import PredictionSleeve
 from .reversion import MeanReversion, Pairs
 from .seasonality import Seasonality
-from .trend import TrendModern, Turtle
+from .trend import MacroTrend, TrendLong, TrendModern, Turtle
 
 REGISTRY: Dict[str, Type[Strategy]] = {
     cls.name: cls
@@ -27,6 +27,9 @@ REGISTRY: Dict[str, Type[Strategy]] = {
         FundingCarry,
         Pairs,
         Seasonality,
+        CarryCore,
+        TrendLong,
+        MacroTrend,
         PredictionSleeve,
         Experimental,
     )
@@ -59,5 +62,5 @@ def by_bar(strategies: Iterable[Strategy]) -> Dict[str, List[Strategy]]:
 __all__ = [
     "ANN", "Market", "Strategy", "clean", "inverse_vol_weights", "REGISTRY", "BENCHABLE", "make", "all_strategies", "by_bar",
     "Turtle", "TrendModern", "CrossSectionalMomentum", "MeanReversion", "FundingCarry", "Pairs", "Seasonality",
-    "PredictionSleeve", "Experimental",
+    "PredictionSleeve", "Experimental", "CarryCore", "TrendLong", "MacroTrend",
 ]

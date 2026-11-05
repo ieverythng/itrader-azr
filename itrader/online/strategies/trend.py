@@ -94,7 +94,8 @@ class TrendModern(Strategy):
     bar = "1d"
     instrument = "perp"
     description = "Three EWMA crossover speeds averaged; position = forecast strength x inverse-vol share; 10% no-trade buffer."
-    params = {"speeds": ((8, 32), (16, 64), (32, 128)), "vol_span": 36, "forecast_cap": 2.0, "buffer": 0.10, "max_single": 0.30}
+    params = {"speeds": ((8, 32), (16, 64), (32, 128)), "vol_span": 36, "forecast_cap": 2.0, "buffer": 0.10, "max_single": 0.30,
+              "long_only": False}
     n_variants_tried = 2
 
     def targets(self, m: Market) -> pd.DataFrame:
@@ -109,6 +110,8 @@ class TrendModern(Strategy):
             fcs.append((raw * scalar).clip(-p["forecast_cap"], p["forecast_cap"]))
         fc = sum(fcs) / len(fcs)
         sig = (fc / p["forecast_cap"]).where(np.isfinite(fc), 0.0)          # in [-1, 1]
+        if p.get("long_only"):
+            sig = sig.clip(lower=0.0)                                        # never short: flat when the trend is down
         vol = m.vol(p["vol_span"])
         inv = 1.0 / vol.replace(0, np.nan)
         share = inv.div(inv.sum(axis=1).replace(0, np.nan), axis=0)          # inverse-vol share of the whole universe, sums to 1
@@ -133,3 +136,35 @@ def apply_buffer(w: pd.DataFrame, buffer: float) -> pd.DataFrame:
         res[i] = held
     out[:] = res
     return out
+
+
+class TrendLong(TrendModern):
+    """The same forecast, long side only: in the market when the trend is up, in cash when it is down.
+
+    This is market exposure with a brake, not an edge. Over time it earns whatever owning the assets earns,
+    less the moves it sits out, and its record in a rising market says nothing about a falling one beyond
+    "it stood aside". It is here because in crypto the short side of trend following has historically
+    lost money, and the bench should show that difference rather than assume it. Third look at this
+    family, so `n_variants_tried` is 3."""
+
+    name = "trend_long"
+    family_id = "11"
+    description = "Modern trend forecast, long side only: long when the trend is up, cash when it is down. Market exposure, not edge."
+    params = {**TrendModern.params, "long_only": True}
+    n_variants_tried = 3
+
+
+class MacroTrend(TrendModern):
+    """The same rule, unchanged, on twenty ETFs across equities, bonds, commodities, currencies and property.
+
+    Trend following earns its long-run Sharpe from breadth: many markets that do not move together.
+    Ten or twenty-five coins are close to one bet. Nothing in the rule was fitted to these markets (the
+    speeds are the standard ones), so `n_variants_tried` stays at 1. Bars are business days ("1b")."""
+
+    name = "macro_trend"
+    family_id = "19"
+    bar = "1b"
+    instrument = "etf"
+    description = "Modern trend forecast on 20 ETFs across asset classes: breadth is what trend following is paid for."
+    params = {**TrendModern.params}
+    n_variants_tried = 1

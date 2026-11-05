@@ -32,6 +32,7 @@ ONLINE_FAMILIES: Dict[str, Dict[str, Any]] = {
     "16": {"name": "seasonality", "bar": "1h", "scope": "Time-of-day and turn-of-month effects"},
     "17": {"name": "prediction_sleeve", "bar": "5m", "scope": "Polymarket BTC rules and the reward farm (paper)"},
     "18": {"name": "experimental", "bar": "1d", "scope": "New ideas and the repo's RL solver, same bench as the rest"},
+    "19": {"name": "macro_trend", "bar": "1b", "scope": "Trend following across asset classes (ETFs)"},
     "99": {"name": "wait", "bar": "-", "scope": "Abstain"},
 }
 
