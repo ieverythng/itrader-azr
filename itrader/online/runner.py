@@ -266,7 +266,11 @@ class PaperRunner:
                 break
             now = time.time()
             wait = interval_s if interval_s is not None else (step - (now % step) + 20)
-            time.sleep(max(5, wait))
+            target = now + max(5, wait)
+            # Sleep in short slices against the wall clock. time.sleep does not advance while the machine is
+            # asleep, so one long sleep overshoots the bar close by however long the lid was shut.
+            while time.time() < target:
+                time.sleep(min(30.0, max(0.5, target - time.time())))
 
     def replay(self, start: datetime, end: datetime, step: timedelta = timedelta(hours=1), max_cycles: Optional[int] = None) -> List[Dict[str, Any]]:
         out = []
