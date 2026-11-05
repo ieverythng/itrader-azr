@@ -12,6 +12,7 @@
   kill        create the kill file (the loop flattens and stops opening risk); --remove to delete it
   settings    print the effective settings and their hash
   lab         the research loop: evaluate the pre-registered recipes, keep or replace the champion, write the advisor report
+  judge       is it statistically significant? Any return series, e.g. a solver's episodes (--returns, --column, --trials)
   plan        project an account forward from the measured return record (--capital, --monthly, --horizons, --source)
 """
 from __future__ import annotations
@@ -27,7 +28,13 @@ from .settings import load_settings
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="python -m itrader.online", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["sync", "bench", "frame", "paper", "replay", "dashboard", "status", "sleeve", "unlock", "kill", "settings", "plan", "lab"])
+    ap.add_argument("command", choices=["sync", "bench", "frame", "paper", "replay", "dashboard", "status", "sleeve", "unlock", "kill", "settings", "plan", "lab", "judge"])
+    ap.add_argument("--returns", default=None, help="judge: CSV, parquet or JSON-lines file of per-period returns")
+    ap.add_argument("--column", default=None, help="judge: name of the return column or field (default: the last numeric one)")
+    ap.add_argument("--trials", type=int, default=1, help="judge: how many variants were tried before this one was picked")
+    ap.add_argument("--ppy", type=float, default=None, help="judge: periods per year, to annualise the Sharpe ratio (optional)")
+    ap.add_argument("--block", type=int, default=20, help="judge: bootstrap block length in periods")
+    ap.add_argument("--equity", action="store_true", help="judge: the column is an equity curve, not returns")
     ap.add_argument("--action", default="run", help="lab: run (evaluate every recipe, apply the champion rule, write the report) | report | show")
     ap.add_argument("--capital", type=float, default=None, help="plan: starting amount (default: [general] equity_start)")
     ap.add_argument("--monthly", type=float, default=0.0, help="plan: amount added every 30 days")
@@ -63,6 +70,15 @@ def main(argv=None) -> int:
         from .bench.run import run_bench
 
         run_bench(s, names=a.strategies.split(",") if a.strategies else None)
+        return 0
+    if a.command == "judge":
+        from .lab.judge import format_judgement, judge, load_series
+
+        if not a.returns:
+            print("judge needs --returns <file>")
+            return 1
+        r = load_series(a.returns, a.column, a.equity)
+        print(format_judgement(judge(r, a.trials, a.ppy, a.block), Path(a.returns).name))
         return 0
     if a.command == "lab":
         from .lab.advisor import write_report

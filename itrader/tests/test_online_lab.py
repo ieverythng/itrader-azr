@@ -155,3 +155,24 @@ def test_book_from_exposures_and_listed_market_costs():
     short = backtest(pd.DataFrame({"SPY": -1.0}, index=idx), m, CostModel(etf_cost_bps=0.0, etf_short_borrow_ann=0.0252), "etf")
     assert short.funding.iloc[2] == pytest.approx(-0.0001) and short.gross.iloc[2] == pytest.approx(-(0.01 - 0.0002))
     assert make("macro_trend").bar == "1b" and make("trend_long").params["long_only"] and make("carry_core").params["hurdle_ann"] == 0.04
+
+
+def test_judge_separates_skill_from_luck_and_counts_trials(tmp_path):
+    from itrader.online.lab.judge import format_judgement, judge, load_series
+
+    rng = np.random.default_rng(11)
+    strong, noise = pd.Series(rng.normal(0.002, 0.01, 1500)), pd.Series(rng.normal(0.0, 0.01, 1500))
+    a, b = judge(strong), judge(noise)
+    assert a["significant"] and a["psr"] > 0.99 and a["p_mean_not_positive"] < 0.01
+    assert not b["significant"] and "not" in b["verdict"]
+    weak = pd.Series(rng.normal(0.0008, 0.01, 600))                       # looks good alone, not once the search is counted
+    alone, searched = judge(weak, trials=1), judge(weak, trials=200)
+    assert searched["dsr"] < alone["dsr"] and searched["luck_sharpe_per_period"] > 0 and not searched["significant"]
+    assert judge(pd.Series([0.01, 0.02]))["significant"] is False
+    path = tmp_path / "episodes.jsonl"
+    path.write_text("\n".join(json.dumps({"symbol": "X", "net_return": float(v), "horizon": 96}) for v in strong.head(200)))
+    loaded = load_series(path, "net_return")
+    assert len(loaded) == 200 and "VERDICT" in format_judgement(judge(loaded, trials=8), "episodes.jsonl")
+    eq = tmp_path / "eq.csv"
+    pd.DataFrame({"equity": (1 + strong.head(100)).cumprod()}).to_csv(eq, index=False)
+    assert len(load_series(eq, "equity", equity=True)) == 99
