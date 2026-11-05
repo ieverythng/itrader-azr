@@ -142,7 +142,7 @@ New package `itrader/online/lab/`:
 
 | file | what it is |
 |---|---|
-| `registry.py` | Pre-registered recipes (hypothesis, sleeves, policy, universe) and the selection criteria. Committed before any evaluation (`dbbe1a4`). Add a recipe here to test an idea; it is counted as one more trial. |
+| `registry.py` | Pre-registered recipes (hypothesis, sleeves, policy, universe) and the selection criteria. Committed before any evaluation (`3b54e6f`). Add a recipe here to test an idea; it is counted as one more trial. |
 | `policy.py` | `exposures(policy, past, metas, s, state)`: exposure multiplier per sleeve from past returns only. `steady` (slow gate with memory, equal risk, monthly, 20% band) and `stack` (market-neutral core at its own notional, directional overlay sized by risk, gap budget shared). The same function drives the walk-forward simulation and the live loop. |
 | `evaluate.py` | `Lab.cycle()`: sleeve returns per universe and cost level, walk-forward per recipe, research and vault windows, deflated Sharpe over all trials, eligibility constraints, champion and challenger rule, `ledger.jsonl`, `champion.json`, `league.json`, `returns.parquet`, sleeve returns and metadata for the live loop. |
 | `advisor.py` | `write_report()`: deterministic review from the league, the champion, the ledger and the paper records. |
@@ -174,6 +174,6 @@ around the hurdle in low-funding regimes, visible in the vault; (4) the lab's re
 of one crypto regime: every conclusion is conditional on that.
 
 **Trial 14 (same day).** `R8_stack_core_long` (ten majors, carry core, classic sleeves plus `trend_long`) was registered at
-Roman's request after R0 to R7 had been seen, committed before evaluation (`b4b1ccc`), and replaced R7 under the challenger
+Roman's request after R0 to R7 had been seen, committed before evaluation (`9fd0845`), and replaced R7 under the challenger
 rule (t 1.5): research 17.0% a year at Sharpe 1.30, whole three years 13.3% at 1.04, vault -1.9%. Unconfirmed, and the
 vault has now been opened twice, so treat it as spent. The paper loop runs R8 on the ten-coin universe.

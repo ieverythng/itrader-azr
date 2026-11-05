@@ -43,7 +43,7 @@ seen the answer to.
 You asked for something that notices its mistakes and improves on itself. That is now a module, `itrader/online/lab/`:
 
 1. **Rules first.** Eight experiments, their hypotheses and the way a winner is chosen were written into
-   `lab/registry.py` and committed before any of them was run (commit `dbbe1a4`).
+   `lab/registry.py` and committed before any of them was run (commit `3b54e6f`).
 2. **Walk-forward judging.** Each recipe is run month by month using only what was known at the time, with costs,
    double costs, 2,000 resampled histories and benchmarks.
 3. **Every attempt is counted.** The ledger keeps every trial. Thirteen variants have been tried in all, and every
