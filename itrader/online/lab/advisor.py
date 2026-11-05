@@ -30,6 +30,8 @@ LEVERS = [
     ("R5_stack_wide_long", "R4_stack_wide", "adding long-only trend (market exposure)"),
     ("R6_stack_wide_macro", "R4_stack_wide", "adding trend on 20 ETFs across asset classes"),
     ("R7_stack_wide_all", "R4_stack_wide", "adding both long-only trend and multi-asset trend"),
+    ("R8_stack_core_long", "R3_stack_carry_core", "adding long-only trend on the ten majors (registered after seeing R0 to R7)"),
+    ("R8_stack_core_long", "R5_stack_wide_long", "ten coins instead of 25, with long-only trend in both"),
 ]
 
 

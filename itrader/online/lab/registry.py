@@ -75,6 +75,12 @@ RECIPES: List[Recipe] = [
     Recipe("R7_stack_wide_all",
            "All three additions together: wider universe, long-only trend, multi-asset trend.",
            "stack", "wide25", CLASSIC + ("trend_long", "macro_trend"), core=("carry_core",), label="adds market exposure; survivor universe"),
+    # ---- registered on 5 November AFTER the results of R0 to R7 were seen. It is informed by them, and says so. Trial 14.
+    Recipe("R8_stack_core_long",
+           "The wider universe lowered results (R4 against R3) and long-only trend raised them (R5 against R4). Ten coins with "
+           "long-only trend should therefore beat both. This hypothesis comes from looking at the research window, so a good result "
+           "here is weaker evidence than it would have been if it had been registered with the others.",
+           "stack", "core10", CLASSIC + ("trend_long",), core=("carry_core",), label="adds market exposure; registered after seeing earlier results"),
 ]
 
 # How a winner is chosen. Fixed with the recipes.
