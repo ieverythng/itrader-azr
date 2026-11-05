@@ -117,3 +117,15 @@ def test_full_replay_through_the_loop(tmp_path):
     from itrader.online.dashboard import render_dashboard
 
     assert "<html" in render_dashboard(tmp_path / "run", s)
+
+
+def test_only_full_round_trips_are_reported_as_closed_positions(tmp_path):
+    s = _s(partial_fill_prob=0.0)
+    b = PaperBroker(s, state_path=tmp_path / "b.json", equity_start=10000)
+    for i, (side, qty, px) in enumerate([("buy", 0.1, 50000.0), ("sell", 0.04, 49000.0), ("sell", 0.06, 52000.0)]):
+        b.submit(Order("BTCUSDT", side, qty, qty * px, id=f"o{i}"), px, NOW + timedelta(minutes=i))
+        b.poll(NOW + timedelta(minutes=i, seconds=1), {"BTCUSDT": px})
+    trim, close = b.closed_trades
+    assert trim["full_close"] is False and trim["trip_pnl"] is None and trim["pnl"] < 0          # a trim: not a finished trade
+    assert close["full_close"] is True and close["trip_pnl"] == pytest.approx(trim["pnl"] + close["pnl"]) and close["trip_pnl"] > 0
+    assert "BTCUSDT" not in b.trip_pnl and not b.positions()

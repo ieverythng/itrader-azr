@@ -56,6 +56,7 @@ class PaperBroker(Broker):
         self.avg_cost: Dict[str, float] = {}
         self.realised: Dict[str, float] = {}
         self.last_marks: Dict[str, float] = {}
+        self.trip_pnl: Dict[str, float] = {}          # realised pnl of each open position since it was opened
         self.fees_paid = 0.0
         self.funding_paid = 0.0
         self.funding_keys: List[str] = []
@@ -67,7 +68,7 @@ class PaperBroker(Broker):
 
     # ------------------------------------------------------------------ persistence
     def snapshot(self) -> Dict[str, Any]:
-        return {"cash": self.cash, "pos": self.pos, "avg_cost": self.avg_cost, "realised": self.realised, "last_marks": self.last_marks,
+        return {"cash": self.cash, "pos": self.pos, "avg_cost": self.avg_cost, "realised": self.realised, "last_marks": self.last_marks, "trip_pnl": self.trip_pnl,
                 "fees_paid": self.fees_paid, "funding_paid": self.funding_paid, "funding_keys": self.funding_keys[-50:],
                 "orders": [o.to_dict() for o in self.orders.values() if o.open], "closed_trades": self.closed_trades[-500:]}
 
@@ -85,6 +86,7 @@ class PaperBroker(Broker):
         self.avg_cost = {k: float(v) for k, v in d.get("avg_cost", {}).items()}
         self.realised = {k: float(v) for k, v in d.get("realised", {}).items()}
         self.last_marks = {k: float(v) for k, v in d.get("last_marks", {}).items()}
+        self.trip_pnl = {k: float(v) for k, v in d.get("trip_pnl", {}).items()}
         self.fees_paid = float(d.get("fees_paid", 0.0))
         self.funding_paid = float(d.get("funding_paid", 0.0))
         self.funding_keys = list(d.get("funding_keys", []))
@@ -160,7 +162,13 @@ class PaperBroker(Broker):
             closed = min(abs(signed), abs(prev))
             pnl = closed * (px - self.avg_cost.get(o.symbol, px)) * (1 if prev > 0 else -1) - fee * (closed / qty)
             self.realised[o.symbol] = self.realised.get(o.symbol, 0.0) + pnl
-            self.closed_trades.append({"ts": now.isoformat(timespec="seconds"), "symbol": o.symbol, "qty": closed, "pnl": pnl, "reason": o.reason, "order_id": o.id})
+            # a "round trip" ends when the position is back to zero or flips; until then reductions only add to its running pnl
+            self.trip_pnl[o.symbol] = self.trip_pnl.get(o.symbol, 0.0) + pnl
+            full = abs(new) < 1e-12 or (new * prev) < 0
+            self.closed_trades.append({"ts": now.isoformat(timespec="seconds"), "symbol": o.symbol, "qty": closed, "pnl": pnl, "reason": o.reason, "order_id": o.id,
+                                       "full_close": bool(full), "trip_pnl": float(self.trip_pnl[o.symbol]) if full else None})
+            if full:
+                self.trip_pnl.pop(o.symbol, None)
             if abs(new) < 1e-12 or (new * prev) < 0:
                 self.avg_cost[o.symbol] = px if abs(new) > 1e-12 else 0.0
         else:

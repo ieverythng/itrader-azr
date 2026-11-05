@@ -163,6 +163,7 @@ class RiskEngine:
         st = self.state
         self._event("unlock", now, previous=st.lock_reason, peak_from=st.peak_equity, peak_to=st.equity)
         st.locked_until, st.lock_reason = None, ""
+        st.cooldown_until, st.cooldown_reason, st.loss_streak = None, "", 0     # an operator unlock clears a cooldown too
         st.peak_equity = st.equity
         st.day_start_equity, st.realised_today = st.equity, 0.0
         self.save()

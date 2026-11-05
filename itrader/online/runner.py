@@ -28,7 +28,7 @@ from .alerts import Alerts
 from .bench.engine import funding_per_bar
 from .contracts import candidate_id
 from .data.store import DataStore
-from .data.universe import SPOT_SUFFIX, is_crypto, leg_symbol
+from .data.universe import SPOT_SUFFIX, base_asset, is_crypto, is_spot, leg_symbol
 from .execution import Executor, PaperBroker
 from .framer import MarketFramer
 from .gate import DecisionGate
@@ -291,8 +291,14 @@ class PaperRunner:
         # closed trades feed the cooldown rules (loss streaks); a flatten by the risk engine counts as a stop-out
         seen = int(self.state.get("closed_trades_seen", 0))
         new_trades = self.broker.closed_trades[seen:] if hasattr(self.broker, "closed_trades") else []
+        # The streak rule is about directional round trips: a position opened and fully closed. A trim made by rebalancing
+        # is not a losing trade, and neither is one leg of a hedged pair (one leg of a carry trade is nearly always "down").
+        hedged = {base_asset(t_["symbol"]) for t_ in new_trades if is_spot(t_["symbol"])} | {base_asset(x) for x in self.broker.positions() if is_spot(x)}
         for tr in new_trades:
-            self.risk.on_trade_closed(float(tr.get("pnl", 0.0)), now, stopped=bool(verdict.flatten and not self._kill_present()))
+            if not tr.get("full_close") or base_asset(tr["symbol"]) in hedged:
+                continue
+            pnl = tr.get("trip_pnl")
+            self.risk.on_trade_closed(float(pnl if pnl is not None else tr.get("pnl", 0.0)), now, stopped=bool(verdict.flatten and not self._kill_present()))
         self.state["closed_trades_seen"] = seen + len(new_trades)
 
         # funding on perps at settlement bars (8h) in paper
