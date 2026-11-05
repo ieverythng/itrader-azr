@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- macOS LaunchAgent for the paper loop. Do not load this file directly: run
+     bash itrader/online/ops/install_launchd.sh   which fills in __REPO__ and loads it.
+     It starts the loop at login, restarts it if it exits, and keeps the Mac from idle sleep while it runs.
+     It cannot keep a lid-closed laptop on battery awake; nothing can. Paper mode needs no secrets. -->
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.itrader.online.paper</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/caffeinate</string><string>-i</string><string>-s</string>
+    <string>__REPO__/.venv/bin/python</string><string>-u</string><string>-W</string><string>ignore</string>
+    <string>-m</string><string>itrader.online</string><string>paper</string>
+  </array>
+  <key>WorkingDirectory</key><string>__REPO__</string>
+  <key>RunAtLoad</key><true/>
+  <key>KeepAlive</key><true/>
+  <key>ThrottleInterval</key><integer>60</integer>
+  <key>StandardOutPath</key><string>__REPO__/data/online/runs/paper.log</string>
+  <key>StandardErrorPath</key><string>__REPO__/data/online/runs/paper.log</string>
+</dict>
+</plist>
