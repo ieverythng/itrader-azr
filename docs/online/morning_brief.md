@@ -2,6 +2,33 @@
 
 Roman, the numbers went up, by a lot, and I can show you exactly why and exactly how far to trust them.
 
+## Update, same day: trial 14 is the new champion
+
+You approved one more experiment, registered before it was run: the ten original coins, carry as the core, the
+classic sleeves and long-only trend on top (`R8_stack_core_long`). Under the lab's own rule it replaced the champion
+described below (its daily returns beat R7's with a t-statistic of 1.5).
+
+| | per year | vol | Sharpe | worst DD | at 2x costs | last six months (vault) |
+|---|---|---|---|---|---|---|
+| R7, the previous champion | 11.0% | 8.9% | 1.21 | -8.7% | 0.68 | -1.0% |
+| **R8, the champion now** | **17.0%** | **12.8%** | **1.30** | **-8.2%** | **1.00** | **-1.9%** |
+
+Over the whole three years out of sample R8 comes to **13.3% a year at a Sharpe of 1.04**, worst drawdown -8.2%.
+Resampled, the research record runs from 3.0% a year in the bad case to 35.5% in the good case, median 16.6%.
+The five-year middle of your plan (1,000 plus 200 a month) rises to 18,400 against 13,000 paid in.
+
+Read it with three cautions, each heavier than for R7:
+
+* **The vault said no again:** -1.9% over the last six months. Two champions, two losing vaults. The recent market has
+  not paid this style, and carry in particular has cost money since May.
+* **This idea came from looking at the results.** That makes its research figure weaker evidence than the others'. After
+  14 trials the probability it beats luck is 62%; established needs 90%.
+* **The vault has now been opened twice.** It is no longer an untouched test. From here the only clean evidence is the
+  paper record going forward.
+
+About 7 of the 17 points come from long-only trend, which is owning crypto while it rises. The paper loop now runs R8.
+Everything below describes the round that led here and still holds, except that R7 is no longer the champion.
+
 ## The one paragraph to read
 
 Over the same three years, every day out of sample, the portfolio went **from 1.6% a year at a Sharpe of 0.21

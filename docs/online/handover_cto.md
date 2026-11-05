@@ -172,3 +172,8 @@ Things I would look at first if this were mine: (1) the survivor universe: rebui
 listings; (2) the macro sleeve's instrument: it needs a real margined venue and its own cost model; (3) carry's churn
 around the hurdle in low-funding regimes, visible in the vault; (4) the lab's research window is two and a half years
 of one crypto regime: every conclusion is conditional on that.
+
+**Trial 14 (same day).** `R8_stack_core_long` (ten majors, carry core, classic sleeves plus `trend_long`) was registered at
+Roman's request after R0 to R7 had been seen, committed before evaluation (`b4b1ccc`), and replaced R7 under the challenger
+rule (t 1.5): research 17.0% a year at Sharpe 1.30, whole three years 13.3% at 1.04, vault -1.9%. Unconfirmed, and the
+vault has now been opened twice, so treat it as spent. The paper loop runs R8 on the ten-coin universe.
